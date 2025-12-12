@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Building2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Building2, Eye, EyeOff } from 'lucide-react';
 
 export default function DepartmentManagement() {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +55,11 @@ export default function DepartmentManagement() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Department.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['departments']),
+  });
+
+  const toggleHiddenMutation = useMutation({
+    mutationFn: ({ id, is_hidden }) => base44.entities.Department.update(id, { is_hidden }),
     onSuccess: () => queryClient.invalidateQueries(['departments']),
   });
 
@@ -155,12 +160,13 @@ export default function DepartmentManagement() {
                   <TableHead>部門名稱</TableHead>
                   <TableHead>排序</TableHead>
                   <TableHead>員工人數</TableHead>
-                  <TableHead className="w-[100px]">操作</TableHead>
+                  <TableHead>狀態</TableHead>
+                  <TableHead className="w-[120px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {departments.map((dept) => (
-                  <TableRow key={dept.id}>
+                  <TableRow key={dept.id} className={dept.is_hidden ? 'opacity-50' : ''}>
                     <TableCell className="font-medium">{dept.name}</TableCell>
                     <TableCell className="text-gray-500">{dept.sort_order}</TableCell>
                     <TableCell>
@@ -169,7 +175,27 @@ export default function DepartmentManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        dept.is_hidden ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {dept.is_hidden ? '已隱藏' : '顯示中'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleHiddenMutation.mutate({ id: dept.id, is_hidden: !dept.is_hidden })}
+                          className="h-8 w-8"
+                          title={dept.is_hidden ? '顯示部門' : '隱藏部門'}
+                        >
+                          {dept.is_hidden ? (
+                            <Eye className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <EyeOff className="w-4 h-4 text-gray-500" />
+                          )}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"

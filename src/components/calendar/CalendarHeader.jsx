@@ -49,10 +49,11 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
   };
 
   const handleSelectAll = () => {
-    if (selectedDepartments.length === departments.length) {
+    const visibleDepartments = departments.filter(d => !d.is_hidden);
+    if (selectedDepartments.length === visibleDepartments.length) {
       onDepartmentsChange([]);
     } else {
-      onDepartmentsChange(departments.map(d => d.id));
+      onDepartmentsChange(visibleDepartments.map(d => d.id));
     }
   };
 
@@ -112,12 +113,12 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
             size="sm"
             onClick={handleSelectAll}
             className="h-8"
-          >
-            {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
-          </Button>
+            >
+            {selectedDepartments.length === departments.filter(d => !d.is_hidden).length ? '取消全選' : '全選'}
+            </Button>
         </div>
         <div className="flex flex-wrap gap-3">
-          {departments.map((dept) => (
+          {departments.filter(d => !d.is_hidden).map((dept) => (
             <label
               key={dept.id}
               className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md border border-gray-200"
