@@ -36,11 +36,19 @@ export default function LeaveCalendar() {
     queryFn: async () => {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
-      const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-      const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
-      return base44.entities.LeaveRecord.filter({
-        date: { $gte: startDate, $lte: endDate }
-      });
+      if (month === -1) {
+        const startDate = `${year}-01-01`;
+        const endDate = `${year}-12-31`;
+        return base44.entities.LeaveRecord.filter({
+          date: { $gte: startDate, $lte: endDate }
+        });
+      } else {
+        const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+        return base44.entities.LeaveRecord.filter({
+          date: { $gte: startDate, $lte: endDate }
+        });
+      }
     },
   });
 

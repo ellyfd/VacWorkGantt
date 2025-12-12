@@ -15,23 +15,37 @@ export default function LeaveCalendarTable({
   onUpdateLeave,
   onDeleteLeave
 }) {
-  const daysInMonth = getDaysInMonth(currentDate);
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   
-  const days = Array.from({ length: daysInMonth }, (_, i) => {
-    const date = new Date(year, month, i + 1);
-    const dayOfWeek = getDay(date);
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const isHoliday = holidays?.some(h => h.date === dateStr);
-    return {
-      day: i + 1,
-      date: dateStr,
-      weekday: WEEKDAY_NAMES[dayOfWeek],
-      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      isHoliday
-    };
-  });
+  const days = month === -1 
+    ? Array.from({ length: 365 }, (_, i) => {
+        const date = new Date(year, 0, i + 1);
+        const dayOfWeek = getDay(date);
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const isHoliday = holidays?.some(h => h.date === dateStr);
+        return {
+          day: date.getDate(),
+          month: date.getMonth() + 1,
+          date: dateStr,
+          weekday: WEEKDAY_NAMES[dayOfWeek],
+          isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+          isHoliday
+        };
+      })
+    : Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => {
+        const date = new Date(year, month, i + 1);
+        const dayOfWeek = getDay(date);
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const isHoliday = holidays?.some(h => h.date === dateStr);
+        return {
+          day: i + 1,
+          date: dateStr,
+          weekday: WEEKDAY_NAMES[dayOfWeek],
+          isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+          isHoliday
+        };
+      });
 
   const getLeaveRecord = (employeeId, date) => {
     return leaveRecords.find(
@@ -61,14 +75,14 @@ export default function LeaveCalendarTable({
             <th className="sticky left-[160px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[60px]">
               職代
             </th>
-            {days.map((d) => (
+            {days.map((d, idx) => (
               <th 
-                key={d.day} 
+                key={idx} 
                 className={`px-1 py-2 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[32px] ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
                 }`}
               >
-                <div>{d.day}</div>
+                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
                 <div className="text-[10px] font-normal">{d.weekday}</div>
               </th>
             ))}
@@ -93,10 +107,10 @@ export default function LeaveCalendarTable({
                 <td className="sticky left-[160px] z-10 bg-white px-3 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
                   {emp.code || '-'}
                 </td>
-                {days.map((d) => {
+                {days.map((d, idx) => {
                   const record = getLeaveRecord(emp.id, d.date);
                   return (
-                    <td key={d.day} className="p-0">
+                    <td key={idx} className="p-0">
                       <LeaveCell
                         record={record}
                         leaveTypes={leaveTypes}

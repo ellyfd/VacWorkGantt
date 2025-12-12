@@ -70,6 +70,7 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="-1">全年</SelectItem>
               {months.map((month) => (
                 <SelectItem key={month} value={month.toString()}>{month + 1}月</SelectItem>
               ))}
