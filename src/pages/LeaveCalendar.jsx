@@ -34,8 +34,29 @@ export default function LeaveCalendar() {
 
   const { data: employees = [], isLoading: loadingEmps } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
+    queryFn: () => base44.entities.Employee.list('sort_order'),
   });
+
+  const updateEmployeeOrderMutation = useMutation({
+    mutationFn: async (updates) => {
+      await Promise.all(
+        updates.map(({ id, sort_order }) => 
+          base44.entities.Employee.update(id, { sort_order })
+        )
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['employees']);
+    },
+  });
+
+  const handleReorderEmployees = (reorderedEmployees) => {
+    const updates = reorderedEmployees.map((emp, index) => ({
+      id: emp.id,
+      sort_order: index
+    }));
+    updateEmployeeOrderMutation.mutate(updates);
+  };
 
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
     queryKey: ['leaveTypes'],
@@ -220,6 +241,7 @@ export default function LeaveCalendar() {
             setSelectedEmployee(emp);
             setRangeDialogOpen(true);
           }}
+          onReorderEmployees={handleReorderEmployees}
         />
 
         {employees.length === 0 && (
