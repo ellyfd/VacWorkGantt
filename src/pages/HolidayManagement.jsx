@@ -106,6 +106,7 @@ export default function HolidayManagement() {
               <SelectItem value="all">所有年度</SelectItem>
               <SelectItem value="2025">2025年</SelectItem>
               <SelectItem value="2026">2026年</SelectItem>
+              <SelectItem value="2027">2027年</SelectItem>
             </SelectContent>
           </Select>
 
