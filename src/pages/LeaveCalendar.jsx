@@ -5,11 +5,23 @@ import { Loader2 } from 'lucide-react';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import LeaveLegend from '@/components/calendar/LeaveLegend';
+import ProfileSetup from '@/components/ProfileSetup';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: currentUser, isLoading: loadingUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+    onSuccess: (user) => {
+      if (!user.department_id || !user.employee_id) {
+        setShowProfileSetup(true);
+      }
+    },
+  });
 
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
     queryKey: ['departments'],
@@ -89,7 +101,7 @@ export default function LeaveCalendar() {
     deleteLeaveMutation.mutate(recordId);
   };
 
-  const isLoading = loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
+  const isLoading = loadingUser || loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
 
   if (isLoading) {
     return (
@@ -104,6 +116,10 @@ export default function LeaveCalendar() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      <ProfileSetup 
+        isOpen={showProfileSetup} 
+        onComplete={() => setShowProfileSetup(false)} 
+      />
       <div className="max-w-full mx-auto">
         <CalendarHeader 
           currentDate={currentDate} 
