@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { CalendarRange, ChevronUp, ChevronDown } from "lucide-react";
+import { CalendarRange } from "lucide-react";
 import LeaveCell from "./LeaveCell";
 import RangeLeaveDialog from "./RangeLeaveDialog";
 
@@ -17,8 +17,7 @@ export default function LeaveCalendarTable({
   holidays,
   onUpdateLeave,
   onDeleteLeave,
-  onRangeLeave,
-  onUpdateEmployeeOrder
+  onRangeLeave
 }) {
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -82,17 +81,6 @@ export default function LeaveCalendarTable({
     setSelectedEmployee(null);
   };
 
-  const handleMoveEmployee = (deptId, empId, direction) => {
-    const deptEmployees = employees.filter(e => e.department_id === deptId);
-    const currentIndex = deptEmployees.findIndex(e => e.id === empId);
-    
-    if (direction === 'up' && currentIndex > 0) {
-      onUpdateEmployeeOrder(empId, deptEmployees[currentIndex - 1].id);
-    } else if (direction === 'down' && currentIndex < deptEmployees.length - 1) {
-      onUpdateEmployeeOrder(empId, deptEmployees[currentIndex + 1].id);
-    }
-  };
-
   return (
     <>
       <RangeLeaveDialog
@@ -148,27 +136,7 @@ export default function LeaveCalendarTable({
                 )}
                 <td className="sticky left-[80px] z-10 bg-white px-3 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
                   <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-1">
-                      <div className="flex flex-col">
-                        <button
-                          onClick={() => handleMoveEmployee(dept.id, emp.id, 'up')}
-                          disabled={empIdx === 0}
-                          className="h-3 w-4 flex items-center justify-center hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                          title="上移"
-                        >
-                          <ChevronUp className="h-3 w-3 text-gray-500" />
-                        </button>
-                        <button
-                          onClick={() => handleMoveEmployee(dept.id, emp.id, 'down')}
-                          disabled={empIdx === deptEmployees.length - 1}
-                          className="h-3 w-4 flex items-center justify-center hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                          title="下移"
-                        >
-                          <ChevronDown className="h-3 w-3 text-gray-500" />
-                        </button>
-                      </div>
-                      <span>{emp.name}</span>
-                    </div>
+                    <span>{emp.name}</span>
                     <Button
                       variant="outline"
                       size="icon"
