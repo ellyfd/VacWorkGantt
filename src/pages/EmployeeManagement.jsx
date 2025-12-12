@@ -552,6 +552,7 @@ export default function EmployeeManagement() {
                     <SelectItem value={null}>不修改</SelectItem>
                     <SelectItem value="active">在職</SelectItem>
                     <SelectItem value="inactive">離職</SelectItem>
+                    <SelectItem value="parental_leave">育嬰假</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
