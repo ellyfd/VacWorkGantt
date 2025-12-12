@@ -162,7 +162,6 @@ export default function LeaveCalendar() {
             <li>• <span className="font-medium">單擊格子</span>：選擇假別</li>
             <li>• <span className="font-medium">雙擊格子</span>：取消請假</li>
             <li>• <span className="font-medium">區間請假</span>：點擊員工姓名旁的 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
-            <li>• <span className="font-medium">鍵盤Delete鍵</span>：刪除選中的請假（需先聚焦格子）</li>
           </ul>
         </div>
         
