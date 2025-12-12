@@ -2,9 +2,8 @@ import React from 'react';
 import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { CalendarRange, GripVertical } from "lucide-react";
+import { CalendarRange, ChevronUp, ChevronDown } from "lucide-react";
 import LeaveCell from "./LeaveCell";
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -66,22 +65,19 @@ export default function LeaveCalendarTable({
     onDeleteLeave(recordId);
   };
 
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
-    
-    const departmentId = result.source.droppableId;
-    const sourceIndex = result.source.index;
-    const destinationIndex = result.destination.index;
-    
-    if (sourceIndex === destinationIndex) return;
-    
-    onReorderEmployees(departmentId, sourceIndex, destinationIndex);
+  const handleMoveUp = (deptId, empIdx) => {
+    if (empIdx === 0) return;
+    onReorderEmployees(deptId, empIdx, empIdx - 1);
+  };
+
+  const handleMoveDown = (deptId, empIdx, totalCount) => {
+    if (empIdx === totalCount - 1) return;
+    onReorderEmployees(deptId, empIdx, empIdx + 1);
   };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
-        <table className="min-w-full">
+    <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+      <table className="min-w-full">
           <thead>
             <tr className="bg-gray-50">
               <th className="sticky left-0 z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[80px]">
@@ -109,81 +105,75 @@ export default function LeaveCalendarTable({
         <tbody>
           {departments.map((dept) => {
             const deptEmployees = employees.filter(e => e.department_id === dept.id);
-            return (
-              <Droppable key={dept.id} droppableId={dept.id}>
-                {(provided) => (
-                  <React.Fragment>
-                    <tr ref={provided.innerRef} style={{ display: 'none' }}>
-                      <td></td>
-                    </tr>
-                    {deptEmployees.map((emp, empIdx) => (
-                      <Draggable key={emp.id} draggableId={emp.id} index={empIdx}>
-                        {(provided, snapshot) => (
-                          <tr 
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`hover:bg-gray-50/50 ${snapshot.isDragging ? 'bg-blue-50' : ''}`}
-                          >
-                            {empIdx === 0 && (
-                              <td 
-                                className="sticky left-0 z-10 bg-white px-3 py-1 text-sm font-medium text-gray-700 border-r border-b border-gray-200"
-                                rowSpan={deptEmployees.length}
-                              >
-                                {dept.name}
-                              </td>
-                            )}
-                            <td className="sticky left-[80px] z-10 bg-white px-2 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
-                              <div className="flex items-center justify-between gap-1">
-                                <div className="flex items-center gap-1">
-                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                    <GripVertical className="h-4 w-4 text-gray-400" />
-                                  </div>
-                                  <span>{emp.name}</span>
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-6 w-6 bg-blue-50 hover:bg-blue-100 border-blue-200"
-                                  onClick={() => onOpenRangeDialog(emp)}
-                                  title="區間請假/取消"
-                                >
-                                  <CalendarRange className="h-3 w-3 text-blue-600" />
-                                </Button>
-                              </div>
-                            </td>
-                            <td className="sticky left-[180px] z-10 bg-white px-3 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
-                              {emp.code || '-'}
-                            </td>
-                            {days.map((d, idx) => {
-                              const record = getLeaveRecord(emp.id, d.date);
-                              return (
-                                <td key={idx} className="p-0">
-                                  <LeaveCell
-                                    record={record}
-                                    leaveTypes={leaveTypes}
-                                    isWeekend={d.isWeekend}
-                                    isHoliday={d.isHoliday}
-                                    onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
-                                    onClearLeave={() => record && handleClearLeave(record.id)}
-                                  />
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        )}
-                      </Draggable>
-                    ))}
-                    <tr style={{ display: 'none' }}>
-                      <td>{provided.placeholder}</td>
-                    </tr>
-                  </React.Fragment>
+            return deptEmployees.map((emp, empIdx) => (
+              <tr key={emp.id} className="hover:bg-gray-50/50">
+                {empIdx === 0 && (
+                  <td 
+                    className="sticky left-0 z-10 bg-white px-3 py-1 text-sm font-medium text-gray-700 border-r border-b border-gray-200"
+                    rowSpan={deptEmployees.length}
+                  >
+                    {dept.name}
+                  </td>
                 )}
-              </Droppable>
-            );
+                <td className="sticky left-[80px] z-10 bg-white px-2 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center gap-1">
+                      <div className="flex flex-col">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-4 w-4 p-0 hover:bg-gray-200"
+                          onClick={() => handleMoveUp(dept.id, empIdx)}
+                          disabled={empIdx === 0}
+                        >
+                          <ChevronUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-4 w-4 p-0 hover:bg-gray-200"
+                          onClick={() => handleMoveDown(dept.id, empIdx, deptEmployees.length)}
+                          disabled={empIdx === deptEmployees.length - 1}
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <span>{emp.name}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6 bg-blue-50 hover:bg-blue-100 border-blue-200"
+                      onClick={() => onOpenRangeDialog(emp)}
+                      title="區間請假/取消"
+                    >
+                      <CalendarRange className="h-3 w-3 text-blue-600" />
+                    </Button>
+                  </div>
+                </td>
+                <td className="sticky left-[180px] z-10 bg-white px-3 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
+                  {emp.code || '-'}
+                </td>
+                {days.map((d, idx) => {
+                  const record = getLeaveRecord(emp.id, d.date);
+                  return (
+                    <td key={idx} className="p-0">
+                      <LeaveCell
+                        record={record}
+                        leaveTypes={leaveTypes}
+                        isWeekend={d.isWeekend}
+                        isHoliday={d.isHoliday}
+                        onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
+                        onClearLeave={() => record && handleClearLeave(record.id)}
+                      />
+                    </td>
+                  );
+                })}
+              </tr>
+            ));
           })}
         </tbody>
       </table>
-      </div>
-    </DragDropContext>
+    </div>
       );
       }
