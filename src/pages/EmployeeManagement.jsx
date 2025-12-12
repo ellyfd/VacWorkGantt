@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,7 +46,7 @@ export default function EmployeeManagement() {
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
+    queryFn: () => base44.entities.Employee.list('sort_order'),
   });
 
   const createMutation = useMutation({
@@ -89,6 +89,28 @@ export default function EmployeeManagement() {
       setBulkEditData({ department_id: '', status: '' });
     },
   });
+
+  const moveEmployee = async (empId, direction) => {
+    const empIndex = filteredEmployees.findIndex(e => e.id === empId);
+    if (empIndex === -1) return;
+    
+    if (direction === 'up' && empIndex === 0) return;
+    if (direction === 'down' && empIndex === filteredEmployees.length - 1) return;
+    
+    const targetIndex = direction === 'up' ? empIndex - 1 : empIndex + 1;
+    const currentEmp = filteredEmployees[empIndex];
+    const targetEmp = filteredEmployees[targetIndex];
+    
+    const currentOrder = currentEmp.sort_order || empIndex;
+    const targetOrder = targetEmp.sort_order || targetIndex;
+    
+    await Promise.all([
+      base44.entities.Employee.update(currentEmp.id, { sort_order: targetOrder }),
+      base44.entities.Employee.update(targetEmp.id, { sort_order: currentOrder })
+    ]);
+    
+    queryClient.invalidateQueries(['employees']);
+  };
 
   const handleOpenDialog = (employee = null) => {
     if (employee) {
@@ -460,7 +482,7 @@ export default function EmployeeManagement() {
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
-                  <TableHead className="w-[100px]">操作</TableHead>
+                  <TableHead className="w-[150px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -492,6 +514,24 @@ export default function EmployeeManagement() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveEmployee(emp.id, 'up')}
+                          className="h-8 w-8"
+                          disabled={filteredEmployees.indexOf(emp) === 0}
+                        >
+                          <ChevronUp className="w-4 h-4 text-gray-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveEmployee(emp.id, 'down')}
+                          className="h-8 w-8"
+                          disabled={filteredEmployees.indexOf(emp) === filteredEmployees.length - 1}
+                        >
+                          <ChevronDown className="w-4 h-4 text-gray-500" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
