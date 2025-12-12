@@ -9,7 +9,8 @@ import LeaveLegend from '@/components/calendar/LeaveLegend';
 import ProfileSetup from '@/components/ProfileSetup';
 
 export default function LeaveCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedYears, setSelectedYears] = useState([2025]);
+  const [selectedMonths, setSelectedMonths] = useState([]);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const queryClient = useQueryClient();
@@ -45,23 +46,31 @@ export default function LeaveCalendar() {
   });
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
-    queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth()],
+    queryKey: ['leaveRecords', selectedYears, selectedMonths],
     queryFn: async () => {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      if (month === -1) {
-        const startDate = `${year}-01-01`;
-        const endDate = `${year}-12-31`;
-        return base44.entities.LeaveRecord.filter({
-          date: { $gte: startDate, $lte: endDate }
-        });
-      } else {
-        const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-        const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
-        return base44.entities.LeaveRecord.filter({
-          date: { $gte: startDate, $lte: endDate }
-        });
-      }
+      if (selectedYears.length === 0) return [];
+      
+      const filters = [];
+      selectedYears.forEach(year => {
+        if (selectedMonths.length === 0) {
+          filters.push({
+            date: { $gte: `${year}-01-01`, $lte: `${year}-12-31` }
+          });
+        } else {
+          selectedMonths.forEach(month => {
+            const monthStr = String(month + 1).padStart(2, '0');
+            filters.push({
+              date: { $gte: `${year}-${monthStr}-01`, $lte: `${year}-${monthStr}-31` }
+            });
+          });
+        }
+      });
+      
+      const allRecords = await Promise.all(
+        filters.map(filter => base44.entities.LeaveRecord.filter(filter))
+      );
+      
+      return allRecords.flat();
     },
   });
 
@@ -149,8 +158,10 @@ export default function LeaveCalendar() {
       />
       <div className="max-w-full mx-auto">
         <CalendarHeader 
-          currentDate={currentDate} 
-          onDateChange={setCurrentDate}
+          selectedYears={selectedYears}
+          onYearsChange={setSelectedYears}
+          selectedMonths={selectedMonths}
+          onMonthsChange={setSelectedMonths}
           departments={departments}
           selectedDepartments={selectedDepartments}
           onDepartmentsChange={setSelectedDepartments}
@@ -168,7 +179,8 @@ export default function LeaveCalendar() {
         <LeaveLegend leaveTypes={leaveTypes} />
         
         <LeaveCalendarTable
-          currentDate={currentDate}
+          selectedYears={selectedYears}
+          selectedMonths={selectedMonths}
           departments={selectedDepartments.length === 0 ? departments : departments.filter(d => selectedDepartments.includes(d.id))}
           employees={employees}
           leaveRecords={leaveRecords}
