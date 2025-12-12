@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', code: '', department_id: '' });
+  const [formData, setFormData] = useState({ name: '', code: '', department_id: '', status: 'active' });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const queryClient = useQueryClient();
@@ -74,10 +74,11 @@ export default function EmployeeManagement() {
         name: employee.name,
         code: employee.code || '',
         department_id: employee.department_id,
+        status: employee.status || 'active',
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', code: '', department_id: departments[0]?.id || '' });
+      setFormData({ name: '', code: '', department_id: departments[0]?.id || '', status: 'active' });
     }
     setIsOpen(true);
   };
@@ -85,7 +86,7 @@ export default function EmployeeManagement() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', code: '', department_id: '' });
+    setFormData({ name: '', code: '', department_id: '', status: 'active' });
   };
 
   const handleSubmit = (e) => {
@@ -173,7 +174,8 @@ export default function EmployeeManagement() {
           employeesToCreate.push({
             name,
             code: code || '',
-            department_id: dept.id
+            department_id: dept.id,
+            status: 'active'
           });
         }
       }
@@ -290,6 +292,21 @@ export default function EmployeeManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="status">在職狀態</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => setFormData({ ...formData, status: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="選擇狀態" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">在職</SelectItem>
+                      <SelectItem value="inactive">離職</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={handleCloseDialog}>
                     取消
@@ -361,6 +378,7 @@ export default function EmployeeManagement() {
                   <TableHead>姓名</TableHead>
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
+                  <TableHead>在職狀態</TableHead>
                   <TableHead className="w-[100px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -370,6 +388,15 @@ export default function EmployeeManagement() {
                     <TableCell className="font-medium">{emp.name}</TableCell>
                     <TableCell className="text-gray-500">{emp.code || '-'}</TableCell>
                     <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
+                    <TableCell>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        emp.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {emp.status === 'active' ? '在職' : '離職'}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         <Button
