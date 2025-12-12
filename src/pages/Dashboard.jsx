@@ -12,6 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import ProfileSetup from '@/components/ProfileSetup';
 
 export default function Dashboard() {
@@ -172,10 +180,12 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
-            {format(new Date(selectedDate), 'MM月dd日 (EEEE)', { locale: zhTW })} 休假人員
-          </h2>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-800">
+              {format(new Date(selectedDate), 'MM月dd日 (EEEE)', { locale: zhTW })} 休假人員
+            </h2>
+          </div>
 
           {totalOnLeave === 0 ? (
             <div className="text-center py-12 text-gray-500">
@@ -183,43 +193,50 @@ export default function Dashboard() {
               <p>今日無休假人員</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {Object.entries(leavesByDept).map(([deptName, leaves]) => (
-                <div key={deptName}>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <div className="w-1 h-4 bg-blue-500 rounded" />
-                    {deptName}
-                    <span className="text-xs font-normal text-gray-500">({leaves.length}人)</span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {leaves.map((leave) => {
-                      const leaveType = getLeaveType(leave.leave_type_id);
-                      return (
-                        <div
-                          key={leave.id}
-                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100"
-                        >
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead>部門</TableHead>
+                  <TableHead>姓名</TableHead>
+                  <TableHead>職代</TableHead>
+                  <TableHead>假別</TableHead>
+                  <TableHead>備註</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {todayLeaves.map((leave) => {
+                  const emp = employees.find(e => e.id === leave.employee_id);
+                  const leaveType = getLeaveType(leave.leave_type_id);
+                  return (
+                    <TableRow key={leave.id}>
+                      <TableCell className="font-medium">
+                        {getDepartmentName(leave.employee_id)}
+                      </TableCell>
+                      <TableCell>
+                        {emp ? emp.name : '-'}
+                      </TableCell>
+                      <TableCell className="text-gray-500">
+                        {emp?.code || '-'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
                           {leaveType && (
                             <div
-                              className="w-3 h-3 rounded-full flex-shrink-0"
+                              className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: leaveType.color }}
                             />
                           )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-800 truncate">
-                              {getEmployeeName(leave.employee_id)}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {leaveType ? leaveType.name : '-'}
-                            </p>
-                          </div>
+                          <span>{leaveType ? leaveType.name : '-'}</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
+                      </TableCell>
+                      <TableCell className="text-gray-500 text-sm">
+                        {leave.note || '-'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </div>
       </div>
