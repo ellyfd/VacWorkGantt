@@ -15,10 +15,13 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
 
   return (
     <div className="flex items-center justify-between mb-6">
-      <h1 className="text-2xl font-bold text-gray-800">
-        排休登記表
-      </h1>
-      <div className="flex items-center gap-4">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">排休登記表</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {format(currentDate, "yyyy年 M月", { locale: zhTW })}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="icon"
@@ -27,9 +30,6 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <span className="text-lg font-semibold min-w-[140px] text-center">
-          {format(currentDate, "yyyy年 M月", { locale: zhTW })}
-        </span>
         <Button
           variant="outline"
           size="icon"
