@@ -34,7 +34,7 @@ export default function LeaveCalendar() {
 
   const { data: employees = [], isLoading: loadingEmps } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('sort_order'),
+    queryFn: () => base44.entities.Employee.list('name'),
   });
 
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
