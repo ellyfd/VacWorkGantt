@@ -26,12 +26,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Users, Upload } from 'lucide-react';
 
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [formData, setFormData] = useState({ name: '', code: '', department_id: '' });
+  const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: departments = [] } = useQuery({
@@ -99,6 +100,68 @@ export default function EmployeeManagement() {
     return departments.find(d => d.id === deptId)?.name || '-';
   };
 
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      // Upload file
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Extract data from file
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            employees: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  code: { type: "string" },
+                  department_name: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (result.status === 'success' && result.output?.employees) {
+        // Map department names to IDs
+        const employeesToCreate = result.output.employees
+          .map(emp => {
+            const dept = departments.find(d => d.name === emp.department_name);
+            if (!dept) return null;
+            return {
+              name: emp.name,
+              code: emp.code || '',
+              department_id: dept.id
+            };
+          })
+          .filter(emp => emp !== null);
+
+        if (employeesToCreate.length > 0) {
+          await base44.entities.Employee.bulkCreate(employeesToCreate);
+          queryClient.invalidateQueries(['employees']);
+          alert(`成功匯入 ${employeesToCreate.length} 位員工`);
+        } else {
+          alert('找不到符合的部門，請確認 Excel 中的部門名稱');
+        }
+      } else {
+        alert('檔案讀取失敗：' + (result.details || '未知錯誤'));
+      }
+    } catch (error) {
+      alert('匯入失敗：' + error.message);
+    } finally {
+      setIsUploading(false);
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -109,13 +172,42 @@ export default function EmployeeManagement() {
             </div>
             <h1 className="text-2xl font-bold text-gray-800">員工管理</h1>
           </div>
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                新增員工
+          <div className="flex gap-2">
+            <label htmlFor="excel-upload">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isUploading}
+                onClick={() => document.getElementById('excel-upload').click()}
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    匯入中...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Excel 匯入
+                  </>
+                )}
               </Button>
-            </DialogTrigger>
+            </label>
+            <input
+              id="excel-upload"
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  新增員工
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{editingEmployee ? '編輯員工' : '新增員工'}</DialogTitle>
@@ -169,6 +261,16 @@ export default function EmployeeManagement() {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-blue-800">
+            <strong>Excel 匯入格式說明：</strong>Excel 檔案需包含以下欄位：<br />
+            • <strong>name</strong> (姓名) - 必填<br />
+            • <strong>code</strong> (代號) - 選填<br />
+            • <strong>department_name</strong> (部門名稱) - 必填，需與系統中的部門名稱完全一致
+          </p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
