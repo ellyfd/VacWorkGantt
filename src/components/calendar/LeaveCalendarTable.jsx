@@ -66,9 +66,11 @@ export default function LeaveCalendarTable({
     onDeleteLeave(recordId);
   };
 
-  const handleDragEnd = (result, departmentId) => {
+  const handleDragEnd = (result) => {
     if (!result.destination) return;
+    if (result.source.droppableId !== result.destination.droppableId) return;
 
+    const departmentId = result.source.droppableId;
     const deptEmployees = employees.filter(e => e.department_id === departmentId);
     const reordered = Array.from(deptEmployees);
     const [moved] = reordered.splice(result.source.index, 1);
@@ -78,40 +80,41 @@ export default function LeaveCalendarTable({
   };
 
   return (
-    <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
-      <table className="min-w-full">
-        <thead>
-          <tr className="bg-gray-50">
-            <th className="sticky left-0 z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[80px]">
-              部門
-            </th>
-            <th className="sticky left-[80px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[80px]">
-              姓名
-            </th>
-            <th className="sticky left-[160px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[60px]">
-              職代
-            </th>
-            {days.map((d, idx) => (
-              <th 
-                key={idx} 
-                className={`px-1 py-2 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[32px] ${
-                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
-                }`}
-              >
-                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                <div className="text-[10px] font-normal">{d.weekday}</div>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
+        <table className="min-w-full">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="sticky left-0 z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[80px]">
+                部門
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {departments.map((dept) => {
-            const deptEmployees = employees.filter(e => e.department_id === dept.id);
-            return (
-              <DragDropContext key={dept.id} onDragEnd={(result) => handleDragEnd(result, dept.id)}>
-                <Droppable droppableId={dept.id}>
+              <th className="sticky left-[80px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[80px]">
+                姓名
+              </th>
+              <th className="sticky left-[160px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[60px]">
+                職代
+              </th>
+              {days.map((d, idx) => (
+                <th 
+                  key={idx} 
+                  className={`px-1 py-2 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[32px] ${
+                    d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
+                  }`}
+                >
+                  <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                  <div className="text-[10px] font-normal">{d.weekday}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {departments.map((dept) => {
+              const deptEmployees = employees.filter(e => e.department_id === dept.id);
+              return (
+                <Droppable key={dept.id} droppableId={dept.id}>
                   {(provided) => (
-                    <>
+                    <React.Fragment>
+                      <tr ref={provided.innerRef} style={{ display: 'none' }} />
                       {deptEmployees.map((emp, empIdx) => (
                         <Draggable key={emp.id} draggableId={emp.id} index={empIdx}>
                           {(provided, snapshot) => (
@@ -170,14 +173,14 @@ export default function LeaveCalendarTable({
                         </Draggable>
                       ))}
                       {provided.placeholder}
-                    </>
+                    </React.Fragment>
                   )}
                 </Droppable>
-              </DragDropContext>
-            );
-          })}
-        </tbody>
-      </table>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-      );
-      }
+    </DragDropContext>
+  );
+}
