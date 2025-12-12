@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ProfileSetup from '@/components/ProfileSetup';
+import LeaveStatistics from '@/components/dashboard/LeaveStatistics';
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -180,7 +181,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-800">
               {format(new Date(selectedDate), 'MM月dd日 (EEEE)', { locale: zhTW })} 休假人員
@@ -239,6 +240,12 @@ export default function Dashboard() {
             </Table>
           )}
         </div>
+
+        <LeaveStatistics 
+          departments={departments}
+          employees={employees}
+          leaveTypes={leaveTypes}
+        />
       </div>
     </div>
   );
