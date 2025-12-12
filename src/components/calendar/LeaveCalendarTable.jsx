@@ -138,13 +138,13 @@ export default function LeaveCalendarTable({
                   <div className="flex items-center justify-between gap-1">
                     <span>{emp.name}</span>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
-                      className="h-6 w-6 opacity-0 hover:opacity-100 transition-opacity"
+                      className="h-6 w-6 bg-blue-50 hover:bg-blue-100 border-blue-200"
                       onClick={() => handleOpenRangeDialog(emp)}
                       title="區間請假"
                     >
-                      <CalendarRange className="h-3 w-3" />
+                      <CalendarRange className="h-3 w-3 text-blue-600" />
                     </Button>
                   </div>
                 </td>
