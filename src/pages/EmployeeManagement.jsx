@@ -33,7 +33,7 @@ export default function EmployeeManagement() {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [formData, setFormData] = useState({ name: '', code: '', department_id: '' });
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
   const queryClient = useQueryClient();
 
   const { data: departments = [] } = useQuery({
@@ -101,9 +101,25 @@ export default function EmployeeManagement() {
     return departments.find(d => d.id === deptId)?.name || '-';
   };
 
-  const filteredEmployees = selectedDepartment === 'all' 
+  const handleDepartmentToggle = (deptId) => {
+    setSelectedDepartments(prev => 
+      prev.includes(deptId) 
+        ? prev.filter(id => id !== deptId)
+        : [...prev, deptId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDepartments.length === departments.length) {
+      setSelectedDepartments([]);
+    } else {
+      setSelectedDepartments(departments.map(d => d.id));
+    }
+  };
+
+  const filteredEmployees = selectedDepartments.length === 0
     ? employees 
-    : employees.filter(emp => emp.department_id === selectedDepartment);
+    : employees.filter(emp => selectedDepartments.includes(emp.department_id));
 
   const handleDownloadTemplate = () => {
     const csvContent = "name,code,department_name\n張三,A01,佈媽\n李四,B02,TD-台北\n王五,C03,3D team";
@@ -297,18 +313,40 @@ export default function EmployeeManagement() {
           </p>
         </div>
 
-        <div className="mb-4">
-          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="選擇部門" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">所有部門</SelectItem>
-              {departments.map((dept) => (
-                <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+              className="h-8"
+            >
+              {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {departments.map((dept) => (
+              <label
+                key={dept.id}
+                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md border border-gray-200"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedDepartments.includes(dept.id)}
+                  onChange={() => handleDepartmentToggle(dept.id)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{dept.name}</span>
+              </label>
+            ))}
+          </div>
+          {selectedDepartments.length > 0 && (
+            <p className="text-xs text-gray-500 mt-2">
+              已選擇 {selectedDepartments.length} 個部門
+            </p>
+          )}
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
