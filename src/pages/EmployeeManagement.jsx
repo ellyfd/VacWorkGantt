@@ -26,8 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download, GripVertical } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-react';
 
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +46,7 @@ export default function EmployeeManagement() {
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('sort_order'),
+    queryFn: () => base44.entities.Employee.list('name'),
   });
 
   const createMutation = useMutation({
@@ -165,22 +164,6 @@ export default function EmployeeManagement() {
   const handleBulkEditSubmit = (e) => {
     e.preventDefault();
     bulkUpdateMutation.mutate(bulkEditData);
-  };
-
-  const handleDragEnd = async (result) => {
-    if (!result.destination) return;
-
-    const items = Array.from(filteredEmployees);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update sort_order for all affected employees
-    const updates = items.map((emp, index) => 
-      base44.entities.Employee.update(emp.id, { sort_order: index })
-    );
-
-    await Promise.all(updates);
-    queryClient.invalidateQueries(['employees']);
   };
 
   const handleDownloadTemplate = () => {
@@ -460,90 +443,71 @@ export default function EmployeeManagement() {
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
             </div>
           ) : (
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="w-[30px]"></TableHead>
-                    <TableHead className="w-[50px]">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-[50px]">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
+                      onChange={handleSelectAllEmployees}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </TableHead>
+                  <TableHead>姓名</TableHead>
+                  <TableHead>職代</TableHead>
+                  <TableHead>部門</TableHead>
+                  <TableHead>在職狀態</TableHead>
+                  <TableHead className="w-[100px]">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map((emp) => (
+                  <TableRow key={emp.id}>
+                    <TableCell>
                       <input
                         type="checkbox"
-                        checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
-                        onChange={handleSelectAllEmployees}
+                        checked={selectedEmployees.includes(emp.id)}
+                        onChange={() => handleEmployeeToggle(emp.id)}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                       />
-                    </TableHead>
-                    <TableHead>姓名</TableHead>
-                    <TableHead>職代</TableHead>
-                    <TableHead>部門</TableHead>
-                    <TableHead>在職狀態</TableHead>
-                    <TableHead className="w-[100px]">操作</TableHead>
+                    </TableCell>
+                    <TableCell className="font-medium">{emp.name}</TableCell>
+                    <TableCell className="text-gray-500">{emp.code || '-'}</TableCell>
+                    <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
+                    <TableCell>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        emp.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {emp.status === 'active' ? '在職' : '離職'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(emp)}
+                          className="h-8 w-8"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(emp.id)}
+                          className="h-8 w-8"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <Droppable droppableId="employees">
-                  {(provided) => (
-                    <TableBody {...provided.droppableProps} ref={provided.innerRef}>
-                      {filteredEmployees.map((emp, index) => (
-                        <Draggable key={emp.id} draggableId={emp.id} index={index}>
-                          {(provided, snapshot) => (
-                            <TableRow
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={snapshot.isDragging ? 'bg-blue-50' : ''}
-                            >
-                              <TableCell {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                <GripVertical className="w-4 h-4 text-gray-400" />
-                              </TableCell>
-                              <TableCell>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedEmployees.includes(emp.id)}
-                                  onChange={() => handleEmployeeToggle(emp.id)}
-                                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                                />
-                              </TableCell>
-                              <TableCell className="font-medium">{emp.name}</TableCell>
-                              <TableCell className="text-gray-500">{emp.code || '-'}</TableCell>
-                              <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
-                              <TableCell>
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  emp.status === 'active' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {emp.status === 'active' ? '在職' : '離職'}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleOpenDialog(emp)}
-                                    className="h-8 w-8"
-                                  >
-                                    <Pencil className="w-4 h-4 text-gray-500" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => deleteMutation.mutate(emp.id)}
-                                    className="h-8 w-8"
-                                  >
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </TableBody>
-                  )}
-                </Droppable>
-              </Table>
-            </DragDropContext>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </div>
 
