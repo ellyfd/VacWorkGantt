@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock } from 'lucide-react';
+import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { name: 'LeaveCalendar', label: '排休行事曆', icon: Calendar },
+  { name: 'Dashboard', label: '首頁儀表板', icon: Calendar },
+  { name: 'LeaveCalendar', label: '排休行事曆', icon: CalendarClock },
   { name: 'EmployeeManagement', label: '員工管理', icon: Users },
   { name: 'DepartmentManagement', label: '部門管理', icon: Building2 },
   { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },

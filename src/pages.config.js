@@ -3,6 +3,7 @@ import EmployeeManagement from './pages/EmployeeManagement';
 import DepartmentManagement from './pages/DepartmentManagement';
 import LeaveTypeManagement from './pages/LeaveTypeManagement';
 import HolidayManagement from './pages/HolidayManagement';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -12,6 +13,7 @@ export const PAGES = {
     "DepartmentManagement": DepartmentManagement,
     "LeaveTypeManagement": LeaveTypeManagement,
     "HolidayManagement": HolidayManagement,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {
