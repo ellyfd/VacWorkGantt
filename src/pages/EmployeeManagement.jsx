@@ -33,6 +33,7 @@ export default function EmployeeManagement() {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [formData, setFormData] = useState({ name: '', code: '', department_id: '' });
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
   const queryClient = useQueryClient();
 
   const { data: departments = [] } = useQuery({
@@ -99,6 +100,10 @@ export default function EmployeeManagement() {
   const getDepartmentName = (deptId) => {
     return departments.find(d => d.id === deptId)?.name || '-';
   };
+
+  const filteredEmployees = selectedDepartment === 'all' 
+    ? employees 
+    : employees.filter(emp => emp.department_id === selectedDepartment);
 
   const handleDownloadTemplate = () => {
     const csvContent = "name,code,department_name\n張三,A01,佈媽\n李四,B02,TD-台北\n王五,C03,3D team";
@@ -292,6 +297,20 @@ export default function EmployeeManagement() {
           </p>
         </div>
 
+        <div className="mb-4">
+          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="選擇部門" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">所有部門</SelectItem>
+              {departments.map((dept) => (
+                <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -308,7 +327,7 @@ export default function EmployeeManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {employees.map((emp) => (
+                {filteredEmployees.map((emp) => (
                   <TableRow key={emp.id}>
                     <TableCell className="font-medium">{emp.name}</TableCell>
                     <TableCell className="text-gray-500">{emp.code || '-'}</TableCell>
