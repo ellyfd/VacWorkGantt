@@ -28,6 +28,14 @@ export default function LeaveCell({
     }
   };
 
+  const handleDoubleClick = (e) => {
+    if (record) {
+      e.preventDefault();
+      e.stopPropagation();
+      onClearLeave();
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -36,6 +44,7 @@ export default function LeaveCell({
           style={record && leaveType ? { backgroundColor: leaveType.color } : {}}
           tabIndex={0}
           onKeyDown={handleKeyDown}
+          onDoubleClick={handleDoubleClick}
         >
           {record && leaveType ? leaveType.short_name : ''}
         </div>
