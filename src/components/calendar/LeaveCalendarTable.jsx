@@ -99,13 +99,10 @@ export default function LeaveCalendarTable({
         <table className="min-w-full">
           <thead>
             <tr className="bg-gray-50">
-              <th className="sticky left-0 z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[80px]">
-                部門
-              </th>
-              <th className="sticky left-[80px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[100px]">
+              <th className="sticky left-0 z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[100px]">
                 姓名
               </th>
-              <th className="sticky left-[180px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[60px]">
+              <th className="sticky left-[100px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[60px]">
                 職代
               </th>
               {days.map((d, idx) => (
@@ -136,15 +133,7 @@ export default function LeaveCalendarTable({
                               {...provided.draggableProps}
                               className={`hover:bg-gray-50/50 ${snapshot.isDragging ? 'bg-blue-50' : ''}`}
                             >
-                              {empIdx === 0 && (
-                                <td 
-                                  className="sticky left-0 z-10 bg-white px-3 py-1 text-sm font-medium text-gray-700 border-r border-b border-gray-200"
-                                  rowSpan={deptEmployees.length}
-                                >
-                                  {dept.name}
-                                </td>
-                              )}
-                              <td className="sticky left-[80px] z-10 bg-white px-3 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
                                 <div className="flex items-center gap-1">
                                   <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
                                     <GripVertical className="h-4 w-4 text-gray-400" />
@@ -161,7 +150,7 @@ export default function LeaveCalendarTable({
                                   </Button>
                                 </div>
                               </td>
-                              <td className="sticky left-[180px] z-10 bg-white px-3 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
+                              <td className="sticky left-[100px] z-10 bg-white px-3 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
                                 {emp.code || '-'}
                               </td>
                               {days.map((d, idx) => {
