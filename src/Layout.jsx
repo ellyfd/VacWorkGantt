@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { Calendar, Users, Building2, Tag, Menu, X } from 'lucide-react';
@@ -12,7 +12,7 @@ const navItems = [
 ];
 
 export default function Layout({ children, currentPageName }) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
