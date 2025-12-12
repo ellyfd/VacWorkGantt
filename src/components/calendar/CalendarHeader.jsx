@@ -1,10 +1,11 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
 
-export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartment, onDepartmentChange }) {
+export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartments, onDepartmentsChange }) {
   const handlePrevMonth = () => {
     const currentMonth = currentDate.getMonth();
     if (currentMonth === -1) {
@@ -39,23 +40,28 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
   const years = Array.from({ length: 10 }, (_, i) => currentYear - 3 + i);
   const months = Array.from({ length: 12 }, (_, i) => i);
 
+  const handleDepartmentToggle = (deptId) => {
+    onDepartmentsChange(prev => 
+      prev.includes(deptId) 
+        ? prev.filter(id => id !== deptId)
+        : [...prev, deptId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDepartments.length === departments.length) {
+      onDepartmentsChange([]);
+    } else {
+      onDepartmentsChange(departments.map(d => d.id));
+    }
+  };
+
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-      <h1 className="text-2xl font-bold text-gray-800">
-        排休登記表
-      </h1>
-      <div className="flex flex-wrap items-center gap-3">
-        <Select value={selectedDepartment} onValueChange={onDepartmentChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="選擇單位" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">所有單位</SelectItem>
-            {departments.map((dept) => (
-              <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="flex flex-col gap-4 mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-gray-800">
+          排休登記表
+        </h1>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -95,6 +101,42 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+      
+      <div className="p-4 bg-white rounded-lg border border-gray-200">
+        <div className="flex items-center justify-between mb-3">
+          <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleSelectAll}
+            className="h-8"
+          >
+            {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {departments.map((dept) => (
+            <label
+              key={dept.id}
+              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md border border-gray-200"
+            >
+              <input
+                type="checkbox"
+                checked={selectedDepartments.includes(dept.id)}
+                onChange={() => handleDepartmentToggle(dept.id)}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">{dept.name}</span>
+            </label>
+          ))}
+        </div>
+        {selectedDepartments.length > 0 && (
+          <p className="text-xs text-gray-500 mt-2">
+            已選擇 {selectedDepartments.length} 個部門
+          </p>
+        )}
       </div>
     </div>
   );

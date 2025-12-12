@@ -10,7 +10,7 @@ import ProfileSetup from '@/components/ProfileSetup';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const queryClient = useQueryClient();
 
@@ -152,8 +152,8 @@ export default function LeaveCalendar() {
           currentDate={currentDate} 
           onDateChange={setCurrentDate}
           departments={departments}
-          selectedDepartment={selectedDepartment}
-          onDepartmentChange={setSelectedDepartment}
+          selectedDepartments={selectedDepartments}
+          onDepartmentsChange={setSelectedDepartments}
         />
         
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -169,7 +169,7 @@ export default function LeaveCalendar() {
         
         <LeaveCalendarTable
           currentDate={currentDate}
-          departments={selectedDepartment === 'all' ? departments : departments.filter(d => d.id === selectedDepartment)}
+          departments={selectedDepartments.length === 0 ? departments : departments.filter(d => selectedDepartments.includes(d.id))}
           employees={employees}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
