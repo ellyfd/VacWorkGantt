@@ -91,8 +91,9 @@ export default function Dashboard() {
     }
   });
 
+  const activeEmployees = employees.filter(emp => emp.status === 'active');
   const totalOnLeave = todayLeaves.length;
-  const totalEmployees = employees.length;
+  const totalEmployees = activeEmployees.length;
   const attendanceRate = totalEmployees > 0 ? ((totalEmployees - totalOnLeave) / totalEmployees * 100).toFixed(1) : 0;
 
   const isHoliday = holidays.some(h => h.date === selectedDate);
