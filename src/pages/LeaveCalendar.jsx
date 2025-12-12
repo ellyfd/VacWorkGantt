@@ -12,6 +12,7 @@ export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [sortBy, setSortBy] = useState('name');
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -33,6 +34,22 @@ export default function LeaveCalendar() {
     queryKey: ['employees'],
     queryFn: () => base44.entities.Employee.list('name'),
   });
+
+  const sortedEmployees = React.useMemo(() => {
+    const sorted = [...employees];
+    if (sortBy === 'name') {
+      return sorted.sort((a, b) => a.name.localeCompare(b.name, 'zh-TW'));
+    } else if (sortBy === 'code') {
+      return sorted.sort((a, b) => (a.code || '').localeCompare(b.code || '', 'zh-TW'));
+    } else if (sortBy === 'department') {
+      return sorted.sort((a, b) => {
+        const deptA = departments.find(d => d.id === a.department_id)?.name || '';
+        const deptB = departments.find(d => d.id === b.department_id)?.name || '';
+        return deptA.localeCompare(deptB, 'zh-TW');
+      });
+    }
+    return sorted;
+  }, [employees, sortBy, departments]);
 
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
     queryKey: ['leaveTypes'],
@@ -154,6 +171,8 @@ export default function LeaveCalendar() {
           departments={departments}
           selectedDepartments={selectedDepartments}
           onDepartmentsChange={setSelectedDepartments}
+          sortBy={sortBy}
+          onSortByChange={setSortBy}
         />
         
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -170,7 +189,7 @@ export default function LeaveCalendar() {
         <LeaveCalendarTable
           currentDate={currentDate}
           departments={selectedDepartments.length === 0 ? departments : departments.filter(d => selectedDepartments.includes(d.id))}
-          employees={employees}
+          employees={sortedEmployees}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
           holidays={holidays}
