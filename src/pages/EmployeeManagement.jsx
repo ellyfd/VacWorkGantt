@@ -349,6 +349,7 @@ export default function EmployeeManagement() {
                       <SelectItem value="active">在職</SelectItem>
                       <SelectItem value="inactive">離職</SelectItem>
                       <SelectItem value="parental_leave">育嬰假</SelectItem>
+                      <SelectItem value="hidden">隱藏</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -482,9 +483,11 @@ export default function EmployeeManagement() {
                           ? 'bg-green-100 text-green-800' 
                           : emp.status === 'parental_leave'
                           ? 'bg-blue-100 text-blue-800'
+                          : emp.status === 'hidden'
+                          ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-gray-100 text-gray-800'
                       }`}>
-                        {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : '離職'}
+                        {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -553,6 +556,7 @@ export default function EmployeeManagement() {
                     <SelectItem value="active">在職</SelectItem>
                     <SelectItem value="inactive">離職</SelectItem>
                     <SelectItem value="parental_leave">育嬰假</SelectItem>
+                    <SelectItem value="hidden">隱藏</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
