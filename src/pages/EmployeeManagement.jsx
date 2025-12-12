@@ -224,7 +224,7 @@ export default function EmployeeManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="code">代號</Label>
+                  <Label htmlFor="code">職代</Label>
                   <Input
                     id="code"
                     value={formData.code}
@@ -268,7 +268,7 @@ export default function EmployeeManagement() {
           <p className="text-sm text-blue-800">
             <strong>Excel 匯入格式說明：</strong>Excel 檔案需包含以下欄位：<br />
             • <strong>name</strong> (姓名) - 必填<br />
-            • <strong>code</strong> (代號) - 選填<br />
+            • <strong>code</strong> (職代) - 選填<br />
             • <strong>department_name</strong> (部門名稱) - 必填，需與系統中的部門名稱完全一致
           </p>
         </div>
@@ -283,7 +283,7 @@ export default function EmployeeManagement() {
               <TableHeader>
                 <TableRow className="bg-gray-50">
                   <TableHead>姓名</TableHead>
-                  <TableHead>代號</TableHead>
+                  <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead className="w-[100px]">操作</TableHead>
                 </TableRow>
