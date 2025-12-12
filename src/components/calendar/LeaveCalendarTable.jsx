@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { CalendarRange } from "lucide-react";
 import LeaveCell from "./LeaveCell";
-import RangeLeaveDialog from "./RangeLeaveDialog";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -17,11 +16,8 @@ export default function LeaveCalendarTable({
   holidays,
   onUpdateLeave,
   onDeleteLeave,
-  onRangeLeave
+  onOpenRangeDialog
 }) {
-  const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   
@@ -68,33 +64,7 @@ export default function LeaveCalendarTable({
     onDeleteLeave(recordId);
   };
 
-  const handleOpenRangeDialog = (employee) => {
-    setSelectedEmployee(employee);
-    setRangeDialogOpen(true);
-  };
-
-  const handleRangeSubmit = async (employeeId, startDate, endDate, leaveTypeId) => {
-    setIsSubmitting(true);
-    await onRangeLeave(employeeId, startDate, endDate, leaveTypeId);
-    setIsSubmitting(false);
-    setRangeDialogOpen(false);
-    setSelectedEmployee(null);
-  };
-
   return (
-    <>
-      <RangeLeaveDialog
-        isOpen={rangeDialogOpen}
-        onClose={() => {
-          setRangeDialogOpen(false);
-          setSelectedEmployee(null);
-        }}
-        onSubmit={handleRangeSubmit}
-        leaveTypes={leaveTypes}
-        employeeId={selectedEmployee?.id}
-        employeeName={selectedEmployee?.name}
-        isSubmitting={isSubmitting}
-      />
     <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
       <table className="min-w-full">
         <thead>
@@ -141,8 +111,8 @@ export default function LeaveCalendarTable({
                       variant="outline"
                       size="icon"
                       className="h-6 w-6 bg-blue-50 hover:bg-blue-100 border-blue-200"
-                      onClick={() => handleOpenRangeDialog(emp)}
-                      title="區間請假"
+                      onClick={() => onOpenRangeDialog(emp)}
+                      title="區間請假/取消"
                     >
                       <CalendarRange className="h-3 w-3 text-blue-600" />
                     </Button>
@@ -171,7 +141,6 @@ export default function LeaveCalendarTable({
           })}
         </tbody>
       </table>
-    </div>
-    </>
-  );
-}
+      </div>
+      );
+      }

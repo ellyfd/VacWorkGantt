@@ -22,6 +22,7 @@ export default function RangeLeaveDialog({
   isOpen, 
   onClose, 
   onSubmit, 
+  onCancel,
   leaveTypes,
   employeeId,
   employeeName,
@@ -35,6 +36,16 @@ export default function RangeLeaveDialog({
     e.preventDefault();
     if (startDate && endDate && leaveTypeId) {
       onSubmit(employeeId, startDate, endDate, leaveTypeId);
+      setStartDate('');
+      setEndDate('');
+      setLeaveTypeId('');
+    }
+  };
+
+  const handleCancel = (e) => {
+    e.preventDefault();
+    if (startDate && endDate) {
+      onCancel(employeeId, startDate, endDate);
       setStartDate('');
       setEndDate('');
       setLeaveTypeId('');
@@ -93,7 +104,22 @@ export default function RangeLeaveDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              取消
+              關閉
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleCancel} 
+              disabled={isSubmitting || !startDate || !endDate}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  取消中...
+                </>
+              ) : (
+                '區間取消'
+              )}
             </Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
               {isSubmitting ? (
@@ -102,7 +128,7 @@ export default function RangeLeaveDialog({
                   處理中...
                 </>
               ) : (
-                '確認'
+                '區間請假'
               )}
             </Button>
           </DialogFooter>

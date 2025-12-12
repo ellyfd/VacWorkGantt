@@ -7,11 +7,14 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import LeaveLegend from '@/components/calendar/LeaveLegend';
 import ProfileSetup from '@/components/ProfileSetup';
+import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -116,6 +119,26 @@ export default function LeaveCalendar() {
     },
   });
 
+  const rangeCancelMutation = useMutation({
+    mutationFn: async ({ employeeId, startDate, endDate }) => {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      const recordsToDelete = leaveRecords.filter(r => {
+        if (r.employee_id !== employeeId) return false;
+        const recordDate = new Date(r.date);
+        return recordDate >= start && recordDate <= end;
+      });
+      
+      await Promise.all(
+        recordsToDelete.map(r => base44.entities.LeaveRecord.delete(r.id))
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['leaveRecords']);
+    },
+  });
+
   const handleUpdateLeave = (employeeId, date, leaveTypeId) => {
     updateLeaveMutation.mutate({ employeeId, date, leaveTypeId });
   };
@@ -126,6 +149,10 @@ export default function LeaveCalendar() {
 
   const handleRangeLeave = async (employeeId, startDate, endDate, leaveTypeId) => {
     await rangeLeaveMutation.mutateAsync({ employeeId, startDate, endDate, leaveTypeId });
+  };
+
+  const handleRangeCancel = async (employeeId, startDate, endDate) => {
+    await rangeCancelMutation.mutateAsync({ employeeId, startDate, endDate });
   };
 
   const isLoading = loadingUser || loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
@@ -147,6 +174,19 @@ export default function LeaveCalendar() {
         isOpen={showProfileSetup} 
         onComplete={() => setShowProfileSetup(false)} 
       />
+      <RangeLeaveDialog
+        isOpen={rangeDialogOpen}
+        onClose={() => {
+          setRangeDialogOpen(false);
+          setSelectedEmployee(null);
+        }}
+        onSubmit={handleRangeLeave}
+        onCancel={handleRangeCancel}
+        leaveTypes={leaveTypes}
+        employeeId={selectedEmployee?.id}
+        employeeName={selectedEmployee?.name}
+        isSubmitting={rangeLeaveMutation.isPending || rangeCancelMutation.isPending}
+      />
       <div className="max-w-full mx-auto">
         <CalendarHeader 
           currentDate={currentDate} 
@@ -155,13 +195,13 @@ export default function LeaveCalendar() {
           selectedDepartments={selectedDepartments}
           onDepartmentsChange={setSelectedDepartments}
         />
-        
+
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="text-sm font-semibold text-blue-900 mb-2">操作說明</h3>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• <span className="font-medium">單擊格子</span>：選擇假別</li>
             <li>• <span className="font-medium">雙擊格子</span>：取消請假</li>
-            <li>• <span className="font-medium">區間請假</span>：點擊員工姓名旁的 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
+            <li>• <span className="font-medium">區間請假/取消</span>：點擊員工姓名旁的 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
           </ul>
         </div>
         
@@ -176,7 +216,10 @@ export default function LeaveCalendar() {
           holidays={holidays}
           onUpdateLeave={handleUpdateLeave}
           onDeleteLeave={handleDeleteLeave}
-          onRangeLeave={handleRangeLeave}
+          onOpenRangeDialog={(emp) => {
+            setSelectedEmployee(emp);
+            setRangeDialogOpen(true);
+          }}
         />
 
         {employees.length === 0 && (
