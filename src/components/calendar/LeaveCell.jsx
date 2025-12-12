@@ -17,29 +17,18 @@ export default function LeaveCell({
 }) {
   const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
 
-  const cellBgClass = isHoliday 
-    ? "bg-red-50" 
-    : isWeekend 
-      ? "bg-gray-100" 
-      : "bg-white";
+  const cellBgClass = (isHoliday || isWeekend) 
+    ? "bg-gray-300" 
+    : "bg-white";
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <div 
-          className={`h-8 min-w-[32px] border-r border-b border-gray-200 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors ${cellBgClass}`}
+          className={`h-8 min-w-[32px] border-r border-b border-gray-200 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${cellBgClass}`}
+          style={record && leaveType ? { backgroundColor: leaveType.color } : {}}
         >
-          {leaveType && (
-            <span 
-              className="text-xs font-medium px-1 py-0.5 rounded"
-              style={{ 
-                color: leaveType.color,
-                backgroundColor: `${leaveType.color}15`
-              }}
-            >
-              {leaveType.short_name}
-            </span>
-          )}
+          {record && leaveType ? leaveType.short_name : ''}
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-48 p-2" align="start">
