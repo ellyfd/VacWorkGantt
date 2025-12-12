@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Users, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-react';
 
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,6 +98,19 @@ export default function EmployeeManagement() {
 
   const getDepartmentName = (deptId) => {
     return departments.find(d => d.id === deptId)?.name || '-';
+  };
+
+  const handleDownloadTemplate = () => {
+    const csvContent = "name,code,department_name\n張三,A01,佈媽\n李四,B02,TD-台北\n王五,C03,3D team";
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', '員工匯入模板.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleFileUpload = async (event) => {
@@ -173,6 +186,15 @@ export default function EmployeeManagement() {
             <h1 className="text-2xl font-bold text-gray-800">員工管理</h1>
           </div>
           <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDownloadTemplate}
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              下載模板
+            </Button>
             <label htmlFor="excel-upload">
               <Button
                 type="button"
