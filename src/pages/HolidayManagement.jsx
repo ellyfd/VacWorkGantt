@@ -12,6 +12,8 @@ export default function HolidayManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingHoliday, setEditingHoliday] = useState(null);
   const [formData, setFormData] = useState({ date: '', name: '', type: 'company' });
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
 
   const queryClient = useQueryClient();
 
@@ -67,6 +69,12 @@ export default function HolidayManagement() {
     setIsDialogOpen(true);
   };
 
+  const filteredHolidays = holidays.filter(holiday => {
+    const yearMatch = selectedYear === 'all' || holiday.date.startsWith(selectedYear);
+    const typeMatch = selectedType === 'all' || holiday.type === selectedType;
+    return yearMatch && typeMatch;
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -89,6 +97,30 @@ export default function HolidayManagement() {
           </Button>
         </div>
 
+        <div className="mb-4 flex gap-3">
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="選擇年度" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">所有年度</SelectItem>
+              <SelectItem value="2025">2025年</SelectItem>
+              <SelectItem value="2026">2026年</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="選擇類型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">所有類型</SelectItem>
+              <SelectItem value="national">國定假日</SelectItem>
+              <SelectItem value="company">公司特別假</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -100,7 +132,7 @@ export default function HolidayManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {holidays.map((holiday) => (
+              {filteredHolidays.map((holiday) => (
                 <tr key={holiday.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-800">
                     {format(new Date(holiday.date), 'yyyy/MM/dd')}
@@ -143,9 +175,11 @@ export default function HolidayManagement() {
               ))}
             </tbody>
           </table>
-          {holidays.length === 0 && (
+          {filteredHolidays.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">尚無假日資料</p>
+              <p className="text-gray-500">
+                {holidays.length === 0 ? '尚無假日資料' : '無符合條件的假日'}
+              </p>
             </div>
           )}
         </div>
