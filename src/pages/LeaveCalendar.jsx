@@ -31,7 +31,13 @@ export default function LeaveCalendar() {
 
   const { data: employees = [], isLoading: loadingEmps } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
+    queryFn: async () => {
+      const emps = await base44.entities.Employee.list('name');
+      return emps.sort((a, b) => {
+        if (a.department_id !== b.department_id) return 0;
+        return (a.sort_order || 999) - (b.sort_order || 999);
+      });
+    },
   });
 
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
@@ -128,6 +134,28 @@ export default function LeaveCalendar() {
     await rangeLeaveMutation.mutateAsync({ employeeId, startDate, endDate, leaveTypeId });
   };
 
+  const updateEmployeeOrderMutation = useMutation({
+    mutationFn: async ({ empId, targetEmpId }) => {
+      const emp = employees.find(e => e.id === empId);
+      const targetEmp = employees.find(e => e.id === targetEmpId);
+      
+      const empOrder = emp.sort_order || 0;
+      const targetOrder = targetEmp.sort_order || 0;
+      
+      await Promise.all([
+        base44.entities.Employee.update(empId, { sort_order: targetOrder }),
+        base44.entities.Employee.update(targetEmpId, { sort_order: empOrder })
+      ]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['employees']);
+    },
+  });
+
+  const handleUpdateEmployeeOrder = (empId, targetEmpId) => {
+    updateEmployeeOrderMutation.mutate({ empId, targetEmpId });
+  };
+
   const isLoading = loadingUser || loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
 
   if (isLoading) {
@@ -177,6 +205,7 @@ export default function LeaveCalendar() {
           onUpdateLeave={handleUpdateLeave}
           onDeleteLeave={handleDeleteLeave}
           onRangeLeave={handleRangeLeave}
+          onUpdateEmployeeOrder={handleUpdateEmployeeOrder}
         />
 
         {employees.length === 0 && (
