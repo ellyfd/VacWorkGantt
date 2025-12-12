@@ -6,6 +6,7 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import LeaveLegend from '@/components/calendar/LeaveLegend';
 import ProfileSetup from '@/components/ProfileSetup';
+import AIAssistant from '@/components/AIAssistant';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -120,6 +121,13 @@ export default function LeaveCalendar() {
         isOpen={showProfileSetup} 
         onComplete={() => setShowProfileSetup(false)} 
       />
+      {currentUser && !showProfileSetup && (
+        <AIAssistant 
+          currentUser={currentUser}
+          employees={employees}
+          leaveTypes={leaveTypes}
+        />
+      )}
       <div className="max-w-full mx-auto">
         <CalendarHeader 
           currentDate={currentDate} 
