@@ -113,6 +113,9 @@ export default function LeaveCalendarTable({
               <Droppable key={dept.id} droppableId={dept.id}>
                 {(provided) => (
                   <React.Fragment>
+                    <tr ref={provided.innerRef} style={{ display: 'none' }}>
+                      <td></td>
+                    </tr>
                     {deptEmployees.map((emp, empIdx) => (
                       <Draggable key={emp.id} draggableId={emp.id} index={empIdx}>
                         {(provided, snapshot) => (
@@ -170,7 +173,9 @@ export default function LeaveCalendarTable({
                         )}
                       </Draggable>
                     ))}
-                    {provided.placeholder}
+                    <tr style={{ display: 'none' }}>
+                      <td>{provided.placeholder}</td>
+                    </tr>
                   </React.Fragment>
                 )}
               </Droppable>
