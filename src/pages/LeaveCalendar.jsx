@@ -210,7 +210,7 @@ export default function LeaveCalendar() {
         <LeaveCalendarTable
           currentDate={currentDate}
           departments={selectedDepartments.length === 0 ? departments : departments.filter(d => selectedDepartments.includes(d.id))}
-          employees={employees}
+          employees={employees.filter(emp => emp.status === 'active')}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
           holidays={holidays}
