@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
 
-export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartments, onDepartmentsChange, selectedStatuses, onStatusesChange }) {
+export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartments, onDepartmentsChange }) {
   const handlePrevMonth = () => {
     const currentMonth = currentDate.getMonth();
     if (currentMonth === -1) {
@@ -137,45 +137,7 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
             已選擇 {selectedDepartments.length} 個部門
           </p>
         )}
-        </div>
-
-        <div className="p-4 bg-white rounded-lg border border-gray-200">
-        <Label className="text-sm font-semibold text-gray-700 mb-3 block">篩選員工狀態</Label>
-        <div className="flex flex-wrap gap-3">
-          {[
-            { value: 'active', label: '在職', color: 'bg-green-100 text-green-800 border-green-300' },
-            { value: 'parental_leave', label: '育嬰假', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-            { value: 'inactive', label: '離職', color: 'bg-gray-100 text-gray-800 border-gray-300' },
-            { value: 'hidden', label: '隱藏', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' }
-          ].map((status) => (
-            <label
-              key={status.value}
-              className={`flex items-center gap-2 cursor-pointer hover:opacity-80 px-3 py-2 rounded-md border ${
-                selectedStatuses?.includes(status.value) ? status.color : 'bg-white border-gray-200'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selectedStatuses?.includes(status.value)}
-                onChange={() => {
-                  if (selectedStatuses?.includes(status.value)) {
-                    onStatusesChange(selectedStatuses.filter(s => s !== status.value));
-                  } else {
-                    onStatusesChange([...(selectedStatuses || []), status.value]);
-                  }
-                }}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium">{status.label}</span>
-            </label>
-          ))}
-        </div>
-        {selectedStatuses?.length > 0 && (
-          <p className="text-xs text-gray-500 mt-2">
-            已選擇 {selectedStatuses.length} 種狀態
-          </p>
-        )}
-        </div>
-        </div>
-        );
-        }
+      </div>
+    </div>
+  );
+}

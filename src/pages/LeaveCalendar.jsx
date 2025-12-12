@@ -12,7 +12,6 @@ import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
-  const [selectedStatuses, setSelectedStatuses] = useState(['active']);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -195,8 +194,6 @@ export default function LeaveCalendar() {
           departments={departments}
           selectedDepartments={selectedDepartments}
           onDepartmentsChange={setSelectedDepartments}
-          selectedStatuses={selectedStatuses}
-          onStatusesChange={setSelectedStatuses}
         />
 
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -213,7 +210,7 @@ export default function LeaveCalendar() {
         <LeaveCalendarTable
           currentDate={currentDate}
           departments={selectedDepartments.length === 0 ? departments : departments.filter(d => selectedDepartments.includes(d.id))}
-          employees={employees.filter(emp => selectedStatuses.includes(emp.status))}
+          employees={employees.filter(emp => emp.status === 'active')}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
           holidays={holidays}
