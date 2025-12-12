@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
@@ -93,12 +94,38 @@ export default function LeaveCalendar() {
     },
   });
 
+  const rangeLeaveMutation = useMutation({
+    mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId }) => {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const records = [];
+      
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = format(d, 'yyyy-MM-dd');
+        records.push({
+          employee_id: employeeId,
+          date: dateStr,
+          leave_type_id: leaveTypeId
+        });
+      }
+      
+      return base44.entities.LeaveRecord.bulkCreate(records);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['leaveRecords']);
+    },
+  });
+
   const handleUpdateLeave = (employeeId, date, leaveTypeId) => {
     updateLeaveMutation.mutate({ employeeId, date, leaveTypeId });
   };
 
   const handleDeleteLeave = (recordId) => {
     deleteLeaveMutation.mutate(recordId);
+  };
+
+  const handleRangeLeave = async (employeeId, startDate, endDate, leaveTypeId) => {
+    await rangeLeaveMutation.mutateAsync({ employeeId, startDate, endDate, leaveTypeId });
   };
 
   const isLoading = loadingUser || loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
@@ -140,6 +167,7 @@ export default function LeaveCalendar() {
           holidays={holidays}
           onUpdateLeave={handleUpdateLeave}
           onDeleteLeave={handleDeleteLeave}
+          onRangeLeave={handleRangeLeave}
         />
 
         {employees.length === 0 && (

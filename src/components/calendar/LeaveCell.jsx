@@ -21,12 +21,21 @@ export default function LeaveCell({
     ? "bg-gray-300" 
     : "bg-white";
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Delete' && record) {
+      e.preventDefault();
+      onClearLeave();
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <div 
           className={`h-8 min-w-[32px] border-r border-b border-gray-200 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${cellBgClass}`}
           style={record && leaveType ? { backgroundColor: leaveType.color } : {}}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
         >
           {record && leaveType ? leaveType.short_name : ''}
         </div>
