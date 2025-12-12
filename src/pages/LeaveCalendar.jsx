@@ -8,6 +8,7 @@ import LeaveLegend from '@/components/calendar/LeaveLegend';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
   const queryClient = useQueryClient();
 
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
@@ -93,14 +94,17 @@ export default function LeaveCalendar() {
       <div className="max-w-full mx-auto">
         <CalendarHeader 
           currentDate={currentDate} 
-          onDateChange={setCurrentDate} 
+          onDateChange={setCurrentDate}
+          departments={departments}
+          selectedDepartment={selectedDepartment}
+          onDepartmentChange={setSelectedDepartment}
         />
         
         <LeaveLegend leaveTypes={leaveTypes} />
         
         <LeaveCalendarTable
           currentDate={currentDate}
-          departments={departments}
+          departments={selectedDepartment === 'all' ? departments : departments.filter(d => d.id === selectedDepartment)}
           employees={employees}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
