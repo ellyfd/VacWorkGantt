@@ -6,18 +6,28 @@ import { addMonths, subMonths } from "date-fns";
 
 export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartment, onDepartmentChange }) {
   const handlePrevMonth = () => {
-    onDateChange(subMonths(currentDate, 1));
+    const currentMonth = currentDate.getMonth();
+    if (currentMonth === -1) {
+      onDateChange(new Date(currentDate.getFullYear() - 1, -1, 1));
+    } else {
+      onDateChange(subMonths(currentDate, 1));
+    }
   };
 
   const handleNextMonth = () => {
-    onDateChange(addMonths(currentDate, 1));
+    const currentMonth = currentDate.getMonth();
+    if (currentMonth === -1) {
+      onDateChange(new Date(currentDate.getFullYear() + 1, -1, 1));
+    } else {
+      onDateChange(addMonths(currentDate, 1));
+    }
   };
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
   const handleYearChange = (year) => {
-    const newDate = new Date(parseInt(year), currentMonth, 1);
+    const newDate = new Date(parseInt(year), currentMonth === -1 ? -1 : currentMonth, 1);
     onDateChange(newDate);
   };
 
