@@ -9,8 +9,7 @@ import RangeLeaveDialog from "./RangeLeaveDialog";
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 export default function LeaveCalendarTable({
-  selectedYears,
-  selectedMonths,
+  currentDate,
   departments,
   employees,
   leaveRecords,
@@ -23,45 +22,37 @@ export default function LeaveCalendarTable({
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
   
-  const days = [];
-  selectedYears.forEach(year => {
-    if (selectedMonths.length === 0) {
-      for (let i = 0; i < 365; i++) {
+  const days = month === -1 
+    ? Array.from({ length: 365 }, (_, i) => {
         const date = new Date(year, 0, i + 1);
-        if (date.getFullYear() !== year) break;
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
         const isHoliday = holidays?.some(h => h.date === dateStr);
-        days.push({
+        return {
           day: date.getDate(),
           month: date.getMonth() + 1,
           date: dateStr,
           weekday: WEEKDAY_NAMES[dayOfWeek],
           isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
           isHoliday
-        });
-      }
-    } else {
-      selectedMonths.forEach(month => {
-        const daysInMonth = getDaysInMonth(new Date(year, month));
-        for (let i = 0; i < daysInMonth; i++) {
-          const date = new Date(year, month, i + 1);
-          const dayOfWeek = getDay(date);
-          const dateStr = format(date, 'yyyy-MM-dd');
-          const isHoliday = holidays?.some(h => h.date === dateStr);
-          days.push({
-            day: i + 1,
-            month: month + 1,
-            date: dateStr,
-            weekday: WEEKDAY_NAMES[dayOfWeek],
-            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-            isHoliday
-          });
-        }
+        };
+      })
+    : Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => {
+        const date = new Date(year, month, i + 1);
+        const dayOfWeek = getDay(date);
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const isHoliday = holidays?.some(h => h.date === dateStr);
+        return {
+          day: i + 1,
+          date: dateStr,
+          weekday: WEEKDAY_NAMES[dayOfWeek],
+          isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+          isHoliday
+        };
       });
-    }
-  });
 
   const getLeaveRecord = (employeeId, date) => {
     return leaveRecords.find(
