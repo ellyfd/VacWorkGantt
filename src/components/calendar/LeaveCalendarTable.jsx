@@ -11,6 +11,7 @@ export default function LeaveCalendarTable({
   employees,
   leaveRecords,
   leaveTypes,
+  holidays,
   onUpdateLeave,
   onDeleteLeave
 }) {
@@ -21,11 +22,14 @@ export default function LeaveCalendarTable({
   const days = Array.from({ length: daysInMonth }, (_, i) => {
     const date = new Date(year, month, i + 1);
     const dayOfWeek = getDay(date);
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const isHoliday = holidays?.some(h => h.date === dateStr);
     return {
       day: i + 1,
-      date: format(date, 'yyyy-MM-dd'),
+      date: dateStr,
       weekday: WEEKDAY_NAMES[dayOfWeek],
-      isWeekend: dayOfWeek === 0 || dayOfWeek === 6
+      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+      isHoliday
     };
   });
 
@@ -61,7 +65,7 @@ export default function LeaveCalendarTable({
               <th 
                 key={d.day} 
                 className={`px-1 py-2 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[32px] ${
-                  d.isWeekend ? 'bg-gray-100 text-red-500' : 'text-gray-600'
+                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
                 }`}
               >
                 <div>{d.day}</div>
@@ -97,6 +101,7 @@ export default function LeaveCalendarTable({
                         record={record}
                         leaveTypes={leaveTypes}
                         isWeekend={d.isWeekend}
+                        isHoliday={d.isHoliday}
                         onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
                         onClearLeave={() => record && handleClearLeave(record.id)}
                       />

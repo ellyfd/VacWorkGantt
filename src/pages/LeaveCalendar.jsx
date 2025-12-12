@@ -26,6 +26,11 @@ export default function LeaveCalendar() {
     queryFn: () => base44.entities.LeaveType.list(),
   });
 
+  const { data: holidays = [], isLoading: loadingHolidays } = useQuery({
+    queryKey: ['holidays'],
+    queryFn: () => base44.entities.Holiday.list(),
+  });
+
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
     queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth()],
     queryFn: async () => {
@@ -76,7 +81,7 @@ export default function LeaveCalendar() {
     deleteLeaveMutation.mutate(recordId);
   };
 
-  const isLoading = loadingDepts || loadingEmps || loadingTypes || loadingRecords;
+  const isLoading = loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
 
   if (isLoading) {
     return (
@@ -108,6 +113,7 @@ export default function LeaveCalendar() {
           employees={employees}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
+          holidays={holidays}
           onUpdateLeave={handleUpdateLeave}
           onDeleteLeave={handleDeleteLeave}
         />
