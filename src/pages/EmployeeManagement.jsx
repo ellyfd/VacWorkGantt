@@ -35,6 +35,8 @@ export default function EmployeeManagement() {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [bulkEditData, setBulkEditData] = useState({ department_id: '', status: '' });
   const queryClient = useQueryClient();
 
   const { data: departments = [] } = useQuery({
@@ -66,6 +68,26 @@ export default function EmployeeManagement() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Employee.delete(id),
     onSuccess: () => queryClient.invalidateQueries(['employees']),
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async (updates) => {
+      await Promise.all(
+        selectedEmployees.map(empId => {
+          const emp = employees.find(e => e.id === empId);
+          const updateData = {};
+          if (updates.department_id) updateData.department_id = updates.department_id;
+          if (updates.status) updateData.status = updates.status;
+          return base44.entities.Employee.update(empId, updateData);
+        })
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['employees']);
+      setIsBulkEditOpen(false);
+      setSelectedEmployees([]);
+      setBulkEditData({ department_id: '', status: '' });
+    },
   });
 
   const handleOpenDialog = (employee = null) => {
@@ -137,6 +159,11 @@ export default function EmployeeManagement() {
     } else {
       setSelectedEmployees(filteredEmployees.map(e => e.id));
     }
+  };
+
+  const handleBulkEditSubmit = (e) => {
+    e.preventDefault();
+    bulkUpdateMutation.mutate(bulkEditData);
   };
 
   const handleDownloadTemplate = () => {
@@ -458,17 +485,91 @@ export default function EmployeeManagement() {
           {selectedEmployees.length > 0 && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
               <span className="text-sm text-blue-800">已選擇 {selectedEmployees.length} 位員工</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedEmployees([])}
-                className="text-blue-600 border-blue-300 hover:bg-blue-100"
-              >
-                清除選擇
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setIsBulkEditOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Pencil className="w-3 h-3 mr-1" />
+                  批量編輯
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedEmployees([])}
+                  className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                >
+                  清除選擇
+                </Button>
+              </div>
             </div>
           )}
         </div>
+
+        <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>批量編輯員工 ({selectedEmployees.length} 位)</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleBulkEditSubmit} className="space-y-4 mt-4">
+              <div>
+                <Label htmlFor="bulk-department">部門 (留空表示不修改)</Label>
+                <Select
+                  value={bulkEditData.department_id}
+                  onValueChange={(value) => setBulkEditData({ ...bulkEditData, department_id: value })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="選擇部門" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>不修改</SelectItem>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="bulk-status">在職狀態 (留空表示不修改)</Label>
+                <Select
+                  value={bulkEditData.status}
+                  onValueChange={(value) => setBulkEditData({ ...bulkEditData, status: value })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="選擇狀態" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>不修改</SelectItem>
+                    <SelectItem value="active">在職</SelectItem>
+                    <SelectItem value="inactive">離職</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsBulkEditOpen(false)}>
+                  取消
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={!bulkEditData.department_id && !bulkEditData.status}
+                >
+                  {bulkUpdateMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      更新中...
+                    </>
+                  ) : (
+                    '確認更新'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
