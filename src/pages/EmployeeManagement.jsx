@@ -34,6 +34,7 @@ export default function EmployeeManagement() {
   const [formData, setFormData] = useState({ name: '', code: '', department_id: '', status: 'active' });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
   const queryClient = useQueryClient();
 
   const { data: departments = [] } = useQuery({
@@ -121,6 +122,22 @@ export default function EmployeeManagement() {
   const filteredEmployees = selectedDepartments.length === 0
     ? employees 
     : employees.filter(emp => selectedDepartments.includes(emp.department_id));
+
+  const handleEmployeeToggle = (empId) => {
+    setSelectedEmployees(prev => 
+      prev.includes(empId) 
+        ? prev.filter(id => id !== empId)
+        : [...prev, empId]
+    );
+  };
+
+  const handleSelectAllEmployees = () => {
+    if (selectedEmployees.length === filteredEmployees.length) {
+      setSelectedEmployees([]);
+    } else {
+      setSelectedEmployees(filteredEmployees.map(e => e.id));
+    }
+  };
 
   const handleDownloadTemplate = () => {
     const csvContent = "name,code,department_name\n張三,A01,佈媽\n李四,B02,TD-台北\n王五,C03,3D team";
@@ -375,6 +392,14 @@ export default function EmployeeManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
+                  <TableHead className="w-[50px]">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
+                      onChange={handleSelectAllEmployees}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </TableHead>
                   <TableHead>姓名</TableHead>
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
@@ -385,6 +410,14 @@ export default function EmployeeManagement() {
               <TableBody>
                 {filteredEmployees.map((emp) => (
                   <TableRow key={emp.id}>
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedEmployees.includes(emp.id)}
+                        onChange={() => handleEmployeeToggle(emp.id)}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{emp.name}</TableCell>
                     <TableCell className="text-gray-500">{emp.code || '-'}</TableCell>
                     <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
@@ -421,6 +454,19 @@ export default function EmployeeManagement() {
                 ))}
               </TableBody>
             </Table>
+          )}
+          {selectedEmployees.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+              <span className="text-sm text-blue-800">已選擇 {selectedEmployees.length} 位員工</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedEmployees([])}
+                className="text-blue-600 border-blue-300 hover:bg-blue-100"
+              >
+                清除選擇
+              </Button>
+            </div>
           )}
         </div>
       </div>
