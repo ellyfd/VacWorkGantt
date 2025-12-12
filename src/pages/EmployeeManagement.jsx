@@ -119,53 +119,50 @@ export default function EmployeeManagement() {
 
     setIsUploading(true);
     try {
-      // Upload file
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        alert('檔案內容不正確');
+        return;
+      }
 
-      // Extract data from file
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
-        json_schema: {
-          type: "object",
-          properties: {
-            employees: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string" },
-                  code: { type: "string" },
-                  department_name: { type: "string" }
-                }
-              }
-            }
-          }
+      // Parse CSV
+      const headers = lines[0].split(',').map(h => h.trim().replace(/\uFEFF/g, ''));
+      const nameIdx = headers.indexOf('name');
+      const codeIdx = headers.indexOf('code');
+      const deptIdx = headers.indexOf('department_name');
+
+      if (nameIdx === -1 || deptIdx === -1) {
+        alert('CSV 檔案必須包含 name 和 department_name 欄位');
+        return;
+      }
+
+      const employeesToCreate = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        const name = values[nameIdx];
+        const code = codeIdx !== -1 ? values[codeIdx] : '';
+        const deptName = values[deptIdx];
+
+        if (!name || !deptName) continue;
+
+        const dept = departments.find(d => d.name === deptName);
+        if (dept) {
+          employeesToCreate.push({
+            name,
+            code: code || '',
+            department_id: dept.id
+          });
         }
-      });
+      }
 
-      if (result.status === 'success' && result.output?.employees) {
-        // Map department names to IDs
-        const employeesToCreate = result.output.employees
-          .map(emp => {
-            const dept = departments.find(d => d.name === emp.department_name);
-            if (!dept) return null;
-            return {
-              name: emp.name,
-              code: emp.code || '',
-              department_id: dept.id
-            };
-          })
-          .filter(emp => emp !== null);
-
-        if (employeesToCreate.length > 0) {
-          await base44.entities.Employee.bulkCreate(employeesToCreate);
-          queryClient.invalidateQueries(['employees']);
-          alert(`成功匯入 ${employeesToCreate.length} 位員工`);
-        } else {
-          alert('找不到符合的部門，請確認 Excel 中的部門名稱');
-        }
+      if (employeesToCreate.length > 0) {
+        await base44.entities.Employee.bulkCreate(employeesToCreate);
+        queryClient.invalidateQueries(['employees']);
+        alert(`成功匯入 ${employeesToCreate.length} 位員工`);
       } else {
-        alert('檔案讀取失敗：' + (result.details || '未知錯誤'));
+        alert('找不到符合的部門，請確認 CSV 中的部門名稱');
       }
     } catch (error) {
       alert('匯入失敗：' + error.message);
