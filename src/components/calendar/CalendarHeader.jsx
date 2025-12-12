@@ -37,7 +37,7 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
     onDateChange(newDate);
   };
 
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - 3 + i);
+  const years = [2025, 2026, 2027];
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   const handleDepartmentToggle = (deptId) => {
