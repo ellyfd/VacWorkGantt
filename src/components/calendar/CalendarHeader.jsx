@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
 
-export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartments, onDepartmentsChange, sortBy, onSortByChange }) {
+export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartments, onDepartmentsChange }) {
   const handlePrevMonth = () => {
     const currentMonth = currentDate.getMonth();
     if (currentMonth === -1) {
@@ -104,32 +104,17 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
       </div>
       
       <div className="p-4 bg-white rounded-lg border border-gray-200">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-3">
+        <div className="flex items-center justify-between mb-3">
           <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Label className="text-sm text-gray-600">排序：</Label>
-              <Select value={sortBy} onValueChange={onSortByChange}>
-                <SelectTrigger className="w-[120px] h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">按姓名</SelectItem>
-                  <SelectItem value="code">按職代</SelectItem>
-                  <SelectItem value="department">按部門</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleSelectAll}
-              className="h-8"
-            >
-              {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleSelectAll}
+            className="h-8"
+          >
+            {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
+          </Button>
         </div>
         <div className="flex flex-wrap gap-3">
           {departments.map((dept) => (
