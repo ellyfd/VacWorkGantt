@@ -34,7 +34,10 @@ export default function LeaveCalendar() {
 
   const { data: employees = [], isLoading: loadingEmps } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
+    queryFn: async () => {
+      const emps = await base44.entities.Employee.list('sort_order');
+      return emps.sort((a, b) => (a.sort_order || 999999) - (b.sort_order || 999999));
+    },
   });
 
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
@@ -155,6 +158,26 @@ export default function LeaveCalendar() {
     await rangeCancelMutation.mutateAsync({ employeeId, startDate, endDate });
   };
 
+  const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
+    const deptEmployees = employees.filter(e => e.department_id === departmentId);
+    const reordered = Array.from(deptEmployees);
+    const [removed] = reordered.splice(sourceIndex, 1);
+    reordered.splice(destinationIndex, 0, removed);
+    
+    const updates = reordered.map((emp, index) => ({
+      id: emp.id,
+      sort_order: index
+    }));
+    
+    await Promise.all(
+      updates.map(({ id, sort_order }) => 
+        base44.entities.Employee.update(id, { sort_order })
+      )
+    );
+    
+    queryClient.invalidateQueries(['employees']);
+  };
+
   const isLoading = loadingUser || loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
 
   if (isLoading) {
@@ -220,6 +243,7 @@ export default function LeaveCalendar() {
             setSelectedEmployee(emp);
             setRangeDialogOpen(true);
           }}
+          onReorderEmployees={handleReorderEmployees}
         />
 
         {employees.length === 0 && (
