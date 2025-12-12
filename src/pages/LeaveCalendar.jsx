@@ -160,20 +160,14 @@ export default function LeaveCalendar() {
 
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
     const deptEmployees = employees.filter(e => e.department_id === departmentId);
-    const reordered = Array.from(deptEmployees);
-    const [removed] = reordered.splice(sourceIndex, 1);
-    reordered.splice(destinationIndex, 0, removed);
+    const sourceEmp = deptEmployees[sourceIndex];
+    const destEmp = deptEmployees[destinationIndex];
     
-    const updates = reordered.map((emp, index) => ({
-      id: emp.id,
-      sort_order: index
-    }));
+    const sourceSortOrder = sourceEmp.sort_order ?? sourceIndex;
+    const destSortOrder = destEmp.sort_order ?? destinationIndex;
     
-    await Promise.all(
-      updates.map(({ id, sort_order }) => 
-        base44.entities.Employee.update(id, { sort_order })
-      )
-    );
+    await base44.entities.Employee.update(sourceEmp.id, { sort_order: destSortOrder });
+    await base44.entities.Employee.update(destEmp.id, { sort_order: sourceSortOrder });
     
     queryClient.invalidateQueries(['employees']);
   };
