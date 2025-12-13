@@ -16,6 +16,7 @@ export default function LeaveCalendarTable({
   holidays,
   onUpdateLeave,
   onDeleteLeave,
+  onDeleteRangeLeave,
   onOpenRangeDialog,
   onReorderEmployees
 }) {
@@ -65,6 +66,12 @@ export default function LeaveCalendarTable({
     onDeleteLeave(recordId);
   };
 
+  const handleDoubleClickLeave = (record) => {
+    if (onDeleteRangeLeave) {
+      onDeleteRangeLeave(record);
+    }
+  };
+
   const handleMoveUp = (deptId, empIdx) => {
     if (empIdx === 0) return;
     onReorderEmployees(deptId, empIdx, empIdx - 1);
@@ -104,7 +111,7 @@ export default function LeaveCalendarTable({
         </thead>
         <tbody>
           {departments.map((dept) => {
-            const deptEmployees = employees.filter(e => e.department_id === dept.id);
+            const deptEmployees = employees.filter(e => e.department_ids?.includes(dept.id));
             return deptEmployees.map((emp, empIdx) => (
               <tr key={emp.id} className="hover:bg-gray-50/50">
                 {empIdx === 0 && (
@@ -151,8 +158,13 @@ export default function LeaveCalendarTable({
                     </Button>
                   </div>
                 </td>
-                <td className="sticky left-[180px] z-10 bg-white px-3 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
-                  {emp.code || '-'}
+                <td className="sticky left-[180px] z-10 bg-white px-2 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
+                  {emp.deputy_1 || emp.deputy_2 ? (
+                    <div className="flex flex-col">
+                      {emp.deputy_1 && <div>1.{employees.find(e => e.id === emp.deputy_1)?.name || '-'}</div>}
+                      {emp.deputy_2 && <div>2.{employees.find(e => e.id === emp.deputy_2)?.name || '-'}</div>}
+                    </div>
+                  ) : '-'}
                 </td>
                 {days.map((d, idx) => {
                   const record = getLeaveRecord(emp.id, d.date);
@@ -165,6 +177,7 @@ export default function LeaveCalendarTable({
                         isHoliday={d.isHoliday}
                         onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
                         onClearLeave={() => record && handleClearLeave(record.id)}
+                        onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
                       />
                     </td>
                   );

@@ -303,7 +303,7 @@ export default function AllLeaveCalendar() {
   };
 
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
-    const deptEmployees = employees.filter(e => e.department_id === departmentId);
+    const deptEmployees = employees.filter(e => e.department_ids?.includes(departmentId));
     const sourceEmp = deptEmployees[sourceIndex];
     const destEmp = deptEmployees[destinationIndex];
     
@@ -365,22 +365,36 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <LeaveCalendarTable
-          currentDate={currentDate}
-          departments={filteredDepartments}
-          employees={employees}
-          leaveRecords={leaveRecords}
-          leaveTypes={leaveTypes}
-          holidays={holidays}
-          onUpdateLeave={handleUpdateLeave}
-          onDeleteLeave={handleDeleteLeave}
-          onDeleteRangeLeave={handleDeleteRangeLeave}
-          onReorderEmployees={handleReorderEmployees}
-          onOpenRangeDialog={(emp) => {
-            setSelectedEmployee(emp);
-            setRangeDialogOpen(true);
-          }}
-        />
+        <div className="space-y-4">
+          <LeaveCalendarTable
+            currentDate={currentDate}
+            departments={filteredDepartments}
+            employees={employees}
+            leaveRecords={leaveRecords}
+            leaveTypes={leaveTypes}
+            holidays={holidays}
+            onUpdateLeave={handleUpdateLeave}
+            onDeleteLeave={handleDeleteLeave}
+            onDeleteRangeLeave={handleDeleteRangeLeave}
+            onReorderEmployees={handleReorderEmployees}
+            onOpenRangeDialog={(emp) => {
+              setSelectedEmployee(emp);
+              setRangeDialogOpen(true);
+            }}
+          />
+          
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">假別說明</h3>
+            <div className="flex flex-wrap gap-3">
+              {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                <div key={lt.id} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
+                  <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
