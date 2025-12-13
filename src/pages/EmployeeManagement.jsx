@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+  const [formData, setFormData] = useState({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -110,6 +110,7 @@ export default function EmployeeManagement() {
       setEditingEmployee(employee);
       setFormData({
         name: employee.name,
+        english_name: employee.english_name || '',
         deputy_1: employee.deputy_1 || '',
         deputy_2: employee.deputy_2 || '',
         department_ids: employee.department_ids || [],
@@ -118,7 +119,7 @@ export default function EmployeeManagement() {
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+      setFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
     }
     setIsOpen(true);
   };
@@ -335,7 +336,17 @@ export default function EmployeeManagement() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="department">部門</Label>
+                    <Label htmlFor="english_name">英文名字</Label>
+                    <Input
+                      id="english_name"
+                      value={formData.english_name}
+                      onChange={(e) => setFormData({ ...formData, english_name: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="department">部門</Label>
                     <div className="mt-1 border rounded-md p-2 max-h-32 overflow-y-auto bg-white">
                       {departments.map((dept) => (
                         <label key={dept.id} className="flex items-center gap-2 py-1 hover:bg-gray-50 cursor-pointer">
@@ -547,6 +558,7 @@ export default function EmployeeManagement() {
                     />
                   </TableHead>
                   <TableHead>姓名</TableHead>
+                  <TableHead>英文名字</TableHead>
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
@@ -565,6 +577,7 @@ export default function EmployeeManagement() {
                       />
                     </TableCell>
                     <TableCell className="font-medium">{emp.name}</TableCell>
+                    <TableCell className="text-sm text-gray-600">{emp.english_name || '-'}</TableCell>
                     <TableCell className="text-xs text-gray-500">
                       {emp.deputy_1 || emp.deputy_2 ? (
                         <>
