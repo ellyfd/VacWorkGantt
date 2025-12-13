@@ -93,6 +93,18 @@ export default function EmployeeManagement() {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all(
+        selectedEmployees.map(empId => base44.entities.Employee.delete(empId))
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['employees']);
+      setSelectedEmployees([]);
+    },
+  });
+
   const handleOpenDialog = (employee = null) => {
     if (employee) {
       setEditingEmployee(employee);
@@ -168,6 +180,13 @@ export default function EmployeeManagement() {
   const handleBulkEditSubmit = (e) => {
     e.preventDefault();
     bulkUpdateMutation.mutate(bulkEditData);
+  };
+
+  const handleBulkDelete = () => {
+    const confirmed = window.confirm(`確定要刪除選中的 ${selectedEmployees.length} 位員工嗎？此操作無法撤銷。`);
+    if (confirmed) {
+      bulkDeleteMutation.mutate();
+    }
   };
 
   const handleDownloadTemplate = () => {
@@ -404,6 +423,24 @@ export default function EmployeeManagement() {
               >
                 <Pencil className="w-3 h-3 mr-1" />
                 批量編輯 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={selectedEmployees.length === 0 || bulkDeleteMutation.isPending}
+              >
+                {bulkDeleteMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    刪除中...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    批量刪除 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
+                  </>
+                )}
               </Button>
               {selectedEmployees.length > 0 && (
                 <Button
