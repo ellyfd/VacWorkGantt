@@ -197,50 +197,45 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead>部門</TableHead>
-                  <TableHead>姓名</TableHead>
-                  <TableHead>職代</TableHead>
                   <TableHead>假別</TableHead>
-                  <TableHead>備註</TableHead>
+                  <TableHead>人數</TableHead>
+                  <TableHead>人員</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {todayLeaves.map((leave) => {
-                  const emp = employees.find(e => e.id === leave.employee_id);
-                  const leaveType = getLeaveType(leave.leave_type_id);
-                  return (
-                    <TableRow key={leave.id}>
-                      <TableCell className="font-medium">
-                        {getDepartmentName(leave.employee_id)}
-                      </TableCell>
-                      <TableCell>
-                        {emp ? emp.name : '-'}
-                      </TableCell>
-                      <TableCell className="text-xs text-gray-500">
-                        {emp?.deputy_1 || emp?.deputy_2 ? (
-                          <>
-                            {emp.deputy_1 && <div>1. {employees.find(e => e.id === emp.deputy_1)?.name || '-'}</div>}
-                            {emp.deputy_2 && <div>2. {employees.find(e => e.id === emp.deputy_2)?.name || '-'}</div>}
-                          </>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {leaveType && (
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: leaveType.color }}
-                            />
-                          )}
-                          <span>{leaveType ? leaveType.name : '-'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-500 text-sm">
-                        {leave.note || '-'}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {Object.entries(
+                  todayLeaves.reduce((acc, leave) => {
+                    const leaveType = getLeaveType(leave.leave_type_id);
+                    const typeId = leave.leave_type_id;
+                    if (!acc[typeId]) {
+                      acc[typeId] = {
+                        leaveType,
+                        employees: []
+                      };
+                    }
+                    const emp = employees.find(e => e.id === leave.employee_id);
+                    if (emp) {
+                      acc[typeId].employees.push(emp.name);
+                    }
+                    return acc;
+                  }, {})
+                ).map(([typeId, data]) => (
+                  <TableRow key={typeId}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {data.leaveType && (
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: data.leaveType.color }}
+                          />
+                        )}
+                        <span className="font-medium">{data.leaveType ? data.leaveType.name : '-'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-bold text-lg">{data.employees.length}</TableCell>
+                    <TableCell className="text-gray-700">{data.employees.join('、')}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}
