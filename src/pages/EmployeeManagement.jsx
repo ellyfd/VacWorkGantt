@@ -558,7 +558,6 @@ export default function EmployeeManagement() {
                   </TableHead>
                   <TableHead>姓名</TableHead>
                   <TableHead>英文名字</TableHead>
-                  <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
                   <TableHead className="w-[100px]">編輯</TableHead>
@@ -577,14 +576,6 @@ export default function EmployeeManagement() {
                     </TableCell>
                     <TableCell className="font-medium">{emp.name}</TableCell>
                     <TableCell className="text-sm text-gray-600">{emp.english_name || '-'}</TableCell>
-                    <TableCell className="text-xs text-gray-500">
-                      {emp.deputy_1 || emp.deputy_2 ? (
-                        <>
-                          {emp.deputy_1 && <div>1. {employees.find(e => e.id === emp.deputy_1)?.name || '-'}</div>}
-                          {emp.deputy_2 && <div>2. {employees.find(e => e.id === emp.deputy_2)?.name || '-'}</div>}
-                        </>
-                      ) : '-'}
-                    </TableCell>
                     <TableCell className="text-sm">{getDepartmentNames(emp.department_ids)}</TableCell>
                     <TableCell>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
