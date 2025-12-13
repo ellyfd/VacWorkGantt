@@ -434,25 +434,23 @@ export default function LeaveCalendar() {
 
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <Select 
-                  value={selectedLeaveTypeId || ''} 
-                  onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
-                  disabled={rangeMode}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="選擇假別" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不選擇</SelectItem>
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <SelectItem key={lt.id} value={lt.id}>
-                        {lt.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select 
+                value={selectedLeaveTypeId || ''} 
+                onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+                disabled={rangeMode}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="選擇假別" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>不選擇</SelectItem>
+                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                    <SelectItem key={lt.id} value={lt.id}>
+                      {lt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {!rangeMode ? (
                 <Button
                   onClick={() => {
@@ -524,14 +522,14 @@ export default function LeaveCalendar() {
                   </PopoverContent>
                 </Popover>
               )}
+              {rangeMode && (
+                <p className="text-xs text-blue-600">
+                  {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
+                  {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
+                  {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊左側按鈕確認`}
+                </p>
+              )}
             </div>
-            {rangeMode && (
-              <p className="text-xs text-blue-600 mt-2">
-                {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
-                {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
-                {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊右側按鈕確認`}
-              </p>
-            )}
           </div>
 
           <WeekCalendarTable
