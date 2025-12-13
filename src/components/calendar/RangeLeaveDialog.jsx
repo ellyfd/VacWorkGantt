@@ -61,7 +61,7 @@ export default function RangeLeaveDialog({
         <DialogHeader>
           <DialogTitle>區間請假 - {employeeName}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <div className="space-y-4 mt-4">
           <div>
             <Label>選擇日期區間</Label>
             <div className="mt-2 flex justify-center border rounded-lg p-3">
@@ -86,6 +86,7 @@ export default function RangeLeaveDialog({
               </p>
             )}
           </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="leaveType">假別</Label>
             <Select value={leaveTypeId} onValueChange={setLeaveTypeId}>
@@ -93,7 +94,7 @@ export default function RangeLeaveDialog({
                 <SelectValue placeholder="選擇假別" />
               </SelectTrigger>
               <SelectContent>
-                {leaveTypes.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
                   <SelectItem key={lt.id} value={lt.id}>
                     <div className="flex items-center gap-2">
                       <div
@@ -137,7 +138,8 @@ export default function RangeLeaveDialog({
               )}
             </Button>
           </DialogFooter>
-        </form>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
