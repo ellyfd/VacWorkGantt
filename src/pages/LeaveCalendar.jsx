@@ -281,21 +281,28 @@ export default function LeaveCalendar() {
   const handleDeleteRangeLeave = (record) => {
     if (!record) return;
 
-    // 找出同一假別的連續日期
-    const clickedDate = new Date(record.date);
+    // 找出同一假別的所有記錄並排序
     const sameTypeRecords = leaveRecords.filter(r => 
       r.employee_id === record.employee_id && 
       r.leave_type_id === record.leave_type_id
-    ).sort((a, b) => new Date(a.date) - new Date(b.date));
+    ).sort((a, b) => a.date.localeCompare(b.date));
+
+    if (sameTypeRecords.length === 0) return;
 
     // 找出包含點擊日期的連續區間
     const rangeRecords = [record];
+    const recordIndex = sameTypeRecords.findIndex(r => r.id === record.id);
 
-    // 向前找
-    for (let i = sameTypeRecords.indexOf(record) - 1; i >= 0; i--) {
-      const prevDate = new Date(sameTypeRecords[i].date);
-      const lastDate = new Date(rangeRecords[0].date);
-      const diffDays = Math.round((lastDate - prevDate) / (1000 * 60 * 60 * 24));
+    // 向前找連續日期
+    for (let i = recordIndex - 1; i >= 0; i--) {
+      const currentDate = sameTypeRecords[i].date;
+      const nextDate = rangeRecords[0].date;
+
+      // 計算日期差（使用字串比較更可靠）
+      const current = new Date(currentDate + 'T00:00:00');
+      const next = new Date(nextDate + 'T00:00:00');
+      const diffDays = (next - current) / (1000 * 60 * 60 * 24);
+
       if (diffDays === 1) {
         rangeRecords.unshift(sameTypeRecords[i]);
       } else {
@@ -303,11 +310,16 @@ export default function LeaveCalendar() {
       }
     }
 
-    // 向後找
-    for (let i = sameTypeRecords.indexOf(record) + 1; i < sameTypeRecords.length; i++) {
-      const nextDate = new Date(sameTypeRecords[i].date);
-      const lastDate = new Date(rangeRecords[rangeRecords.length - 1].date);
-      const diffDays = Math.round((nextDate - lastDate) / (1000 * 60 * 60 * 24));
+    // 向後找連續日期
+    for (let i = recordIndex + 1; i < sameTypeRecords.length; i++) {
+      const currentDate = rangeRecords[rangeRecords.length - 1].date;
+      const nextDate = sameTypeRecords[i].date;
+
+      // 計算日期差
+      const current = new Date(currentDate + 'T00:00:00');
+      const next = new Date(nextDate + 'T00:00:00');
+      const diffDays = (next - current) / (1000 * 60 * 60 * 24);
+
       if (diffDays === 1) {
         rangeRecords.push(sameTypeRecords[i]);
       } else {
