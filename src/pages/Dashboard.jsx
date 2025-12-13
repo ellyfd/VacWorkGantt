@@ -20,21 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import ProfileSetup from '@/components/ProfileSetup';
 import LeaveStatistics from '@/components/dashboard/LeaveStatistics';
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    onSuccess: (user) => {
-      if (!user.department_id || !user.employee_id) {
-        setShowProfileSetup(true);
-      }
-    },
   });
 
   const { data: departments = [] } = useQuery({
@@ -120,11 +113,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <ProfileSetup 
-        isOpen={showProfileSetup} 
-        onComplete={() => setShowProfileSetup(false)} 
-      />
-      
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">首頁儀表板</h1>
