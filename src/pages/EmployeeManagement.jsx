@@ -31,12 +31,12 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_id: '', status: 'active', user_email: '' });
+  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
-  const [bulkEditData, setBulkEditData] = useState({ department_id: '', status: '' });
+  const [bulkEditData, setBulkEditData] = useState({ department_ids: [], status: '' });
   const queryClient = useQueryClient();
 
   const { data: departments = [] } = useQuery({
@@ -79,7 +79,7 @@ export default function EmployeeManagement() {
         selectedEmployees.map(empId => {
           const emp = employees.find(e => e.id === empId);
           const updateData = {};
-          if (updates.department_id) updateData.department_id = updates.department_id;
+          if (updates.department_ids && updates.department_ids.length > 0) updateData.department_ids = updates.department_ids;
           if (updates.status) updateData.status = updates.status;
           return base44.entities.Employee.update(empId, updateData);
         })
@@ -89,7 +89,7 @@ export default function EmployeeManagement() {
       queryClient.invalidateQueries(['employees']);
       setIsBulkEditOpen(false);
       setSelectedEmployees([]);
-      setBulkEditData({ department_id: '', status: '' });
+      setBulkEditData({ department_ids: [], status: '' });
     },
   });
 
@@ -112,13 +112,13 @@ export default function EmployeeManagement() {
         name: employee.name,
         deputy_1: employee.deputy_1 || '',
         deputy_2: employee.deputy_2 || '',
-        department_id: employee.department_id,
+        department_ids: employee.department_ids || [],
         status: employee.status || 'active',
         user_email: employee.user_email || '',
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: departments[0]?.id || '', status: 'active', user_email: '' });
+      setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
     }
     setIsOpen(true);
   };
@@ -126,7 +126,7 @@ export default function EmployeeManagement() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: '', status: 'active', user_email: '' });
+    setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
   };
 
   const handleSubmit = (e) => {
@@ -138,8 +138,9 @@ export default function EmployeeManagement() {
     }
   };
 
-  const getDepartmentName = (deptId) => {
-    return departments.find(d => d.id === deptId)?.name || '-';
+  const getDepartmentNames = (deptIds) => {
+    if (!deptIds || deptIds.length === 0) return '-';
+    return deptIds.map(id => departments.find(d => d.id === id)?.name || '').filter(Boolean).join(', ');
   };
 
   const handleDepartmentToggle = (deptId) => {
@@ -160,7 +161,7 @@ export default function EmployeeManagement() {
 
   const filteredEmployees = selectedDepartments.length === 0
     ? employees 
-    : employees.filter(emp => selectedDepartments.includes(emp.department_id));
+    : employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)));
 
   const handleEmployeeToggle = (empId) => {
     setSelectedEmployees(prev => 
@@ -335,21 +336,25 @@ export default function EmployeeManagement() {
                   </div>
                   <div>
                     <Label htmlFor="department">部門</Label>
-                    <Select
-                      value={formData.department_id}
-                      onValueChange={(value) => setFormData({ ...formData, department_id: value })}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="選擇部門" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departments.map((dept) => (
-                          <SelectItem key={dept.id} value={dept.id}>
-                            {dept.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-1 border rounded-md p-2 max-h-32 overflow-y-auto bg-white">
+                      {departments.map((dept) => (
+                        <label key={dept.id} className="flex items-center gap-2 py-1 hover:bg-gray-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.department_ids.includes(dept.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ ...formData, department_ids: [...formData.department_ids, dept.id] });
+                              } else {
+                                setFormData({ ...formData, department_ids: formData.department_ids.filter(id => id !== dept.id) });
+                              }
+                            }}
+                            className="w-4 h-4 text-blue-600 rounded"
+                          />
+                          <span className="text-sm">{dept.name}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -569,7 +574,7 @@ export default function EmployeeManagement() {
                         </>
                       ) : '-'}
                     </TableCell>
-                    <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
+                    <TableCell className="text-sm">{getDepartmentNames(emp.department_ids)}</TableCell>
                     <TableCell>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         emp.status === 'active' 
@@ -627,23 +632,26 @@ export default function EmployeeManagement() {
             </DialogHeader>
             <form onSubmit={handleBulkEditSubmit} className="space-y-4 mt-4">
               <div>
-                <Label htmlFor="bulk-department">部門 (留空表示不修改)</Label>
-                <Select
-                  value={bulkEditData.department_id}
-                  onValueChange={(value) => setBulkEditData({ ...bulkEditData, department_id: value })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="選擇部門" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不修改</SelectItem>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="bulk-department">部門 (不勾選表示不修改)</Label>
+                <div className="mt-1 border rounded-md p-2 max-h-32 overflow-y-auto bg-white">
+                  {departments.map((dept) => (
+                    <label key={dept.id} className="flex items-center gap-2 py-1 hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={bulkEditData.department_ids.includes(dept.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setBulkEditData({ ...bulkEditData, department_ids: [...bulkEditData.department_ids, dept.id] });
+                          } else {
+                            setBulkEditData({ ...bulkEditData, department_ids: bulkEditData.department_ids.filter(id => id !== dept.id) });
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span className="text-sm">{dept.name}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div>
                 <Label htmlFor="bulk-status">在職狀態 (留空表示不修改)</Label>
@@ -670,7 +678,7 @@ export default function EmployeeManagement() {
                 <Button 
                   type="submit" 
                   className="bg-blue-600 hover:bg-blue-700"
-                  disabled={!bulkEditData.department_id && !bulkEditData.status}
+                  disabled={bulkEditData.department_ids.length === 0 && !bulkEditData.status}
                 >
                   {bulkUpdateMutation.isPending ? (
                     <>
