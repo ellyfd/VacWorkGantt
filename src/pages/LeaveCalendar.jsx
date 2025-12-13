@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2, ChevronDown, ChevronUp, CalendarRange } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, CalendarRange, LogOut } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -587,6 +587,17 @@ export default function LeaveCalendar() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <Button
+              onClick={() => base44.auth.logout()}
+              variant="outline"
+              className="border-red-600 text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              登出
+            </Button>
           </div>
           </div>
           </div>
