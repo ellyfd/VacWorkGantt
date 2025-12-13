@@ -15,9 +15,13 @@ export default function LeaveCalendarTable({
   leaveTypes,
   holidays,
   selectedLeaveTypeId,
+  rangeMode = false,
+  dateRange = { from: undefined, to: undefined },
+  selectedEmployeeId,
   onUpdateLeave,
   onDeleteLeave,
-  onDeleteRangeLeave
+  onDeleteRangeLeave,
+  onCellClickInRangeMode
 }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -58,15 +62,21 @@ export default function LeaveCalendarTable({
   };
 
   const handleSelectLeave = (employeeId, date, leaveTypeId) => {
-    onUpdateLeave(employeeId, date, leaveTypeId);
+    if (rangeMode && onCellClickInRangeMode) {
+      onCellClickInRangeMode(employeeId, date);
+    } else {
+      onUpdateLeave(employeeId, date, leaveTypeId);
+    }
   };
 
   const handleClearLeave = (recordId) => {
-    onDeleteLeave(recordId);
+    if (!rangeMode) {
+      onDeleteLeave(recordId);
+    }
   };
 
   const handleDoubleClickLeave = (record) => {
-    if (onDeleteRangeLeave) {
+    if (!rangeMode && onDeleteRangeLeave) {
       onDeleteRangeLeave(record);
     }
   };
@@ -115,6 +125,9 @@ export default function LeaveCalendarTable({
                 </td>
                 {days.map((d, idx) => {
                   const record = getLeaveRecord(emp.id, d.date);
+                  const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
+                    dateRange.from && dateRange.to && 
+                    d.date >= dateRange.from && d.date <= dateRange.to;
                   return (
                     <td key={idx} className="p-0 border-r border-b border-gray-200">
                       <LeaveCell
@@ -123,9 +136,13 @@ export default function LeaveCalendarTable({
                         selectedLeaveTypeId={selectedLeaveTypeId}
                         isWeekend={d.isWeekend}
                         isHoliday={d.isHoliday}
+                        rangeMode={rangeMode && selectedEmployeeId === emp.id}
+                        dateRange={dateRange}
+                        currentDate={d.date}
                         onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
                         onClearLeave={() => record && handleClearLeave(record.id)}
                         onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
+                        onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
                       />
                     </td>
                   );
