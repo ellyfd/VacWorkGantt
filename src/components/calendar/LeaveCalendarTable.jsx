@@ -14,6 +14,7 @@ export default function LeaveCalendarTable({
   leaveRecords,
   leaveTypes,
   holidays,
+  selectedLeaveTypeId,
   onUpdateLeave,
   onDeleteLeave,
   onDeleteRangeLeave
@@ -119,6 +120,7 @@ export default function LeaveCalendarTable({
                       <LeaveCell
                         record={record}
                         leaveTypes={leaveTypes}
+                        selectedLeaveTypeId={selectedLeaveTypeId}
                         isWeekend={d.isWeekend}
                         isHoliday={d.isHoliday}
                         onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}

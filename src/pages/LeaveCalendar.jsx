@@ -14,6 +14,7 @@ export default function LeaveCalendar() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
+  const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -424,29 +425,58 @@ export default function LeaveCalendar() {
           />
           </div>
 
-          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
-          <Button
-            variant="ghost"
-            className="w-full flex items-center justify-between p-4 hover:bg-blue-100"
-            onClick={() => setInstructionsOpen(!instructionsOpen)}
-          >
-            <h3 className="text-sm font-semibold text-blue-900">操作說明</h3>
-            {instructionsOpen ? (
-              <ChevronUp className="w-4 h-4 text-blue-900" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-blue-900" />
-            )}
-          </Button>
-          {instructionsOpen && (
-            <div className="px-4 pb-4">
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• <span className="font-medium">單擊格子</span>：選擇假別</li>
-                <li>• <span className="font-medium">雙擊格子</span>：取消請假</li>
-                <li>• <span className="font-medium">區間請假/取消</span>：點擊 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
-                <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
-              </ul>
+          <div className="mb-4 space-y-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">選擇假別</h3>
+              <div className="flex flex-wrap gap-2">
+                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                  <button
+                    key={lt.id}
+                    onClick={() => setSelectedLeaveTypeId(lt.id === selectedLeaveTypeId ? null : lt.id)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedLeaveTypeId === lt.id
+                        ? 'ring-2 ring-offset-2 shadow-md scale-105'
+                        : 'hover:scale-105'
+                    }`}
+                    style={{
+                      backgroundColor: selectedLeaveTypeId === lt.id ? lt.color : `${lt.color}40`,
+                      color: selectedLeaveTypeId === lt.id ? '#fff' : lt.color,
+                      borderColor: lt.color,
+                      borderWidth: '2px',
+                      ringColor: lt.color
+                    }}
+                  >
+                    {lt.short_name}
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+              <Button
+                variant="ghost"
+                className="w-full flex items-center justify-between p-4 hover:bg-blue-100"
+                onClick={() => setInstructionsOpen(!instructionsOpen)}
+              >
+                <h3 className="text-sm font-semibold text-blue-900">操作說明</h3>
+                {instructionsOpen ? (
+                  <ChevronUp className="w-4 h-4 text-blue-900" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-blue-900" />
+                )}
+              </Button>
+              {instructionsOpen && (
+                <div className="px-4 pb-4">
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• <span className="font-medium">上方選擇假別</span>：點選要使用的假別</li>
+                    <li>• <span className="font-medium">單擊格子</span>：用選定的假別填充</li>
+                    <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
+                    <li>• <span className="font-medium">區間請假/取消</span>：點擊右上角 📅 按鈕</li>
+                    <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
 
           <WeekCalendarTable
@@ -456,6 +486,7 @@ export default function LeaveCalendar() {
             leaveRecords={leaveRecords}
             leaveTypes={leaveTypes}
             holidays={holidays}
+            selectedLeaveTypeId={selectedLeaveTypeId}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
