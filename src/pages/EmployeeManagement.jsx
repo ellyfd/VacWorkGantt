@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_id: '', status: 'active', user_email: '' });
+  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_id: '', department_id_2: '', status: 'active', user_email: '' });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -113,12 +113,13 @@ export default function EmployeeManagement() {
         deputy_1: employee.deputy_1 || '',
         deputy_2: employee.deputy_2 || '',
         department_id: employee.department_id,
+        department_id_2: employee.department_id_2 || '',
         status: employee.status || 'active',
         user_email: employee.user_email || '',
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: departments[0]?.id || '', status: 'active', user_email: '' });
+      setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: departments[0]?.id || '', department_id_2: '', status: 'active', user_email: '' });
     }
     setIsOpen(true);
   };
@@ -126,7 +127,7 @@ export default function EmployeeManagement() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: '', status: 'active', user_email: '' });
+    setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: '', department_id_2: '', status: 'active', user_email: '' });
   };
 
   const handleSubmit = (e) => {
@@ -322,19 +323,19 @@ export default function EmployeeManagement() {
                 <DialogTitle>{editingEmployee ? '編輯員工' : '新增員工'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-3 mt-4">
+                <div>
+                  <Label htmlFor="name">姓名</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    className="mt-1"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="name">姓名</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="department">部門</Label>
+                    <Label htmlFor="department">主要部門</Label>
                     <Select
                       value={formData.department_id}
                       onValueChange={(value) => setFormData({ ...formData, department_id: value })}
@@ -344,6 +345,25 @@ export default function EmployeeManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="department_2">兼職部門</Label>
+                    <Select
+                      value={formData.department_id_2}
+                      onValueChange={(value) => setFormData({ ...formData, department_id_2: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="無" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>無</SelectItem>
+                        {departments.filter(d => d.id !== formData.department_id).map((dept) => (
                           <SelectItem key={dept.id} value={dept.id}>
                             {dept.name}
                           </SelectItem>
@@ -569,7 +589,14 @@ export default function EmployeeManagement() {
                         </>
                       ) : '-'}
                     </TableCell>
-                    <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-medium text-sm">{getDepartmentName(emp.department_id)}</span>
+                        {emp.department_id_2 && (
+                          <span className="text-xs text-gray-500">兼 {getDepartmentName(emp.department_id_2)}</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         emp.status === 'active' 
