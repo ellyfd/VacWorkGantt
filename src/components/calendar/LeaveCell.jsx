@@ -35,9 +35,9 @@ export default function LeaveCell({
   };
 
   const handleDoubleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (record) {
-      e.preventDefault();
-      e.stopPropagation();
       if (onDoubleClickLeave) {
         onDoubleClickLeave();
       } else {
