@@ -550,7 +550,6 @@ export default function EmployeeManagement() {
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
-                  <TableHead>綁定帳號</TableHead>
                   <TableHead className="w-[100px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -587,16 +586,6 @@ export default function EmployeeManagement() {
                       }`}>
                         {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
                       </span>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {emp.user_email ? (
-                        <span className="inline-flex items-center gap-1">
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          {emp.user_email}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">未綁定</span>
-                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
