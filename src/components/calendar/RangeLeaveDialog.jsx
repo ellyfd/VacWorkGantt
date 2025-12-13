@@ -70,7 +70,7 @@ export default function RangeLeaveDialog({
                 selected={dateRange}
                 onSelect={setDateRange}
                 locale={zhTW}
-                numberOfMonths={2}
+                numberOfMonths={1}
                 className="rounded-md"
               />
             </div>
@@ -108,7 +108,7 @@ export default function RangeLeaveDialog({
               </SelectContent>
             </Select>
           </div>
-          <DialogFooter>
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               關閉
             </Button>
@@ -137,7 +137,7 @@ export default function RangeLeaveDialog({
                 '區間請假'
               )}
             </Button>
-          </DialogFooter>
+          </div>
           </form>
         </div>
       </DialogContent>
