@@ -41,7 +41,10 @@ export default function EmployeeManagement() {
 
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
-    queryFn: () => base44.entities.Department.list('sort_order'),
+    queryFn: async () => {
+      const depts = await base44.entities.Department.list('sort_order');
+      return depts.filter(d => d.status !== 'hidden');
+    },
   });
 
   const { data: employees = [], isLoading } = useQuery({

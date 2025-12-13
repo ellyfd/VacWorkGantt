@@ -15,7 +15,8 @@ import { Loader2, BarChart3 } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
-export default function LeaveStatistics({ departments, employees, leaveTypes }) {
+export default function LeaveStatistics({ departments: allDepartments, employees, leaveTypes }) {
+  const departments = allDepartments.filter(d => d.status !== 'hidden');
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
