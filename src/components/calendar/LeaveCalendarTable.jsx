@@ -105,9 +105,22 @@ export default function LeaveCalendarTable({
           </tr>
         </thead>
         <tbody>
-          {departments.map((dept) => {
-            const deptEmployees = employees.filter(e => e.department_ids?.includes(dept.id));
-            return deptEmployees.map((emp, empIdx) => (
+          {(() => {
+            // 收集所有應顯示的員工（來自被選中的部門）
+            const employeesToShow = [];
+            const seenEmployeeIds = new Set();
+            
+            departments.forEach((dept) => {
+              const deptEmployees = employees.filter(e => e.department_ids?.includes(dept.id));
+              deptEmployees.forEach(emp => {
+                if (!seenEmployeeIds.has(emp.id)) {
+                  seenEmployeeIds.add(emp.id);
+                  employeesToShow.push(emp);
+                }
+              });
+            });
+            
+            return employeesToShow.map((emp) => (
               <tr key={emp.id} className="hover:bg-gray-50/50">
                 <td className="sticky left-0 z-10 bg-white px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200">
                   {emp.name}
@@ -138,7 +151,7 @@ export default function LeaveCalendarTable({
                 })}
               </tr>
             ));
-          })}
+          })()}
         </tbody>
       </table>
     </div>
