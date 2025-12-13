@@ -15,11 +15,6 @@ export default function AllLeaveCalendar() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
-
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
     queryKey: ['departments'],
     queryFn: async () => {
