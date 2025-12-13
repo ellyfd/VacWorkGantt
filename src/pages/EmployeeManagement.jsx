@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -114,11 +114,11 @@ export default function EmployeeManagement() {
         deputy_2: employee.deputy_2 || '',
         department_ids: employee.department_ids || [],
         status: employee.status || 'active',
-        user_email: employee.user_email || '',
+        user_emails: employee.user_emails || [],
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+      setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
     }
     setIsOpen(true);
   };
@@ -126,7 +126,7 @@ export default function EmployeeManagement() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+    setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
   };
 
   const handleSubmit = (e) => {
@@ -418,17 +418,48 @@ export default function EmployeeManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="user_email">綁定登入帳號</Label>
-                  <Input
-                    id="user_email"
-                    type="email"
-                    value={formData.user_email}
-                    onChange={(e) => setFormData({ ...formData, user_email: e.target.value })}
-                    placeholder="user@example.com"
-                    className="mt-1"
-                  />
-                </div>
+{editingEmployee && (
+                  <div>
+                    <Label>綁定登入帳號</Label>
+                    <div className="mt-2 space-y-2">
+                      {formData.user_emails.map((email, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            type="email"
+                            value={email}
+                            onChange={(e) => {
+                              const newEmails = [...formData.user_emails];
+                              newEmails[index] = e.target.value;
+                              setFormData({ ...formData, user_emails: newEmails });
+                            }}
+                            placeholder="user@example.com"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              const newEmails = formData.user_emails.filter((_, i) => i !== index);
+                              setFormData({ ...formData, user_emails: newEmails });
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, user_emails: [...formData.user_emails, ''] })}
+                        className="w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        新增帳號
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={handleCloseDialog}>
                     取消
@@ -550,7 +581,7 @@ export default function EmployeeManagement() {
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
-                  <TableHead>綁定帳號</TableHead>
+                  <TableHead>綁定帳號數</TableHead>
                   <TableHead className="w-[100px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -589,10 +620,10 @@ export default function EmployeeManagement() {
                       </span>
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">
-                      {emp.user_email ? (
+                      {emp.user_emails && emp.user_emails.length > 0 ? (
                         <span className="inline-flex items-center gap-1">
                           <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          {emp.user_email}
+                          {emp.user_emails.length} 個帳號
                         </span>
                       ) : (
                         <span className="text-gray-400">未綁定</span>
