@@ -18,6 +18,7 @@ export default function LeaveCalendarTable({
   rangeMode = false,
   dateRange = { from: undefined, to: undefined },
   selectedEmployeeId,
+  currentEmployeeId,
   onUpdateLeave,
   onDeleteLeave,
   onDeleteRangeLeave,
@@ -120,9 +121,11 @@ export default function LeaveCalendarTable({
               });
             });
             
-            return employeesToShow.map((emp) => (
-              <tr key={emp.id} className="hover:bg-gray-50/50">
-                <td className="sticky left-0 z-10 bg-white px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200">
+            return employeesToShow.map((emp) => {
+              const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
+              return (
+              <tr key={emp.id} className={`hover:bg-gray-50/50 ${isCurrentUser ? 'bg-yellow-50' : ''}`}>
+                <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-50' : 'bg-white'}`}>
                   {emp.name}
                 </td>
                 {days.map((d, idx) => {
@@ -150,7 +153,8 @@ export default function LeaveCalendarTable({
                   );
                 })}
               </tr>
-            ));
+              );
+            });
           })()}
         </tbody>
       </table>
