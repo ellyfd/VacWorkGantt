@@ -360,32 +360,28 @@ export default function AllLeaveCalendar() {
       />
       
       <div className="max-w-full mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">全部排休</h1>
-          <CalendarHeader 
-            currentDate={currentDate} 
-            onDateChange={setCurrentDate}
-          />
-        </div>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
         <div className="mb-4 space-y-3">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex-1">
-                <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
-                  <SelectTrigger className="w-full md:w-[200px]">
-                    <SelectValue placeholder="選擇假別" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不選擇</SelectItem>
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <SelectItem key={lt.id} value={lt.id}>
-                        {lt.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex items-center gap-3">
+              <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="選擇假別" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>不選擇</SelectItem>
+                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                    <SelectItem key={lt.id} value={lt.id}>
+                      {lt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <CalendarHeader 
+                currentDate={currentDate} 
+                onDateChange={setCurrentDate}
+              />
             </div>
           </div>
 
@@ -444,6 +440,7 @@ export default function AllLeaveCalendar() {
         <div className="space-y-4">
           <LeaveCalendarTable
             currentDate={currentDate}
+            onDateChange={setCurrentDate}
             departments={filteredDepartments}
             employees={employees}
             leaveRecords={leaveRecords}
