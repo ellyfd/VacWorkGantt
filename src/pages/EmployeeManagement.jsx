@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', code: '', department_id: '', status: 'active' });
+  const [formData, setFormData] = useState({ name: '', code: '', department_id: '', status: 'active', user_email: '' });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -101,10 +101,11 @@ export default function EmployeeManagement() {
         code: employee.code || '',
         department_id: employee.department_id,
         status: employee.status || 'active',
+        user_email: employee.user_email || '',
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', code: '', department_id: departments[0]?.id || '', status: 'active' });
+      setFormData({ name: '', code: '', department_id: departments[0]?.id || '', status: 'active', user_email: '' });
     }
     setIsOpen(true);
   };
@@ -112,7 +113,7 @@ export default function EmployeeManagement() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', code: '', department_id: '', status: 'active' });
+    setFormData({ name: '', code: '', department_id: '', status: 'active', user_email: '' });
   };
 
   const handleSubmit = (e) => {
@@ -356,6 +357,18 @@ export default function EmployeeManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="user_email">綁定登入帳號 (Email)</Label>
+                  <Input
+                    id="user_email"
+                    type="email"
+                    value={formData.user_email}
+                    onChange={(e) => setFormData({ ...formData, user_email: e.target.value })}
+                    placeholder="user@example.com"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">輸入員工的登入email來綁定帳號</p>
+                </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={handleCloseDialog}>
                     取消
@@ -463,6 +476,7 @@ export default function EmployeeManagement() {
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
+                  <TableHead>綁定帳號</TableHead>
                   <TableHead className="w-[100px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -492,6 +506,16 @@ export default function EmployeeManagement() {
                       }`}>
                         {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
                       </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {emp.user_email ? (
+                        <span className="inline-flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                          {emp.user_email}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">未綁定</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
