@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Calendar, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Calendar } from 'lucide-react';
 
 const PRESET_COLORS = [
   '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#EF4444', '#06B6D4', '#84CC16', '#F97316'
@@ -87,19 +87,10 @@ export default function LeaveTypeManagement() {
     }
   };
 
-  const handleMoveUp = async (type, index) => {
-    if (index === 0) return;
-    const prevType = leaveTypes[index - 1];
-    await base44.entities.LeaveType.update(type.id, { sort_order: prevType.sort_order });
-    await base44.entities.LeaveType.update(prevType.id, { sort_order: type.sort_order });
-    queryClient.invalidateQueries(['leaveTypes']);
-  };
-
-  const handleMoveDown = async (type, index) => {
-    if (index === leaveTypes.length - 1) return;
-    const nextType = leaveTypes[index + 1];
-    await base44.entities.LeaveType.update(type.id, { sort_order: nextType.sort_order });
-    await base44.entities.LeaveType.update(nextType.id, { sort_order: type.sort_order });
+  const handleSortOrderChange = async (typeId, newOrder) => {
+    const order = parseInt(newOrder);
+    if (isNaN(order)) return;
+    await base44.entities.LeaveType.update(typeId, { sort_order: order });
     queryClient.invalidateQueries(['leaveTypes']);
   };
 
@@ -206,26 +197,13 @@ export default function LeaveTypeManagement() {
                 {leaveTypes.map((lt, index) => (
                   <TableRow key={lt.id}>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleMoveUp(lt, index)}
-                          disabled={index === 0}
-                          className="h-6 w-6"
-                        >
-                          <ArrowUp className="w-3 h-3 text-gray-500" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleMoveDown(lt, index)}
-                          disabled={index === leaveTypes.length - 1}
-                          className="h-6 w-6"
-                        >
-                          <ArrowDown className="w-3 h-3 text-gray-500" />
-                        </Button>
-                      </div>
+                      <Input
+                        type="number"
+                        value={lt.sort_order || index + 1}
+                        onChange={(e) => handleSortOrderChange(lt.id, e.target.value)}
+                        className="w-16 h-8 text-center"
+                        min="1"
+                      />
                     </TableCell>
                     <TableCell>
                       <div 
