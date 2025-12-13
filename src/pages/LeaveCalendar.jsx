@@ -6,8 +6,6 @@ import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
-import LeaveLegend from '@/components/calendar/LeaveLegend';
-
 import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 
 export default function LeaveCalendar() {
@@ -15,6 +13,7 @@ export default function LeaveCalendar() {
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -466,8 +465,31 @@ export default function LeaveCalendar() {
             }}
           />
 
-          <div className="mt-4">
-            <LeaveLegend leaveTypes={leaveTypes} />
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+            <Button
+              variant="ghost"
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
+              onClick={() => setLegendOpen(!legendOpen)}
+            >
+              <h3 className="text-sm font-semibold text-gray-700">假別說明</h3>
+              {legendOpen ? (
+                <ChevronUp className="w-4 h-4 text-gray-700" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-700" />
+              )}
+            </Button>
+            {legendOpen && (
+              <div className="px-4 pb-4">
+                <div className="flex flex-wrap gap-3">
+                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                    <div key={lt.id} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
+                      <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           </div>
           </div>
