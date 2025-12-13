@@ -404,48 +404,51 @@ export default function EmployeeManagement() {
 
         <div className="mb-4 flex gap-4">
           <div className="flex-1 p-4 bg-white rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <Label className="text-sm font-semibold text-gray-700">批量操作</Label>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => setIsBulkEditOpen(true)}
-                  disabled={selectedEmployees.length === 0}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
-                >
-                  <Pencil className="w-3 h-3 mr-1" />
-                  批量編輯 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={handleBulkDelete}
-                  disabled={selectedEmployees.length === 0 || bulkDeleteMutation.isPending}
-                >
-                  {bulkDeleteMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      刪除中...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      批量刪除 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
-                    </>
-                  )}
-                </Button>
-                {selectedEmployees.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedEmployees([])}
-                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
-                  >
-                    清除選擇
-                  </Button>
+            <Label className="text-sm font-semibold text-gray-700 mb-3 block">批量操作</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={() => setIsBulkEditOpen(true)}
+                disabled={selectedEmployees.length === 0}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
+              >
+                <Pencil className="w-3 h-3 mr-1" />
+                批量編輯 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={selectedEmployees.length === 0 || bulkDeleteMutation.isPending}
+              >
+                {bulkDeleteMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    刪除中...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    批量刪除 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
+                  </>
                 )}
-              </div>
+              </Button>
+              {selectedEmployees.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedEmployees([])}
+                  className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                >
+                  清除選擇
+                </Button>
+              )}
             </div>
+            {selectedEmployees.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                已選擇 {selectedEmployees.length} 位員工
+              </p>
+            )}
           </div>
 
           <div className="flex-1 p-4 bg-white rounded-lg border border-gray-200">
