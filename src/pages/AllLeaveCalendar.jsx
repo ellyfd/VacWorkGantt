@@ -22,6 +22,7 @@ export default function AllLeaveCalendar() {
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
@@ -367,7 +368,34 @@ export default function AllLeaveCalendar() {
           />
         </div>
 
-        <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+        <div className="mb-4 space-y-3">
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">選擇假別</h3>
+            <div className="flex flex-wrap gap-2">
+              {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                <button
+                  key={lt.id}
+                  onClick={() => setSelectedLeaveTypeId(lt.id === selectedLeaveTypeId ? null : lt.id)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedLeaveTypeId === lt.id
+                      ? 'ring-2 ring-offset-2 shadow-md scale-105'
+                      : 'hover:scale-105'
+                  }`}
+                  style={{
+                    backgroundColor: selectedLeaveTypeId === lt.id ? lt.color : `${lt.color}40`,
+                    color: selectedLeaveTypeId === lt.id ? '#fff' : lt.color,
+                    borderColor: lt.color,
+                    borderWidth: '2px',
+                    ringColor: lt.color
+                  }}
+                >
+                  {lt.short_name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+        <div className="p-3 bg-white border border-gray-200 rounded-lg">
           <div className="flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
@@ -427,6 +455,7 @@ export default function AllLeaveCalendar() {
             leaveRecords={leaveRecords}
             leaveTypes={leaveTypes}
             holidays={holidays}
+            selectedLeaveTypeId={selectedLeaveTypeId}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
