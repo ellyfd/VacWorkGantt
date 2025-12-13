@@ -182,13 +182,11 @@ export default function Layout({ children, currentPageName }) {
                   <SelectValue placeholder="請選擇..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {employees
-                    .filter(emp => !emp.user_email || emp.user_email === currentUser?.email)
-                    .map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name} {emp.english_name ? `(${emp.english_name})` : ''}
-                      </SelectItem>
-                    ))}
+                  {employees.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.name} {emp.english_name ? `(${emp.english_name})` : ''} {emp.user_email ? '- 已綁定' : ''}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
