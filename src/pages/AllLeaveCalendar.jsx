@@ -367,15 +367,38 @@ export default function AllLeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-full mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">全部排休</h1>
-          <CalendarHeader 
-            currentDate={currentDate} 
-            onDateChange={setCurrentDate}
-          />
-        </div>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
         <div className="mb-4 space-y-3">
+          <div className="p-3 bg-white border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-3 flex-wrap">
+              <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
+              {departments.map((dept) => (
+                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(dept.id)}
+                    onChange={() => {
+                      if (selectedDepartments.includes(dept.id)) {
+                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                      } else {
+                        setSelectedDepartments([...selectedDepartments, dept.id]);
+                      }
+                    }}
+                    className="w-3.5 h-3.5 text-blue-600 rounded"
+                  />
+                  <span className="text-xs text-gray-700">{dept.name}</span>
+                </label>
+              ))}
+              <div className="ml-auto">
+                <CalendarHeader 
+                  currentDate={currentDate} 
+                  onDateChange={setCurrentDate}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-3 flex-wrap">
               <Select 
@@ -450,29 +473,6 @@ export default function AllLeaveCalendar() {
                   })()}
                 </p>
               )}
-            </div>
-          </div>
-
-          <div className="p-3 bg-white border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
-              {departments.map((dept) => (
-                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                  <input
-                    type="checkbox"
-                    checked={selectedDepartments.includes(dept.id)}
-                    onChange={() => {
-                      if (selectedDepartments.includes(dept.id)) {
-                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
-                      } else {
-                        setSelectedDepartments([...selectedDepartments, dept.id]);
-                      }
-                    }}
-                    className="w-3.5 h-3.5 text-blue-600 rounded"
-                  />
-                  <span className="text-xs text-gray-700">{dept.name}</span>
-                </label>
-              ))}
             </div>
           </div>
         </div>
