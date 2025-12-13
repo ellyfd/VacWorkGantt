@@ -406,22 +406,11 @@ export default function EmployeeManagement() {
 
         <div className="mb-3 flex flex-col md:flex-row gap-3">
           <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
-                    onChange={handleSelectAllEmployees}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-semibold text-gray-700">全選</span>
-                </label>
-                {selectedEmployees.length > 0 && (
-                  <span className="text-xs text-gray-500">已選 {selectedEmployees.length} 位</span>
-                )}
-              </div>
+            <div className="flex items-center justify-between mb-2">
               <Label className="text-sm font-semibold text-gray-700">批量操作</Label>
+              {selectedEmployees.length > 0 && (
+                <span className="text-xs text-gray-500">已選 {selectedEmployees.length} 位</span>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
