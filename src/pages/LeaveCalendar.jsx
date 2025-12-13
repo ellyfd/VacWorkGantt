@@ -452,7 +452,7 @@ export default function LeaveCalendar() {
           <WeekCalendarTable
             currentDate={currentDate}
             currentEmployee={currentEmployee}
-            currentDepartment={departments.find(d => d.id === currentEmployee?.department_id)}
+            currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
             leaveRecords={leaveRecords}
             leaveTypes={leaveTypes}
             holidays={holidays}

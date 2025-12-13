@@ -240,7 +240,7 @@ export default function EmployeeManagement() {
         if (dept) {
           employeesToCreate.push({
             name,
-            department_id: dept.id,
+            department_ids: [dept.id],
             status: 'active'
           });
         }

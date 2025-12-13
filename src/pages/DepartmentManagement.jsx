@@ -88,7 +88,7 @@ export default function DepartmentManagement() {
   };
 
   const getEmployeeCount = (deptId) => {
-    return employees.filter(e => e.department_id === deptId).length;
+    return employees.filter(e => e.department_ids?.includes(deptId)).length;
   };
 
   return (

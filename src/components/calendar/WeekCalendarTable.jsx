@@ -10,7 +10,7 @@ const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 export default function WeekCalendarTable({
         currentDate,
         currentEmployee,
-        currentDepartment,
+        currentDepartments,
         leaveRecords,
         leaveTypes,
         holidays,
@@ -19,7 +19,7 @@ export default function WeekCalendarTable({
         onDeleteRangeLeave,
         onOpenRangeDialog
       }) {
-  if (!currentEmployee || !currentDepartment) {
+  if (!currentEmployee || !currentDepartments || currentDepartments.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
         <p className="text-gray-500">請先設定您的個人資料</p>
@@ -114,7 +114,7 @@ export default function WeekCalendarTable({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
-            <p className="text-sm text-gray-600">{currentDepartment.name}</p>
+            <p className="text-sm text-gray-600">{currentDepartments.map(d => d.name).join(', ')}</p>
           </div>
           <Button
             variant="outline"

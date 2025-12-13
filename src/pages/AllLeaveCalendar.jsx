@@ -92,7 +92,7 @@ export default function AllLeaveCalendar() {
       
       const deptLeaves = leaveRecords.filter(r => {
         const emp = employees.find(e => e.id === r.employee_id);
-        return emp?.department_id === currentEmployee?.department_id && r.date === date;
+        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
       });
       
       if (deptLeaves.length >= 2) {
@@ -174,7 +174,7 @@ export default function AllLeaveCalendar() {
         
         const deptLeaves = leaveRecords.filter(r => {
           const emp = employees.find(e => e.id === r.employee_id);
-          return emp?.department_id === currentEmployee?.department_id && r.date === dateStr;
+          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
         });
         
         if (deptLeaves.length >= 2) {
