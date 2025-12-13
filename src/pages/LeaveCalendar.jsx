@@ -49,7 +49,7 @@ export default function LeaveCalendar() {
   });
 
   // 根據登入帳號自動找到對應的員工
-  const currentEmployee = employees.find(emp => emp.user_email === currentUser?.email);
+  const currentEmployee = employees.find(emp => emp.user_emails?.includes(currentUser?.email));
 
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
     queryKey: ['leaveTypes'],

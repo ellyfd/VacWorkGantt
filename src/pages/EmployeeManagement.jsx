@@ -31,7 +31,8 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
+  const [emailInput, setEmailInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -114,19 +115,34 @@ export default function EmployeeManagement() {
         deputy_2: employee.deputy_2 || '',
         department_ids: employee.department_ids || [],
         status: employee.status || 'active',
-        user_email: employee.user_email || '',
+        user_emails: employee.user_emails || [],
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+      setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
     }
+    setEmailInput('');
     setIsOpen(true);
   };
 
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+    setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
+    setEmailInput('');
+  };
+
+  const handleAddEmail = () => {
+    if (emailInput && emailInput.includes('@')) {
+      if (!formData.user_emails.includes(emailInput)) {
+        setFormData({ ...formData, user_emails: [...formData.user_emails, emailInput] });
+      }
+      setEmailInput('');
+    }
+  };
+
+  const handleRemoveEmail = (email) => {
+    setFormData({ ...formData, user_emails: formData.user_emails.filter(e => e !== email) });
   };
 
   const handleSubmit = (e) => {
@@ -419,15 +435,40 @@ export default function EmployeeManagement() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="user_email">綁定登入帳號</Label>
-                  <Input
-                    id="user_email"
-                    type="email"
-                    value={formData.user_email}
-                    onChange={(e) => setFormData({ ...formData, user_email: e.target.value })}
-                    placeholder="user@example.com"
-                    className="mt-1"
-                  />
+                  <Label htmlFor="user_emails">綁定登入帳號</Label>
+                  <div className="mt-1 space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        id="user_emails"
+                        type="email"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddEmail())}
+                        placeholder="user@example.com"
+                      />
+                      <Button type="button" onClick={handleAddEmail} size="sm">
+                        新增
+                      </Button>
+                    </div>
+                    {formData.user_emails.length > 0 && (
+                      <div className="border rounded-md p-2 space-y-1 bg-gray-50">
+                        {formData.user_emails.map((email, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-white px-2 py-1 rounded text-sm">
+                            <span>{email}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveEmail(email)}
+                              className="h-6 px-2 text-red-500 hover:text-red-700"
+                            >
+                              移除
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={handleCloseDialog}>
@@ -550,7 +591,6 @@ export default function EmployeeManagement() {
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
-                  <TableHead>綁定帳號</TableHead>
                   <TableHead className="w-[100px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -587,16 +627,6 @@ export default function EmployeeManagement() {
                       }`}>
                         {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
                       </span>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {emp.user_email ? (
-                        <span className="inline-flex items-center gap-1">
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          {emp.user_email}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">未綁定</span>
-                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
