@@ -22,12 +22,21 @@ const navItems = [
 export default function Layout({ children, currentPageName }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showBindDialog, setShowBindDialog] = useState(false);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+  });
+
+  const { data: departments = [] } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const depts = await base44.entities.Department.list('sort_order');
+      return depts.filter(d => d.status !== 'hidden');
+    },
   });
 
   const { data: employees = [] } = useQuery({
@@ -67,6 +76,10 @@ export default function Layout({ children, currentPageName }) {
       bindMutation.mutate(selectedEmployeeId);
     }
   };
+
+  const filteredEmployees = selectedDepartmentId 
+    ? employees.filter(emp => emp.department_ids?.includes(selectedDepartmentId))
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -176,20 +189,40 @@ export default function Layout({ children, currentPageName }) {
           <div className="space-y-4 py-4">
             <p className="text-sm text-gray-600">請選擇您的員工身份以繼續使用系統</p>
             <div>
-              <Label htmlFor="employee">選擇員工</Label>
-              <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+              <Label htmlFor="department">選擇部門</Label>
+              <Select value={selectedDepartmentId} onValueChange={(value) => {
+                setSelectedDepartmentId(value);
+                setSelectedEmployeeId('');
+              }}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="請選擇..." />
+                  <SelectValue placeholder="請先選擇部門..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.name} {emp.english_name ? `(${emp.english_name})` : ''} {emp.user_email ? '- 已綁定' : ''}
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+            {selectedDepartmentId && (
+              <div>
+                <Label htmlFor="employee">選擇員工</Label>
+                <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="請選擇員工..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredEmployees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.name} {emp.english_name ? `(${emp.english_name})` : ''} {emp.user_email ? '- 已綁定' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Button 
               onClick={handleBind} 
               disabled={!selectedEmployeeId || bindMutation.isPending}
