@@ -110,9 +110,15 @@ export default function LeaveCalendarTable({
             // 收集所有應顯示的員工（來自被選中的部門）
             const employeesToShow = [];
             const seenEmployeeIds = new Set();
-            
+
             departments.forEach((dept) => {
-              const deptEmployees = employees.filter(e => e.department_ids?.includes(dept.id));
+              const deptEmployees = employees
+                .filter(e => e.department_ids?.includes(dept.id))
+                .sort((a, b) => {
+                  const nameA = (a.english_name || a.name || '').toLowerCase();
+                  const nameB = (b.english_name || b.name || '').toLowerCase();
+                  return nameA.localeCompare(nameB);
+                });
               deptEmployees.forEach(emp => {
                 if (!seenEmployeeIds.has(emp.id)) {
                   seenEmployeeIds.add(emp.id);
@@ -125,9 +131,10 @@ export default function LeaveCalendarTable({
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
               return (
                 <tr key={emp.id} className="hover:bg-gray-50/50">
-                  <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
-                    {emp.name}
-                  </td>
+                        <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
+                          <div>{emp.name}</div>
+                          <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
+                        </td>
                   {days.map((d, idx) => {
                     const record = getLeaveRecord(emp.id, d.date);
                     const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
