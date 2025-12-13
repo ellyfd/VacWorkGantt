@@ -4,6 +4,7 @@ import DepartmentManagement from './pages/DepartmentManagement';
 import LeaveTypeManagement from './pages/LeaveTypeManagement';
 import HolidayManagement from './pages/HolidayManagement';
 import Dashboard from './pages/Dashboard';
+import AllLeaveCalendar from './pages/AllLeaveCalendar';
 import __Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "LeaveTypeManagement": LeaveTypeManagement,
     "HolidayManagement": HolidayManagement,
     "Dashboard": Dashboard,
+    "AllLeaveCalendar": AllLeaveCalendar,
 }
 
 export const pagesConfig = {

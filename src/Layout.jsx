@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { name: 'Dashboard', label: '首頁儀表板', icon: Calendar },
-  { name: 'LeaveCalendar', label: '排休行事曆', icon: CalendarClock },
+  { name: 'LeaveCalendar', label: '我的排休', icon: CalendarClock },
+  { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
   { name: 'EmployeeManagement', label: '員工管理', icon: Users },
   { name: 'DepartmentManagement', label: '部門管理', icon: Building2 },
   { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },
