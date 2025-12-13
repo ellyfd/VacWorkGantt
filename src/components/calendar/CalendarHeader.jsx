@@ -1,9 +1,9 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
+import CalendarSettings from "./CalendarSettings";
 
 export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartments, onDepartmentsChange }) {
   const handlePrevMonth = () => {
@@ -57,86 +57,53 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
   };
 
   return (
-    <div className="flex flex-col gap-4 mb-6">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">
-          排休登記表
-        </h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handlePrevMonth}
-            className="h-9 w-9"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-            <SelectTrigger className="w-[90px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((year) => (
-                <SelectItem key={year} value={year.toString()}>{year}年</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-            <SelectTrigger className="w-[80px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="-1">全年</SelectItem>
-              {months.map((month) => (
-                <SelectItem key={month} value={month.toString()}>{month + 1}月</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleNextMonth}
-            className="h-9 w-9"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <div className="p-4 bg-white rounded-lg border border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleSelectAll}
-            className="h-8"
-          >
-            {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {departments.map((dept) => (
-            <label
-              key={dept.id}
-              className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md border border-gray-200"
-            >
-              <input
-                type="checkbox"
-                checked={selectedDepartments.includes(dept.id)}
-                onChange={() => handleDepartmentToggle(dept.id)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">{dept.name}</span>
-            </label>
-          ))}
-        </div>
-        {selectedDepartments.length > 0 && (
-          <p className="text-xs text-gray-500 mt-2">
-            已選擇 {selectedDepartments.length} 個部門
-          </p>
-        )}
+    <div className="flex items-center justify-between mb-6">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+        排休登記表
+      </h1>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handlePrevMonth}
+          className="h-9 w-9"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Select value={currentYear.toString()} onValueChange={handleYearChange}>
+          <SelectTrigger className="w-[70px] md:w-[90px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((year) => (
+              <SelectItem key={year} value={year.toString()}>{year}年</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
+          <SelectTrigger className="w-[60px] md:w-[80px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="-1">全年</SelectItem>
+            {months.map((month) => (
+              <SelectItem key={month} value={month.toString()}>{month + 1}月</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleNextMonth}
+          className="h-9 w-9"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+        <CalendarSettings 
+          departments={departments}
+          selectedDepartments={selectedDepartments}
+          onDepartmentsChange={onDepartmentsChange}
+        />
       </div>
     </div>
   );

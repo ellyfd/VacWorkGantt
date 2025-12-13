@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
-import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
+import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 import LeaveLegend from '@/components/calendar/LeaveLegend';
 import ProfileSetup from '@/components/ProfileSetup';
 import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
@@ -29,7 +29,10 @@ export default function LeaveCalendar() {
 
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
     queryKey: ['departments'],
-    queryFn: () => base44.entities.Department.list('sort_order'),
+    queryFn: async () => {
+      const depts = await base44.entities.Department.list('sort_order');
+      return depts.filter(d => d.status !== 'hidden');
+    },
   });
 
   const { data: employees = [], isLoading: loadingEmps } = useQuery({
@@ -223,8 +226,8 @@ export default function LeaveCalendar() {
         </div>
         
         <LeaveLegend leaveTypes={leaveTypes} />
-        
-        <LeaveCalendarTable
+
+        <WeekCalendarTable
           currentDate={currentDate}
           departments={selectedDepartments.length === 0 ? departments : departments.filter(d => selectedDepartments.includes(d.id))}
           employees={employees.filter(emp => emp.status === 'active')}
