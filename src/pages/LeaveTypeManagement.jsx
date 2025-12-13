@@ -199,10 +199,11 @@ export default function LeaveTypeManagement() {
                     <TableCell>
                       <Input
                         type="number"
-                        value={lt.sort_order || index + 1}
+                        value={lt.sort_order ?? ''}
                         onChange={(e) => handleSortOrderChange(lt.id, e.target.value)}
                         className="w-16 h-8 text-center"
                         min="1"
+                        placeholder={(index + 1).toString()}
                       />
                     </TableCell>
                     <TableCell>
