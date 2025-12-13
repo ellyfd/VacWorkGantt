@@ -63,7 +63,7 @@ export default function LeaveCell({
       <PopoverContent className="w-48 p-2" align="start">
         <div className="space-y-1">
           <p className="text-xs text-gray-500 mb-2 font-medium">選擇假別</p>
-          {leaveTypes.map((lt) => (
+          {leaveTypes.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
             <Button
               key={lt.id}
               variant="ghost"
