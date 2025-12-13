@@ -397,7 +397,7 @@ export default function AllLeaveCalendar() {
 
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
               {departments.map((dept) => (
                 <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
@@ -416,11 +416,11 @@ export default function AllLeaveCalendar() {
                   <span className="text-xs text-gray-700">{dept.name}</span>
                 </label>
               ))}
-            </div>
+              </div>
 
-            <div className="h-6 w-px bg-gray-300 hidden md:block"></div>
+              <div className="h-6 w-px bg-gray-300 hidden md:block"></div>
 
-            <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 flex-1">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">區間請假：</Label>
               <Select value={selectedEmployee?.id || ''} onValueChange={(value) => setSelectedEmployee(employees.find(e => e.id === value))}>
                 <SelectTrigger className="w-full md:w-[180px]">
@@ -443,11 +443,11 @@ export default function AllLeaveCalendar() {
                 <CalendarRange className="h-4 w-4 mr-1" />
                 請假
               </Button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-4">
+          <div className="space-y-4">
           <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
