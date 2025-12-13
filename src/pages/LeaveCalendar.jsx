@@ -451,33 +451,7 @@ export default function LeaveCalendar() {
                 ))}
               </div>
             </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
-              <Button
-                variant="ghost"
-                className="w-full flex items-center justify-between p-4 hover:bg-blue-100"
-                onClick={() => setInstructionsOpen(!instructionsOpen)}
-              >
-                <h3 className="text-sm font-semibold text-blue-900">操作說明</h3>
-                {instructionsOpen ? (
-                  <ChevronUp className="w-4 h-4 text-blue-900" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-blue-900" />
-                )}
-              </Button>
-              {instructionsOpen && (
-                <div className="px-4 pb-4">
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• <span className="font-medium">上方選擇假別</span>：點選要使用的假別</li>
-                    <li>• <span className="font-medium">單擊格子</span>：用選定的假別填充</li>
-                    <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                    <li>• <span className="font-medium">區間請假/取消</span>：點擊右上角 📅 按鈕</li>
-                    <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
-                  </ul>
-                </div>
-              )}
             </div>
-          </div>
 
           <WeekCalendarTable
             currentDate={currentDate}
@@ -502,7 +476,7 @@ export default function LeaveCalendar() {
               className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
               onClick={() => setLegendOpen(!legendOpen)}
             >
-              <h3 className="text-sm font-semibold text-gray-700">假別說明</h3>
+              <h3 className="text-sm font-semibold text-gray-700">操作說明與假別圖例</h3>
               {legendOpen ? (
                 <ChevronUp className="w-4 h-4 text-gray-700" />
               ) : (
@@ -510,14 +484,27 @@ export default function LeaveCalendar() {
               )}
             </Button>
             {legendOpen && (
-              <div className="px-4 pb-4">
-                <div className="flex flex-wrap gap-3">
-                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                    <div key={lt.id} className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
-                      <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
-                    </div>
-                  ))}
+              <div className="px-4 pb-4 space-y-3">
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• <span className="font-medium">上方選擇假別</span>：點選要使用的假別</li>
+                    <li>• <span className="font-medium">單擊格子</span>：用選定的假別填充</li>
+                    <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
+                    <li>• <span className="font-medium">區間請假/取消</span>：點擊右上角 📅 按鈕</li>
+                    <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
+                  </ul>
+                </div>
+                <div className="border-t border-gray-300 pt-3">
+                  <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                      <div key={lt.id} className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
+                        <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
