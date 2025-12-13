@@ -141,7 +141,7 @@ export default function HolidayManagement() {
                       <span className="text-xs">{format(new Date(holiday.date), 'MM/dd')}</span>
                     </div>
                   </td>
-                  <td className="px-8 py-2 text-base font-medium text-gray-800">{holiday.name}</td>
+                  <td className="px-8 py-2 text-sm font-medium text-gray-800">{holiday.name}</td>
                   <td className="px-2 py-2 text-sm">
                     <span className={`px-2 py-0.5 rounded text-xs ${
                       holiday.type === 'national' 
