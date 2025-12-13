@@ -20,10 +20,9 @@ import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 export default function AllLeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
-  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
   const queryClient = useQueryClient();
 
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
@@ -302,32 +301,35 @@ export default function AllLeaveCalendar() {
   };
 
   const handleRangeSubmit = async () => {
-    if (!dateRange?.from || !dateRange?.to || !selectedLeaveTypeId || !selectedEmployee) return;
+    if (!dateRange?.from || !dateRange?.to || !selectedLeaveTypeId || !dateRange?.employeeId) return;
     
     await rangeLeaveMutation.mutateAsync({ 
-      employeeId: selectedEmployee.id, 
+      employeeId: dateRange.employeeId, 
       startDate: dateRange.from, 
       endDate: dateRange.to, 
       leaveTypeId: selectedLeaveTypeId 
     });
     
     setRangeMode(false);
-    setDateRange({ from: undefined, to: undefined });
+    setDateRange({ from: undefined, to: undefined, employeeId: undefined });
   };
 
   const handleCellClickInRangeMode = (employeeId, date) => {
-    if (rangeMode && selectedEmployee && employeeId === selectedEmployee.id) {
-      if (!dateRange.from) {
-        setDateRange({ from: date, to: undefined });
-      } else if (!dateRange.to) {
-        if (date >= dateRange.from) {
-          setDateRange({ ...dateRange, to: date });
-        } else {
-          setDateRange({ from: date, to: dateRange.from });
-        }
+    if (!rangeMode) return;
+    
+    if (!dateRange.from) {
+      // 第一次點擊：選擇員工和起始日期
+      setDateRange({ from: date, to: undefined, employeeId });
+    } else if (!dateRange.to && employeeId === dateRange.employeeId) {
+      // 第二次點擊：同員工，選擇結束日期
+      if (date >= dateRange.from) {
+        setDateRange({ ...dateRange, to: date });
       } else {
-        setDateRange({ from: date, to: undefined });
+        setDateRange({ from: date, to: dateRange.from, employeeId });
       }
+    } else {
+      // 重新選擇
+      setDateRange({ from: date, to: undefined, employeeId });
     }
   };
 
@@ -393,33 +395,12 @@ export default function AllLeaveCalendar() {
                   ))}
                 </SelectContent>
               </Select>
-              
-              <Select 
-                value={selectedEmployee?.id || ''} 
-                onValueChange={(value) => setSelectedEmployee(employees.find(e => e.id === value))}
-                disabled={rangeMode}
-              >
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="選擇員工" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
 
               {!rangeMode ? (
                 <Button
                   onClick={() => {
                     if (!selectedLeaveTypeId) {
                       alert('請先選擇假別');
-                      return;
-                    }
-                    if (!selectedEmployee) {
-                      alert('請先選擇員工');
                       return;
                     }
                     setRangeMode(true);
@@ -434,7 +415,7 @@ export default function AllLeaveCalendar() {
                   <Button
                     onClick={() => {
                       setRangeMode(false);
-                      setDateRange({ from: undefined, to: undefined });
+                      setDateRange({ from: undefined, to: undefined, employeeId: undefined });
                     }}
                     variant="outline"
                     size="icon"
@@ -458,9 +439,15 @@ export default function AllLeaveCalendar() {
               
               {rangeMode && (
                 <p className="text-xs text-blue-600">
-                  {!dateRange.from && `📍 請在 ${selectedEmployee?.name} 的行上點擊選擇起始日期`}
-                  {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
-                  {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊 ✓ 確認`}
+                  {!dateRange.from && "📍 請在下方日曆點擊任一員工的格子選擇起始日期"}
+                  {dateRange.from && !dateRange.to && (() => {
+                    const emp = employees.find(e => e.id === dateRange.employeeId);
+                    return `📍 ${emp?.name} - 已選開始：${dateRange.from}，請繼續選擇結束日期`;
+                  })()}
+                  {dateRange.from && dateRange.to && (() => {
+                    const emp = employees.find(e => e.id === dateRange.employeeId);
+                    return `✓ ${emp?.name} - 已選區間：${dateRange.from} 至 ${dateRange.to}，點擊 ✓ 確認`;
+                  })()}
                 </p>
               )}
             </div>
@@ -501,7 +488,7 @@ export default function AllLeaveCalendar() {
             selectedLeaveTypeId={selectedLeaveTypeId}
             rangeMode={rangeMode}
             dateRange={dateRange}
-            selectedEmployeeId={selectedEmployee?.id}
+            selectedEmployeeId={dateRange?.employeeId}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
