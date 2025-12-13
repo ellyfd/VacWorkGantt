@@ -426,32 +426,6 @@ export default function LeaveCalendar() {
           </div>
 
           <div className="mb-4 space-y-3">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">選擇假別</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                  <button
-                    key={lt.id}
-                    onClick={() => setSelectedLeaveTypeId(lt.id === selectedLeaveTypeId ? null : lt.id)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                      selectedLeaveTypeId === lt.id
-                        ? 'ring-2 ring-offset-1 shadow-md scale-105'
-                        : 'hover:scale-105'
-                    }`}
-                    style={{
-                      backgroundColor: selectedLeaveTypeId === lt.id ? lt.color : `${lt.color}40`,
-                      color: selectedLeaveTypeId === lt.id ? '#fff' : lt.color,
-                      borderColor: lt.color,
-                      borderWidth: '1.5px',
-                      ringColor: lt.color
-                    }}
-                  >
-                    {lt.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <div className="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
               <Button
                 variant="ghost"
