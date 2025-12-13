@@ -2,7 +2,7 @@ import React from 'react';
 import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { CalendarRange, ChevronUp, ChevronDown } from "lucide-react";
+import { CalendarRange } from "lucide-react";
 import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
@@ -72,15 +72,7 @@ export default function LeaveCalendarTable({
     }
   };
 
-  const handleMoveUp = (deptId, empIdx) => {
-    if (empIdx === 0) return;
-    onReorderEmployees(deptId, empIdx, empIdx - 1);
-  };
 
-  const handleMoveDown = (deptId, empIdx, totalCount) => {
-    if (empIdx === totalCount - 1) return;
-    onReorderEmployees(deptId, empIdx, empIdx + 1);
-  };
 
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
@@ -124,29 +116,7 @@ export default function LeaveCalendarTable({
                 )}
                 <td className="sticky left-[80px] z-10 bg-white px-2 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
                   <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-1">
-                      <div className="flex flex-col">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 p-0 hover:bg-gray-200"
-                          onClick={() => handleMoveUp(dept.id, empIdx)}
-                          disabled={empIdx === 0}
-                        >
-                          <ChevronUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 p-0 hover:bg-gray-200"
-                          onClick={() => handleMoveDown(dept.id, empIdx, deptEmployees.length)}
-                          disabled={empIdx === deptEmployees.length - 1}
-                        >
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <span>{emp.name}</span>
-                    </div>
+                    <span>{emp.name}</span>
                     <Button
                       variant="outline"
                       size="icon"
