@@ -556,11 +556,11 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead>姓名</TableHead>
-                  <TableHead>英文名字</TableHead>
+                  <TableHead className="w-[150px]">姓名</TableHead>
+                  <TableHead className="w-[150px]">英文名字</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
-                  <TableHead className="w-[100px]">編輯</TableHead>
+                  <TableHead className="w-[60px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -591,7 +591,7 @@ export default function EmployeeManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex flex-col gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
