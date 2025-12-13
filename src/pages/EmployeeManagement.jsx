@@ -402,85 +402,87 @@ export default function EmployeeManagement() {
           </div>
         </div>
 
-        <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-3">
-            <Label className="text-sm font-semibold text-gray-700">批量操作</Label>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => setIsBulkEditOpen(true)}
-                disabled={selectedEmployees.length === 0}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
-              >
-                <Pencil className="w-3 h-3 mr-1" />
-                批量編輯 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={handleBulkDelete}
-                disabled={selectedEmployees.length === 0 || bulkDeleteMutation.isPending}
-              >
-                {bulkDeleteMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    刪除中...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-3 h-3 mr-1" />
-                    批量刪除 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
-                  </>
-                )}
-              </Button>
-              {selectedEmployees.length > 0 && (
+        <div className="mb-4 flex gap-4">
+          <div className="flex-1 p-4 bg-white rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-sm font-semibold text-gray-700">批量操作</Label>
+              <div className="flex gap-2">
                 <Button
-                  variant="outline"
                   size="sm"
-                  onClick={() => setSelectedEmployees([])}
-                  className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                  onClick={() => setIsBulkEditOpen(true)}
+                  disabled={selectedEmployees.length === 0}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
                 >
-                  清除選擇
+                  <Pencil className="w-3 h-3 mr-1" />
+                  批量編輯 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
                 </Button>
-              )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleBulkDelete}
+                  disabled={selectedEmployees.length === 0 || bulkDeleteMutation.isPending}
+                >
+                  {bulkDeleteMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      刪除中...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      批量刪除 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
+                    </>
+                  )}
+                </Button>
+                {selectedEmployees.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedEmployees([])}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                  >
+                    清除選擇
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-3">
-            <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleSelectAll}
-              className="h-8"
-            >
-              {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {departments.map((dept) => (
-              <label
-                key={dept.id}
-                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md border border-gray-200"
+          <div className="flex-1 p-4 bg-white rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+                className="h-8"
               >
-                <input
-                  type="checkbox"
-                  checked={selectedDepartments.includes(dept.id)}
-                  onChange={() => handleDepartmentToggle(dept.id)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">{dept.name}</span>
-              </label>
-            ))}
+                {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {departments.map((dept) => (
+                <label
+                  key={dept.id}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md border border-gray-200"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(dept.id)}
+                    onChange={() => handleDepartmentToggle(dept.id)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{dept.name}</span>
+                </label>
+              ))}
+            </div>
+            {selectedDepartments.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                已選擇 {selectedDepartments.length} 個部門
+              </p>
+            )}
           </div>
-          {selectedDepartments.length > 0 && (
-            <p className="text-xs text-gray-500 mt-2">
-              已選擇 {selectedDepartments.length} 個部門
-            </p>
-          )}
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
