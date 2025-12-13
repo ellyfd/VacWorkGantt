@@ -550,7 +550,7 @@ export default function EmployeeManagement() {
                   <TableHead>職代</TableHead>
                   <TableHead>部門</TableHead>
                   <TableHead>在職狀態</TableHead>
-                  <TableHead className="w-[100px]">操作</TableHead>
+                  <TableHead className="w-[100px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
