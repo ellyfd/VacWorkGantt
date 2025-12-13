@@ -126,7 +126,7 @@ export default function WeekCalendarTable({
           {WEEKDAY_NAMES.map((day, idx) => (
             <div 
               key={idx} 
-              className={`py-2 text-center text-sm font-semibold border-b border-gray-200 ${
+              className={`py-3 text-center text-sm font-semibold border-b border-gray-200 ${
                 idx === 0 || idx === 6 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-600'
               }`}
             >
@@ -141,7 +141,7 @@ export default function WeekCalendarTable({
                 return (
                   <div 
                     key={`${weekIdx}-${dayIdx}`} 
-                    className="aspect-square border-r border-b border-gray-200 bg-gray-50"
+                    className="h-24 border-r border-b border-gray-200 bg-gray-50"
                   />
                 );
               }
@@ -150,26 +150,22 @@ export default function WeekCalendarTable({
               return (
                 <div 
                   key={`${weekIdx}-${dayIdx}`} 
-                  className={`aspect-square border-r border-b border-gray-200 ${
-                    dayIdx === 6 ? '' : ''
-                  } ${weekIdx === weeks.length - 1 ? '' : ''}`}
+                  className="h-24 border-r border-b border-gray-200 flex flex-col"
                 >
-                  <div className="h-full flex flex-col">
-                    <div className={`px-2 py-1 text-xs font-medium ${
-                      day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-600'
-                    }`}>
-                      {day.day}
-                    </div>
-                    <div className="flex-1">
-                      <LeaveCell
-                        record={record}
-                        leaveTypes={leaveTypes}
-                        isWeekend={day.isWeekend}
-                        isHoliday={day.isHoliday}
-                        onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
-                        onClearLeave={() => record && handleClearLeave(record.id)}
-                      />
-                    </div>
+                  <div className={`px-2 py-1 text-sm font-semibold ${
+                    day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
+                  }`}>
+                    {day.day}
+                  </div>
+                  <div className="flex-1 flex items-center justify-center p-1">
+                    <LeaveCell
+                      record={record}
+                      leaveTypes={leaveTypes}
+                      isWeekend={day.isWeekend}
+                      isHoliday={day.isHoliday}
+                      onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
+                      onClearLeave={() => record && handleClearLeave(record.id)}
+                    />
                   </div>
                 </div>
               );

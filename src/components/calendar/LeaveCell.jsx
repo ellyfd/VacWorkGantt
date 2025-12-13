@@ -51,8 +51,8 @@ export default function LeaveCell({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div 
-          className={`h-8 min-w-[32px] border-r border-b border-gray-200 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${cellBgClass}`}
-          style={record && leaveType ? { backgroundColor: leaveType.color } : {}}
+          className={`w-full h-full rounded-md flex items-center justify-center cursor-pointer hover:opacity-90 transition-all text-sm font-medium ${cellBgClass}`}
+          style={record && leaveType ? { backgroundColor: leaveType.color, color: '#fff' } : {}}
           tabIndex={0}
           onKeyDown={handleKeyDown}
           onDoubleClick={handleDoubleClick}
