@@ -119,7 +119,7 @@ export default function EmployeeManagement() {
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+      setFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
     }
     setIsOpen(true);
   };
