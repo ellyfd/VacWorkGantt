@@ -203,6 +203,15 @@ export default function LeaveCalendar() {
       
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = format(d, 'yyyy-MM-dd');
+        const dayOfWeek = d.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const isHoliday = holidays?.some(h => h.date === dateStr);
+        
+        // 跳過假日和週末
+        if (isWeekend || isHoliday) {
+          continue;
+        }
+        
         dates.push(dateStr);
         
         // 檢查職代衝突

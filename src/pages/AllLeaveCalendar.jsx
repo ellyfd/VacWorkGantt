@@ -146,23 +146,32 @@ export default function AllLeaveCalendar() {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const currentEmployee = employees.find(e => e.id === employeeId);
-      
+
       const warnings = [];
       const dates = [];
-      
+
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = format(d, 'yyyy-MM-dd');
+        const dayOfWeek = d.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const isHoliday = holidays?.some(h => h.date === dateStr);
+
+        // 跳過假日和週末
+        if (isWeekend || isHoliday) {
+          continue;
+        }
+
         dates.push(dateStr);
-        
+
         if (currentEmployee?.code) {
           const sameCodeEmployees = employees.filter(e => 
             e.code === currentEmployee.code && e.id !== employeeId
           );
-          
+
           const conflicts = leaveRecords.filter(r => 
             sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === dateStr
           );
-          
+
           if (conflicts.length > 0) {
             const conflictNames = conflicts.map(c => {
               const emp = employees.find(e => e.id === c.employee_id);
@@ -170,25 +179,25 @@ export default function AllLeaveCalendar() {
             }).join('、');
             warnings.push(`${dateStr}: 同職代 ${conflictNames} 已請假`);
           }
-          }
+        }
       }
-      
+
       if (warnings.length > 0) {
         const confirmed = window.confirm(
           `⚠️ 警告：\n${warnings.join('\n')}\n\n確定要繼續請假嗎？`
         );
-        
+
         if (!confirmed) {
           throw new Error('取消請假');
         }
       }
-      
+
       const records = dates.map(dateStr => ({
         employee_id: employeeId,
         date: dateStr,
         leave_type_id: leaveTypeId
       }));
-      
+
       return base44.entities.LeaveRecord.bulkCreate(records);
     },
     onSuccess: () => {
