@@ -85,13 +85,10 @@ export default function LeaveCalendarTable({
               <th className="sticky left-[80px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[100px]">
                 姓名
               </th>
-              <th className="sticky left-[180px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[60px]">
-                職代
-              </th>
             {days.map((d, idx) => (
               <th 
                 key={idx} 
-                className={`px-1 py-2 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[32px] ${
+                className={`px-0.5 py-1 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
                 }`}
               >
@@ -115,21 +112,13 @@ export default function LeaveCalendarTable({
                   </td>
                 )}
                 <td className="sticky left-[80px] z-10 bg-white px-2 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
-                  <button
-                    onClick={() => onOpenRangeDialog(emp)}
-                    className="hover:text-blue-600 hover:underline cursor-pointer text-left w-full"
-                    title="點擊進行區間請假"
-                  >
-                    {emp.name}
-                  </button>
-                </td>
-                <td className="sticky left-[180px] z-10 bg-white px-2 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
-                  {emp.deputy_1 || emp.deputy_2 ? (
-                    <div className="flex flex-col">
-                      {emp.deputy_1 && <div>1.{employees.find(e => e.id === emp.deputy_1)?.name || '-'}</div>}
-                      {emp.deputy_2 && <div>2.{employees.find(e => e.id === emp.deputy_2)?.name || '-'}</div>}
-                    </div>
-                  ) : '-'}
+                <button
+                onClick={() => onOpenRangeDialog(emp)}
+                className="hover:text-blue-600 hover:underline cursor-pointer text-left w-full"
+                title="點擊進行區間請假"
+                >
+                {emp.name}
+                </button>
                 </td>
                 {days.map((d, idx) => {
                   const record = getLeaveRecord(emp.id, d.date);
