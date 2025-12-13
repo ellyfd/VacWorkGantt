@@ -2,7 +2,14 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, CalendarRange } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
@@ -425,33 +432,35 @@ export default function LeaveCalendar() {
           />
           </div>
 
-          <div className="mb-4 space-y-3">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">選擇假別</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                  <button
-                    key={lt.id}
-                    onClick={() => setSelectedLeaveTypeId(lt.id === selectedLeaveTypeId ? null : lt.id)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                      selectedLeaveTypeId === lt.id
-                        ? 'ring-2 ring-offset-1 shadow-md scale-105'
-                        : 'hover:scale-105'
-                    }`}
-                    style={{
-                      backgroundColor: selectedLeaveTypeId === lt.id ? lt.color : `${lt.color}40`,
-                      color: selectedLeaveTypeId === lt.id ? '#fff' : lt.color,
-                      borderColor: lt.color,
-                      borderWidth: '1.5px',
-                      ringColor: lt.color
-                    }}
-                  >
-                    {lt.name}
-                  </button>
-                ))}
+          <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="選擇假別" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>不選擇</SelectItem>
+                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                      <SelectItem key={lt.id} value={lt.id}>
+                        {lt.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+              <Button
+                onClick={() => {
+                  setSelectedEmployee(currentEmployee);
+                  setRangeDialogOpen(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+                size="icon"
+              >
+                <CalendarRange className="h-5 w-5" />
+              </Button>
             </div>
-            </div>
+          </div>
 
           <WeekCalendarTable
             currentDate={currentDate}
@@ -464,10 +473,6 @@ export default function LeaveCalendar() {
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
-            onOpenRangeDialog={(emp) => {
-              setSelectedEmployee(emp);
-              setRangeDialogOpen(true);
-            }}
           />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">

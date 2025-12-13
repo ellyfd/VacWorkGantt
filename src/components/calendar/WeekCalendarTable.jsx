@@ -2,7 +2,7 @@ import React from 'react';
 import { format, startOfWeek, addDays, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { CalendarRange } from "lucide-react";
+
 import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
@@ -17,8 +17,7 @@ export default function WeekCalendarTable({
         selectedLeaveTypeId,
         onUpdateLeave,
         onDeleteLeave,
-        onDeleteRangeLeave,
-        onOpenRangeDialog
+        onDeleteRangeLeave
       }) {
   if (!currentEmployee || !currentDepartments || currentDepartments.length === 0) {
     return (
@@ -112,19 +111,9 @@ export default function WeekCalendarTable({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
-            <p className="text-sm text-gray-600">{currentDepartments.map(d => d.name).join(', ')}</p>
-          </div>
-          <Button
-            variant="outline"
-            className="bg-blue-50 hover:bg-blue-100 border-blue-200"
-            onClick={() => onOpenRangeDialog(currentEmployee)}
-          >
-            <CalendarRange className="h-4 w-4 mr-2 text-blue-600" />
-            區間請假
-          </Button>
+        <div>
+          <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
+          <p className="text-sm text-gray-600">{currentDepartments.map(d => d.name).join(', ')}</p>
         </div>
       </div>
       
