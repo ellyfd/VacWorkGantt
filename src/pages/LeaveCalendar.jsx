@@ -10,6 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
