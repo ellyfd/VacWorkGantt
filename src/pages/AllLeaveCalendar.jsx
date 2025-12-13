@@ -100,21 +100,6 @@ export default function AllLeaveCalendar() {
         }
       }
       
-      const deptLeaves = leaveRecords.filter(r => {
-        const emp = employees.find(e => e.id === r.employee_id);
-        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
-      });
-      
-      if (deptLeaves.length >= 2) {
-        const confirmed = window.confirm(
-          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假，確定要繼續請假嗎？`
-        );
-        
-        if (!confirmed) {
-          throw new Error('取消請假');
-        }
-      }
-
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date
       );
@@ -182,14 +167,6 @@ export default function AllLeaveCalendar() {
           }
         }
         
-        const deptLeaves = leaveRecords.filter(r => {
-          const emp = employees.find(e => e.id === r.employee_id);
-          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
-        });
-        
-        if (deptLeaves.length >= 2) {
-          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假`);
-        }
       }
       
       if (warnings.length > 0) {
