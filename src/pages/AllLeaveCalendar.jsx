@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { Loader2, CalendarRange } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -373,10 +374,28 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            💡 <span className="font-semibold">提示：</span>點擊員工姓名可進行區間請假/取消
-          </p>
+        <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg flex flex-col md:flex-row gap-3 items-start md:items-center">
+          <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">區間請假：</Label>
+          <Select value={selectedEmployee?.id || ''} onValueChange={(value) => setSelectedEmployee(employees.find(e => e.id === value))}>
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="選擇員工" />
+            </SelectTrigger>
+            <SelectContent>
+              {employees.map((emp) => (
+                <SelectItem key={emp.id} value={emp.id}>
+                  {emp.name} - {departments.filter(d => emp.department_ids?.includes(d.id)).map(d => d.name).join(', ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            onClick={() => selectedEmployee && setRangeDialogOpen(true)}
+            disabled={!selectedEmployee}
+            className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+          >
+            <CalendarRange className="h-4 w-4 mr-2" />
+            區間請假/取消
+          </Button>
         </div>
 
         <div className="space-y-4">
@@ -390,11 +409,6 @@ export default function AllLeaveCalendar() {
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
-            onReorderEmployees={handleReorderEmployees}
-            onOpenRangeDialog={(emp) => {
-              setSelectedEmployee(emp);
-              setRangeDialogOpen(true);
-            }}
           />
           
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
