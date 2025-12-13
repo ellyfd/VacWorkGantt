@@ -4,13 +4,11 @@ import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 
 import LeaveCell from "./LeaveCell";
-import CalendarHeader from "./CalendarHeader";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 export default function LeaveCalendarTable({
   currentDate,
-  onDateChange,
   departments,
   employees,
   leaveRecords,

@@ -100,6 +100,21 @@ export default function AllLeaveCalendar() {
         }
       }
       
+      const deptLeaves = leaveRecords.filter(r => {
+        const emp = employees.find(e => e.id === r.employee_id);
+        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
+      });
+      
+      if (deptLeaves.length >= 2) {
+        const confirmed = window.confirm(
+          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假，確定要繼續請假嗎？`
+        );
+        
+        if (!confirmed) {
+          throw new Error('取消請假');
+        }
+      }
+
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date
       );
@@ -167,6 +182,14 @@ export default function AllLeaveCalendar() {
           }
         }
         
+        const deptLeaves = leaveRecords.filter(r => {
+          const emp = employees.find(e => e.id === r.employee_id);
+          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
+        });
+        
+        if (deptLeaves.length >= 2) {
+          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假`);
+        }
       }
       
       if (warnings.length > 0) {
@@ -337,51 +360,38 @@ export default function AllLeaveCalendar() {
       />
       
       <div className="max-w-full mx-auto">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">全部排休</h1>
+          <CalendarHeader 
+            currentDate={currentDate} 
+            onDateChange={setCurrentDate}
+          />
+        </div>
 
-        <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="選擇假別" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={null}>不選擇</SelectItem>
-                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                    <SelectItem key={lt.id} value={lt.id}>
-                      {lt.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedEmployee?.id || ''} onValueChange={(value) => setSelectedEmployee(employees.find(e => e.id === value))}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="選擇員工" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={() => selectedEmployee && setRangeDialogOpen(true)}
-                disabled={!selectedEmployee}
-                className="bg-blue-600 hover:bg-blue-700"
-                size="icon"
-              >
-                <CalendarRange className="h-5 w-5" />
-              </Button>
-              <CalendarHeader 
-                currentDate={currentDate} 
-                onDateChange={setCurrentDate}
-              />
+        <div className="mb-4 space-y-3">
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1">
+                <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
+                  <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectValue placeholder="選擇假別" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>不選擇</SelectItem>
+                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                      <SelectItem key={lt.id} value={lt.id}>
+                        {lt.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-gray-200">
+          </div>
+
+          <div className="p-3 bg-white border border-gray-200 rounded-lg">
+            <div className="flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
               {departments.map((dept) => (
                 <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
@@ -400,6 +410,33 @@ export default function AllLeaveCalendar() {
                   <span className="text-xs text-gray-700">{dept.name}</span>
                 </label>
               ))}
+              </div>
+
+              <div className="h-6 w-px bg-gray-300 hidden md:block"></div>
+
+              <div className="flex items-center gap-2 flex-1">
+              <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">區間請假：</Label>
+              <Select value={selectedEmployee?.id || ''} onValueChange={(value) => setSelectedEmployee(employees.find(e => e.id === value))}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="選擇員工" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={() => selectedEmployee && setRangeDialogOpen(true)}
+                disabled={!selectedEmployee}
+                className="bg-blue-600 hover:bg-blue-700"
+                size="icon"
+              >
+                <CalendarRange className="h-5 w-5" />
+              </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -407,7 +444,6 @@ export default function AllLeaveCalendar() {
         <div className="space-y-4">
           <LeaveCalendarTable
             currentDate={currentDate}
-            onDateChange={setCurrentDate}
             departments={filteredDepartments}
             employees={employees}
             leaveRecords={leaveRecords}
