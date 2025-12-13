@@ -11,17 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
+import { Calendar } from "@/components/ui/calendar";
+import { zhTW } from 'date-fns/locale';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
-import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [instructionsOpen, setInstructionsOpen] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
+  const [rangeMode, setRangeMode] = useState(false);
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -350,16 +350,21 @@ export default function LeaveCalendar() {
     }
   };
 
-  const handleRangeLeave = async (employeeId, startDate, endDate, leaveTypeId) => {
-    await rangeLeaveMutation.mutateAsync({ employeeId, startDate, endDate, leaveTypeId });
-    setRangeDialogOpen(false);
-    setSelectedEmployee(null);
-  };
-
-  const handleRangeCancel = async (employeeId, startDate, endDate) => {
-    await rangeCancelMutation.mutateAsync({ employeeId, startDate, endDate });
-    setRangeDialogOpen(false);
-    setSelectedEmployee(null);
+  const handleRangeSubmit = async () => {
+    if (!dateRange?.from || !dateRange?.to || !selectedLeaveTypeId || !currentEmployee) return;
+    
+    const startDate = format(dateRange.from, 'yyyy-MM-dd');
+    const endDate = format(dateRange.to, 'yyyy-MM-dd');
+    
+    await rangeLeaveMutation.mutateAsync({ 
+      employeeId: currentEmployee.id, 
+      startDate, 
+      endDate, 
+      leaveTypeId: selectedLeaveTypeId 
+    });
+    
+    setRangeMode(false);
+    setDateRange({ from: undefined, to: undefined });
   };
 
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
@@ -410,19 +415,6 @@ export default function LeaveCalendar() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <RangeLeaveDialog
-        isOpen={rangeDialogOpen}
-        onClose={() => {
-          setRangeDialogOpen(false);
-          setSelectedEmployee(null);
-        }}
-        onSubmit={handleRangeLeave}
-        onCancel={handleRangeCancel}
-        leaveTypes={leaveTypes}
-        employeeId={selectedEmployee?.id}
-        employeeName={selectedEmployee?.name}
-        isSubmitting={rangeLeaveMutation.isPending || rangeCancelMutation.isPending}
-      />
       <div className="max-w-full mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
@@ -435,7 +427,11 @@ export default function LeaveCalendar() {
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="flex-1">
-                <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
+                <Select 
+                  value={selectedLeaveTypeId || ''} 
+                  onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+                  disabled={rangeMode}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="選擇假別" />
                   </SelectTrigger>
@@ -449,31 +445,92 @@ export default function LeaveCalendar() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button
-                onClick={() => {
-                  setSelectedEmployee(currentEmployee);
-                  setRangeDialogOpen(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700"
-                size="icon"
-              >
-                <CalendarRange className="h-5 w-5" />
-              </Button>
+              {!rangeMode ? (
+                <Button
+                  onClick={() => {
+                    if (!selectedLeaveTypeId) {
+                      alert('請先選擇假別');
+                      return;
+                    }
+                    setRangeMode(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  size="icon"
+                >
+                  <CalendarRange className="h-5 w-5" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    setRangeMode(false);
+                    setDateRange({ from: undefined, to: undefined });
+                  }}
+                  variant="outline"
+                  size="icon"
+                >
+                  ✕
+                </Button>
+              )}
             </div>
           </div>
 
-          <WeekCalendarTable
-            currentDate={currentDate}
-            currentEmployee={currentEmployee}
-            currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
-            leaveRecords={leaveRecords}
-            leaveTypes={leaveTypes}
-            holidays={holidays}
-            selectedLeaveTypeId={selectedLeaveTypeId}
-            onUpdateLeave={handleUpdateLeave}
-            onDeleteLeave={handleDeleteLeave}
-            onDeleteRangeLeave={handleDeleteRangeLeave}
-          />
+          {rangeMode && (
+            <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">選擇請假區間</h3>
+              <div className="flex justify-center mb-3">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  locale={zhTW}
+                  numberOfMonths={1}
+                  className="rounded-md border"
+                />
+              </div>
+              {dateRange?.from && (
+                <p className="text-sm text-gray-600 mb-3 text-center">
+                  {dateRange.to ? (
+                    <>
+                      {format(dateRange.from, 'yyyy/MM/dd', { locale: zhTW })} - {format(dateRange.to, 'yyyy/MM/dd', { locale: zhTW })}
+                    </>
+                  ) : (
+                    <>選擇開始日期: {format(dateRange.from, 'yyyy/MM/dd', { locale: zhTW })}</>
+                  )}
+                </p>
+              )}
+              <div className="flex justify-center gap-3">
+                <Button
+                  onClick={handleRangeSubmit}
+                  disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {rangeLeaveMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      處理中...
+                    </>
+                  ) : (
+                    '確定請假'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {!rangeMode && (
+            <WeekCalendarTable
+              currentDate={currentDate}
+              currentEmployee={currentEmployee}
+              currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
+              leaveRecords={leaveRecords}
+              leaveTypes={leaveTypes}
+              holidays={holidays}
+              selectedLeaveTypeId={selectedLeaveTypeId}
+              onUpdateLeave={handleUpdateLeave}
+              onDeleteLeave={handleDeleteLeave}
+              onDeleteRangeLeave={handleDeleteRangeLeave}
+            />
+          )}
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
             <Button
@@ -493,10 +550,10 @@ export default function LeaveCalendar() {
                 <div>
                   <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• <span className="font-medium">上方選擇假別</span>：點選要使用的假別</li>
-                    <li>• <span className="font-medium">單擊格子</span>：用選定的假別填充</li>
+                    <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
+                    <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
+                    <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
                     <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                    <li>• <span className="font-medium">區間請假/取消</span>：點擊右上角 📅 按鈕</li>
                     <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
                   </ul>
                 </div>
