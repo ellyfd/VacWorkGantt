@@ -336,12 +336,26 @@ export default function EmployeeManagement() {
                 </div>
                 <div>
                   <Label htmlFor="code">職代</Label>
-                  <Input
-                    id="code"
+                  <Select
                     value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    className="mt-1"
-                  />
+                    onValueChange={(value) => setFormData({ ...formData, code: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="選擇職代" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>無職代</SelectItem>
+                      {formData.department_id && employees
+                        .filter(e => e.department_id === formData.department_id && e.id !== editingEmployee?.id)
+                        .filter((e, idx, self) => e.code && self.findIndex(x => x.code === e.code) === idx)
+                        .map((emp) => (
+                          <SelectItem key={emp.code} value={emp.code}>
+                            {emp.code} ({emp.name})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">選擇與此員工互為職代的同仁</p>
                 </div>
                 <div>
                   <Label htmlFor="department">部門</Label>
