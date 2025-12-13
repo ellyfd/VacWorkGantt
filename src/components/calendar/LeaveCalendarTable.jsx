@@ -18,6 +18,7 @@ export default function LeaveCalendarTable({
   rangeMode = false,
   dateRange = { from: undefined, to: undefined },
   selectedEmployeeId,
+  currentEmployeeId,
   onUpdateLeave,
   onDeleteLeave,
   onDeleteRangeLeave,
@@ -120,37 +121,41 @@ export default function LeaveCalendarTable({
               });
             });
             
-            return employeesToShow.map((emp) => (
-              <tr key={emp.id} className="hover:bg-gray-50/50">
-                <td className="sticky left-0 z-10 bg-white px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200">
-                  {emp.name}
-                </td>
-                {days.map((d, idx) => {
-                  const record = getLeaveRecord(emp.id, d.date);
-                  const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
-                    dateRange.from && dateRange.to && 
-                    d.date >= dateRange.from && d.date <= dateRange.to;
-                  return (
-                    <td key={idx} className="p-0 border-r border-b border-gray-200">
-                      <LeaveCell
-                        record={record}
-                        leaveTypes={leaveTypes}
-                        selectedLeaveTypeId={selectedLeaveTypeId}
-                        isWeekend={d.isWeekend}
-                        isHoliday={d.isHoliday}
-                        rangeMode={rangeMode && selectedEmployeeId === emp.id}
-                        dateRange={dateRange}
-                        currentDate={d.date}
-                        onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
-                        onClearLeave={() => record && handleClearLeave(record.id)}
-                        onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
-                        onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
-                      />
-                    </td>
-                  );
-                })}
-              </tr>
-            ));
+            return employeesToShow.map((emp) => {
+              const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
+              return (
+                <tr key={emp.id} className="hover:bg-gray-50/50">
+                  <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
+                    {emp.name}
+                  </td>
+                  {days.map((d, idx) => {
+                    const record = getLeaveRecord(emp.id, d.date);
+                    const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
+                      dateRange.from && dateRange.to && 
+                      d.date >= dateRange.from && d.date <= dateRange.to;
+                    return (
+                      <td key={idx} className="p-0 border-r border-b border-gray-200">
+                        <LeaveCell
+                          record={record}
+                          leaveTypes={leaveTypes}
+                          selectedLeaveTypeId={selectedLeaveTypeId}
+                          isWeekend={d.isWeekend}
+                          isHoliday={d.isHoliday}
+                          isCurrentUser={isCurrentUser}
+                          rangeMode={rangeMode && selectedEmployeeId === emp.id}
+                          dateRange={dateRange}
+                          currentDate={d.date}
+                          onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
+                          onClearLeave={() => record && handleClearLeave(record.id)}
+                          onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
+                          onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            });
           })()}
         </tbody>
       </table>

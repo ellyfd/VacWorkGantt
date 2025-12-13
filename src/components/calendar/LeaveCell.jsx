@@ -9,6 +9,7 @@ export default function LeaveCell({
         onDoubleClickLeave,
         isWeekend,
         isHoliday,
+        isCurrentUser = false,
         rangeMode = false,
         dateRange = { from: undefined, to: undefined },
         currentDate,
@@ -18,6 +19,8 @@ export default function LeaveCell({
 
   const cellBgClass = (isHoliday || isWeekend) 
     ? "bg-gray-200" 
+    : isCurrentUser 
+    ? "bg-yellow-100" 
     : "bg-white";
 
   // 檢查是否在選中的區間內
