@@ -4,24 +4,26 @@ import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 
 import LeaveCell from "./LeaveCell";
+import CalendarHeader from "./CalendarHeader";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 export default function WeekCalendarTable({
-        currentDate,
-        currentEmployee,
-        currentDepartments,
-        leaveRecords,
-        leaveTypes,
-        holidays,
-        selectedLeaveTypeId,
-        rangeMode = false,
-        dateRange = { from: undefined, to: undefined },
-        onUpdateLeave,
-        onDeleteLeave,
-        onDeleteRangeLeave,
-        onCellClickInRangeMode
-      }) {
+              currentDate,
+              onDateChange,
+              currentEmployee,
+              currentDepartments,
+              leaveRecords,
+              leaveTypes,
+              holidays,
+              selectedLeaveTypeId,
+              rangeMode = false,
+              dateRange = { from: undefined, to: undefined },
+              onUpdateLeave,
+              onDeleteLeave,
+              onDeleteRangeLeave,
+              onCellClickInRangeMode
+            }) {
   if (!currentEmployee || !currentDepartments || currentDepartments.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
@@ -113,11 +115,15 @@ export default function WeekCalendarTable({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+      <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
           <p className="text-sm text-gray-600">{currentDepartments.map(d => d.name).join(', ')}</p>
         </div>
+        <CalendarHeader 
+          currentDate={currentDate} 
+          onDateChange={onDateChange}
+        />
       </div>
       
       <div className="p-4">

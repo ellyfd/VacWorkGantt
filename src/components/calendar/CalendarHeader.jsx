@@ -40,17 +40,17 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
         <Button
           variant="outline"
           size="icon"
           onClick={handlePrevMonth}
-          className="h-9 w-9"
+          className="h-7 w-7"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3 w-3" />
         </Button>
         <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[70px] md:w-[90px]">
+          <SelectTrigger className="w-[65px] h-7 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -60,7 +60,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           </SelectContent>
         </Select>
         <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-[60px] md:w-[80px]">
+          <SelectTrigger className="w-[55px] h-7 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -74,10 +74,10 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handleNextMonth}
-          className="h-9 w-9"
+          className="h-7 w-7"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3 w-3" />
         </Button>
       </div>
   );
-}
+  }

@@ -430,13 +430,7 @@ export default function LeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-full mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
-          <CalendarHeader 
-            currentDate={currentDate} 
-            onDateChange={setCurrentDate}
-          />
-          </div>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
 
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
@@ -542,6 +536,7 @@ export default function LeaveCalendar() {
 
           <WeekCalendarTable
             currentDate={currentDate}
+            onDateChange={setCurrentDate}
             currentEmployee={currentEmployee}
             currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
             leaveRecords={leaveRecords}
