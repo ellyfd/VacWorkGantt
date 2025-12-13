@@ -263,42 +263,44 @@ export default function EmployeeManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600" />
+              <Users className="w-5 h-5 text-blue-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">員工管理</h1>
+            <h1 className="text-xl font-bold text-gray-800">員工管理</h1>
           </div>
           <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={handleDownloadTemplate}
               className="border-green-600 text-green-600 hover:bg-green-50"
             >
-              <Download className="w-4 h-4 mr-2" />
-              下載模板
+              <Download className="w-3 h-3 mr-1" />
+              模板
             </Button>
             <label htmlFor="excel-upload">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 disabled={isUploading}
                 onClick={() => document.getElementById('excel-upload').click()}
                 className="border-blue-600 text-blue-600 hover:bg-blue-50"
               >
                 {isUploading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    匯入中...
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    匯入中
                   </>
                 ) : (
                   <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Excel 匯入
+                    <Upload className="w-3 h-3 mr-1" />
+                    匯入
                   </>
                 )}
               </Button>
@@ -312,9 +314,9 @@ export default function EmployeeManagement() {
             />
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  新增員工
+                <Button size="sm" onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-3 h-3 mr-1" />
+                  新增
                 </Button>
               </DialogTrigger>
             <DialogContent>
@@ -402,9 +404,14 @@ export default function EmployeeManagement() {
           </div>
         </div>
 
-        <div className="mb-4 flex gap-4">
-          <div className="flex-1 p-4 bg-white rounded-lg border border-gray-200">
-            <Label className="text-sm font-semibold text-gray-700 mb-3 block">批量操作</Label>
+        <div className="mb-3 flex flex-col md:flex-row gap-3">
+          <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm font-semibold text-gray-700">批量操作</Label>
+              {selectedEmployees.length > 0 && (
+                <span className="text-xs text-gray-500">已選 {selectedEmployees.length} 位</span>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
@@ -413,7 +420,7 @@ export default function EmployeeManagement() {
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
               >
                 <Pencil className="w-3 h-3 mr-1" />
-                批量編輯 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
+                編輯
               </Button>
               <Button
                 size="sm"
@@ -424,12 +431,12 @@ export default function EmployeeManagement() {
                 {bulkDeleteMutation.isPending ? (
                   <>
                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    刪除中...
+                    刪除中
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-3 h-3 mr-1" />
-                    批量刪除 {selectedEmployees.length > 0 && `(${selectedEmployees.length})`}
+                    刪除
                   </>
                 )}
               </Button>
@@ -438,53 +445,48 @@ export default function EmployeeManagement() {
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedEmployees([])}
-                  className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                  className="text-gray-600"
                 >
-                  清除選擇
+                  清除
                 </Button>
               )}
             </div>
-            {selectedEmployees.length > 0 && (
-              <p className="text-xs text-gray-500 mt-2">
-                已選擇 {selectedEmployees.length} 位員工
-              </p>
-            )}
           </div>
 
-          <div className="flex-1 p-4 bg-white rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
+          <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
               <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleSelectAll}
-                className="h-8"
-              >
-                {selectedDepartments.length === departments.length ? '取消全選' : '全選'}
-              </Button>
+              <div className="flex items-center gap-2">
+                {selectedDepartments.length > 0 && (
+                  <span className="text-xs text-gray-500">已選 {selectedDepartments.length} 個</span>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="h-7 text-xs"
+                >
+                  {selectedDepartments.length === departments.length ? '取消' : '全選'}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {departments.map((dept) => (
                 <label
                   key={dept.id}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md border border-gray-200"
+                  className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200"
                 >
                   <input
                     type="checkbox"
                     checked={selectedDepartments.includes(dept.id)}
                     onChange={() => handleDepartmentToggle(dept.id)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-3.5 h-3.5 text-blue-600 rounded"
                   />
-                  <span className="text-sm text-gray-700">{dept.name}</span>
+                  <span className="text-xs text-gray-700">{dept.name}</span>
                 </label>
               ))}
             </div>
-            {selectedDepartments.length > 0 && (
-              <p className="text-xs text-gray-500 mt-2">
-                已選擇 {selectedDepartments.length} 個部門
-              </p>
-            )}
           </div>
         </div>
 
