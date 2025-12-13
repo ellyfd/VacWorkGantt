@@ -347,25 +347,24 @@ export default function EmployeeManagement() {
                 </div>
                 <div>
                   <Label htmlFor="department">部門</Label>
-                    <div className="mt-1 border rounded-md p-2 max-h-32 overflow-y-auto bg-white">
-                      {departments.map((dept) => (
-                        <label key={dept.id} className="flex items-center gap-2 py-1 hover:bg-gray-50 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.department_ids.includes(dept.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData({ ...formData, department_ids: [...formData.department_ids, dept.id] });
-                              } else {
-                                setFormData({ ...formData, department_ids: formData.department_ids.filter(id => id !== dept.id) });
-                              }
-                            }}
-                            className="w-4 h-4 text-blue-600 rounded"
-                          />
-                          <span className="text-sm">{dept.name}</span>
-                        </label>
-                      ))}
-                    </div>
+                  <div className="mt-1 border rounded-md p-2 max-h-32 overflow-y-auto bg-white">
+                    {departments.map((dept) => (
+                      <label key={dept.id} className="flex items-center gap-2 py-1 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.department_ids.includes(dept.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({ ...formData, department_ids: [...formData.department_ids, dept.id] });
+                            } else {
+                              setFormData({ ...formData, department_ids: formData.department_ids.filter(id => id !== dept.id) });
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 rounded"
+                        />
+                        <span className="text-sm">{dept.name}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
