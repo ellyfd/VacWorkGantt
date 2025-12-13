@@ -65,6 +65,16 @@ export default function Layout({ children, currentPageName }) {
     mutationFn: async (employeeId) => {
       const emp = employees.find(e => e.id === employeeId);
       const existingEmails = emp?.user_emails || [];
+      
+      if (existingEmails.length > 0 && !existingEmails.includes(currentUser.email)) {
+        const confirmed = window.confirm(
+          `此員工 ${emp.name} 已綁定以下帳號：\n${existingEmails.join('\n')}\n\n確定要綁定新帳號 ${currentUser.email} 嗎？`
+        );
+        if (!confirmed) {
+          throw new Error('取消綁定');
+        }
+      }
+      
       if (!existingEmails.includes(currentUser.email)) {
         await base44.entities.Employee.update(employeeId, { 
           user_emails: [...existingEmails, currentUser.email] 
