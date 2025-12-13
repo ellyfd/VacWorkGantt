@@ -333,29 +333,6 @@ export default function EmployeeManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="code">職代</Label>
-                  <Select
-                    value={formData.code}
-                    onValueChange={(value) => setFormData({ ...formData, code: value })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="選擇職代" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>無職代</SelectItem>
-                      {formData.department_id && employees
-                        .filter(e => e.department_id === formData.department_id && e.id !== editingEmployee?.id)
-                        .filter((e, idx, self) => e.code && self.findIndex(x => x.code === e.code) === idx)
-                        .map((emp) => (
-                          <SelectItem key={emp.code} value={emp.code}>
-                            {emp.code} ({emp.name})
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500 mt-1">選擇與此員工互為職代的同仁</p>
-                </div>
-                <div>
                   <Label htmlFor="department">部門</Label>
                   <Select
                     value={formData.department_id}
@@ -370,6 +347,48 @@ export default function EmployeeManagement() {
                           {dept.name}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="deputy_1">第一順位職代</Label>
+                  <Select
+                    value={formData.deputy_1}
+                    onValueChange={(value) => setFormData({ ...formData, deputy_1: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="選擇第一順位職代" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>無</SelectItem>
+                      {formData.department_id && employees
+                        .filter(e => e.department_id === formData.department_id && e.id !== editingEmployee?.id)
+                        .map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="deputy_2">第二順位職代</Label>
+                  <Select
+                    value={formData.deputy_2}
+                    onValueChange={(value) => setFormData({ ...formData, deputy_2: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="選擇第二順位職代" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>無</SelectItem>
+                      {formData.department_id && employees
+                        .filter(e => e.department_id === formData.department_id && e.id !== editingEmployee?.id && e.id !== formData.deputy_1)
+                        .map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
