@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
-import CalendarSettings from "./CalendarSettings";
 
-export default function CalendarHeader({ currentDate, onDateChange, departments, selectedDepartments, onDepartmentsChange }) {
+export default function CalendarHeader({ currentDate, onDateChange }) {
   const handlePrevMonth = () => {
     const currentMonth = currentDate.getMonth();
     if (currentMonth === -1) {
@@ -40,28 +39,8 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
   const years = [2025, 2026, 2027];
   const months = Array.from({ length: 12 }, (_, i) => i);
 
-  const handleDepartmentToggle = (deptId) => {
-    onDepartmentsChange(prev => 
-      prev.includes(deptId) 
-        ? prev.filter(id => id !== deptId)
-        : [...prev, deptId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedDepartments.length === departments.length) {
-      onDepartmentsChange([]);
-    } else {
-      onDepartmentsChange(departments.map(d => d.id));
-    }
-  };
-
   return (
-    <div className="flex items-center justify-between mb-6">
-      <h1 className="text-xl md:text-2xl font-bold text-gray-800">
-        排休登記表
-      </h1>
-      <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="icon"
@@ -99,12 +78,6 @@ export default function CalendarHeader({ currentDate, onDateChange, departments,
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
-        <CalendarSettings 
-          departments={departments}
-          selectedDepartments={selectedDepartments}
-          onDepartmentsChange={onDepartmentsChange}
-        />
       </div>
-    </div>
   );
 }

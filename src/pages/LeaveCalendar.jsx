@@ -54,7 +54,32 @@ export default function LeaveCalendar() {
   });
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
-    queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth()],
+    queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth(), currentUser?.employee_id],
+    queryFn: async () => {
+      if (!currentUser?.employee_id) return [];
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      if (month === -1) {
+        const startDate = `${year}-01-01`;
+        const endDate = `${year}-12-31`;
+        return base44.entities.LeaveRecord.filter({
+          employee_id: currentUser.employee_id,
+          date: { $gte: startDate, $lte: endDate }
+        });
+      } else {
+        const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+        return base44.entities.LeaveRecord.filter({
+          employee_id: currentUser.employee_id,
+          date: { $gte: startDate, $lte: endDate }
+        });
+      }
+    },
+    enabled: !!currentUser?.employee_id,
+  });
+
+  const { data: allLeaveRecords = [] } = useQuery({
+    queryKey: ['allLeaveRecords', currentDate.getFullYear(), currentDate.getMonth()],
     queryFn: async () => {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
@@ -76,6 +101,49 @@ export default function LeaveCalendar() {
 
   const updateLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
+      // 檢查職代衝突
+      const currentEmployee = employees.find(e => e.id === employeeId);
+      if (currentEmployee?.code) {
+        const sameCodeEmployees = employees.filter(e => 
+          e.code === currentEmployee.code && e.id !== employeeId
+        );
+        
+        const conflicts = allLeaveRecords.filter(r => 
+          sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === date
+        );
+        
+        if (conflicts.length > 0) {
+          const conflictNames = conflicts.map(c => {
+            const emp = employees.find(e => e.id === c.employee_id);
+            return emp?.name || '未知';
+          }).join('、');
+          
+          const confirmed = window.confirm(
+            `⚠️ 警告：同職代同仁 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
+          );
+          
+          if (!confirmed) {
+            throw new Error('取消請假');
+          }
+        }
+      }
+      
+      // 檢查部門人數限制
+      const deptLeaves = allLeaveRecords.filter(r => {
+        const emp = employees.find(e => e.id === r.employee_id);
+        return emp?.department_id === currentEmployee?.department_id && r.date === date;
+      });
+      
+      if (deptLeaves.length >= 2) {
+        const confirmed = window.confirm(
+          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假，確定要繼續請假嗎？`
+        );
+        
+        if (!confirmed) {
+          throw new Error('取消請假');
+        }
+      }
+
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date
       );
@@ -93,6 +161,7 @@ export default function LeaveCalendar() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries(['allLeaveRecords']);
     },
   });
 
@@ -100,6 +169,7 @@ export default function LeaveCalendar() {
     mutationFn: (recordId) => base44.entities.LeaveRecord.delete(recordId),
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries(['allLeaveRecords']);
     },
   });
 
@@ -107,21 +177,67 @@ export default function LeaveCalendar() {
     mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId }) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      const records = [];
+      const currentEmployee = employees.find(e => e.id === employeeId);
+      
+      // 檢查每一天的衝突
+      const warnings = [];
+      const dates = [];
       
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = format(d, 'yyyy-MM-dd');
-        records.push({
-          employee_id: employeeId,
-          date: dateStr,
-          leave_type_id: leaveTypeId
+        dates.push(dateStr);
+        
+        // 檢查職代衝突
+        if (currentEmployee?.code) {
+          const sameCodeEmployees = employees.filter(e => 
+            e.code === currentEmployee.code && e.id !== employeeId
+          );
+          
+          const conflicts = allLeaveRecords.filter(r => 
+            sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === dateStr
+          );
+          
+          if (conflicts.length > 0) {
+            const conflictNames = conflicts.map(c => {
+              const emp = employees.find(e => e.id === c.employee_id);
+              return emp?.name || '未知';
+            }).join('、');
+            warnings.push(`${dateStr}: 同職代 ${conflictNames} 已請假`);
+          }
+        }
+        
+        // 檢查部門人數限制
+        const deptLeaves = allLeaveRecords.filter(r => {
+          const emp = employees.find(e => e.id === r.employee_id);
+          return emp?.department_id === currentEmployee?.department_id && r.date === dateStr;
         });
+        
+        if (deptLeaves.length >= 2) {
+          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假`);
+        }
       }
+      
+      if (warnings.length > 0) {
+        const confirmed = window.confirm(
+          `⚠️ 警告：\n${warnings.join('\n')}\n\n確定要繼續請假嗎？`
+        );
+        
+        if (!confirmed) {
+          throw new Error('取消請假');
+        }
+      }
+      
+      const records = dates.map(dateStr => ({
+        employee_id: employeeId,
+        date: dateStr,
+        leave_type_id: leaveTypeId
+      }));
       
       return base44.entities.LeaveRecord.bulkCreate(records);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries(['allLeaveRecords']);
     },
   });
 
@@ -142,6 +258,7 @@ export default function LeaveCalendar() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries(['allLeaveRecords']);
     },
   });
 
@@ -208,20 +325,21 @@ export default function LeaveCalendar() {
         isSubmitting={rangeLeaveMutation.isPending || rangeCancelMutation.isPending}
       />
       <div className="max-w-full mx-auto">
-        <CalendarHeader 
-          currentDate={currentDate} 
-          onDateChange={setCurrentDate}
-          departments={departments}
-          selectedDepartments={selectedDepartments}
-          onDepartmentsChange={setSelectedDepartments}
-        />
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
+          <CalendarHeader 
+            currentDate={currentDate} 
+            onDateChange={setCurrentDate}
+          />
+        </div>
 
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="text-sm font-semibold text-blue-900 mb-2">操作說明</h3>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• <span className="font-medium">單擊格子</span>：選擇假別</li>
             <li>• <span className="font-medium">雙擊格子</span>：取消請假</li>
-            <li>• <span className="font-medium">區間請假/取消</span>：點擊員工姓名旁的 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
+            <li>• <span className="font-medium">區間請假/取消</span>：點擊 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
+            <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
           </ul>
         </div>
         
@@ -229,8 +347,8 @@ export default function LeaveCalendar() {
 
         <WeekCalendarTable
           currentDate={currentDate}
-          departments={selectedDepartments.length === 0 ? departments : departments.filter(d => selectedDepartments.includes(d.id))}
-          employees={employees.filter(emp => emp.status === 'active')}
+          currentEmployee={employees.find(e => e.id === currentUser?.employee_id)}
+          currentDepartment={departments.find(d => d.id === currentUser?.department_id)}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
           holidays={holidays}
@@ -240,13 +358,12 @@ export default function LeaveCalendar() {
             setSelectedEmployee(emp);
             setRangeDialogOpen(true);
           }}
-          onReorderEmployees={handleReorderEmployees}
         />
 
-        {employees.length === 0 && (
+        {!currentUser?.employee_id && (
           <div className="mt-8 text-center py-12 bg-white rounded-xl border border-gray-200">
-            <p className="text-gray-500">尚無員工資料</p>
-            <p className="text-sm text-gray-400 mt-1">請先至員工管理新增員工</p>
+            <p className="text-gray-500">請先設定您的個人資料</p>
+            <p className="text-sm text-gray-400 mt-1">點擊上方按鈕選擇部門和姓名</p>
           </div>
         )}
       </div>
