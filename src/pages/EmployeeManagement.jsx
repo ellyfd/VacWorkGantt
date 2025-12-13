@@ -412,7 +412,7 @@ export default function EmployeeManagement() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="status">在職狀態</Label>
+                  <Label htmlFor="status">狀態</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value) => setFormData({ ...formData, status: value })}
@@ -559,7 +559,7 @@ export default function EmployeeManagement() {
                   <TableHead className="w-[150px]">姓名</TableHead>
                   <TableHead className="w-[150px]">英文名字</TableHead>
                   <TableHead>部門</TableHead>
-                  <TableHead>在職狀態</TableHead>
+                  <TableHead>狀態</TableHead>
                   <TableHead className="w-[60px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
@@ -646,7 +646,7 @@ export default function EmployeeManagement() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="bulk-status">在職狀態 (留空表示不修改)</Label>
+                <Label htmlFor="bulk-status">狀態 (留空表示不修改)</Label>
                 <Select
                   value={bulkEditData.status}
                   onValueChange={(value) => setBulkEditData({ ...bulkEditData, status: value })}
