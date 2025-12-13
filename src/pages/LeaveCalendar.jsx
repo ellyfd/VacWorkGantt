@@ -6,13 +6,11 @@ import { Loader2 } from 'lucide-react';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 import LeaveLegend from '@/components/calendar/LeaveLegend';
-import ProfileSetup from '@/components/ProfileSetup';
+
 import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDepartments, setSelectedDepartments] = useState([]);
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const queryClient = useQueryClient();
@@ -20,11 +18,6 @@ export default function LeaveCalendar() {
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    onSuccess: (user) => {
-      if (!user.department_id || !user.employee_id) {
-        setShowProfileSetup(true);
-      }
-    },
   });
 
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
@@ -43,6 +36,9 @@ export default function LeaveCalendar() {
     },
   });
 
+  // 根據登入帳號自動找到對應的員工
+  const currentEmployee = employees.find(emp => emp.user_email === currentUser?.email);
+
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
     queryKey: ['leaveTypes'],
     queryFn: () => base44.entities.LeaveType.list(),
@@ -54,28 +50,28 @@ export default function LeaveCalendar() {
   });
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
-    queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth(), currentUser?.employee_id],
+    queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth(), currentEmployee?.id],
     queryFn: async () => {
-      if (!currentUser?.employee_id) return [];
+      if (!currentEmployee?.id) return [];
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       if (month === -1) {
         const startDate = `${year}-01-01`;
         const endDate = `${year}-12-31`;
         return base44.entities.LeaveRecord.filter({
-          employee_id: currentUser.employee_id,
+          employee_id: currentEmployee.id,
           date: { $gte: startDate, $lte: endDate }
         });
       } else {
         const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
         const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
         return base44.entities.LeaveRecord.filter({
-          employee_id: currentUser.employee_id,
+          employee_id: currentEmployee.id,
           date: { $gte: startDate, $lte: endDate }
         });
       }
     },
-    enabled: !!currentUser?.employee_id,
+    enabled: !!currentEmployee?.id,
   });
 
   const { data: allLeaveRecords = [] } = useQuery({
@@ -305,12 +301,27 @@ export default function LeaveCalendar() {
     );
   }
 
+  if (!currentEmployee && !loadingEmps && !loadingUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="max-w-md bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">找不到員工資料</h2>
+          <p className="text-gray-600 mb-4">
+            您的帳號 <span className="font-semibold">{currentUser?.email}</span> 尚未綁定員工資料
+          </p>
+          <p className="text-sm text-gray-500">
+            請聯絡管理員在「員工管理」頁面將您的帳號綁定到員工資料
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <ProfileSetup 
-        isOpen={showProfileSetup} 
-        onComplete={() => setShowProfileSetup(false)} 
-      />
       <RangeLeaveDialog
         isOpen={rangeDialogOpen}
         onClose={() => {
@@ -347,8 +358,8 @@ export default function LeaveCalendar() {
 
         <WeekCalendarTable
           currentDate={currentDate}
-          currentEmployee={employees.find(e => e.id === currentUser?.employee_id)}
-          currentDepartment={departments.find(d => d.id === currentUser?.department_id)}
+          currentEmployee={currentEmployee}
+          currentDepartment={departments.find(d => d.id === currentEmployee?.department_id)}
           leaveRecords={leaveRecords}
           leaveTypes={leaveTypes}
           holidays={holidays}
@@ -359,13 +370,6 @@ export default function LeaveCalendar() {
             setRangeDialogOpen(true);
           }}
         />
-
-        {!currentUser?.employee_id && (
-          <div className="mt-8 text-center py-12 bg-white rounded-xl border border-gray-200">
-            <p className="text-gray-500">請先設定您的個人資料</p>
-            <p className="text-sm text-gray-400 mt-1">點擊上方按鈕選擇部門和姓名</p>
-          </div>
-        )}
       </div>
     </div>
   );
