@@ -8,16 +8,17 @@ import LeaveCell from "./LeaveCell";
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 export default function WeekCalendarTable({
-  currentDate,
-  currentEmployee,
-  currentDepartment,
-  leaveRecords,
-  leaveTypes,
-  holidays,
-  onUpdateLeave,
-  onDeleteLeave,
-  onOpenRangeDialog
-}) {
+        currentDate,
+        currentEmployee,
+        currentDepartment,
+        leaveRecords,
+        leaveTypes,
+        holidays,
+        onUpdateLeave,
+        onDeleteLeave,
+        onDeleteRangeLeave,
+        onOpenRangeDialog
+      }) {
   if (!currentEmployee || !currentDepartment) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
@@ -75,6 +76,12 @@ export default function WeekCalendarTable({
 
   const handleClearLeave = (recordId) => {
     onDeleteLeave(recordId);
+  };
+
+  const handleDoubleClickLeave = (record) => {
+    if (onDeleteRangeLeave) {
+      onDeleteRangeLeave(record);
+    }
   };
 
   // 将日期按周分组，每周从周日开始
@@ -165,6 +172,7 @@ export default function WeekCalendarTable({
                       isHoliday={day.isHoliday}
                       onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
                       onClearLeave={() => record && handleClearLeave(record.id)}
+                      onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
                     />
                   </div>
                 </div>

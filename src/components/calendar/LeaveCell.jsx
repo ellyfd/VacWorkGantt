@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
 export default function LeaveCell({ 
-  record, 
-  leaveTypes, 
-  onSelectLeave, 
-  onClearLeave,
-  isWeekend,
-  isHoliday 
-}) {
+        record, 
+        leaveTypes, 
+        onSelectLeave, 
+        onClearLeave,
+        onDoubleClickLeave,
+        isWeekend,
+        isHoliday 
+      }) {
   const [open, setOpen] = React.useState(false);
   const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
 
@@ -33,7 +34,11 @@ export default function LeaveCell({
     if (record) {
       e.preventDefault();
       e.stopPropagation();
-      onClearLeave();
+      if (onDoubleClickLeave) {
+        onDoubleClickLeave();
+      } else {
+        onClearLeave();
+      }
     }
   };
 

@@ -171,6 +171,16 @@ export default function LeaveCalendar() {
     },
   });
 
+  const deleteRangeMutation = useMutation({
+    mutationFn: async (recordIds) => {
+      await Promise.all(recordIds.map(id => base44.entities.LeaveRecord.delete(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries(['allLeaveRecords']);
+    },
+  });
+
   const rangeLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId }) => {
       const start = new Date(startDate);
@@ -266,6 +276,59 @@ export default function LeaveCalendar() {
 
   const handleDeleteLeave = (recordId) => {
     deleteLeaveMutation.mutate(recordId);
+  };
+
+  const handleDeleteRangeLeave = (record) => {
+    if (!record) return;
+
+    // 找出同一假別的連續日期
+    const clickedDate = new Date(record.date);
+    const sameTypeRecords = leaveRecords.filter(r => 
+      r.employee_id === record.employee_id && 
+      r.leave_type_id === record.leave_type_id
+    ).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // 找出包含點擊日期的連續區間
+    const rangeRecords = [record];
+
+    // 向前找
+    for (let i = sameTypeRecords.indexOf(record) - 1; i >= 0; i--) {
+      const prevDate = new Date(sameTypeRecords[i].date);
+      const lastDate = new Date(rangeRecords[0].date);
+      const diffDays = Math.round((lastDate - prevDate) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        rangeRecords.unshift(sameTypeRecords[i]);
+      } else {
+        break;
+      }
+    }
+
+    // 向後找
+    for (let i = sameTypeRecords.indexOf(record) + 1; i < sameTypeRecords.length; i++) {
+      const nextDate = new Date(sameTypeRecords[i].date);
+      const lastDate = new Date(rangeRecords[rangeRecords.length - 1].date);
+      const diffDays = Math.round((nextDate - lastDate) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        rangeRecords.push(sameTypeRecords[i]);
+      } else {
+        break;
+      }
+    }
+
+    // 如果是區間（超過1天），確認後刪除
+    if (rangeRecords.length > 1) {
+      const startDate = rangeRecords[0].date;
+      const endDate = rangeRecords[rangeRecords.length - 1].date;
+      const confirmed = window.confirm(
+        `確定要取消 ${startDate} 至 ${endDate} 共 ${rangeRecords.length} 天的請假嗎？`
+      );
+      if (confirmed) {
+        deleteRangeMutation.mutate(rangeRecords.map(r => r.id));
+      }
+    } else {
+      // 單天直接刪除
+      deleteLeaveMutation.mutate(record.id);
+    }
   };
 
   const handleRangeLeave = async (employeeId, startDate, endDate, leaveTypeId) => {
@@ -380,6 +443,7 @@ export default function LeaveCalendar() {
             holidays={holidays}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
+            onDeleteRangeLeave={handleDeleteRangeLeave}
             onOpenRangeDialog={(emp) => {
               setSelectedEmployee(emp);
               setRangeDialogOpen(true);
