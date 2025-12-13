@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CalendarRange } from 'lucide-react';
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import CalendarSettings from '@/components/calendar/CalendarSettings';

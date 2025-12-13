@@ -16,9 +16,7 @@ export default function LeaveCalendarTable({
   holidays,
   onUpdateLeave,
   onDeleteLeave,
-  onDeleteRangeLeave,
-  onOpenRangeDialog,
-  onReorderEmployees
+  onDeleteRangeLeave
 }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -112,13 +110,7 @@ export default function LeaveCalendarTable({
                   </td>
                 )}
                 <td className="sticky left-[80px] z-10 bg-white px-2 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
-                <button
-                onClick={() => onOpenRangeDialog(emp)}
-                className="hover:text-blue-600 hover:underline cursor-pointer text-left w-full"
-                title="點擊進行區間請假"
-                >
-                {emp.name}
-                </button>
+                  {emp.name}
                 </td>
                 {days.map((d, idx) => {
                   const record = getLeaveRecord(emp.id, d.date);
