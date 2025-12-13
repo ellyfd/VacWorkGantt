@@ -45,13 +45,13 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handlePrevMonth}
-          className="h-14 w-7"
+          className="h-14 w-8"
         >
-          <ChevronLeft className="h-3 w-3" />
+          <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-1">
           <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-            <SelectTrigger className="w-[65px] h-6 text-xs">
+            <SelectTrigger className="w-[75px] h-7 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -61,7 +61,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
             </SelectContent>
           </Select>
           <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-            <SelectTrigger className="w-[65px] h-6 text-xs">
+            <SelectTrigger className="w-[75px] h-7 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -76,9 +76,9 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handleNextMonth}
-          className="h-14 w-7"
+          className="h-14 w-8"
         >
-          <ChevronRight className="h-3 w-3" />
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
   );

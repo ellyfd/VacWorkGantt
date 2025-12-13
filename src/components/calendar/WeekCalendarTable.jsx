@@ -116,10 +116,7 @@ export default function WeekCalendarTable({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
-          <p className="text-sm text-gray-600">{currentDepartments.map(d => d.name).join(', ')}</p>
-        </div>
+        <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
         <CalendarHeader 
           currentDate={currentDate} 
           onDateChange={onDateChange}
