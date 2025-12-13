@@ -350,7 +350,7 @@ export default function AllLeaveCalendar() {
       />
       
       <div className="max-w-full mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800">全部排休</h1>
           <div className="flex gap-3">
             <CalendarSettings
@@ -363,6 +363,12 @@ export default function AllLeaveCalendar() {
               onDateChange={setCurrentDate}
             />
           </div>
+        </div>
+
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            💡 <span className="font-semibold">提示：</span>點擊員工姓名可進行區間請假/取消
+          </p>
         </div>
 
         <div className="space-y-4">

@@ -2,7 +2,7 @@ import React from 'react';
 import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { CalendarRange } from "lucide-react";
+
 import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
@@ -115,18 +115,13 @@ export default function LeaveCalendarTable({
                   </td>
                 )}
                 <td className="sticky left-[80px] z-10 bg-white px-2 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
-                  <div className="flex items-center justify-between gap-1">
-                    <span>{emp.name}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-6 w-6 bg-blue-50 hover:bg-blue-100 border-blue-200"
-                      onClick={() => onOpenRangeDialog(emp)}
-                      title="區間請假/取消"
-                    >
-                      <CalendarRange className="h-3 w-3 text-blue-600" />
-                    </Button>
-                  </div>
+                  <button
+                    onClick={() => onOpenRangeDialog(emp)}
+                    className="hover:text-blue-600 hover:underline cursor-pointer text-left w-full"
+                    title="點擊進行區間請假"
+                  >
+                    {emp.name}
+                  </button>
                 </td>
                 <td className="sticky left-[180px] z-10 bg-white px-2 py-1 text-xs text-gray-500 border-r border-b border-gray-200">
                   {emp.deputy_1 || emp.deputy_2 ? (
