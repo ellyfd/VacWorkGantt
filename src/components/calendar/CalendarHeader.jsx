@@ -45,36 +45,38 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handlePrevMonth}
-          className="h-7 w-7"
+          className="h-14 w-7"
         >
           <ChevronLeft className="h-3 w-3" />
         </Button>
-        <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[65px] h-7 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {years.map((year) => (
-              <SelectItem key={year} value={year.toString()}>{year}年</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-[55px] h-7 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="-1">全年</SelectItem>
-            {months.map((month) => (
-              <SelectItem key={month} value={month.toString()}>{month + 1}月</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col gap-0.5">
+          <Select value={currentYear.toString()} onValueChange={handleYearChange}>
+            <SelectTrigger className="w-[65px] h-6 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>{year}年</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
+            <SelectTrigger className="w-[65px] h-6 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="-1">全年</SelectItem>
+              {months.map((month) => (
+                <SelectItem key={month} value={month.toString()}>{month + 1}月</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Button
           variant="outline"
           size="icon"
           onClick={handleNextMonth}
-          className="h-7 w-7"
+          className="h-14 w-7"
         >
           <ChevronRight className="h-3 w-3" />
         </Button>
