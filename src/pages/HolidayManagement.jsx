@@ -126,20 +126,20 @@ export default function HolidayManagement() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">日期</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">假日名稱</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">類型</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600">操作</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 w-28">日期</th>
+                <th className="px-6 py-2 text-left text-xs font-semibold text-gray-600">假日名稱</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 w-32">類型</th>
+                <th className="px-3 py-2 text-right text-xs font-semibold text-gray-600 w-24">編輯</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredHolidays.map((holiday) => (
                 <tr key={holiday.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-800">
+                  <td className="px-3 py-2 text-sm text-gray-800">
                     {format(new Date(holiday.date), 'yyyy/MM/dd')}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-800">{holiday.name}</td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-2 text-sm text-gray-800">{holiday.name}</td>
+                  <td className="px-3 py-2 text-sm">
                     <span className={`px-2 py-1 rounded text-xs ${
                       holiday.type === 'national' 
                         ? 'bg-blue-100 text-blue-800' 
@@ -148,7 +148,7 @@ export default function HolidayManagement() {
                       {holiday.type === 'national' ? '國定假日' : '公司特別假'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-3 py-2 text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
