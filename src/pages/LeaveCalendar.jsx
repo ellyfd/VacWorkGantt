@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 import LeaveLegend from '@/components/calendar/LeaveLegend';
@@ -13,6 +14,7 @@ export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -342,35 +344,52 @@ export default function LeaveCalendar() {
             currentDate={currentDate} 
             onDateChange={setCurrentDate}
           />
-        </div>
+          </div>
 
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">操作說明</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• <span className="font-medium">單擊格子</span>：選擇假別</li>
-            <li>• <span className="font-medium">雙擊格子</span>：取消請假</li>
-            <li>• <span className="font-medium">區間請假/取消</span>：點擊 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
-            <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
-          </ul>
-        </div>
-        
-        <LeaveLegend leaveTypes={leaveTypes} />
+          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center justify-between p-4 hover:bg-blue-100"
+            onClick={() => setInstructionsOpen(!instructionsOpen)}
+          >
+            <h3 className="text-sm font-semibold text-blue-900">操作說明</h3>
+            {instructionsOpen ? (
+              <ChevronUp className="w-4 h-4 text-blue-900" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-blue-900" />
+            )}
+          </Button>
+          {instructionsOpen && (
+            <div className="px-4 pb-4">
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• <span className="font-medium">單擊格子</span>：選擇假別</li>
+                <li>• <span className="font-medium">雙擊格子</span>：取消請假</li>
+                <li>• <span className="font-medium">區間請假/取消</span>：點擊 <span className="inline-flex items-center px-1 bg-white rounded border border-blue-300">📅</span> 按鈕</li>
+                <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
+              </ul>
+            </div>
+          )}
+          </div>
 
-        <WeekCalendarTable
-          currentDate={currentDate}
-          currentEmployee={currentEmployee}
-          currentDepartment={departments.find(d => d.id === currentEmployee?.department_id)}
-          leaveRecords={leaveRecords}
-          leaveTypes={leaveTypes}
-          holidays={holidays}
-          onUpdateLeave={handleUpdateLeave}
-          onDeleteLeave={handleDeleteLeave}
-          onOpenRangeDialog={(emp) => {
-            setSelectedEmployee(emp);
-            setRangeDialogOpen(true);
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+          <WeekCalendarTable
+            currentDate={currentDate}
+            currentEmployee={currentEmployee}
+            currentDepartment={departments.find(d => d.id === currentEmployee?.department_id)}
+            leaveRecords={leaveRecords}
+            leaveTypes={leaveTypes}
+            holidays={holidays}
+            onUpdateLeave={handleUpdateLeave}
+            onDeleteLeave={handleDeleteLeave}
+            onOpenRangeDialog={(emp) => {
+              setSelectedEmployee(emp);
+              setRangeDialogOpen(true);
+            }}
+          />
+
+          <div className="mt-4">
+            <LeaveLegend leaveTypes={leaveTypes} />
+          </div>
+          </div>
+          </div>
+          );
+          }
