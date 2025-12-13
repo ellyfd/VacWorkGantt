@@ -402,15 +402,6 @@ export default function EmployeeManagement() {
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-blue-800">
-            <strong>Excel 匯入格式說明：</strong>Excel 檔案需包含以下欄位：<br />
-            • <strong>name</strong> (姓名) - 必填<br />
-            • <strong>code</strong> (職代) - 選填<br />
-            • <strong>department_name</strong> (部門名稱) - 必填，需與系統中的部門名稱完全一致
-          </p>
-        </div>
-
         <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <Label className="text-sm font-semibold text-gray-700">批量操作</Label>
