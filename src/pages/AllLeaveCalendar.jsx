@@ -25,11 +25,6 @@ export default function AllLeaveCalendar() {
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
   const queryClient = useQueryClient();
 
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
-
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
     queryKey: ['departments'],
     queryFn: async () => {
@@ -330,10 +325,6 @@ export default function AllLeaveCalendar() {
 
   const isLoading = loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
 
-  const currentEmployee = currentUser?.email 
-    ? employees.find(e => e.user_email === currentUser.email)
-    : null;
-
   const filteredDepartments = selectedDepartments.length > 0
     ? departments.filter(d => selectedDepartments.includes(d.id))
     : departments;
@@ -474,7 +465,6 @@ export default function AllLeaveCalendar() {
             rangeMode={rangeMode}
             dateRange={dateRange}
             selectedEmployeeId={dateRange?.employeeId}
-            currentEmployeeId={currentEmployee?.id}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
