@@ -85,11 +85,11 @@ export default function LeaveCalendarTable({
 
 
   return (
-    <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200" style={{ maxWidth: '100%' }}>
+    <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
       <table className="min-w-full border-collapse">
           <thead>
             <tr className="bg-gray-50">
-              <th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[100px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+              <th className="sticky left-0 z-30 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[100px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                 姓名
               </th>
             {days.map((d, idx) => (
@@ -131,7 +131,7 @@ export default function LeaveCalendarTable({
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
               return (
                 <tr key={emp.id} className="hover:bg-gray-50/50">
-                        <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 min-w-[100px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
+                        <td className={`sticky left-0 z-20 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
                           <div>{emp.name}</div>
                           <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
                         </td>
