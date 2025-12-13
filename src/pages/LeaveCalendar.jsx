@@ -2,8 +2,16 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
@@ -412,8 +420,8 @@ export default function LeaveCalendar() {
         onSubmit={handleRangeLeave}
         onCancel={handleRangeCancel}
         leaveTypes={leaveTypes}
-        employeeId={selectedEmployee?.id}
-        employeeName={selectedEmployee?.name}
+        employeeId={currentEmployee?.id}
+        employeeName={currentEmployee?.name}
         isSubmitting={rangeLeaveMutation.isPending || rangeCancelMutation.isPending}
       />
       <div className="max-w-full mx-auto">
@@ -425,33 +433,39 @@ export default function LeaveCalendar() {
           />
           </div>
 
-          <div className="mb-4 space-y-3">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">選擇假別</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                  <button
-                    key={lt.id}
-                    onClick={() => setSelectedLeaveTypeId(lt.id === selectedLeaveTypeId ? null : lt.id)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                      selectedLeaveTypeId === lt.id
-                        ? 'ring-2 ring-offset-1 shadow-md scale-105'
-                        : 'hover:scale-105'
-                    }`}
-                    style={{
-                      backgroundColor: selectedLeaveTypeId === lt.id ? lt.color : `${lt.color}40`,
-                      color: selectedLeaveTypeId === lt.id ? '#fff' : lt.color,
-                      borderColor: lt.color,
-                      borderWidth: '1.5px',
-                      ringColor: lt.color
-                    }}
-                  >
-                    {lt.name}
-                  </button>
-                ))}
+          <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
+              <div className="flex items-center gap-2 flex-1">
+                <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">請假類別：</Label>
+                <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
+                  <SelectTrigger className="w-full md:w-[150px]">
+                    <SelectValue placeholder="選擇假別" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                      <SelectItem key={lt.id} value={lt.id}>
+                        {lt.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="h-6 w-px bg-gray-300 hidden md:block"></div>
+
+              <div className="flex items-center gap-2 flex-1">
+                <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">區間請假：</Label>
+                <Button
+                  onClick={() => setRangeDialogOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+                  size="sm"
+                >
+                  <CalendarRange className="h-4 w-4 mr-1" />
+                  請假
+                </Button>
               </div>
             </div>
-            </div>
+          </div>
 
           <WeekCalendarTable
             currentDate={currentDate}
@@ -464,10 +478,7 @@ export default function LeaveCalendar() {
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
-            onOpenRangeDialog={(emp) => {
-              setSelectedEmployee(emp);
-              setRangeDialogOpen(true);
-            }}
+            onOpenRangeDialog={() => setRangeDialogOpen(true)}
           />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
@@ -488,10 +499,10 @@ export default function LeaveCalendar() {
                 <div>
                   <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• <span className="font-medium">上方選擇假別</span>：點選要使用的假別</li>
+                    <li>• <span className="font-medium">選擇假別</span>：從上方下拉選單選擇要使用的假別</li>
                     <li>• <span className="font-medium">單擊格子</span>：用選定的假別填充</li>
                     <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                    <li>• <span className="font-medium">區間請假/取消</span>：點擊右上角 📅 按鈕</li>
+                    <li>• <span className="font-medium">區間請假</span>：點擊上方「區間請假」按鈕</li>
                     <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
                   </ul>
                 </div>
