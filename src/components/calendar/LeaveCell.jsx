@@ -34,6 +34,7 @@ export default function LeaveCell({
     if (record) {
       e.preventDefault();
       e.stopPropagation();
+      setOpen(false);
       if (onDoubleClickLeave) {
         onDoubleClickLeave();
       } else {
@@ -61,6 +62,15 @@ export default function LeaveCell({
           tabIndex={0}
           onKeyDown={handleKeyDown}
           onDoubleClick={handleDoubleClick}
+          onClick={(e) => {
+            if (e.detail === 1) {
+              setTimeout(() => {
+                if (e.detail === 1) {
+                  setOpen(true);
+                }
+              }, 200);
+            }
+          }}
         >
           {record && leaveType ? leaveType.short_name : ''}
         </div>
