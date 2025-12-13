@@ -97,6 +97,14 @@ export default function Dashboard() {
   const actualAttendance = totalEmployees - totalOnLeave;
   const attendanceRate = totalEmployees > 0 ? ((actualAttendance / totalEmployees) * 100).toFixed(1) : 0;
 
+  // 統計各假別人數
+  const leaveByType = {};
+  todayLeaves.forEach(leave => {
+    const leaveType = getLeaveType(leave.leave_type_id);
+    const typeName = leaveType ? leaveType.short_name : '其他';
+    leaveByType[typeName] = (leaveByType[typeName] || 0) + 1;
+  });
+
   const isHoliday = holidays.some(h => h.date === selectedDate);
   const holidayInfo = holidays.find(h => h.date === selectedDate);
 
@@ -143,50 +151,34 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">應到人數</CardTitle>
-              <Users className="w-4 h-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-800">{totalEmployees}</div>
-              <p className="text-xs text-gray-500 mt-1">在職員工</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">實到人數</CardTitle>
-              <TrendingUp className="w-4 h-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">{actualAttendance}</div>
-              <p className="text-xs text-gray-500 mt-1">出勤率 {attendanceRate}%</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">請假人數</CardTitle>
-              <Calendar className="w-4 h-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">{totalOnLeave}</div>
-              <p className="text-xs text-gray-500 mt-1">今日休假</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">未到人數</CardTitle>
-              <Users className="w-4 h-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-600">{totalOnLeave}</div>
-              <p className="text-xs text-gray-500 mt-1">今日缺勤</p>
-            </CardContent>
-          </Card>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-xs text-gray-500 mb-1">應到人數</div>
+              <div className="text-2xl font-bold text-gray-800">{totalEmployees}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-gray-500 mb-1">實到人數</div>
+              <div className="text-2xl font-bold text-green-600">{actualAttendance}</div>
+              <div className="text-xs text-gray-400 mt-0.5">出勤率 {attendanceRate}%</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-gray-500 mb-1">請假人數</div>
+              <div className="text-2xl font-bold text-orange-600">{totalOnLeave}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-gray-500 mb-1">未到人數</div>
+              <div className="text-2xl font-bold text-red-600">{totalOnLeave}</div>
+              <div className="text-xs text-gray-400 mt-0.5">
+                {Object.entries(leaveByType).map(([type, count], idx) => (
+                  <span key={type}>
+                    {type}:{count}
+                    {idx < Object.entries(leaveByType).length - 1 && ' | '}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
