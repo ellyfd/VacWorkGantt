@@ -45,12 +45,12 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handlePrevMonth}
-          className="h-9 w-9 md:h-7 md:w-7"
+          className="h-7 w-7"
         >
-          <ChevronLeft className="h-4 w-4 md:h-3 md:w-3" />
+          <ChevronLeft className="h-3 w-3" />
         </Button>
         <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[70px] h-9 md:w-[65px] md:h-7 text-sm md:text-xs">
+          <SelectTrigger className="w-[65px] h-7 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -60,7 +60,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           </SelectContent>
         </Select>
         <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-[60px] h-9 md:w-[55px] md:h-7 text-sm md:text-xs">
+          <SelectTrigger className="w-[55px] h-7 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -74,9 +74,9 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handleNextMonth}
-          className="h-9 w-9 md:h-7 md:w-7"
+          className="h-7 w-7"
         >
-          <ChevronRight className="h-4 w-4 md:h-3 md:w-3" />
+          <ChevronRight className="h-3 w-3" />
         </Button>
       </div>
   );

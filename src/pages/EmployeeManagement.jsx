@@ -263,25 +263,25 @@ export default function EmployeeManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 md:p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Users className="w-5 h-5 text-blue-600" />
             </div>
             <h1 className="text-xl font-bold text-gray-800">員工管理</h1>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleDownloadTemplate}
-              className="border-green-600 text-green-600 hover:bg-green-50 h-9"
+              className="border-green-600 text-green-600 hover:bg-green-50"
             >
-              <Download className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">模板</span>
+              <Download className="w-3 h-3 mr-1" />
+              模板
             </Button>
             <label htmlFor="excel-upload">
               <Button
@@ -290,17 +290,17 @@ export default function EmployeeManagement() {
                 size="sm"
                 disabled={isUploading}
                 onClick={() => document.getElementById('excel-upload').click()}
-                className="border-blue-600 text-blue-600 hover:bg-blue-50 h-9"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
               >
                 {isUploading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                    <span className="hidden sm:inline">匯入中</span>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    匯入中
                   </>
                 ) : (
                   <>
-                    <Upload className="w-4 h-4 mr-1" />
-                    <span className="hidden sm:inline">匯入</span>
+                    <Upload className="w-3 h-3 mr-1" />
+                    匯入
                   </>
                 )}
               </Button>
@@ -314,8 +314,8 @@ export default function EmployeeManagement() {
             />
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700 h-9">
-                  <Plus className="w-4 h-4 mr-1" />
+                <Button size="sm" onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-3 h-3 mr-1" />
                   新增
                 </Button>
               </DialogTrigger>
@@ -496,7 +496,7 @@ export default function EmployeeManagement() {
                   variant="outline"
                   size="sm"
                   onClick={handleSelectAll}
-                  className="h-8 md:h-7 text-xs"
+                  className="h-7 text-xs"
                 >
                   {selectedDepartments.length === departments.length ? '取消' : '全選'}
                 </Button>
@@ -506,15 +506,15 @@ export default function EmployeeManagement() {
               {departments.map((dept) => (
                 <label
                   key={dept.id}
-                  className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 active:bg-gray-100 px-2.5 py-1.5 md:px-2 md:py-1 rounded border border-gray-200"
+                  className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200"
                 >
                   <input
                     type="checkbox"
                     checked={selectedDepartments.includes(dept.id)}
                     onChange={() => handleDepartmentToggle(dept.id)}
-                    className="w-4 h-4 md:w-3.5 md:h-3.5 text-blue-600 rounded"
+                    className="w-3.5 h-3.5 text-blue-600 rounded"
                   />
-                  <span className="text-sm md:text-xs text-gray-700">{dept.name}</span>
+                  <span className="text-xs text-gray-700">{dept.name}</span>
                 </label>
               ))}
             </div>
@@ -532,9 +532,9 @@ export default function EmployeeManagement() {
                 size="sm"
                 onClick={() => setIsBulkEditOpen(true)}
                 disabled={selectedEmployees.length === 0}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 h-9 md:h-8"
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
               >
-                <Pencil className="w-4 h-4 md:w-3 md:h-3 mr-1" />
+                <Pencil className="w-3 h-3 mr-1" />
                 編輯
               </Button>
               <Button
@@ -542,16 +542,15 @@ export default function EmployeeManagement() {
                 variant="destructive"
                 onClick={handleBulkDelete}
                 disabled={selectedEmployees.length === 0 || bulkDeleteMutation.isPending}
-                className="h-9 md:h-8"
               >
                 {bulkDeleteMutation.isPending ? (
                   <>
-                    <Loader2 className="w-4 h-4 md:w-3 md:h-3 mr-1 animate-spin" />
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                     刪除中
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-4 h-4 md:w-3 md:h-3 mr-1" />
+                    <Trash2 className="w-3 h-3 mr-1" />
                     刪除
                   </>
                 )}
@@ -561,7 +560,7 @@ export default function EmployeeManagement() {
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedEmployees([])}
-                  className="text-gray-600 h-9 md:h-8"
+                  className="text-gray-600"
                 >
                   清除
                 </Button>
@@ -576,141 +575,75 @@ export default function EmployeeManagement() {
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
             </div>
           ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="w-[50px]">
-                        <input
-                          type="checkbox"
-                          checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
-                          onChange={handleSelectAllEmployees}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                      </TableHead>
-                      <TableHead className="w-1/4">姓名</TableHead>
-                      <TableHead className="w-1/4">英文名字</TableHead>
-                      <TableHead className="w-1/4">部門</TableHead>
-                      <TableHead className="w-[100px]">狀態</TableHead>
-                      <TableHead className="w-[60px]">編輯</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredEmployees.map((emp) => (
-                      <TableRow key={emp.id}>
-                        <TableCell>
-                          <input
-                            type="checkbox"
-                            checked={selectedEmployees.includes(emp.id)}
-                            onChange={() => handleEmployeeToggle(emp.id)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">{emp.name}</TableCell>
-                        <TableCell className="text-sm text-gray-600">{emp.english_name || '-'}</TableCell>
-                        <TableCell className="text-sm">{getDepartmentNames(emp.department_ids)}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            emp.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : emp.status === 'parental_leave'
-                              ? 'bg-blue-100 text-blue-800'
-                              : emp.status === 'hidden'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenDialog(emp)}
-                              className="h-8 w-8"
-                            >
-                              <Pencil className="w-4 h-4 text-gray-500" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteMutation.mutate(emp.id)}
-                              className="h-8 w-8"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              
-              {/* Mobile Card View */}
-              <div className="md:hidden divide-y divide-gray-200">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-[50px]">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
+                      onChange={handleSelectAllEmployees}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </TableHead>
+                  <TableHead className="w-1/4">姓名</TableHead>
+                  <TableHead className="w-1/4">英文名字</TableHead>
+                  <TableHead className="w-1/4">部門</TableHead>
+                  <TableHead className="w-[100px]">狀態</TableHead>
+                  <TableHead className="w-[60px]">編輯</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredEmployees.map((emp) => (
-                  <div key={emp.id} className="p-4 hover:bg-gray-50 active:bg-gray-100">
-                    <div className="flex items-start gap-3">
+                  <TableRow key={emp.id}>
+                    <TableCell>
                       <input
                         type="checkbox"
                         checked={selectedEmployees.includes(emp.id)}
                         onChange={() => handleEmployeeToggle(emp.id)}
-                        className="w-5 h-5 mt-1 text-blue-600 rounded"
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                       />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-base text-gray-900">{emp.name}</h3>
-                            {emp.english_name && (
-                              <p className="text-sm text-gray-600 mt-0.5">{emp.english_name}</p>
-                            )}
-                          </div>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
-                            emp.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : emp.status === 'parental_leave'
-                              ? 'bg-blue-100 text-blue-800'
-                              : emp.status === 'hidden'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2">
-                          <span className="font-medium">部門：</span>
-                          {getDepartmentNames(emp.department_ids)}
-                        </p>
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenDialog(emp)}
-                            className="flex-1"
-                          >
-                            <Pencil className="w-4 h-4 mr-1" />
-                            編輯
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteMutation.mutate(emp.id)}
-                            className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            刪除
-                          </Button>
-                        </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{emp.name}</TableCell>
+                    <TableCell className="text-sm text-gray-600">{emp.english_name || '-'}</TableCell>
+                    <TableCell className="text-sm">{getDepartmentNames(emp.department_ids)}</TableCell>
+                    <TableCell>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        emp.status === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : emp.status === 'parental_leave'
+                          ? 'bg-blue-100 text-blue-800'
+                          : emp.status === 'hidden'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(emp)}
+                          className="h-8 w-8"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(emp.id)}
+                          className="h-8 w-8"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
                       </div>
-                    </div>
-                  </div>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </div>
-            </>
+              </TableBody>
+            </Table>
           )}
         </div>
 
