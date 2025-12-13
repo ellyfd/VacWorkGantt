@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { zhTW } from 'date-fns/locale';
 
 export default function RangeLeaveDialog({ 
   isOpen, 
@@ -28,26 +30,27 @@ export default function RangeLeaveDialog({
   employeeName,
   isSubmitting 
 }) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [leaveTypeId, setLeaveTypeId] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (startDate && endDate && leaveTypeId) {
+    if (dateRange?.from && dateRange?.to && leaveTypeId) {
+      const startDate = format(dateRange.from, 'yyyy-MM-dd');
+      const endDate = format(dateRange.to, 'yyyy-MM-dd');
       onSubmit(employeeId, startDate, endDate, leaveTypeId);
-      setStartDate('');
-      setEndDate('');
+      setDateRange({ from: undefined, to: undefined });
       setLeaveTypeId('');
     }
   };
 
   const handleCancel = (e) => {
     e.preventDefault();
-    if (startDate && endDate) {
+    if (dateRange?.from && dateRange?.to) {
+      const startDate = format(dateRange.from, 'yyyy-MM-dd');
+      const endDate = format(dateRange.to, 'yyyy-MM-dd');
       onCancel(employeeId, startDate, endDate);
-      setStartDate('');
-      setEndDate('');
+      setDateRange({ from: undefined, to: undefined });
       setLeaveTypeId('');
     }
   };
@@ -60,26 +63,28 @@ export default function RangeLeaveDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
-            <Label htmlFor="startDate">開始日期</Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="endDate">結束日期</Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-              className="mt-1"
-            />
+            <Label>選擇日期區間</Label>
+            <div className="mt-2 flex justify-center border rounded-lg p-3">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                locale={zhTW}
+                numberOfMonths={2}
+                className="rounded-md"
+              />
+            </div>
+            {dateRange?.from && (
+              <p className="text-sm text-gray-600 mt-2 text-center">
+                {dateRange.to ? (
+                  <>
+                    {format(dateRange.from, 'yyyy/MM/dd', { locale: zhTW })} - {format(dateRange.to, 'yyyy/MM/dd', { locale: zhTW })}
+                  </>
+                ) : (
+                  <>選擇開始日期: {format(dateRange.from, 'yyyy/MM/dd', { locale: zhTW })}</>
+                )}
+              </p>
+            )}
           </div>
           <div>
             <Label htmlFor="leaveType">假別</Label>
@@ -88,7 +93,7 @@ export default function RangeLeaveDialog({
                 <SelectValue placeholder="選擇假別" />
               </SelectTrigger>
               <SelectContent>
-                {leaveTypes.map((lt) => (
+                {leaveTypes.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
                   <SelectItem key={lt.id} value={lt.id}>
                     <div className="flex items-center gap-2">
                       <div
@@ -110,7 +115,7 @@ export default function RangeLeaveDialog({
               type="button" 
               variant="destructive" 
               onClick={handleCancel} 
-              disabled={isSubmitting || !startDate || !endDate}
+              disabled={isSubmitting || !dateRange?.from || !dateRange?.to}
             >
               {isSubmitting ? (
                 <>
