@@ -139,7 +139,7 @@ export default function LeaveCalendar() {
       // 檢查部門人數限制
       const deptLeaves = allLeaveRecords.filter(r => {
         const emp = employees.find(e => e.id === r.employee_id);
-        return emp?.department_id === currentEmployee?.department_id && r.date === date;
+        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
       });
       
       if (deptLeaves.length >= 2) {
@@ -227,7 +227,7 @@ export default function LeaveCalendar() {
         // 檢查部門人數限制
         const deptLeaves = allLeaveRecords.filter(r => {
           const emp = employees.find(e => e.id === r.employee_id);
-          return emp?.department_id === currentEmployee?.department_id && r.date === dateStr;
+          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
         });
         
         if (deptLeaves.length >= 2) {
@@ -382,7 +382,7 @@ export default function LeaveCalendar() {
   };
 
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
-    const deptEmployees = employees.filter(e => e.department_id === departmentId);
+    const deptEmployees = employees.filter(e => e.department_ids?.includes(departmentId));
     const sourceEmp = deptEmployees[sourceIndex];
     const destEmp = deptEmployees[destinationIndex];
     
