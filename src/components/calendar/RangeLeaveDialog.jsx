@@ -33,14 +33,19 @@ export default function RangeLeaveDialog({
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [leaveTypeId, setLeaveTypeId] = useState('');
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setDateRange({ from: undefined, to: undefined });
+      setLeaveTypeId('');
+    }
+  }, [isOpen]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (dateRange?.from && dateRange?.to && leaveTypeId) {
       const startDate = format(dateRange.from, 'yyyy-MM-dd');
       const endDate = format(dateRange.to, 'yyyy-MM-dd');
       onSubmit(employeeId, startDate, endDate, leaveTypeId);
-      setDateRange({ from: undefined, to: undefined });
-      setLeaveTypeId('');
     }
   };
 
@@ -50,8 +55,6 @@ export default function RangeLeaveDialog({
       const startDate = format(dateRange.from, 'yyyy-MM-dd');
       const endDate = format(dateRange.to, 'yyyy-MM-dd');
       onCancel(employeeId, startDate, endDate);
-      setDateRange({ from: undefined, to: undefined });
-      setLeaveTypeId('');
     }
   };
 
