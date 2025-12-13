@@ -60,14 +60,14 @@ export default function Dashboard() {
 
   const getEmployeeName = (empId) => {
     const emp = employees.find(e => e.id === empId);
-    return emp ? `${emp.name}${emp.code ? ` (${emp.code})` : ''}` : '-';
+    return emp ? emp.name : '-';
   };
 
   const getDepartmentName = (empId) => {
     const emp = employees.find(e => e.id === empId);
     if (!emp) return '-';
-    const dept = departments.find(d => d.id === emp.department_id);
-    return dept ? dept.name : '-';
+    const depts = departments.filter(d => emp.department_ids?.includes(d.id));
+    return depts.length > 0 ? depts.map(d => d.name).join(', ') : '-';
   };
 
   const getLeaveType = (typeId) => {
@@ -77,13 +77,17 @@ export default function Dashboard() {
   const leavesByDept = {};
   todayLeaves.forEach(leave => {
     const emp = employees.find(e => e.id === leave.employee_id);
-    if (emp) {
-      const dept = departments.find(d => d.id === emp.department_id);
-      const deptName = dept ? dept.name : '未分類';
-      if (!leavesByDept[deptName]) {
-        leavesByDept[deptName] = [];
-      }
-      leavesByDept[deptName].push(leave);
+    if (emp && emp.department_ids) {
+      emp.department_ids.forEach(deptId => {
+        const dept = departments.find(d => d.id === deptId);
+        const deptName = dept ? dept.name : '未分類';
+        if (!leavesByDept[deptName]) {
+          leavesByDept[deptName] = [];
+        }
+        if (!leavesByDept[deptName].some(l => l.id === leave.id)) {
+          leavesByDept[deptName].push(leave);
+        }
+      });
     }
   });
 
@@ -208,8 +212,13 @@ export default function Dashboard() {
                       <TableCell>
                         {emp ? emp.name : '-'}
                       </TableCell>
-                      <TableCell className="text-gray-500">
-                        {emp?.code || '-'}
+                      <TableCell className="text-xs text-gray-500">
+                        {emp?.deputy_1 || emp?.deputy_2 ? (
+                          <>
+                            {emp.deputy_1 && <div>1. {employees.find(e => e.id === emp.deputy_1)?.name || '-'}</div>}
+                            {emp.deputy_2 && <div>2. {employees.find(e => e.id === emp.deputy_2)?.name || '-'}</div>}
+                          </>
+                        ) : '-'}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
