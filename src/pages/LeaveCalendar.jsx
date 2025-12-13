@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 import LeaveLegend from '@/components/calendar/LeaveLegend';
@@ -13,6 +14,7 @@ export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -370,7 +372,11 @@ export default function LeaveCalendar() {
             setRangeDialogOpen(true);
           }}
         />
-      </div>
-    </div>
-  );
-}
+
+        <div className="mt-4">
+          <LeaveLegend leaveTypes={leaveTypes} />
+        </div>
+        </div>
+        </div>
+        );
+        }
