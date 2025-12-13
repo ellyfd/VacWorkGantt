@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 const navItems = [
   { name: 'Dashboard', label: '首頁儀表板', icon: Calendar },
@@ -17,6 +21,52 @@ const navItems = [
 
 export default function Layout({ children, currentPageName }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showBindDialog, setShowBindDialog] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const queryClient = useQueryClient();
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list('name'),
+  });
+
+  const { data: boundEmployee } = useQuery({
+    queryKey: ['boundEmployee', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return null;
+      const emps = await base44.entities.Employee.filter({ user_email: currentUser.email });
+      return emps.length > 0 ? emps[0] : null;
+    },
+    enabled: !!currentUser?.email,
+  });
+
+  useEffect(() => {
+    if (currentUser && boundEmployee === null) {
+      setShowBindDialog(true);
+    }
+  }, [currentUser, boundEmployee]);
+
+  const bindMutation = useMutation({
+    mutationFn: async (employeeId) => {
+      await base44.entities.Employee.update(employeeId, { user_email: currentUser.email });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['boundEmployee']);
+      setShowBindDialog(false);
+      setSelectedEmployeeId('');
+    },
+  });
+
+  const handleBind = () => {
+    if (selectedEmployeeId) {
+      bindMutation.mutate(selectedEmployeeId);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -116,6 +166,42 @@ export default function Layout({ children, currentPageName }) {
       <main className="flex-1 md:ml-64 pt-16 md:pt-0">
         {children}
       </main>
+
+      {/* Employee Binding Dialog */}
+      <Dialog open={showBindDialog} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>綁定員工資料</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-gray-600">請選擇您的員工身份以繼續使用系統</p>
+            <div>
+              <Label htmlFor="employee">選擇員工</Label>
+              <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="請選擇..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees
+                    .filter(emp => !emp.user_email || emp.user_email === currentUser?.email)
+                    .map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.name} {emp.english_name ? `(${emp.english_name})` : ''}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={handleBind} 
+              disabled={!selectedEmployeeId || bindMutation.isPending}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              {bindMutation.isPending ? '綁定中...' : '確認綁定'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
