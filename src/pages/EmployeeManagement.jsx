@@ -407,6 +407,42 @@ export default function EmployeeManagement() {
         <div className="mb-3 flex flex-col md:flex-row gap-3">
           <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
+              <div className="flex items-center gap-2">
+                {selectedDepartments.length > 0 && (
+                  <span className="text-xs text-gray-500">已選 {selectedDepartments.length} 個</span>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="h-7 text-xs"
+                >
+                  {selectedDepartments.length === departments.length ? '取消' : '全選'}
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {departments.map((dept) => (
+                <label
+                  key={dept.id}
+                  className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(dept.id)}
+                    onChange={() => handleDepartmentToggle(dept.id)}
+                    className="w-3.5 h-3.5 text-blue-600 rounded"
+                  />
+                  <span className="text-xs text-gray-700">{dept.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
               <Label className="text-sm font-semibold text-gray-700">批量操作</Label>
               {selectedEmployees.length > 0 && (
                 <span className="text-xs text-gray-500">已選 {selectedEmployees.length} 位</span>
@@ -450,42 +486,6 @@ export default function EmployeeManagement() {
                   清除
                 </Button>
               )}
-            </div>
-          </div>
-
-          <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
-              <div className="flex items-center gap-2">
-                {selectedDepartments.length > 0 && (
-                  <span className="text-xs text-gray-500">已選 {selectedDepartments.length} 個</span>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="h-7 text-xs"
-                >
-                  {selectedDepartments.length === departments.length ? '取消' : '全選'}
-                </Button>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {departments.map((dept) => (
-                <label
-                  key={dept.id}
-                  className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedDepartments.includes(dept.id)}
-                    onChange={() => handleDepartmentToggle(dept.id)}
-                    className="w-3.5 h-3.5 text-blue-600 rounded"
-                  />
-                  <span className="text-xs text-gray-700">{dept.name}</span>
-                </label>
-              ))}
             </div>
           </div>
         </div>
