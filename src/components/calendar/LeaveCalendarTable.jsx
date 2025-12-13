@@ -80,7 +80,7 @@ export default function LeaveCalendarTable({
               <th className="sticky left-0 z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[80px]">
                 部門
               </th>
-              <th className="sticky left-[80px] z-20 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[100px]">
+              <th className="sticky left-[80px] z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[70px]">
                 姓名
               </th>
             {days.map((d, idx) => (
@@ -109,13 +109,13 @@ export default function LeaveCalendarTable({
                     {dept.name}
                   </td>
                 )}
-                <td className="sticky left-[80px] z-10 bg-white px-2 py-1 text-sm text-gray-800 border-r border-b border-gray-200">
+                <td className="sticky left-[80px] z-10 bg-white px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200">
                   {emp.name}
                 </td>
                 {days.map((d, idx) => {
                   const record = getLeaveRecord(emp.id, d.date);
                   return (
-                    <td key={idx} className="p-0">
+                    <td key={idx} className="p-0 border-r border-b border-gray-200">
                       <LeaveCell
                         record={record}
                         leaveTypes={leaveTypes}
