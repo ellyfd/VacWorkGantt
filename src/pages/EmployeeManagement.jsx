@@ -369,8 +369,8 @@ export default function EmployeeManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value={null}>無</SelectItem>
-                        {formData.department_id && employees
-                          .filter(e => e.department_id === formData.department_id && e.id !== editingEmployee?.id)
+                        {formData.department_ids.length > 0 && employees
+                          .filter(e => e.department_ids?.some(deptId => formData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id)
                           .map((emp) => (
                             <SelectItem key={emp.id} value={emp.id}>
                               {emp.name}
@@ -390,8 +390,8 @@ export default function EmployeeManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value={null}>無</SelectItem>
-                        {formData.department_id && employees
-                          .filter(e => e.department_id === formData.department_id && e.id !== editingEmployee?.id && e.id !== formData.deputy_1)
+                        {formData.department_ids.length > 0 && employees
+                          .filter(e => e.department_ids?.some(deptId => formData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id && e.id !== formData.deputy_1)
                           .map((emp) => (
                             <SelectItem key={emp.id} value={emp.id}>
                               {emp.name}
