@@ -77,68 +77,105 @@ export default function WeekCalendarTable({
     onDeleteLeave(recordId);
   };
 
+  // 将日期按周分组，每周从周日开始
+  const weeks = [];
+  const firstDayOfMonth = allDays[0];
+  const startDayOfWeek = getDay(firstDayOfMonth.fullDate); // 0=周日, 1=周一, ...
+  
+  // 填充第一周前面的空格
+  let currentWeek = Array(startDayOfWeek).fill(null);
+  
+  allDays.forEach((day) => {
+    currentWeek.push(day);
+    if (currentWeek.length === 7) {
+      weeks.push([...currentWeek]);
+      currentWeek = [];
+    }
+  });
+  
+  // 填充最后一周后面的空格
+  if (currentWeek.length > 0) {
+    while (currentWeek.length < 7) {
+      currentWeek.push(null);
+    }
+    weeks.push(currentWeek);
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-24">
-                部門
-              </th>
-              <th className="sticky left-24 z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-20">
-                姓名
-              </th>
-              {allDays.map((d, idx) => (
-                <th 
-                  key={idx} 
-                  className={`px-1 py-2 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[48px] ${
-                    d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-600' : 'text-gray-600'
-                  }`}
-                >
-                  <div className="text-[10px]">{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                  <div className="text-xs font-medium">{d.weekday}</div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="hover:bg-gray-50/50">
-              <td className="sticky left-0 z-10 bg-white px-2 py-2 text-xs font-medium text-gray-700 border-r border-b border-gray-200">
-                {currentDepartment.name}
-              </td>
-              <td className="sticky left-24 z-10 bg-white px-2 py-2 text-xs text-gray-800 border-r border-b border-gray-200">
-                <div className="flex items-center justify-between gap-1">
-                  <span>{currentEmployee.name}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-5 w-5 shrink-0 bg-blue-50 hover:bg-blue-100 border-blue-200"
-                    onClick={() => onOpenRangeDialog(currentEmployee)}
-                    title="區間請假"
-                  >
-                    <CalendarRange className="h-2.5 w-2.5 text-blue-600" />
-                  </Button>
-                </div>
-              </td>
-              {allDays.map((d, idx) => {
-                const record = getLeaveRecord(currentEmployee.id, d.date);
+      <div className="p-4 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
+            <p className="text-sm text-gray-600">{currentDepartment.name}</p>
+          </div>
+          <Button
+            variant="outline"
+            className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+            onClick={() => onOpenRangeDialog(currentEmployee)}
+          >
+            <CalendarRange className="h-4 w-4 mr-2 text-blue-600" />
+            區間請假
+          </Button>
+        </div>
+      </div>
+      
+      <div className="p-4">
+        <div className="grid grid-cols-7 gap-0 border border-gray-200 rounded-lg overflow-hidden">
+          {/* 星期標題 */}
+          {WEEKDAY_NAMES.map((day, idx) => (
+            <div 
+              key={idx} 
+              className={`py-2 text-center text-sm font-semibold border-b border-gray-200 ${
+                idx === 0 || idx === 6 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-600'
+              }`}
+            >
+              {day}
+            </div>
+          ))}
+          
+          {/* 日期格子 */}
+          {weeks.map((week, weekIdx) => (
+            week.map((day, dayIdx) => {
+              if (!day) {
                 return (
-                  <td key={idx} className="p-0 border-r border-b border-gray-200">
-                    <LeaveCell
-                      record={record}
-                      leaveTypes={leaveTypes}
-                      isWeekend={d.isWeekend}
-                      isHoliday={d.isHoliday}
-                      onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, d.date, leaveTypeId)}
-                      onClearLeave={() => record && handleClearLeave(record.id)}
-                    />
-                  </td>
+                  <div 
+                    key={`${weekIdx}-${dayIdx}`} 
+                    className="aspect-square border-r border-b border-gray-200 bg-gray-50"
+                  />
                 );
-              })}
-            </tr>
-          </tbody>
-        </table>
+              }
+              
+              const record = getLeaveRecord(currentEmployee.id, day.date);
+              return (
+                <div 
+                  key={`${weekIdx}-${dayIdx}`} 
+                  className={`aspect-square border-r border-b border-gray-200 ${
+                    dayIdx === 6 ? '' : ''
+                  } ${weekIdx === weeks.length - 1 ? '' : ''}`}
+                >
+                  <div className="h-full flex flex-col">
+                    <div className={`px-2 py-1 text-xs font-medium ${
+                      day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-600'
+                    }`}>
+                      {day.day}
+                    </div>
+                    <div className="flex-1">
+                      <LeaveCell
+                        record={record}
+                        leaveTypes={leaveTypes}
+                        isWeekend={day.isWeekend}
+                        isHoliday={day.isHoliday}
+                        onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
+                        onClearLeave={() => record && handleClearLeave(record.id)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ))}
+        </div>
       </div>
     </div>
   );
