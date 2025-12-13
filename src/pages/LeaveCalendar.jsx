@@ -11,8 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
-import { Calendar } from "@/components/ui/calendar";
-import { zhTW } from 'date-fns/locale';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 
@@ -353,18 +351,29 @@ export default function LeaveCalendar() {
   const handleRangeSubmit = async () => {
     if (!dateRange?.from || !dateRange?.to || !selectedLeaveTypeId || !currentEmployee) return;
     
-    const startDate = format(dateRange.from, 'yyyy-MM-dd');
-    const endDate = format(dateRange.to, 'yyyy-MM-dd');
-    
     await rangeLeaveMutation.mutateAsync({ 
       employeeId: currentEmployee.id, 
-      startDate, 
-      endDate, 
+      startDate: dateRange.from, 
+      endDate: dateRange.to, 
       leaveTypeId: selectedLeaveTypeId 
     });
     
     setRangeMode(false);
     setDateRange({ from: undefined, to: undefined });
+  };
+
+  const handleCellClickInRangeMode = (date) => {
+    if (!dateRange.from) {
+      setDateRange({ from: date, to: undefined });
+    } else if (!dateRange.to) {
+      if (date >= dateRange.from) {
+        setDateRange({ ...dateRange, to: date });
+      } else {
+        setDateRange({ from: date, to: dateRange.from });
+      }
+    } else {
+      setDateRange({ from: date, to: undefined });
+    }
   };
 
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
@@ -475,62 +484,51 @@ export default function LeaveCalendar() {
           </div>
 
           {rangeMode && (
-            <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">選擇請假區間</h3>
-              <div className="flex justify-center mb-3">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  locale={zhTW}
-                  numberOfMonths={1}
-                  className="rounded-md border"
-                />
-              </div>
-              {dateRange?.from && (
-                <p className="text-sm text-gray-600 mb-3 text-center">
-                  {dateRange.to ? (
-                    <>
-                      {format(dateRange.from, 'yyyy/MM/dd', { locale: zhTW })} - {format(dateRange.to, 'yyyy/MM/dd', { locale: zhTW })}
-                    </>
-                  ) : (
-                    <>選擇開始日期: {format(dateRange.from, 'yyyy/MM/dd', { locale: zhTW })}</>
-                  )}
-                </p>
-              )}
-              <div className="flex justify-center gap-3">
-                <Button
-                  onClick={handleRangeSubmit}
-                  disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {rangeLeaveMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      處理中...
-                    </>
-                  ) : (
-                    '確定請假'
-                  )}
-                </Button>
+            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-blue-800">區間請假模式</h3>
+                  <p className="text-xs text-blue-600 mt-1">
+                    {!dateRange.from && "請在下方日曆點擊選擇起始日期"}
+                    {dateRange.from && !dateRange.to && `已選開始：${dateRange.from} - 請選擇結束日期`}
+                    {dateRange.from && dateRange.to && `已選區間：${dateRange.from} 至 ${dateRange.to}`}
+                  </p>
+                </div>
+                {dateRange.from && dateRange.to && (
+                  <Button
+                    onClick={handleRangeSubmit}
+                    disabled={rangeLeaveMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {rangeLeaveMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        處理中...
+                      </>
+                    ) : (
+                      '確定請假'
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           )}
 
-          {!rangeMode && (
-            <WeekCalendarTable
-              currentDate={currentDate}
-              currentEmployee={currentEmployee}
-              currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
-              leaveRecords={leaveRecords}
-              leaveTypes={leaveTypes}
-              holidays={holidays}
-              selectedLeaveTypeId={selectedLeaveTypeId}
-              onUpdateLeave={handleUpdateLeave}
-              onDeleteLeave={handleDeleteLeave}
-              onDeleteRangeLeave={handleDeleteRangeLeave}
-            />
-          )}
+          <WeekCalendarTable
+            currentDate={currentDate}
+            currentEmployee={currentEmployee}
+            currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
+            leaveRecords={leaveRecords}
+            leaveTypes={leaveTypes}
+            holidays={holidays}
+            selectedLeaveTypeId={selectedLeaveTypeId}
+            rangeMode={rangeMode}
+            dateRange={dateRange}
+            onUpdateLeave={handleUpdateLeave}
+            onDeleteLeave={handleDeleteLeave}
+            onDeleteRangeLeave={handleDeleteRangeLeave}
+            onCellClickInRangeMode={handleCellClickInRangeMode}
+          />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
             <Button

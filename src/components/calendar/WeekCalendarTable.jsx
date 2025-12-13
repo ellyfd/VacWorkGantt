@@ -15,9 +15,12 @@ export default function WeekCalendarTable({
         leaveTypes,
         holidays,
         selectedLeaveTypeId,
+        rangeMode = false,
+        dateRange = { from: undefined, to: undefined },
         onUpdateLeave,
         onDeleteLeave,
-        onDeleteRangeLeave
+        onDeleteRangeLeave,
+        onCellClickInRangeMode
       }) {
   if (!currentEmployee || !currentDepartments || currentDepartments.length === 0) {
     return (
@@ -161,9 +164,13 @@ export default function WeekCalendarTable({
                       selectedLeaveTypeId={selectedLeaveTypeId}
                       isWeekend={day.isWeekend}
                       isHoliday={day.isHoliday}
+                      rangeMode={rangeMode}
+                      dateRange={dateRange}
+                      currentDate={day.date}
                       onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
                       onClearLeave={() => record && handleClearLeave(record.id)}
                       onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
+                      onRangeCellClick={() => rangeMode && onCellClickInRangeMode(day.date)}
                     />
                   </div>
                 </div>
