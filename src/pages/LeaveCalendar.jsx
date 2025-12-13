@@ -474,50 +474,71 @@ export default function LeaveCalendar() {
                   <CalendarRange className="h-5 w-5" />
                 </Button>
               ) : (
-                <Button
-                  onClick={() => {
-                    setRangeMode(false);
-                    setDateRange({ from: undefined, to: undefined });
-                  }}
-                  variant="outline"
-                  size="icon"
-                >
-                  ✕
-                </Button>
+                <Popover open={dateRange.from && dateRange.to}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      onClick={() => {
+                        if (!dateRange.from || !dateRange.to) {
+                          setRangeMode(false);
+                          setDateRange({ from: undefined, to: undefined });
+                        }
+                      }}
+                      variant="outline"
+                      size="icon"
+                      className={dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}
+                    >
+                      {dateRange.from && dateRange.to ? '✓' : '✕'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72">
+                    <div className="space-y-3">
+                      <div>
+                        <h3 className="font-semibold text-sm">確認區間請假</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {dateRange.from} 至 {dateRange.to}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            setRangeMode(false);
+                            setDateRange({ from: undefined, to: undefined });
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                        >
+                          取消
+                        </Button>
+                        <Button
+                          onClick={handleRangeSubmit}
+                          disabled={rangeLeaveMutation.isPending}
+                          className="bg-blue-600 hover:bg-blue-700 flex-1"
+                          size="sm"
+                        >
+                          {rangeLeaveMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              處理中
+                            </>
+                          ) : (
+                            '確定'
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
+            {rangeMode && (
+              <p className="text-xs text-blue-600 mt-2">
+                {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
+                {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
+                {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊右側按鈕確認`}
+              </p>
+            )}
           </div>
-
-          {rangeMode && (
-            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h3 className="text-sm font-semibold text-blue-800">區間請假模式</h3>
-                  <p className="text-xs text-blue-600 mt-1">
-                    {!dateRange.from && "請在下方日曆點擊選擇起始日期"}
-                    {dateRange.from && !dateRange.to && `已選開始：${dateRange.from} - 請選擇結束日期`}
-                    {dateRange.from && dateRange.to && `已選區間：${dateRange.from} 至 ${dateRange.to}`}
-                  </p>
-                </div>
-                {dateRange.from && dateRange.to && (
-                  <Button
-                    onClick={handleRangeSubmit}
-                    disabled={rangeLeaveMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {rangeLeaveMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        處理中...
-                      </>
-                    ) : (
-                      '確定請假'
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
 
           <WeekCalendarTable
             currentDate={currentDate}
