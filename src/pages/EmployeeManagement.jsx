@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', code: '', department_id: '', status: 'active', user_email: '' });
+  const [formData, setFormData] = useState({ name: '', deputy_1: '', deputy_2: '', department_id: '', status: 'active', user_email: '' });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -110,14 +110,15 @@ export default function EmployeeManagement() {
       setEditingEmployee(employee);
       setFormData({
         name: employee.name,
-        code: employee.code || '',
+        deputy_1: employee.deputy_1 || '',
+        deputy_2: employee.deputy_2 || '',
         department_id: employee.department_id,
         status: employee.status || 'active',
         user_email: employee.user_email || '',
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', code: '', department_id: departments[0]?.id || '', status: 'active', user_email: '' });
+      setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: departments[0]?.id || '', status: 'active', user_email: '' });
     }
     setIsOpen(true);
   };
@@ -125,7 +126,7 @@ export default function EmployeeManagement() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', code: '', department_id: '', status: 'active', user_email: '' });
+    setFormData({ name: '', deputy_1: '', deputy_2: '', department_id: '', status: 'active', user_email: '' });
   };
 
   const handleSubmit = (e) => {
@@ -190,7 +191,7 @@ export default function EmployeeManagement() {
   };
 
   const handleDownloadTemplate = () => {
-    const csvContent = "name,code,department_name\n張三,A01,佈媽\n李四,B02,TD-台北\n王五,C03,3D team";
+    const csvContent = "name,department_name\n張三,佈媽\n李四,TD-台北\n王五,3D team";
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -219,7 +220,6 @@ export default function EmployeeManagement() {
       // Parse CSV
       const headers = lines[0].split(',').map(h => h.trim().replace(/\uFEFF/g, ''));
       const nameIdx = headers.indexOf('name');
-      const codeIdx = headers.indexOf('code');
       const deptIdx = headers.indexOf('department_name');
 
       if (nameIdx === -1 || deptIdx === -1) {
@@ -231,7 +231,6 @@ export default function EmployeeManagement() {
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(v => v.trim());
         const name = values[nameIdx];
-        const code = codeIdx !== -1 ? values[codeIdx] : '';
         const deptName = values[deptIdx];
 
         if (!name || !deptName) continue;
@@ -240,7 +239,6 @@ export default function EmployeeManagement() {
         if (dept) {
           employeesToCreate.push({
             name,
-            code: code || '',
             department_id: dept.id,
             status: 'active'
           });
@@ -541,7 +539,14 @@ export default function EmployeeManagement() {
                       />
                     </TableCell>
                     <TableCell className="font-medium">{emp.name}</TableCell>
-                    <TableCell className="text-gray-500">{emp.code || '-'}</TableCell>
+                    <TableCell className="text-xs text-gray-500">
+                      {emp.deputy_1 || emp.deputy_2 ? (
+                        <>
+                          {emp.deputy_1 && <div>1. {employees.find(e => e.id === emp.deputy_1)?.name || '-'}</div>}
+                          {emp.deputy_2 && <div>2. {employees.find(e => e.id === emp.deputy_2)?.name || '-'}</div>}
+                        </>
+                      ) : '-'}
+                    </TableCell>
                     <TableCell>{getDepartmentName(emp.department_id)}</TableCell>
                     <TableCell>
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
