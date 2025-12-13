@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+  const [formData, setFormData] = useState({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -115,7 +115,7 @@ export default function EmployeeManagement() {
         deputy_2: employee.deputy_2 || '',
         department_ids: employee.department_ids || [],
         status: employee.status || 'active',
-        user_email: employee.user_email || '',
+        user_emails: employee.user_emails || [],
       });
     } else {
       setEditingEmployee(null);
@@ -127,7 +127,7 @@ export default function EmployeeManagement() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingEmployee(null);
-    setFormData({ name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_email: '' });
+    setFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
   };
 
   const handleSubmit = (e) => {
@@ -427,18 +427,48 @@ export default function EmployeeManagement() {
                       <SelectItem value="hidden">隱藏</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div>
-                  <Label htmlFor="user_email">綁定登入帳號</Label>
-                  <Input
-                    id="user_email"
-                    type="email"
-                    value={formData.user_email}
-                    onChange={(e) => setFormData({ ...formData, user_email: e.target.value })}
-                    placeholder="user@example.com"
-                    className="mt-1"
-                  />
-                </div>
+                  </div>
+                  <div>
+                  <Label htmlFor="user_emails">綁定登入帳號（可多個）</Label>
+                  <div className="mt-1 space-y-2">
+                    {formData.user_emails.map((email, idx) => (
+                      <div key={idx} className="flex gap-2">
+                        <Input
+                          type="email"
+                          value={email}
+                          onChange={(e) => {
+                            const newEmails = [...formData.user_emails];
+                            newEmails[idx] = e.target.value;
+                            setFormData({ ...formData, user_emails: newEmails });
+                          }}
+                          placeholder="user@example.com"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            const newEmails = formData.user_emails.filter((_, i) => i !== idx);
+                            setFormData({ ...formData, user_emails: newEmails });
+                          }}
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setFormData({ ...formData, user_emails: [...formData.user_emails, ''] });
+                      }}
+                      className="w-full"
+                    >
+                      + 新增帳號
+                    </Button>
+                  </div>
+                  </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={handleCloseDialog}>
                     取消

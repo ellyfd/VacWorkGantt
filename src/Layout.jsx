@@ -48,8 +48,9 @@ export default function Layout({ children, currentPageName }) {
     queryKey: ['boundEmployee', currentUser?.email],
     queryFn: async () => {
       if (!currentUser?.email) return null;
-      const emps = await base44.entities.Employee.filter({ user_email: currentUser.email });
-      return emps.length > 0 ? emps[0] : null;
+      const allEmps = await base44.entities.Employee.list();
+      const emp = allEmps.find(e => e.user_emails?.includes(currentUser.email));
+      return emp || null;
     },
     enabled: !!currentUser?.email,
   });
@@ -62,12 +63,20 @@ export default function Layout({ children, currentPageName }) {
 
   const bindMutation = useMutation({
     mutationFn: async (employeeId) => {
-      await base44.entities.Employee.update(employeeId, { user_email: currentUser.email });
+      const emp = employees.find(e => e.id === employeeId);
+      const existingEmails = emp?.user_emails || [];
+      if (!existingEmails.includes(currentUser.email)) {
+        await base44.entities.Employee.update(employeeId, { 
+          user_emails: [...existingEmails, currentUser.email] 
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['boundEmployee']);
+      queryClient.invalidateQueries(['employees']);
       setShowBindDialog(false);
       setSelectedEmployeeId('');
+      setSelectedDepartmentId('');
     },
   });
 
@@ -216,7 +225,7 @@ export default function Layout({ children, currentPageName }) {
                   <SelectContent>
                     {filteredEmployees.map((emp) => (
                       <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name} {emp.english_name ? `(${emp.english_name})` : ''} {emp.user_email ? '- 已綁定' : ''}
+                        {emp.name} {emp.english_name ? `(${emp.english_name})` : ''} {emp.user_emails?.length > 0 ? `- 已綁定${emp.user_emails.length}個帳號` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

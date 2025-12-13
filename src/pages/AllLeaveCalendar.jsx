@@ -334,7 +334,7 @@ export default function AllLeaveCalendar() {
     ? departments.filter(d => selectedDepartments.includes(d.id))
     : departments;
 
-  const currentEmployee = employees.find(emp => emp.user_email === currentUser?.email);
+  const currentEmployee = employees.find(emp => emp.user_emails?.includes(currentUser?.email));
 
   if (isLoading) {
     return (
