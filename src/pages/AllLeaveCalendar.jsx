@@ -446,8 +446,9 @@ export default function AllLeaveCalendar() {
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="space-y-4">
+        <div className="space-y-4">
           <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
