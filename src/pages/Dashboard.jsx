@@ -94,7 +94,8 @@ export default function Dashboard() {
   const activeEmployees = employees.filter(emp => emp.status === 'active');
   const totalOnLeave = todayLeaves.length;
   const totalEmployees = activeEmployees.length;
-  const attendanceRate = totalEmployees > 0 ? ((totalEmployees - totalOnLeave) / totalEmployees * 100).toFixed(1) : 0;
+  const actualAttendance = totalEmployees - totalOnLeave;
+  const attendanceRate = totalEmployees > 0 ? ((actualAttendance / totalEmployees) * 100).toFixed(1) : 0;
 
   const isHoliday = holidays.some(h => h.date === selectedDate);
   const holidayInfo = holidays.find(h => h.date === selectedDate);
@@ -142,37 +143,48 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">今日休假人數</CardTitle>
-              <Calendar className="w-4 h-4 text-gray-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{totalOnLeave}</div>
-              <p className="text-xs text-gray-500 mt-1">人</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">總員工數</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">應到人數</CardTitle>
               <Users className="w-4 h-4 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-800">{totalEmployees}</div>
-              <p className="text-xs text-gray-500 mt-1">人</p>
+              <p className="text-xs text-gray-500 mt-1">在職員工</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">出勤率</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">實到人數</CardTitle>
               <TrendingUp className="w-4 h-4 text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{attendanceRate}%</div>
-              <p className="text-xs text-gray-500 mt-1">今日在崗</p>
+              <div className="text-3xl font-bold text-green-600">{actualAttendance}</div>
+              <p className="text-xs text-gray-500 mt-1">出勤率 {attendanceRate}%</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">請假人數</CardTitle>
+              <Calendar className="w-4 h-4 text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-600">{totalOnLeave}</div>
+              <p className="text-xs text-gray-500 mt-1">今日休假</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">未到人數</CardTitle>
+              <Users className="w-4 h-4 text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-600">{totalOnLeave}</div>
+              <p className="text-xs text-gray-500 mt-1">今日缺勤</p>
             </CardContent>
           </Card>
         </div>
