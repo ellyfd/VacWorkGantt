@@ -556,10 +556,10 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="w-[150px]">姓名</TableHead>
-                  <TableHead className="w-[150px]">英文名字</TableHead>
-                  <TableHead>部門</TableHead>
-                  <TableHead>狀態</TableHead>
+                  <TableHead className="w-1/4">姓名</TableHead>
+                  <TableHead className="w-1/4">英文名字</TableHead>
+                  <TableHead className="w-1/4">部門</TableHead>
+                  <TableHead className="w-[100px]">狀態</TableHead>
                   <TableHead className="w-[60px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
