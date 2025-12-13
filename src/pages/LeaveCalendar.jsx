@@ -345,10 +345,14 @@ export default function LeaveCalendar() {
 
   const handleRangeLeave = async (employeeId, startDate, endDate, leaveTypeId) => {
     await rangeLeaveMutation.mutateAsync({ employeeId, startDate, endDate, leaveTypeId });
+    setRangeDialogOpen(false);
+    setSelectedEmployee(null);
   };
 
   const handleRangeCancel = async (employeeId, startDate, endDate) => {
     await rangeCancelMutation.mutateAsync({ employeeId, startDate, endDate });
+    setRangeDialogOpen(false);
+    setSelectedEmployee(null);
   };
 
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
