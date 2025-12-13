@@ -86,7 +86,8 @@ export default function LeaveCalendarTable({
 
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
-      <table className="min-w-full">
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse">
           <thead>
             <tr className="bg-gray-50">
               <th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[70px]">
@@ -165,7 +166,8 @@ export default function LeaveCalendarTable({
             });
           })()}
         </tbody>
-      </table>
-    </div>
-      );
-      }
+        </table>
+        </div>
+        </div>
+        );
+        }
