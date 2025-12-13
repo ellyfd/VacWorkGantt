@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home } from 'lucide-react';
+import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { base44 } from '@/api/base44Client';
 
 const navItems = [
   { name: 'Dashboard', label: '首頁儀表板', icon: Calendar },
@@ -24,8 +25,8 @@ export default function Layout({ children, currentPageName }) {
         <div className="p-6 border-b border-gray-100">
           <h1 className="text-xl font-bold text-gray-800">排休登記系統</h1>
         </div>
-        <nav className="flex-1 p-4">
-          <ul className="space-y-1">
+        <nav className="flex-1 p-4 flex flex-col">
+          <ul className="space-y-1 flex-1">
             {navItems.map((item) => {
               const isActive = currentPageName === item.name;
               const Icon = item.icon;
@@ -46,6 +47,16 @@ export default function Layout({ children, currentPageName }) {
               );
             })}
           </ul>
+          <div className="mt-auto pt-4 border-t border-gray-200">
+            <Button
+              onClick={() => base44.auth.logout()}
+              variant="ghost"
+              className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              登出
+            </Button>
+          </div>
         </nav>
       </aside>
 
@@ -87,6 +98,16 @@ export default function Layout({ children, currentPageName }) {
                 );
               })}
             </ul>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <Button
+                onClick={() => base44.auth.logout()}
+                variant="ghost"
+                className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                登出
+              </Button>
+            </div>
           </nav>
         )}
       </div>
