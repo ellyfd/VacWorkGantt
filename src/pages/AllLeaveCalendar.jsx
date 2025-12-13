@@ -391,24 +391,6 @@ export default function AllLeaveCalendar() {
 
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
-              <div className="flex items-center gap-2">
-                <Select value={selectedLeaveTypeId || ''} onValueChange={(value) => setSelectedLeaveTypeId(value || null)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="選擇假別" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不選擇</SelectItem>
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <SelectItem key={lt.id} value={lt.id}>
-                        {lt.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="h-6 w-px bg-gray-300 hidden md:block"></div>
-
               <div className="flex items-center gap-2 flex-wrap">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
               {departments.map((dept) => (
@@ -432,10 +414,11 @@ export default function AllLeaveCalendar() {
 
               <div className="h-6 w-px bg-gray-300 hidden md:block"></div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1">
+              <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">區間請假：</Label>
               <Select value={selectedEmployee?.id || ''} onValueChange={(value) => setSelectedEmployee(employees.find(e => e.id === value))}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="區間請假" />
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="選擇員工" />
                 </SelectTrigger>
                 <SelectContent>
                   {employees.map((emp) => (
@@ -450,7 +433,6 @@ export default function AllLeaveCalendar() {
                 disabled={!selectedEmployee}
                 className="bg-blue-600 hover:bg-blue-700"
                 size="icon"
-                title="區間請假"
               >
                 <CalendarRange className="h-5 w-5" />
               </Button>
