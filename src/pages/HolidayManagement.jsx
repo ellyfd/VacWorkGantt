@@ -152,7 +152,7 @@ export default function HolidayManagement() {
                     </span>
                   </td>
                   <td className="px-1.5 md:px-3 py-2">
-                    <div className="flex md:flex-row flex-col items-center gap-1 md:gap-2">
+                    <div className="flex flex-col items-center gap-1">
                       <Button
                         variant="outline"
                         size="icon"
