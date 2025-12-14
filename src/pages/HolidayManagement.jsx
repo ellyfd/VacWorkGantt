@@ -126,24 +126,21 @@ export default function HolidayManagement() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 w-16">日期</th>
-                <th className="px-8 py-2 text-left text-xs font-semibold text-gray-600">假日名稱</th>
-                <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 w-24">類型</th>
-                <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 w-14">編輯</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">日期</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">假日名稱</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 w-32">類型</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 w-32">編輯</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredHolidays.map((holiday) => (
                 <tr key={holiday.id} className="hover:bg-gray-50">
-                  <td className="px-2 py-2 text-sm text-gray-800">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-xs">{format(new Date(holiday.date), 'yyyy')}</span>
-                      <span className="text-xs">{format(new Date(holiday.date), 'MM/dd')}</span>
-                    </div>
+                  <td className="px-4 py-3 text-sm text-gray-800 whitespace-nowrap">
+                    {format(new Date(holiday.date), 'yyyy/MM/dd')}
                   </td>
-                  <td className="px-8 py-2 text-sm font-medium text-gray-800">{holiday.name}</td>
-                  <td className="px-2 py-2 text-sm">
-                    <span className={`px-2 py-0.5 rounded text-xs ${
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{holiday.name}</td>
+                  <td className="px-4 py-3 text-sm">
+                    <span className={`px-2 py-1 rounded text-xs whitespace-nowrap ${
                       holiday.type === 'national' 
                         ? 'bg-blue-100 text-blue-800' 
                         : 'bg-green-100 text-green-800'
@@ -151,13 +148,13 @@ export default function HolidayManagement() {
                       {holiday.type === 'national' ? '國定假日' : '公司特別假'}
                     </span>
                   </td>
-                  <td className="px-2 py-2">
-                    <div className="flex flex-col items-center gap-1">
+                  <td className="px-4 py-3">
+                    <div className="flex md:flex-row flex-col items-center justify-center gap-1">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => handleEdit(holiday)}
-                        className="h-6 w-6"
+                        className="h-7 w-7"
                       >
                         <Pencil className="w-3 h-3" />
                       </Button>
@@ -169,7 +166,7 @@ export default function HolidayManagement() {
                             deleteMutation.mutate(holiday.id);
                           }
                         }}
-                        className="h-6 w-6 text-red-600 hover:text-red-700"
+                        className="h-7 w-7 text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
