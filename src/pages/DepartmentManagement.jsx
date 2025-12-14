@@ -155,10 +155,10 @@ export default function DepartmentManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead>部門名稱</TableHead>
-                  <TableHead>排序</TableHead>
-                  <TableHead>員工人數</TableHead>
-                  <TableHead className="w-[100px]">操作</TableHead>
+                  <TableHead className="w-[40%]">部門名稱</TableHead>
+                  <TableHead className="w-[20%]">排序</TableHead>
+                  <TableHead className="w-[25%]">員工人數</TableHead>
+                  <TableHead className="w-[15%]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -172,12 +172,12 @@ export default function DepartmentManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex flex-col gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleOpenDialog(dept)}
-                          className="h-8 w-8"
+                          className="h-7 w-7"
                         >
                           <Pencil className="w-4 h-4 text-gray-500" />
                         </Button>
@@ -185,7 +185,7 @@ export default function DepartmentManagement() {
                           variant="ghost"
                           size="icon"
                           onClick={() => deleteMutation.mutate(dept.id)}
-                          className="h-8 w-8"
+                          className="h-7 w-7"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
