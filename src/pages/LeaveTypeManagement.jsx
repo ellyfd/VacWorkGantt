@@ -224,11 +224,12 @@ export default function LeaveTypeManagement() {
                     <TableCell>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={() => handleOpenDialog(lt)}
-                        className="h-7 w-7"
+                        className="h-7 text-xs"
                       >
-                        <Pencil className="w-4 h-4 text-gray-500" />
+                        <Pencil className="w-3 h-3 mr-1 text-gray-500" />
+                        編輯
                       </Button>
                     </TableCell>
                   </TableRow>
