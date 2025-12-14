@@ -174,12 +174,11 @@ export default function DepartmentManagement() {
                     <TableCell>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleOpenDialog(dept)}
-                        className="h-7 text-xs"
+                        className="h-8 w-8"
                       >
-                        <Pencil className="w-3 h-3 mr-1 text-gray-500" />
-                        編輯
+                        <Pencil className="w-4 h-4 text-gray-500" />
                       </Button>
                     </TableCell>
                   </TableRow>
