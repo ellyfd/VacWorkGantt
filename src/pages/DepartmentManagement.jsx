@@ -162,32 +162,32 @@ export default function DepartmentManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-16 md:w-20">排序</TableHead>
-                  <TableHead>部門名稱</TableHead>
-                  <TableHead className="w-28 md:w-32">員工人數</TableHead>
-                  <TableHead className="w-16 md:w-20">編輯</TableHead>
+                  <TableHead className="w-14 md:w-20 px-1 md:px-4">排序</TableHead>
+                  <TableHead className="px-2 md:px-4">部門名稱</TableHead>
+                  <TableHead className="w-20 md:w-32 px-1 md:px-4">員工人數</TableHead>
+                  <TableHead className="w-12 md:w-20 px-1 md:px-4">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {departments.map((dept, index) => (
                   <TableRow key={dept.id}>
-                    <TableCell>
+                    <TableCell className="px-1 md:px-4">
                       <Input
                         type="number"
                         value={dept.sort_order ?? ''}
                         onChange={(e) => handleSortOrderChange(dept.id, e.target.value)}
-                        className="w-12 h-7 text-center text-xs md:w-14"
+                        className="w-10 h-7 text-center text-xs md:w-14"
                         min="1"
                         placeholder={(index + 1).toString()}
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{dept.name}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    <TableCell className="font-medium text-sm md:text-base px-2 md:px-4">{dept.name}</TableCell>
+                    <TableCell className="px-1 md:px-4">
+                      <span className="inline-flex items-center px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
                         {getEmployeeCount(dept.id)} 人
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-1 md:px-4">
                       <div className="flex flex-col items-center gap-1">
                         <Button
                           variant="ghost"
