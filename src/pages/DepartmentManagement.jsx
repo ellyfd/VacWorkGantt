@@ -61,6 +61,13 @@ export default function DepartmentManagement() {
     onSuccess: () => queryClient.invalidateQueries(['departments']),
   });
 
+  const handleSortOrderChange = async (deptId, newOrder) => {
+    const order = parseInt(newOrder);
+    if (isNaN(order)) return;
+    await base44.entities.Department.update(deptId, { sort_order: order });
+    queryClient.invalidateQueries(['departments']);
+  };
+
   const handleOpenDialog = (dept = null) => {
     if (dept) {
       setEditingDept(dept);
@@ -162,9 +169,18 @@ export default function DepartmentManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {departments.map((dept) => (
+                {departments.map((dept, index) => (
                   <TableRow key={dept.id}>
-                    <TableCell className="text-gray-500">{dept.sort_order}</TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        value={dept.sort_order ?? ''}
+                        onChange={(e) => handleSortOrderChange(dept.id, e.target.value)}
+                        className="w-14 h-7 text-center text-xs"
+                        min="1"
+                        placeholder={(index + 1).toString()}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{dept.name}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
