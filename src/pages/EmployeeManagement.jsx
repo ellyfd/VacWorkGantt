@@ -263,20 +263,20 @@ export default function EmployeeManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4 md:mb-6">
-          <div className="flex items-center gap-2 md:gap-3">
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
+              <Users className="w-5 h-5 text-blue-600" />
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800">員工管理</h1>
+            <h1 className="text-xl font-bold text-gray-800">員工管理</h1>
           </div>
           <div className="flex gap-2">
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button size="sm" onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-3 h-3 mr-1" />
                   新增員工
                 </Button>
               </DialogTrigger>
@@ -493,7 +493,7 @@ export default function EmployeeManagement() {
           </div>
         </div>
 
-        <div className="mb-4 flex flex-col lg:flex-row gap-3">
+        <div className="mb-3 flex flex-col md:flex-row gap-3">
           <div className="flex-1 p-3 bg-white rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <Label className="text-sm font-semibold text-gray-700">篩選部門</Label>
@@ -594,7 +594,7 @@ export default function EmployeeManagement() {
               <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-12">
+                  <TableHead className="w-[50px]">
                     <input
                       type="checkbox"
                       checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
@@ -602,11 +602,11 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="w-32">姓名</TableHead>
-                  <TableHead className="w-32">英文名字</TableHead>
-                  <TableHead>部門</TableHead>
-                  <TableHead className="w-24">狀態</TableHead>
-                  <TableHead className="w-16 text-center">編輯</TableHead>
+                  <TableHead className="w-1/4">姓名</TableHead>
+                  <TableHead className="w-1/4">英文名字</TableHead>
+                  <TableHead className="w-1/4">部門</TableHead>
+                  <TableHead className="w-[100px]">狀態</TableHead>
+                  <TableHead className="w-[60px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

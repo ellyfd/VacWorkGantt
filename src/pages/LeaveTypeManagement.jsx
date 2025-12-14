@@ -95,14 +95,14 @@ export default function LeaveTypeManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-4 md:mb-6">
-          <div className="flex items-center gap-2 md:gap-3">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
-              <Calendar className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+              <Calendar className="w-6 h-6 text-green-600" />
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800">假別管理</h1>
+            <h1 className="text-2xl font-bold text-gray-800">假別管理</h1>
           </div>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
@@ -186,11 +186,11 @@ export default function LeaveTypeManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-20">排序</TableHead>
-                  <TableHead className="w-16">顏色</TableHead>
+                  <TableHead className="w-[60px]">排序</TableHead>
+                  <TableHead className="w-[50px]">顏色</TableHead>
                   <TableHead>假別名稱</TableHead>
-                  <TableHead className="w-24">簡稱</TableHead>
-                  <TableHead className="w-16 text-center">編輯</TableHead>
+                  <TableHead className="w-[80px]">簡稱</TableHead>
+                  <TableHead className="w-[60px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
