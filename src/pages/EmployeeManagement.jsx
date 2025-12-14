@@ -264,7 +264,7 @@ export default function EmployeeManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -602,11 +602,11 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="w-[150px]">姓名</TableHead>
-                  <TableHead className="w-[150px]">英文名字</TableHead>
-                  <TableHead className="flex-1">部門</TableHead>
+                  <TableHead className="w-1/4">姓名</TableHead>
+                  <TableHead className="w-1/4">英文名字</TableHead>
+                  <TableHead className="w-1/4">部門</TableHead>
                   <TableHead className="w-[100px]">狀態</TableHead>
-                  <TableHead className="w-[120px] text-center">操作</TableHead>
+                  <TableHead className="w-[60px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -637,7 +637,7 @@ export default function EmployeeManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex flex-col gap-1">
                         <Button
                           variant="ghost"
                           size="icon"

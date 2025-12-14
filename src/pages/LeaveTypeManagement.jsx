@@ -96,7 +96,7 @@ export default function LeaveTypeManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -186,11 +186,11 @@ export default function LeaveTypeManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-[100px]">排序</TableHead>
-                  <TableHead className="w-[80px]">顏色</TableHead>
-                  <TableHead className="flex-1">假別名稱</TableHead>
-                  <TableHead className="w-[120px]">簡稱</TableHead>
-                  <TableHead className="w-[120px] text-center">操作</TableHead>
+                  <TableHead className="w-[60px]">排序</TableHead>
+                  <TableHead className="w-[50px]">顏色</TableHead>
+                  <TableHead>假別名稱</TableHead>
+                  <TableHead className="w-[80px]">簡稱</TableHead>
+                  <TableHead className="w-[60px]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -201,33 +201,33 @@ export default function LeaveTypeManagement() {
                         type="number"
                         value={lt.sort_order ?? ''}
                         onChange={(e) => handleSortOrderChange(lt.id, e.target.value)}
-                        className="w-16 h-8 text-center text-sm"
+                        className="w-12 h-7 text-center text-xs"
                         min="1"
                         placeholder={(index + 1).toString()}
                       />
                     </TableCell>
                     <TableCell>
                       <div 
-                        className="w-6 h-6 rounded"
+                        className="w-5 h-5 rounded"
                         style={{ backgroundColor: lt.color }}
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{lt.name}</TableCell>
+                    <TableCell className="font-medium text-sm">{lt.name}</TableCell>
                     <TableCell>
                       <span 
-                        className="px-2 py-1 rounded text-sm font-medium whitespace-nowrap"
+                        className="px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap"
                         style={{ color: lt.color, backgroundColor: `${lt.color}15` }}
                       >
                         {lt.short_name}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex flex-col items-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleOpenDialog(lt)}
-                          className="h-8 w-8"
+                          className="h-7 w-7"
                         >
                           <Pencil className="w-4 h-4 text-gray-500" />
                         </Button>
@@ -235,7 +235,7 @@ export default function LeaveTypeManagement() {
                           variant="ghost"
                           size="icon"
                           onClick={() => deleteMutation.mutate(lt.id)}
-                          className="h-8 w-8"
+                          className="h-7 w-7"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
