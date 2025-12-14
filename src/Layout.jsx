@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut } from 'lucide-react';
+import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut, Settings, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,6 +13,9 @@ const navItems = [
   { name: 'Dashboard', label: '儀表板', icon: Calendar },
   { name: 'LeaveCalendar', label: '我的排休', icon: CalendarClock },
   { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
+];
+
+const settingsItems = [
   { name: 'EmployeeManagement', label: '員工管理', icon: Users },
   { name: 'DepartmentManagement', label: '部門管理', icon: Building2 },
   { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },
@@ -24,6 +27,7 @@ export default function Layout({ children, currentPageName }) {
   const [showBindDialog, setShowBindDialog] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const [settingsExpanded, setSettingsExpanded] = useState(true);
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -128,6 +132,39 @@ export default function Layout({ children, currentPageName }) {
                 </li>
               );
             })}
+            <li>
+              <button
+                onClick={() => setSettingsExpanded(!settingsExpanded)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              >
+                <Settings className="w-5 h-5" />
+                <span className="flex-1 text-left">設定管理</span>
+                {settingsExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </button>
+              {settingsExpanded && (
+                <ul className="mt-1 ml-4 space-y-1">
+                  {settingsItems.map((item) => {
+                    const isActive = currentPageName === item.name;
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.name}>
+                        <Link
+                          to={createPageUrl(item.name)}
+                          className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
+                            isActive
+                              ? 'bg-blue-50 text-blue-600 font-medium'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {item.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </li>
           </ul>
           <div className="mt-auto pt-4 border-t border-gray-200">
             <Button
@@ -179,6 +216,40 @@ export default function Layout({ children, currentPageName }) {
                   </li>
                 );
               })}
+              <li>
+                <button
+                  onClick={() => setSettingsExpanded(!settingsExpanded)}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-600 hover:bg-gray-50"
+                >
+                  <Settings className="w-5 h-5" />
+                  <span className="flex-1 text-left">設定管理</span>
+                  {settingsExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </button>
+                {settingsExpanded && (
+                  <ul className="mt-1 ml-4 space-y-1">
+                    {settingsItems.map((item) => {
+                      const isActive = currentPageName === item.name;
+                      const Icon = item.icon;
+                      return (
+                        <li key={item.name}>
+                          <Link
+                            to={createPageUrl(item.name)}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-600 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Icon className="w-4 h-4" />
+                            {item.label}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
             </ul>
             <div className="mt-4 pt-4 border-t border-gray-200">
               <Button
