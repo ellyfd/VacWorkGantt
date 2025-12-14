@@ -594,7 +594,7 @@ export default function EmployeeManagement() {
               <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-12">
+                  <TableHead className="w-12 md:w-[5%]">
                     <input
                       type="checkbox"
                       checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
@@ -602,11 +602,11 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="min-w-[100px]">姓名</TableHead>
-                  <TableHead className="min-w-[120px] hidden md:table-cell">英文名字</TableHead>
-                  <TableHead className="min-w-[150px]">部門</TableHead>
-                  <TableHead className="w-24 md:w-28">狀態</TableHead>
-                  <TableHead className="w-16 md:w-20">編輯</TableHead>
+                  <TableHead className="min-w-[100px] md:w-[20%]">姓名</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell md:w-[20%]">英文名字</TableHead>
+                  <TableHead className="min-w-[150px] md:w-[30%]">部門</TableHead>
+                  <TableHead className="w-24 md:w-[12%]">狀態</TableHead>
+                  <TableHead className="w-16 md:w-[13%]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

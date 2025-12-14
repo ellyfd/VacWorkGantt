@@ -126,10 +126,10 @@ export default function HolidayManagement() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-1.5 md:px-3 py-2 text-left text-xs font-semibold text-gray-600 w-16 md:w-28">日期</th>
-                <th className="px-2 md:px-4 py-2 text-left text-xs font-semibold text-gray-600">假日名稱</th>
-                <th className="px-1.5 md:px-3 py-2 text-left text-xs font-semibold text-gray-600 w-20 md:w-32">類型</th>
-                <th className="px-1.5 md:px-3 py-2 text-center text-xs font-semibold text-gray-600 w-12 md:w-24">編輯</th>
+                <th className="px-1.5 md:px-3 py-2 text-left text-xs font-semibold text-gray-600 w-16 md:w-[15%]">日期</th>
+                <th className="px-2 md:px-4 py-2 text-left text-xs font-semibold text-gray-600 md:w-[50%]">假日名稱</th>
+                <th className="px-1.5 md:px-3 py-2 text-left text-xs font-semibold text-gray-600 w-20 md:w-[18%]">類型</th>
+                <th className="px-1.5 md:px-3 py-2 text-center text-xs font-semibold text-gray-600 w-12 md:w-[17%]">編輯</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -152,7 +152,7 @@ export default function HolidayManagement() {
                     </span>
                   </td>
                   <td className="px-1.5 md:px-3 py-2">
-                    <div className="flex md:flex-row flex-col items-center gap-1">
+                    <div className="flex md:flex-row flex-col items-center gap-1 md:gap-2">
                       <Button
                         variant="outline"
                         size="icon"
