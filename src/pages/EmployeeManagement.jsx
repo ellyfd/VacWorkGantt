@@ -575,13 +575,7 @@ export default function EmployeeManagement() {
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
             </div>
           ) : (
-            <>
-              <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
-                <span className="text-sm font-semibold text-gray-700">
-                  總計：{filteredEmployees.length} 位員工
-                </span>
-              </div>
-              <Table>
+            <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
                   <TableHead className="w-[50px]">
@@ -650,7 +644,6 @@ export default function EmployeeManagement() {
                 ))}
               </TableBody>
             </Table>
-            </>
           )}
         </div>
 
