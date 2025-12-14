@@ -162,10 +162,10 @@ export default function DepartmentManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-14 md:w-20 px-1 md:px-4">排序</TableHead>
-                  <TableHead className="px-2 md:px-4">部門名稱</TableHead>
-                  <TableHead className="w-20 md:w-32 px-1 md:px-4">員工人數</TableHead>
-                  <TableHead className="w-12 md:w-20 px-1 md:px-4">編輯</TableHead>
+                  <TableHead className="w-14 md:w-[8%] px-1 md:px-4">排序</TableHead>
+                  <TableHead className="px-2 md:px-4 md:w-[50%]">部門名稱</TableHead>
+                  <TableHead className="w-20 md:w-[22%] px-1 md:px-4">員工人數</TableHead>
+                  <TableHead className="w-12 md:w-[20%] px-1 md:px-4">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -188,7 +188,7 @@ export default function DepartmentManagement() {
                       </span>
                     </TableCell>
                     <TableCell className="px-1 md:px-4">
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
