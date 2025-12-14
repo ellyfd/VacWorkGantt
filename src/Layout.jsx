@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 
 const navItems = [
-  { name: 'Dashboard', label: '首頁儀表板', icon: Calendar },
+  { name: 'Dashboard', label: '儀表板', icon: Calendar },
   { name: 'LeaveCalendar', label: '我的排休', icon: CalendarClock },
   { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
   { name: 'EmployeeManagement', label: '員工管理', icon: Users },
