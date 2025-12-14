@@ -163,6 +163,7 @@ export default function Dashboard() {
                   }
                 }}
                 locale={zhTW}
+                weekStartsOn={0}
                 initialFocus
               />
             </PopoverContent>
