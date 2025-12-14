@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import LeaveStatistics from '@/components/dashboard/LeaveStatistics';
+
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -240,12 +240,6 @@ export default function Dashboard() {
             </Table>
           )}
         </div>
-
-        <LeaveStatistics 
-          departments={departments}
-          employees={employees}
-          leaveTypes={leaveTypes}
-        />
       </div>
     </div>
   );
