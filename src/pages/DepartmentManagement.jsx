@@ -158,7 +158,7 @@ export default function DepartmentManagement() {
                   <TableHead className="w-[40%]">部門名稱</TableHead>
                   <TableHead className="w-[20%]">排序</TableHead>
                   <TableHead className="w-[25%]">員工人數</TableHead>
-                  <TableHead className="w-[15%]">編輯</TableHead>
+                  <TableHead className="w-[15%] text-center">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -172,7 +172,7 @@ export default function DepartmentManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
