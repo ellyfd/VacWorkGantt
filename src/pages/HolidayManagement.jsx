@@ -126,32 +126,32 @@ export default function HolidayManagement() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 w-24 md:w-28">日期</th>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">假日名稱</th>
-                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 w-28 md:w-32">類型</th>
-                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600 w-20 md:w-24">編輯</th>
+                <th className="px-1.5 md:px-3 py-2 text-left text-xs font-semibold text-gray-600 w-16 md:w-28">日期</th>
+                <th className="px-2 md:px-4 py-2 text-left text-xs font-semibold text-gray-600">假日名稱</th>
+                <th className="px-1.5 md:px-3 py-2 text-left text-xs font-semibold text-gray-600 w-20 md:w-32">類型</th>
+                <th className="px-1.5 md:px-3 py-2 text-center text-xs font-semibold text-gray-600 w-12 md:w-24">編輯</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredHolidays.map((holiday) => (
                 <tr key={holiday.id} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 text-sm text-gray-800">
+                  <td className="px-1.5 md:px-3 py-2 text-xs md:text-sm text-gray-800">
                     <div className="md:flex md:items-center md:gap-2">
                       <span className="font-semibold text-xs block md:inline">{format(new Date(holiday.date), 'yyyy')}</span>
                       <span className="text-xs block md:inline">{format(new Date(holiday.date), 'MM/dd')}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-sm font-medium text-gray-800">{holiday.name}</td>
-                  <td className="px-3 py-2 text-sm">
-                    <span className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
+                  <td className="px-2 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-800">{holiday.name}</td>
+                  <td className="px-1.5 md:px-3 py-2 text-xs md:text-sm">
+                    <span className={`px-1.5 md:px-2 py-0.5 rounded text-[10px] md:text-xs whitespace-nowrap ${
                       holiday.type === 'national' 
                         ? 'bg-blue-100 text-blue-800' 
                         : 'bg-green-100 text-green-800'
                     }`}>
-                      {holiday.type === 'national' ? '國定假日' : '公司特別假'}
+                      {holiday.type === 'national' ? '國定假日' : '公司假'}
                     </span>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-1.5 md:px-3 py-2">
                     <div className="flex md:flex-row flex-col items-center gap-1">
                       <Button
                         variant="outline"
