@@ -222,24 +222,14 @@ export default function LeaveTypeManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenDialog(lt)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <Pencil className="w-3.5 h-3.5 text-gray-500" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteMutation.mutate(lt.id)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenDialog(lt)}
+                        className="h-7 w-7"
+                      >
+                        <Pencil className="w-4 h-4 text-gray-500" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
