@@ -21,6 +21,7 @@ import {
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -71,8 +72,19 @@ export default function Dashboard() {
     return leaveTypes.find(lt => lt.id === typeId);
   };
 
+  const filteredEmployees = selectedDepartments.length > 0
+    ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
+    : employees;
+
+  const filteredLeaves = todayLeaves.filter(leave => {
+    const emp = employees.find(e => e.id === leave.employee_id);
+    if (!emp) return false;
+    if (selectedDepartments.length === 0) return true;
+    return emp.department_ids?.some(deptId => selectedDepartments.includes(deptId));
+  });
+
   const leavesByDept = {};
-  todayLeaves.forEach(leave => {
+  filteredLeaves.forEach(leave => {
     const emp = employees.find(e => e.id === leave.employee_id);
     if (emp && emp.department_ids) {
       emp.department_ids.forEach(deptId => {
@@ -88,8 +100,8 @@ export default function Dashboard() {
     }
   });
 
-  const activeEmployees = employees.filter(emp => emp.status === 'active');
-  const totalOnLeave = todayLeaves.length;
+  const activeEmployees = filteredEmployees.filter(emp => emp.status === 'active');
+  const totalOnLeave = filteredLeaves.length;
   
   // 檢查是否為週末或假日
   const selectedDateObj = new Date(selectedDate + 'T00:00:00');
@@ -104,7 +116,7 @@ export default function Dashboard() {
 
   // 統計各假別人數
   const leaveByType = {};
-  todayLeaves.forEach(leave => {
+  filteredLeaves.forEach(leave => {
     const leaveType = getLeaveType(leave.leave_type_id);
     const typeName = leaveType ? leaveType.short_name : '其他';
     leaveByType[typeName] = (leaveByType[typeName] || 0) + 1;
@@ -154,6 +166,29 @@ export default function Dashboard() {
               />
             </PopoverContent>
           </Popover>
+        </div>
+
+        <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
+            {departments.map((dept) => (
+              <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                <input
+                  type="checkbox"
+                  checked={selectedDepartments.includes(dept.id)}
+                  onChange={() => {
+                    if (selectedDepartments.includes(dept.id)) {
+                      setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                    } else {
+                      setSelectedDepartments([...selectedDepartments, dept.id]);
+                    }
+                  }}
+                  className="w-3.5 h-3.5 text-blue-600 rounded"
+                />
+                <span className="text-xs text-gray-700">{dept.name}</span>
+              </label>
+            ))}
+          </div>
         </div>
 
         {isHoliday && (
@@ -217,7 +252,7 @@ export default function Dashboard() {
               </TableHeader>
               <TableBody>
                 {Object.entries(
-                  todayLeaves.reduce((acc, leave) => {
+                  filteredLeaves.reduce((acc, leave) => {
                     const leaveType = getLeaveType(leave.leave_type_id);
                     const typeId = leave.leave_type_id;
                     if (!acc[typeId]) {
