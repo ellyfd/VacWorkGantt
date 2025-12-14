@@ -273,56 +273,66 @@ export default function EmployeeManagement() {
             <h1 className="text-xl font-bold text-gray-800">員工管理</h1>
           </div>
           <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadTemplate}
-              className="border-green-600 text-green-600 hover:bg-green-50"
-            >
-              <Download className="w-3 h-3 mr-1" />
-              模板
-            </Button>
-            <label htmlFor="excel-upload">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isUploading}
-                onClick={() => document.getElementById('excel-upload').click()}
-                className="border-blue-600 text-blue-600 hover:bg-blue-50"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    匯入中
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-3 h-3 mr-1" />
-                    匯入
-                  </>
-                )}
-              </Button>
-            </label>
-            <input
-              id="excel-upload"
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="w-3 h-3 mr-1" />
-                  新增
+                  新增員工
                 </Button>
               </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingEmployee ? '編輯員工' : '新增員工'}</DialogTitle>
               </DialogHeader>
+
+              {!editingEmployee && (
+                <div className="border-b pb-4 mb-4">
+                  <h3 className="text-sm font-semibold mb-3 text-gray-700">批量匯入員工</h3>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadTemplate}
+                      className="border-green-600 text-green-600 hover:bg-green-50"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      下載模板
+                    </Button>
+                    <label htmlFor="excel-upload" className="flex-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isUploading}
+                        onClick={() => document.getElementById('excel-upload').click()}
+                        className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            匯入中...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            匯入 CSV
+                          </>
+                        )}
+                      </Button>
+                    </label>
+                    <input
+                      id="excel-upload"
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">支援批量匯入員工資料，請先下載模板填寫後上傳</p>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-3 mt-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
