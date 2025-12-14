@@ -155,8 +155,8 @@ export default function DepartmentManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead>部門名稱</TableHead>
                   <TableHead className="w-24">排序</TableHead>
+                  <TableHead>部門名稱</TableHead>
                   <TableHead className="w-28">員工人數</TableHead>
                   <TableHead className="w-32">編輯</TableHead>
                 </TableRow>
@@ -164,8 +164,8 @@ export default function DepartmentManagement() {
               <TableBody>
                 {departments.map((dept) => (
                   <TableRow key={dept.id}>
-                    <TableCell className="font-medium">{dept.name}</TableCell>
                     <TableCell className="text-gray-500">{dept.sort_order}</TableCell>
+                    <TableCell className="font-medium">{dept.name}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 whitespace-nowrap">
                         {getEmployeeCount(dept.id)} 人
