@@ -49,7 +49,10 @@ export default function EmployeeManagement() {
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
+    queryFn: async () => {
+      const emps = await base44.entities.Employee.list('name');
+      return emps.sort((a, b) => (a.sort_order || 999999) - (b.sort_order || 999999));
+    },
   });
 
   const createMutation = useMutation({
@@ -190,6 +193,13 @@ export default function EmployeeManagement() {
     if (confirmed) {
       bulkDeleteMutation.mutate();
     }
+  };
+
+  const handleSortOrderChange = async (empId, newOrder) => {
+    const order = parseInt(newOrder);
+    if (isNaN(order)) return;
+    await base44.entities.Employee.update(empId, { sort_order: order });
+    queryClient.invalidateQueries(['employees']);
   };
 
   const handleDownloadTemplate = () => {
@@ -602,15 +612,16 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="min-w-[100px] md:w-[20%]">姓名</TableHead>
-                  <TableHead className="min-w-[120px] hidden md:table-cell md:w-[20%]">英文名字</TableHead>
-                  <TableHead className="min-w-[150px] md:w-[30%]">部門</TableHead>
-                  <TableHead className="w-24 md:w-[12%]">狀態</TableHead>
-                  <TableHead className="w-16 md:w-[13%]">編輯</TableHead>
+                  <TableHead className="w-14 md:w-[6%] px-1 md:px-4">排序</TableHead>
+                  <TableHead className="min-w-[100px] md:w-[18%]">姓名</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell md:w-[18%]">英文名字</TableHead>
+                  <TableHead className="min-w-[150px] md:w-[26%]">部門</TableHead>
+                  <TableHead className="w-24 md:w-[13%]">狀態</TableHead>
+                  <TableHead className="w-16 md:w-[14%]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEmployees.map((emp) => (
+                {filteredEmployees.map((emp, index) => (
                   <TableRow key={emp.id}>
                     <TableCell>
                       <input
@@ -618,6 +629,16 @@ export default function EmployeeManagement() {
                         checked={selectedEmployees.includes(emp.id)}
                         onChange={() => handleEmployeeToggle(emp.id)}
                         className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                    </TableCell>
+                    <TableCell className="px-1 md:px-4">
+                      <Input
+                        type="number"
+                        value={emp.sort_order ?? ''}
+                        onChange={(e) => handleSortOrderChange(emp.id, e.target.value)}
+                        className="w-10 h-7 text-center text-xs md:w-14"
+                        min="1"
+                        placeholder={(index + 1).toString()}
                       />
                     </TableCell>
                     <TableCell className="font-medium">{emp.name}</TableCell>
