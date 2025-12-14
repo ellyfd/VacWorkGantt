@@ -85,7 +85,7 @@ export default function HolidayManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <Calendar className="w-8 h-8 text-blue-600" />
