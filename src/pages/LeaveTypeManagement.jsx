@@ -186,11 +186,11 @@ export default function LeaveTypeManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-[60px]">排序</TableHead>
-                  <TableHead className="w-[50px]">顏色</TableHead>
-                  <TableHead>假別名稱</TableHead>
-                  <TableHead className="w-[80px]">簡稱</TableHead>
-                  <TableHead className="w-[60px]">編輯</TableHead>
+                  <TableHead className="w-14 md:w-[8%]">排序</TableHead>
+                  <TableHead className="w-12 md:w-[8%]">顏色</TableHead>
+                  <TableHead className="md:w-[45%]">假別名稱</TableHead>
+                  <TableHead className="w-20 md:w-[19%]">簡稱</TableHead>
+                  <TableHead className="w-16 md:w-[20%]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -222,7 +222,7 @@ export default function LeaveTypeManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
