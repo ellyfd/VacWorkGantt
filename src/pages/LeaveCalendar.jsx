@@ -446,7 +446,8 @@ export default function LeaveCalendar() {
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
 
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
               <Select 
                 value={selectedLeaveTypeId || ''} 
                 onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
@@ -535,8 +536,9 @@ export default function LeaveCalendar() {
                   </PopoverContent>
                 </Popover>
               )}
+              </div>
               {rangeMode && (
-                <p className="text-xs text-blue-600">
+                <p className="text-xs text-blue-600 w-full md:flex-1">
                   {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
                   {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
                   {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊左側按鈕確認`}
