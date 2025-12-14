@@ -222,7 +222,7 @@ export default function LeaveTypeManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col items-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
