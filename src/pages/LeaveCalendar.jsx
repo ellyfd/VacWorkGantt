@@ -197,6 +197,10 @@ export default function LeaveCalendar() {
       const end = new Date(endDate);
       const currentEmployee = employees.find(e => e.id === employeeId);
       
+      // 檢查是否為出差假別
+      const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
+      const isBusinessTrip = leaveType?.name === '出差';
+      
       // 檢查每一天的衝突
       const warnings = [];
       const dates = [];
@@ -207,8 +211,8 @@ export default function LeaveCalendar() {
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
         const isHoliday = holidays?.some(h => h.date === dateStr);
         
-        // 跳過假日和週末
-        if (isWeekend || isHoliday) {
+        // 出差例外：假日也要記錄，其他假別跳過假日和週末
+        if (!isBusinessTrip && (isWeekend || isHoliday)) {
           continue;
         }
         
