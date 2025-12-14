@@ -3,15 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { Loader2, Calendar, Users, TrendingUp } from 'lucide-react';
+import { Loader2, Calendar as CalendarIcon, Users, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -125,29 +122,38 @@ export default function Dashboard() {
     );
   }
 
-  const dates = Array.from({ length: 14 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - 7 + i);
-    return format(date, 'yyyy-MM-dd');
-  });
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">首頁儀表板</h1>
-          <Select value={selectedDate} onValueChange={setSelectedDate}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {dates.map((date) => (
-                <SelectItem key={date} value={date}>
-                  {format(new Date(date), 'MM月dd日 (E)', { locale: zhTW })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(new Date(selectedDate), 'yyyy年MM月dd日 (E)', { locale: zhTW }) : "選擇日期"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate ? new Date(selectedDate + 'T00:00:00') : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(format(date, 'yyyy-MM-dd'));
+                  }
+                }}
+                locale={zhTW}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         {isHoliday && (
@@ -197,7 +203,7 @@ export default function Dashboard() {
 
           {totalOnLeave === 0 ? (
             <div className="text-center py-12 text-gray-500">
-              <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <CalendarIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p>今日無休假人員</p>
             </div>
           ) : (
