@@ -190,7 +190,7 @@ export default function LeaveTypeManagement() {
                   <TableHead className="w-[50px]">顏色</TableHead>
                   <TableHead>假別名稱</TableHead>
                   <TableHead className="w-[80px]">簡稱</TableHead>
-                  <TableHead className="w-[60px]">編輯</TableHead>
+                  <TableHead className="w-[60px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

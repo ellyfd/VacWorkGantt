@@ -158,7 +158,7 @@ export default function DepartmentManagement() {
                   <TableHead className="w-[40%]">部門名稱</TableHead>
                   <TableHead className="w-[20%]">排序</TableHead>
                   <TableHead className="w-[25%]">員工人數</TableHead>
-                  <TableHead className="w-[15%]">編輯</TableHead>
+                  <TableHead className="w-[15%]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
