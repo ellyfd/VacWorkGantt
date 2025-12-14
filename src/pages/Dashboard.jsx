@@ -93,8 +93,16 @@ export default function Dashboard() {
 
   const activeEmployees = employees.filter(emp => emp.status === 'active');
   const totalOnLeave = todayLeaves.length;
-  const totalEmployees = activeEmployees.length;
-  const actualAttendance = totalEmployees - totalOnLeave;
+  
+  // 檢查是否為週末或假日
+  const selectedDateObj = new Date(selectedDate + 'T00:00:00');
+  const dayOfWeek = selectedDateObj.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  const isHoliday = holidays.some(h => h.date === selectedDate);
+  const isNonWorkingDay = isWeekend || isHoliday;
+  
+  const totalEmployees = isNonWorkingDay ? 0 : activeEmployees.length;
+  const actualAttendance = isNonWorkingDay ? 0 : (totalEmployees - totalOnLeave);
   const attendanceRate = totalEmployees > 0 ? ((actualAttendance / totalEmployees) * 100).toFixed(1) : 0;
 
   // 統計各假別人數
@@ -105,7 +113,6 @@ export default function Dashboard() {
     leaveByType[typeName] = (leaveByType[typeName] || 0) + 1;
   });
 
-  const isHoliday = holidays.some(h => h.date === selectedDate);
   const holidayInfo = holidays.find(h => h.date === selectedDate);
 
   const isLoading = loadingUser || loadingLeaves;
