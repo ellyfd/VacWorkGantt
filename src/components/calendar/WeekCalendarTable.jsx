@@ -115,7 +115,7 @@ export default function WeekCalendarTable({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
         <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
         <CalendarHeader 
           currentDate={currentDate} 
