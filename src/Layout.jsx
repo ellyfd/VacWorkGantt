@@ -48,7 +48,7 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.entities.Employee.list('name'),
   });
 
-  const { data: boundEmployee } = useQuery({
+  const { data: boundEmployee, isLoading: loadingBoundEmployee } = useQuery({
     queryKey: ['boundEmployee', currentUser?.email],
     queryFn: async () => {
       if (!currentUser?.email) return null;
@@ -60,10 +60,11 @@ export default function Layout({ children, currentPageName }) {
   });
 
   useEffect(() => {
-    if (currentUser && boundEmployee === null) {
+    // 只有在資料載入完成後，且用戶不是 admin，且沒有綁定員工時，才顯示綁定對話框
+    if (currentUser && !loadingBoundEmployee && currentUser.role !== 'admin' && boundEmployee === null) {
       setShowBindDialog(true);
     }
-  }, [currentUser, boundEmployee]);
+  }, [currentUser, boundEmployee, loadingBoundEmployee]);
 
   const bindMutation = useMutation({
     mutationFn: async (employeeId) => {
