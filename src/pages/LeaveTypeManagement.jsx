@@ -186,11 +186,11 @@ export default function LeaveTypeManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-[15%]">排序</TableHead>
-                  <TableHead className="w-[10%]">顏色</TableHead>
-                  <TableHead className="w-[35%]">假別名稱</TableHead>
-                  <TableHead className="w-[25%]">簡稱</TableHead>
-                  <TableHead className="w-[15%]">操作</TableHead>
+                  <TableHead className="w-[60px]">排序</TableHead>
+                  <TableHead className="w-[50px]">顏色</TableHead>
+                  <TableHead>假別名稱</TableHead>
+                  <TableHead className="w-[80px]">簡稱</TableHead>
+                  <TableHead className="w-[60px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -201,43 +201,43 @@ export default function LeaveTypeManagement() {
                         type="number"
                         value={lt.sort_order ?? ''}
                         onChange={(e) => handleSortOrderChange(lt.id, e.target.value)}
-                        className="w-16 h-8 text-center"
+                        className="w-12 h-7 text-center text-xs"
                         min="1"
                         placeholder={(index + 1).toString()}
                       />
                     </TableCell>
                     <TableCell>
                       <div 
-                        className="w-6 h-6 rounded"
+                        className="w-5 h-5 rounded"
                         style={{ backgroundColor: lt.color }}
                       />
                     </TableCell>
-                    <TableCell className="font-medium">{lt.name}</TableCell>
+                    <TableCell className="font-medium text-sm">{lt.name}</TableCell>
                     <TableCell>
                       <span 
-                        className="px-2 py-1 rounded text-sm font-medium"
+                        className="px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap"
                         style={{ color: lt.color, backgroundColor: `${lt.color}15` }}
                       >
                         {lt.short_name}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-0.5">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleOpenDialog(lt)}
-                          className="h-7 w-7"
+                          className="h-6 w-6 p-0"
                         >
-                          <Pencil className="w-4 h-4 text-gray-500" />
+                          <Pencil className="w-3.5 h-3.5 text-gray-500" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => deleteMutation.mutate(lt.id)}
-                          className="h-7 w-7"
+                          className="h-6 w-6 p-0"
                         >
-                          <Trash2 className="w-4 h-4 text-red-500" />
+                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
                         </Button>
                       </div>
                     </TableCell>
