@@ -594,7 +594,7 @@ export default function EmployeeManagement() {
               <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-[50px]">
+                  <TableHead className="w-12">
                     <input
                       type="checkbox"
                       checked={selectedEmployees.length === filteredEmployees.length && filteredEmployees.length > 0}
@@ -602,11 +602,11 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="w-1/4">姓名</TableHead>
-                  <TableHead className="w-1/4">英文名字</TableHead>
-                  <TableHead className="w-1/4">部門</TableHead>
-                  <TableHead className="w-[100px]">狀態</TableHead>
-                  <TableHead className="w-[60px]">編輯</TableHead>
+                  <TableHead className="min-w-[100px]">姓名</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell">英文名字</TableHead>
+                  <TableHead className="min-w-[150px]">部門</TableHead>
+                  <TableHead className="w-24 md:w-28">狀態</TableHead>
+                  <TableHead className="w-16 md:w-20">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -621,10 +621,10 @@ export default function EmployeeManagement() {
                       />
                     </TableCell>
                     <TableCell className="font-medium">{emp.name}</TableCell>
-                    <TableCell className="text-sm text-gray-600">{emp.english_name || '-'}</TableCell>
+                    <TableCell className="text-sm text-gray-600 hidden md:table-cell">{emp.english_name || '-'}</TableCell>
                     <TableCell className="text-sm">{getDepartmentNames(emp.department_ids)}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
                         emp.status === 'active' 
                           ? 'bg-green-100 text-green-800' 
                           : emp.status === 'parental_leave'
@@ -637,7 +637,7 @@ export default function EmployeeManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex md:flex-row flex-col gap-1 md:items-center">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -659,7 +659,7 @@ export default function EmployeeManagement() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
             </>
           )}
         </div>
