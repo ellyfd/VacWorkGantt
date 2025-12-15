@@ -18,7 +18,6 @@ import {
 import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
-import WarningDialog from '@/components/calendar/WarningDialog';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -26,7 +25,6 @@ export default function LeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
-  const [warningDialog, setWarningDialog] = useState({ open: false, message: '', onConfirm: null });
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -110,42 +108,47 @@ export default function LeaveCalendar() {
   });
 
   const updateLeaveMutation = useMutation({
-    mutationFn: async ({ employeeId, date, leaveTypeId, skipWarning }) => {
-      if (!skipWarning) {
-        // 檢查職代衝突
-        const currentEmployee = employees.find(e => e.id === employeeId);
-        const warnings = [];
+    mutationFn: async ({ employeeId, date, leaveTypeId }) => {
+      // 檢查職代衝突
+      const currentEmployee = employees.find(e => e.id === employeeId);
+      if (currentEmployee?.code) {
+        const sameCodeEmployees = employees.filter(e => 
+          e.code === currentEmployee.code && e.id !== employeeId
+        );
         
-        if (currentEmployee?.code) {
-          const sameCodeEmployees = employees.filter(e => 
-            e.code === currentEmployee.code && e.id !== employeeId
+        const conflicts = allLeaveRecords.filter(r => 
+          sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === date
+        );
+        
+        if (conflicts.length > 0) {
+          const conflictNames = conflicts.map(c => {
+            const emp = employees.find(e => e.id === c.employee_id);
+            return emp?.name || '未知';
+          }).join('、');
+          
+          const confirmed = window.confirm(
+            `⚠️ 警告：同職代同仁 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
           );
           
-          const conflicts = allLeaveRecords.filter(r => 
-            sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === date
-          );
-          
-          if (conflicts.length > 0) {
-            const conflictNames = conflicts.map(c => {
-              const emp = employees.find(e => e.id === c.employee_id);
-              return emp?.name || '未知';
-            }).join('、');
-            warnings.push(`同職代同仁 ${conflictNames} 在 ${date} 已請假`);
+          if (!confirmed) {
+            throw new Error('取消請假');
           }
         }
+      }
+      
+      // 檢查部門人數限制
+      const deptLeaves = allLeaveRecords.filter(r => {
+        const emp = employees.find(e => e.id === r.employee_id);
+        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
+      });
+      
+      if (deptLeaves.length >= 2) {
+        const confirmed = window.confirm(
+          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假，確定要繼續請假嗎？`
+        );
         
-        // 檢查部門人數限制
-        const deptLeaves = allLeaveRecords.filter(r => {
-          const emp = employees.find(e => e.id === r.employee_id);
-          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
-        });
-        
-        if (deptLeaves.length >= 2) {
-          warnings.push(`${date} 該部門已有 ${deptLeaves.length} 人請假`);
-        }
-        
-        if (warnings.length > 0) {
-          throw { needsConfirmation: true, warnings, originalData: { employeeId, date, leaveTypeId } };
+        if (!confirmed) {
+          throw new Error('取消請假');
         }
       }
 
@@ -166,17 +169,6 @@ export default function LeaveCalendar() {
           employee_id: employeeId,
           date: date,
           leave_type_id: leaveTypeId
-        });
-      }
-    },
-    onError: (error) => {
-      if (error.needsConfirmation) {
-        setWarningDialog({
-          open: true,
-          message: error.warnings.join('\n'),
-          onConfirm: () => {
-            updateLeaveMutation.mutate({ ...error.originalData, skipWarning: true });
-          }
         });
       }
     },
@@ -205,7 +197,7 @@ export default function LeaveCalendar() {
   });
 
   const rangeLeaveMutation = useMutation({
-    mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId, skipWarning }) => {
+    mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId }) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const currentEmployee = employees.find(e => e.id === employeeId);
@@ -231,40 +223,44 @@ export default function LeaveCalendar() {
         
         dates.push(dateStr);
         
-        if (!skipWarning) {
-          // 檢查職代衝突
-          if (currentEmployee?.code) {
-            const sameCodeEmployees = employees.filter(e => 
-              e.code === currentEmployee.code && e.id !== employeeId
-            );
-            
-            const conflicts = allLeaveRecords.filter(r => 
-              sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === dateStr
-            );
-            
-            if (conflicts.length > 0) {
-              const conflictNames = conflicts.map(c => {
-                const emp = employees.find(e => e.id === c.employee_id);
-                return emp?.name || '未知';
-              }).join('、');
-              warnings.push(`${dateStr}: 同職代 ${conflictNames} 已請假`);
-            }
-          }
+        // 檢查職代衝突
+        if (currentEmployee?.code) {
+          const sameCodeEmployees = employees.filter(e => 
+            e.code === currentEmployee.code && e.id !== employeeId
+          );
           
-          // 檢查部門人數限制
-          const deptLeaves = allLeaveRecords.filter(r => {
-            const emp = employees.find(e => e.id === r.employee_id);
-            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
-          });
+          const conflicts = allLeaveRecords.filter(r => 
+            sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === dateStr
+          );
           
-          if (deptLeaves.length >= 2) {
-            warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假`);
+          if (conflicts.length > 0) {
+            const conflictNames = conflicts.map(c => {
+              const emp = employees.find(e => e.id === c.employee_id);
+              return emp?.name || '未知';
+            }).join('、');
+            warnings.push(`${dateStr}: 同職代 ${conflictNames} 已請假`);
           }
+        }
+        
+        // 檢查部門人數限制
+        const deptLeaves = allLeaveRecords.filter(r => {
+          const emp = employees.find(e => e.id === r.employee_id);
+          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
+        });
+        
+        if (deptLeaves.length >= 2) {
+          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假`);
         }
       }
       
-      if (warnings.length > 0 && !skipWarning) {
-        throw { needsConfirmation: true, warnings, originalData: { employeeId, startDate, endDate, leaveTypeId } };
+      if (warnings.length > 0) {
+        const confirmed = window.confirm(
+          `⚠️ 警告：\n${warnings.join('\n')}\n\n確定要繼續請假嗎？`
+        );
+        
+        if (!confirmed) {
+          throw new Error('取消請假');
+        }
       }
       
       // 過濾掉已存在相同假別的日期
@@ -287,17 +283,6 @@ export default function LeaveCalendar() {
       }
       
       return base44.entities.LeaveRecord.bulkCreate(recordsToCreate);
-    },
-    onError: (error) => {
-      if (error.needsConfirmation) {
-        setWarningDialog({
-          open: true,
-          message: error.warnings.join('\n'),
-          onConfirm: () => {
-            rangeLeaveMutation.mutate({ ...error.originalData, skipWarning: true });
-          }
-        });
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
@@ -478,7 +463,7 @@ export default function LeaveCalendar() {
       <div className="max-w-full mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
 
-        <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
+          <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
               <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
               <Select 
@@ -579,9 +564,8 @@ export default function LeaveCalendar() {
               )}
             </div>
           </div>
-        </div>
 
-        <WeekCalendarTable
+          <WeekCalendarTable
             currentDate={currentDate}
             onDateChange={setCurrentDate}
             currentEmployee={currentEmployee}
@@ -598,7 +582,7 @@ export default function LeaveCalendar() {
             onCellClickInRangeMode={handleCellClickInRangeMode}
           />
 
-        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
             <Button
               variant="ghost"
               className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
@@ -636,16 +620,8 @@ export default function LeaveCalendar() {
                 </div>
               </div>
             )}
-        </div>
-
-        <WarningDialog
-          open={warningDialog.open}
-          onOpenChange={(open) => setWarningDialog({ ...warningDialog, open })}
-          message={warningDialog.message}
-          onConfirm={warningDialog.onConfirm}
-          onCancel={() => setWarningDialog({ open: false, message: '', onConfirm: null })}
-        />
-      </div>
-    </div>
-  );
-}
+          </div>
+          </div>
+          </div>
+          );
+          }

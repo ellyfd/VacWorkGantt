@@ -16,7 +16,6 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import CalendarSettings from '@/components/calendar/CalendarSettings';
 import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
-import WarningDialog from '@/components/calendar/WarningDialog';
 
 export default function AllLeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -24,7 +23,6 @@ export default function AllLeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
-  const [warningDialog, setWarningDialog] = useState({ open: false, message: '', onConfirm: null });
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -80,31 +78,30 @@ export default function AllLeaveCalendar() {
   });
 
   const updateLeaveMutation = useMutation({
-    mutationFn: async ({ employeeId, date, leaveTypeId, skipWarning }) => {
-      if (!skipWarning) {
-        const currentEmployee = employees.find(e => e.id === employeeId);
-        const warnings = [];
+    mutationFn: async ({ employeeId, date, leaveTypeId }) => {
+      const currentEmployee = employees.find(e => e.id === employeeId);
+      if (currentEmployee?.code) {
+        const sameCodeEmployees = employees.filter(e => 
+          e.code === currentEmployee.code && e.id !== employeeId
+        );
         
-        if (currentEmployee?.code) {
-          const sameCodeEmployees = employees.filter(e => 
-            e.code === currentEmployee.code && e.id !== employeeId
+        const conflicts = leaveRecords.filter(r => 
+          sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === date
+        );
+        
+        if (conflicts.length > 0) {
+          const conflictNames = conflicts.map(c => {
+            const emp = employees.find(e => e.id === c.employee_id);
+            return emp?.name || '未知';
+          }).join('、');
+          
+          const confirmed = window.confirm(
+            `⚠️ 警告：同職代同仁 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
           );
           
-          const conflicts = leaveRecords.filter(r => 
-            sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === date
-          );
-          
-          if (conflicts.length > 0) {
-            const conflictNames = conflicts.map(c => {
-              const emp = employees.find(e => e.id === c.employee_id);
-              return emp?.name || '未知';
-            }).join('、');
-            warnings.push(`同職代同仁 ${conflictNames} 在 ${date} 已請假`);
+          if (!confirmed) {
+            throw new Error('取消請假');
           }
-        }
-        
-        if (warnings.length > 0) {
-          throw { needsConfirmation: true, warnings, originalData: { employeeId, date, leaveTypeId } };
         }
       }
       
@@ -131,17 +128,6 @@ export default function AllLeaveCalendar() {
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
     },
-    onError: (error) => {
-      if (error.needsConfirmation) {
-        setWarningDialog({
-          open: true,
-          message: error.warnings.join('\n'),
-          onConfirm: () => {
-            updateLeaveMutation.mutate({ ...error.originalData, skipWarning: true });
-          }
-        });
-      }
-    },
   });
 
   const deleteLeaveMutation = useMutation({
@@ -161,7 +147,7 @@ export default function AllLeaveCalendar() {
   });
 
   const rangeLeaveMutation = useMutation({
-    mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId, skipWarning }) => {
+    mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId }) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const currentEmployee = employees.find(e => e.id === employeeId);
@@ -186,7 +172,7 @@ export default function AllLeaveCalendar() {
 
         dates.push(dateStr);
 
-        if (!skipWarning && currentEmployee?.code) {
+        if (currentEmployee?.code) {
           const sameCodeEmployees = employees.filter(e => 
             e.code === currentEmployee.code && e.id !== employeeId
           );
@@ -205,8 +191,14 @@ export default function AllLeaveCalendar() {
         }
       }
 
-      if (warnings.length > 0 && !skipWarning) {
-        throw { needsConfirmation: true, warnings, originalData: { employeeId, startDate, endDate, leaveTypeId } };
+      if (warnings.length > 0) {
+        const confirmed = window.confirm(
+          `⚠️ 警告：\n${warnings.join('\n')}\n\n確定要繼續請假嗎？`
+        );
+
+        if (!confirmed) {
+          throw new Error('取消請假');
+        }
       }
 
       // 過濾掉已存在相同假別的日期
@@ -232,17 +224,6 @@ export default function AllLeaveCalendar() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
-    },
-    onError: (error) => {
-      if (error.needsConfirmation) {
-        setWarningDialog({
-          open: true,
-          message: error.warnings.join('\n'),
-          onConfirm: () => {
-            rangeLeaveMutation.mutate({ ...error.originalData, skipWarning: true });
-          }
-        });
-      }
     },
   });
 
@@ -526,14 +507,6 @@ export default function AllLeaveCalendar() {
           onDeleteLeave={handleDeleteLeave}
           onDeleteRangeLeave={handleDeleteRangeLeave}
           onCellClickInRangeMode={handleCellClickInRangeMode}
-        />
-
-        <WarningDialog
-          open={warningDialog.open}
-          onOpenChange={(open) => setWarningDialog({ ...warningDialog, open })}
-          message={warningDialog.message}
-          onConfirm={warningDialog.onConfirm}
-          onCancel={() => setWarningDialog({ open: false, message: '', onConfirm: null })}
         />
       </div>
     </div>
