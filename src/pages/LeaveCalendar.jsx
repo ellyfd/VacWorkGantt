@@ -478,7 +478,7 @@ export default function LeaveCalendar() {
       <div className="max-w-full mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
 
-          <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
+        <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
               <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
               <Select 
@@ -579,8 +579,9 @@ export default function LeaveCalendar() {
               )}
             </div>
           </div>
+        </div>
 
-          <WeekCalendarTable
+        <WeekCalendarTable
             currentDate={currentDate}
             onDateChange={setCurrentDate}
             currentEmployee={currentEmployee}
@@ -597,7 +598,7 @@ export default function LeaveCalendar() {
             onCellClickInRangeMode={handleCellClickInRangeMode}
           />
 
-          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
             <Button
               variant="ghost"
               className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
@@ -635,16 +636,15 @@ export default function LeaveCalendar() {
                 </div>
               </div>
             )}
-          </div>
-
-          <WarningDialog
-            open={warningDialog.open}
-            onOpenChange={(open) => setWarningDialog({ ...warningDialog, open })}
-            message={warningDialog.message}
-            onConfirm={warningDialog.onConfirm}
-            onCancel={() => setWarningDialog({ open: false, message: '', onConfirm: null })}
-          />
         </div>
+
+        <WarningDialog
+          open={warningDialog.open}
+          onOpenChange={(open) => setWarningDialog({ ...warningDialog, open })}
+          message={warningDialog.message}
+          onConfirm={warningDialog.onConfirm}
+          onCancel={() => setWarningDialog({ open: false, message: '', onConfirm: null })}
+        />
       </div>
     </div>
   );
