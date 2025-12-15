@@ -636,15 +636,15 @@ export default function LeaveCalendar() {
               </div>
             )}
           </div>
-        </div>
 
-        <WarningDialog
-          open={warningDialog.open}
-          onOpenChange={(open) => setWarningDialog({ ...warningDialog, open })}
-          message={warningDialog.message}
-          onConfirm={warningDialog.onConfirm}
-          onCancel={() => setWarningDialog({ open: false, message: '', onConfirm: null })}
-        />
+          <WarningDialog
+            open={warningDialog.open}
+            onOpenChange={(open) => setWarningDialog({ ...warningDialog, open })}
+            message={warningDialog.message}
+            onConfirm={warningDialog.onConfirm}
+            onCancel={() => setWarningDialog({ open: false, message: '', onConfirm: null })}
+          />
+        </div>
       </div>
     </div>
   );
