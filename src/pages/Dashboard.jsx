@@ -193,15 +193,15 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex items-start justify-between gap-4 mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">儀表板</h1>
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+          <div className="flex flex-col items-end gap-3">
             <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full md:w-[240px] justify-start text-left font-normal",
+                  "w-[240px] justify-start text-left font-normal",
                   !selectedDate && "text-muted-foreground"
                 )}
               >
@@ -230,7 +230,7 @@ export default function Dashboard() {
                 disabled={isCleaningDuplicates}
                 variant="outline"
                 size="sm"
-                className="w-full md:w-auto border-orange-500 text-orange-600 hover:bg-orange-50"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
               >
                 {isCleaningDuplicates ? (
                   <>
