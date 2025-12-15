@@ -636,7 +636,7 @@ export default function LeaveCalendar() {
               </div>
             )}
           </div>
-          </div>
+        </div>
 
         <WarningDialog
           open={warningDialog.open}
