@@ -196,24 +196,6 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
           <div className="flex items-center gap-3">
-            {currentUser?.role === 'admin' && (
-              <Button
-                onClick={handleCleanDuplicates}
-                disabled={isCleaningDuplicates}
-                variant="outline"
-                size="sm"
-                className="border-orange-500 text-orange-600 hover:bg-orange-50"
-              >
-                {isCleaningDuplicates ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    清理中...
-                  </>
-                ) : (
-                  '清理重複記錄'
-                )}
-              </Button>
-            )}
             <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -307,10 +289,28 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">
               {format(new Date(selectedDate), 'MM月dd日 (EEEE)', { locale: zhTW })} 休假人員
             </h2>
+            {currentUser?.role === 'admin' && (
+              <Button
+                onClick={handleCleanDuplicates}
+                disabled={isCleaningDuplicates}
+                variant="outline"
+                size="sm"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+              >
+                {isCleaningDuplicates ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    清理中...
+                  </>
+                ) : (
+                  '清理重複記錄'
+                )}
+              </Button>
+            )}
           </div>
 
           {totalOnLeave === 0 ? (
