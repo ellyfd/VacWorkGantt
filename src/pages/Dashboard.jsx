@@ -291,7 +291,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
           <div className="p-6 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-800">
-              {format(new Date(selectedDate), 'MM月dd日 (EEEE)', { locale: zhTW })} 休假人員
+              休假人員
             </h2>
             {currentUser?.role === 'admin' && (
               <Button
