@@ -109,6 +109,11 @@ export default function AllLeaveCalendar() {
         r => r.employee_id === employeeId && r.date === date
       );
       if (existing) {
+        // 如果是同一個假別，不做任何操作
+        if (existing.leave_type_id === leaveTypeId) {
+          return existing;
+        }
+        // 不同假別則更新
         return base44.entities.LeaveRecord.update(existing.id, {
           leave_type_id: leaveTypeId
         });
@@ -196,13 +201,26 @@ export default function AllLeaveCalendar() {
         }
       }
 
-      const records = dates.map(dateStr => ({
-        employee_id: employeeId,
-        date: dateStr,
-        leave_type_id: leaveTypeId
-      }));
-
-      return base44.entities.LeaveRecord.bulkCreate(records);
+      // 過濾掉已存在相同假別的日期
+      const recordsToCreate = [];
+      for (const dateStr of dates) {
+        const existing = leaveRecords.find(
+          r => r.employee_id === employeeId && r.date === dateStr && r.leave_type_id === leaveTypeId
+        );
+        if (!existing) {
+          recordsToCreate.push({
+            employee_id: employeeId,
+            date: dateStr,
+            leave_type_id: leaveTypeId
+          });
+        }
+      }
+      
+      if (recordsToCreate.length === 0) {
+        return []; // 沒有需要新增的記錄
+      }
+      
+      return base44.entities.LeaveRecord.bulkCreate(recordsToCreate);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
