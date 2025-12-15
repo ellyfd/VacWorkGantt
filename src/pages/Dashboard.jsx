@@ -193,9 +193,27 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">儀表板</h1>
-          <div className="flex flex-col items-end gap-3">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
+          <div className="flex items-center gap-3">
+            {currentUser?.role === 'admin' && (
+              <Button
+                onClick={handleCleanDuplicates}
+                disabled={isCleaningDuplicates}
+                variant="outline"
+                size="sm"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+              >
+                {isCleaningDuplicates ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    清理中...
+                  </>
+                ) : (
+                  '清理重複記錄'
+                )}
+              </Button>
+            )}
             <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -224,24 +242,6 @@ export default function Dashboard() {
               />
             </PopoverContent>
           </Popover>
-            {currentUser?.role === 'admin' && (
-              <Button
-                onClick={handleCleanDuplicates}
-                disabled={isCleaningDuplicates}
-                variant="outline"
-                size="sm"
-                className="border-orange-500 text-orange-600 hover:bg-orange-50"
-              >
-                {isCleaningDuplicates ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    清理中...
-                  </>
-                ) : (
-                  '清理重複記錄'
-                )}
-              </Button>
-            )}
           </div>
         </div>
 
