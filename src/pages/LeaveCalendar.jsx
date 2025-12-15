@@ -109,8 +109,19 @@ export default function LeaveCalendar() {
 
   const updateLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
-      // 檢查職代衝突
       const currentEmployee = employees.find(e => e.id === employeeId);
+      
+      // 先檢查是否已存在相同的請假記錄
+      const existing = leaveRecords.find(
+        r => r.employee_id === employeeId && r.date === date
+      );
+      if (existing && existing.leave_type_id === leaveTypeId) {
+        // 如果是同一個假別，直接返回，不做任何操作也不顯示警告
+        return existing;
+      }
+      
+      // 如果不存在或假別不同，才進行衝突檢查
+      // 檢查職代衝突
       if (currentEmployee?.code) {
         const sameCodeEmployees = employees.filter(e => 
           e.code === currentEmployee.code && e.id !== employeeId
@@ -136,8 +147,9 @@ export default function LeaveCalendar() {
         }
       }
       
-      // 檢查部門人數限制
+      // 檢查部門人數限制（排除自己）
       const deptLeaves = allLeaveRecords.filter(r => {
+        if (r.employee_id === employeeId) return false; // 排除自己
         const emp = employees.find(e => e.id === r.employee_id);
         return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
       });
@@ -152,14 +164,7 @@ export default function LeaveCalendar() {
         }
       }
 
-      const existing = leaveRecords.find(
-        r => r.employee_id === employeeId && r.date === date
-      );
       if (existing) {
-        // 如果是同一個假別，不做任何操作
-        if (existing.leave_type_id === leaveTypeId) {
-          return existing;
-        }
         // 不同假別則更新
         return base44.entities.LeaveRecord.update(existing.id, {
           leave_type_id: leaveTypeId
@@ -242,8 +247,9 @@ export default function LeaveCalendar() {
           }
         }
         
-        // 檢查部門人數限制
+        // 檢查部門人數限制（排除自己）
         const deptLeaves = allLeaveRecords.filter(r => {
+          if (r.employee_id === employeeId) return false; // 排除自己
           const emp = employees.find(e => e.id === r.employee_id);
           return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
         });
