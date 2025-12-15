@@ -3,13 +3,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { Loader2, Calendar as CalendarIcon, Users, TrendingUp } from 'lucide-react';
+import { Loader2, Calendar as CalendarIcon, Users, TrendingUp, MoreVertical, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -194,7 +200,24 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
+            {currentUser?.role === 'admin' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={handleCleanDuplicates} disabled={isCleaningDuplicates}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {isCleaningDuplicates ? '清理中...' : '清理重複記錄'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             {currentUser?.role === 'admin' && (
               <Button
@@ -202,7 +225,7 @@ export default function Dashboard() {
                 disabled={isCleaningDuplicates}
                 variant="outline"
                 size="sm"
-                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                className="hidden md:inline-flex border-orange-500 text-orange-600 hover:bg-orange-50"
               >
                 {isCleaningDuplicates ? (
                   <>
