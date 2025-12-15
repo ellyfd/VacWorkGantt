@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -23,6 +23,8 @@ import {
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -55,6 +57,12 @@ export default function Dashboard() {
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays'],
     queryFn: () => base44.entities.Holiday.list(),
+  });
+
+  const { data: allLeaveRecords = [] } = useQuery({
+    queryKey: ['allLeaveRecords'],
+    queryFn: () => base44.entities.LeaveRecord.list(),
+    enabled: false, // 只在需要時手動觸發
   });
 
   const getEmployeeName = (empId) => {
@@ -125,6 +133,53 @@ export default function Dashboard() {
 
   const holidayInfo = holidays.find(h => h.date === selectedDate);
 
+  const handleCleanDuplicates = async () => {
+    if (!window.confirm('確定要清理重複的請假記錄嗎？\n\n系統會檢查資料庫中同一人、同一天、同一假別的重複記錄，只保留最早的一筆。')) {
+      return;
+    }
+
+    setIsCleaningDuplicates(true);
+    try {
+      // 先獲取所有請假記錄
+      const records = await base44.entities.LeaveRecord.list();
+      
+      // 找出重複的記錄
+      const recordMap = new Map();
+      const duplicatesToDelete = [];
+      
+      records.forEach(record => {
+        const key = `${record.employee_id}-${record.date}-${record.leave_type_id}`;
+        if (recordMap.has(key)) {
+          // 已存在相同的記錄，標記為要刪除
+          duplicatesToDelete.push(record.id);
+        } else {
+          // 第一次出現，保留
+          recordMap.set(key, record.id);
+        }
+      });
+      
+      if (duplicatesToDelete.length === 0) {
+        alert('沒有發現重複的記錄');
+      } else {
+        // 批量刪除重複記錄
+        await Promise.all(
+          duplicatesToDelete.map(id => base44.entities.LeaveRecord.delete(id))
+        );
+        
+        // 重新載入資料
+        queryClient.invalidateQueries(['todayLeaves']);
+        queryClient.invalidateQueries(['leaveRecords']);
+        queryClient.invalidateQueries(['allLeaveRecords']);
+        
+        alert(`成功清理 ${duplicatesToDelete.length} 筆重複記錄`);
+      }
+    } catch (error) {
+      alert('清理失敗：' + error.message);
+    } finally {
+      setIsCleaningDuplicates(false);
+    }
+  };
+
   const isLoading = loadingUser || loadingLeaves;
 
   if (isLoading) {
@@ -140,7 +195,26 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
-          <Popover>
+          <div className="flex items-center gap-3">
+            {currentUser?.role === 'admin' && (
+              <Button
+                onClick={handleCleanDuplicates}
+                disabled={isCleaningDuplicates}
+                variant="outline"
+                size="sm"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+              >
+                {isCleaningDuplicates ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    清理中...
+                  </>
+                ) : (
+                  '清理重複記錄'
+                )}
+              </Button>
+            )}
+            <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -168,6 +242,7 @@ export default function Dashboard() {
               />
             </PopoverContent>
           </Popover>
+          </div>
         </div>
 
         <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
