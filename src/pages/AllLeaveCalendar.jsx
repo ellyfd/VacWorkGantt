@@ -41,8 +41,8 @@ export default function AllLeaveCalendar() {
   const { data: employees = [], isLoading: loadingEmps } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
-      const emps = await base44.entities.Employee.list('sort_order');
-      return emps.sort((a, b) => (a.sort_order || 999999) - (b.sort_order || 999999));
+      const emps = await base44.entities.Employee.list('name');
+      return emps;
     },
   });
 

@@ -51,7 +51,7 @@ export default function EmployeeManagement() {
     queryKey: ['employees'],
     queryFn: async () => {
       const emps = await base44.entities.Employee.list('name');
-      return emps.sort((a, b) => (a.sort_order || 999999) - (b.sort_order || 999999));
+      return emps;
     },
   });
 
@@ -163,9 +163,36 @@ export default function EmployeeManagement() {
     }
   };
 
-  const filteredEmployees = selectedDepartments.length === 0
-    ? employees 
-    : employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)));
+  // 根據部門篩選並按部門排序
+  const getEmployeesForDisplay = () => {
+    if (selectedDepartments.length === 0) {
+      return employees;
+    }
+    
+    // 為每個選中的部門收集員工並排序
+    const employeesByDept = new Map();
+    
+    selectedDepartments.forEach(deptId => {
+      const deptEmployees = employees
+        .filter(emp => emp.department_ids?.includes(deptId))
+        .map(emp => ({
+          ...emp,
+          currentDeptId: deptId,
+          displayOrder: emp.sort_order_by_dept?.[deptId] || 999999
+        }))
+        .sort((a, b) => a.displayOrder - b.displayOrder);
+      
+      deptEmployees.forEach(emp => {
+        if (!employeesByDept.has(emp.id)) {
+          employeesByDept.set(emp.id, emp);
+        }
+      });
+    });
+    
+    return Array.from(employeesByDept.values());
+  };
+  
+  const filteredEmployees = getEmployeesForDisplay();
 
   const handleEmployeeToggle = (empId) => {
     setSelectedEmployees(prev => 
@@ -195,10 +222,13 @@ export default function EmployeeManagement() {
     }
   };
 
-  const handleSortOrderChange = async (empId, newOrder) => {
+  const handleSortOrderChange = async (empId, deptId, newOrder) => {
     const order = parseInt(newOrder);
     if (isNaN(order)) return;
-    await base44.entities.Employee.update(empId, { sort_order: order });
+    const emp = employees.find(e => e.id === empId);
+    const sortOrderByDept = emp.sort_order_by_dept || {};
+    sortOrderByDept[deptId] = order;
+    await base44.entities.Employee.update(empId, { sort_order_by_dept: sortOrderByDept });
     queryClient.invalidateQueries(['employees']);
   };
 
@@ -612,73 +642,85 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="w-14 md:w-[6%] px-1 md:px-4">排序</TableHead>
                   <TableHead className="min-w-[100px] md:w-[18%]">姓名</TableHead>
                   <TableHead className="min-w-[120px] hidden md:table-cell md:w-[18%]">英文名字</TableHead>
-                  <TableHead className="min-w-[150px] md:w-[26%]">部門</TableHead>
+                  <TableHead className="min-w-[150px] md:w-[26%]">部門排序</TableHead>
                   <TableHead className="w-24 md:w-[13%]">狀態</TableHead>
-                  <TableHead className="w-16 md:w-[14%]">編輯</TableHead>
+                  <TableHead className="w-16 md:w-[20%]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEmployees.map((emp, index) => (
-                  <TableRow key={emp.id}>
-                    <TableCell>
-                      <input
-                        type="checkbox"
-                        checked={selectedEmployees.includes(emp.id)}
-                        onChange={() => handleEmployeeToggle(emp.id)}
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                    </TableCell>
-                    <TableCell className="px-1 md:px-4">
-                      <Input
-                        type="number"
-                        value={emp.sort_order ?? ''}
-                        onChange={(e) => handleSortOrderChange(emp.id, e.target.value)}
-                        className="w-10 h-7 text-center text-xs md:w-14"
-                        min="1"
-                        placeholder={(index + 1).toString()}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{emp.name}</TableCell>
-                    <TableCell className="text-sm text-gray-600 hidden md:table-cell">{emp.english_name || '-'}</TableCell>
-                    <TableCell className="text-sm">{getDepartmentNames(emp.department_ids)}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
-                        emp.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : emp.status === 'parental_leave'
-                          ? 'bg-blue-100 text-blue-800'
-                          : emp.status === 'hidden'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex md:flex-row flex-col gap-1 md:items-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenDialog(emp)}
-                          className="h-8 w-8"
-                        >
-                          <Pencil className="w-4 h-4 text-gray-500" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteMutation.mutate(emp.id)}
-                          className="h-8 w-8"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredEmployees.map((emp, index) => {
+                  // 顯示該員工所屬的部門及其排序
+                  const displayDepts = selectedDepartments.length > 0
+                    ? departments.filter(d => emp.department_ids?.includes(d.id) && selectedDepartments.includes(d.id))
+                    : departments.filter(d => emp.department_ids?.includes(d.id));
+
+                  return (
+                    <TableRow key={emp.id}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedEmployees.includes(emp.id)}
+                          onChange={() => handleEmployeeToggle(emp.id)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{emp.name}</TableCell>
+                      <TableCell className="text-sm text-gray-600 hidden md:table-cell">{emp.english_name || '-'}</TableCell>
+                      <TableCell className="text-sm">
+                        <div className="space-y-1">
+                          {displayDepts.map((dept) => (
+                            <div key={dept.id} className="flex items-center gap-2">
+                              <span className="text-xs text-gray-700 min-w-[60px]">{dept.name}:</span>
+                              <Input
+                                type="number"
+                                value={emp.sort_order_by_dept?.[dept.id] ?? ''}
+                                onChange={(e) => handleSortOrderChange(emp.id, dept.id, e.target.value)}
+                                className="w-12 h-6 text-center text-xs"
+                                min="1"
+                                placeholder={(index + 1).toString()}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
+                          emp.status === 'active' 
+                            ? 'bg-green-100 text-green-800' 
+                            : emp.status === 'parental_leave'
+                            ? 'bg-blue-100 text-blue-800'
+                            : emp.status === 'hidden'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex md:flex-row flex-col gap-1 md:items-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(emp)}
+                            className="h-8 w-8"
+                          >
+                            <Pencil className="w-4 h-4 text-gray-500" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteMutation.mutate(emp.id)}
+                            className="h-8 w-8"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
               </Table>
             </>

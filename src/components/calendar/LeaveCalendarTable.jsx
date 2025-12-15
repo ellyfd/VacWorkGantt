@@ -114,7 +114,11 @@ export default function LeaveCalendarTable({
             departments.forEach((dept) => {
               const deptEmployees = employees
                 .filter(e => e.department_ids?.includes(dept.id))
-                .sort((a, b) => (a.sort_order || 999999) - (b.sort_order || 999999));
+                .sort((a, b) => {
+                  const orderA = a.sort_order_by_dept?.[dept.id] || 999999;
+                  const orderB = b.sort_order_by_dept?.[dept.id] || 999999;
+                  return orderA - orderB;
+                });
               deptEmployees.forEach(emp => {
                 if (!seenEmployeeIds.has(emp.id)) {
                   seenEmployeeIds.add(emp.id);
