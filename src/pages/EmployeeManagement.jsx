@@ -677,7 +677,7 @@ export default function EmployeeManagement() {
                                 type="number"
                                 value={emp.sort_order_by_dept?.[dept.id] ?? ''}
                                 onChange={(e) => handleSortOrderChange(emp.id, dept.id, e.target.value)}
-                                className="w-12 h-6 text-center text-xs"
+                                className="w-16 h-6 text-center text-xs"
                                 min="1"
                                 placeholder={(index + 1).toString()}
                               />
