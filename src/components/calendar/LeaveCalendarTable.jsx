@@ -86,7 +86,7 @@ export default function LeaveCalendarTable({
     }
   };
 
-  const handleLongPress = (type, id) => {
+  const handleHighlight = (type, id) => {
     if (type === 'employee') {
       if (highlightedEmployeeId === id) {
         onHighlightEmployee?.(null);
@@ -104,38 +104,6 @@ export default function LeaveCalendarTable({
     }
   };
 
-  const useLongPress = (callback, ms = 500) => {
-    const [longPressTriggered, setLongPressTriggered] = React.useState(false);
-    const timeout = React.useRef();
-    const target = React.useRef();
-
-    const start = React.useCallback((event) => {
-      event.preventDefault();
-      target.current = event.target;
-      timeout.current = setTimeout(() => {
-        callback();
-        setLongPressTriggered(true);
-      }, ms);
-    }, [callback, ms]);
-
-    const clear = React.useCallback((event, shouldTriggerClick = true) => {
-      timeout.current && clearTimeout(timeout.current);
-      if (longPressTriggered) {
-        event.preventDefault();
-      }
-      setLongPressTriggered(false);
-    }, [longPressTriggered]);
-
-    return {
-      onTouchStart: start,
-      onTouchEnd: clear,
-      onContextMenu: (e) => {
-        e.preventDefault();
-        callback();
-      }
-    };
-  };
-
 
 
   return (
@@ -146,21 +114,18 @@ export default function LeaveCalendarTable({
               <th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[70px]">
                 姓名
               </th>
-            {days.map((d, idx) => {
-              const dateHeaderLongPress = useLongPress(() => handleLongPress('date', d.date));
-              return (
-                <th 
-                  key={idx} 
-                  {...dateHeaderLongPress}
-                  className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
-                    highlightedDate === d.date ? 'bg-blue-200' : d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
-                  }`}
-                >
-                  <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                  <div className="text-[10px] font-normal">{d.weekday}</div>
-                </th>
-              );
-            })}
+            {days.map((d, idx) => (
+              <th 
+                key={idx} 
+                onDoubleClick={() => handleHighlight('date', d.date)}
+                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
+                  highlightedDate === d.date ? 'bg-blue-200' : d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
+                }`}
+              >
+                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                <div className="text-[10px] font-normal">{d.weekday}</div>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -187,12 +152,11 @@ export default function LeaveCalendarTable({
             
             return employeesToShow.map((emp) => {
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
-              const employeeLongPress = useLongPress(() => handleLongPress('employee', emp.id));
               const isHighlighted = highlightedEmployeeId === emp.id;
               return (
                 <tr key={emp.id} className={`hover:bg-gray-50/50 ${isHighlighted ? 'bg-blue-100' : ''}`}>
                         <td 
-                          {...employeeLongPress}
+                          onDoubleClick={() => handleHighlight('employee', emp.id)}
                           className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
                             isHighlighted ? 'bg-blue-200' : isCurrentUser ? 'bg-yellow-100' : 'bg-white'
                           }`}
