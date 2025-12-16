@@ -154,7 +154,7 @@ export default function WeekCalendarTable({
               return (
                 <div 
                   key={`${weekIdx}-${dayIdx}`} 
-                  className={`h-16 flex flex-col ${isToday ? 'border-2 border-red-500' : 'border-r border-b border-gray-200'}`}
+                  className={`h-16 border-r border-b border-gray-200 flex flex-col ${isToday ? 'shadow-[inset_0_0_0_2px_rgb(239,68,68)]' : ''}`}
                 >
                   <div className={`px-1 py-0.5 text-xs font-semibold ${
                     day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
