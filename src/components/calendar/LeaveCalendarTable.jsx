@@ -140,8 +140,9 @@ export default function LeaveCalendarTable({
                     const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
+                    const isToday = d.date === format(new Date(), 'yyyy-MM-dd');
                     return (
-                      <td key={idx} className="p-0 border-r border-b border-gray-200">
+                      <td key={idx} className={`p-0 border-r border-b border-gray-200 ${isToday ? 'bg-yellow-50' : ''}`}>
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
