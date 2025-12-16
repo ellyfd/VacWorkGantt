@@ -150,16 +150,23 @@ export default function WeekCalendarTable({
                 }
 
                 const record = getLeaveRecord(currentEmployee.id, day.date);
+                const today = format(new Date(), 'yyyy-MM-dd');
+                const isToday = day.date === today;
                 return (
                   <div 
                     key={`${weekIdx}-${dayIdx}`} 
-                    className="h-12 border-r border-b border-gray-200 relative"
+                    className={`h-12 border-r border-b relative ${
+                      isToday ? 'border-2 border-blue-500 bg-blue-50/30' : 'border-gray-200'
+                    }`}
                   >
                     <div className={`absolute top-0 left-1 text-[10px] font-semibold leading-none ${
-                      day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
+                      isToday ? 'text-blue-600' : day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
                     }`}>
                       {day.day}
                     </div>
+                    {isToday && (
+                      <div className="absolute top-0 right-1 text-[8px] font-bold text-blue-600 leading-none">今</div>
+                    )}
                     <div className="w-full h-full flex items-center justify-center">
                       <LeaveCell
                         record={record}
