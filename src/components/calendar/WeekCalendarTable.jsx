@@ -162,13 +162,13 @@ export default function WeekCalendarTable({
                     {isToday && (
                       <div className="absolute inset-0 border-2 border-blue-500 pointer-events-none z-10"></div>
                     )}
-                    <div className={`absolute top-0 left-1 text-[10px] font-semibold leading-none z-20 ${
+                    <div className={`absolute top-0.5 left-1 text-[10px] font-semibold leading-none z-20 ${
                       isToday ? 'text-blue-600' : day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
                     }`}>
                       {day.day}
                     </div>
                     {isToday && (
-                      <div className="absolute top-0 right-1 text-[8px] font-bold text-blue-600 leading-none z-20">今</div>
+                      <div className="absolute top-0.5 right-1 text-[8px] font-bold text-blue-600 leading-none z-20">今</div>
                     )}
                     <div className="w-full h-full flex items-center justify-center">
                       <LeaveCell
