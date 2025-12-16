@@ -13,11 +13,14 @@ export default function LeaveCell({
         rangeMode = false,
         dateRange = { from: undefined, to: undefined },
         currentDate,
-        onRangeCellClick
+        onRangeCellClick,
+        isHighlighted = false
       }) {
   const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
 
-  const cellBgClass = (isHoliday || isWeekend) 
+  const cellBgClass = isHighlighted
+    ? "bg-blue-100"
+    : (isHoliday || isWeekend) 
     ? "bg-gray-200" 
     : isCurrentUser 
     ? "bg-yellow-100" 

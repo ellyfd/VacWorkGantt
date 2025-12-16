@@ -158,9 +158,7 @@ export default function LeaveCalendarTable({
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
                     return (
-                      <td key={idx} className={`p-0 border-r border-b border-gray-200 h-9 ${
-                        (highlightedEmployeeId === emp.id || highlightedDate === d.date) ? 'bg-blue-50' : ''
-                      }`}>
+                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9">
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
@@ -171,6 +169,7 @@ export default function LeaveCalendarTable({
                           rangeMode={rangeMode && selectedEmployeeId === emp.id}
                           dateRange={dateRange}
                           currentDate={d.date}
+                          isHighlighted={highlightedEmployeeId === emp.id || highlightedDate === d.date}
                           onSelectLeave={(leaveTypeId) => handleSelectLeave(emp.id, d.date, leaveTypeId)}
                           onClearLeave={() => record && handleClearLeave(record.id)}
                           onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
