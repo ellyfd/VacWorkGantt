@@ -26,6 +26,7 @@ export default function LeaveCalendarTable({
 }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+  const today = format(new Date(), 'yyyy-MM-dd');
   
   const days = month === -1 
     ? Array.from({ length: 365 }, (_, i) => {
@@ -33,13 +34,15 @@ export default function LeaveCalendarTable({
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
         const isHoliday = holidays?.some(h => h.date === dateStr);
+        const isToday = dateStr === today;
         return {
           day: date.getDate(),
           month: date.getMonth() + 1,
           date: dateStr,
           weekday: WEEKDAY_NAMES[dayOfWeek],
           isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday
+          isHoliday,
+          isToday
         };
       })
     : Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => {
@@ -47,12 +50,14 @@ export default function LeaveCalendarTable({
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
         const isHoliday = holidays?.some(h => h.date === dateStr);
+        const isToday = dateStr === today;
         return {
           day: i + 1,
           date: dateStr,
           weekday: WEEKDAY_NAMES[dayOfWeek],
           isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday
+          isHoliday,
+          isToday
         };
       });
 
@@ -95,11 +100,15 @@ export default function LeaveCalendarTable({
             {days.map((d, idx) => (
               <th 
                 key={idx} 
-                className={`px-0.5 py-1 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] ${
-                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
+                className={`px-0.5 py-1 text-center text-xs border-r border-b border-gray-200 min-w-[28px] ${
+                  d.isToday 
+                    ? 'bg-blue-500 text-white font-bold' 
+                    : d.isHoliday || d.isWeekend 
+                    ? 'bg-gray-300 text-red-500 font-semibold' 
+                    : 'text-gray-600 font-semibold'
                 }`}
               >
-                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                <div className={d.isToday ? 'font-bold' : ''}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
                 <div className="text-[10px] font-normal">{d.weekday}</div>
               </th>
             ))}
