@@ -23,6 +23,8 @@ export default function AllLeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
+  const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
+  const [highlightedDate, setHighlightedDate] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -503,10 +505,14 @@ export default function AllLeaveCalendar() {
           dateRange={dateRange}
           selectedEmployeeId={dateRange?.employeeId}
           currentEmployeeId={currentEmployee?.id}
+          highlightedEmployeeId={highlightedEmployeeId}
+          highlightedDate={highlightedDate}
           onUpdateLeave={handleUpdateLeave}
           onDeleteLeave={handleDeleteLeave}
           onDeleteRangeLeave={handleDeleteRangeLeave}
           onCellClickInRangeMode={handleCellClickInRangeMode}
+          onHighlightEmployee={setHighlightedEmployeeId}
+          onHighlightDate={setHighlightedDate}
         />
       </div>
     </div>
