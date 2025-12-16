@@ -155,8 +155,8 @@ export default function WeekCalendarTable({
                 return (
                   <div 
                     key={`${weekIdx}-${dayIdx}`} 
-                    className={`h-12 border-r border-b relative ${
-                      isToday ? 'border-2 border-blue-500 bg-blue-50/30' : 'border-gray-200'
+                    className={`h-12 border-r border-b border-gray-200 relative ${
+                      isToday ? 'ring-2 ring-inset ring-blue-500 bg-blue-50/30' : ''
                     }`}
                   >
                     <div className={`absolute top-0 left-1 text-[10px] font-semibold leading-none ${
