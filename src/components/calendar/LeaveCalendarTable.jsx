@@ -99,8 +99,9 @@ export default function LeaveCalendarTable({
               return (
                 <th 
                   key={idx} 
-                  className={`px-0.5 py-1 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] ${
-                    isToday ? 'bg-red-50' : 
+                  className={`px-0.5 py-1 text-center text-xs font-semibold border-r border-b min-w-[28px] ${
+                    isToday ? 'border-2 border-red-500' : 'border-gray-200'
+                  } ${
                     d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
                   }`}
                 >
@@ -148,7 +149,7 @@ export default function LeaveCalendarTable({
                       d.date >= dateRange.from && d.date <= dateRange.to;
                     const isToday = d.date === todayDate;
                     return (
-                      <td key={idx} className={`p-0 border-r border-b border-gray-200 ${isToday ? 'bg-red-50' : ''}`}>
+                      <td key={idx} className={`p-0 border-r border-b ${isToday ? 'border-2 border-red-500' : 'border-gray-200'}`}>
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
