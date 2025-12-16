@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
+import { format } from 'date-fns';
 import { Loader2, ChevronDown, ChevronUp, CalendarRange, Download, Calendar, CalendarDays } from 'lucide-react';
 import {
   Select,
@@ -25,7 +25,7 @@ export default function LeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
-  const [viewMode, setViewMode] = useState('month'); // 'week' or 'month'
+  const [viewMode, setViewMode] = useState('month'); // 'month' or 'year'
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -441,17 +441,73 @@ export default function LeaveCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
-    let csvContent = "日期,星期,假別,備註\n";
+    // 建立日曆格式的表格
+    let csvContent = "";
     
-    const relevantRecords = leaveRecords.filter(r => r.employee_id === currentEmployee.id);
-    
-    relevantRecords.sort((a, b) => a.date.localeCompare(b.date)).forEach(record => {
-      const date = new Date(record.date);
-      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-      const weekday = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+    if (month === -1) {
+      // 年視圖：每個月一個表格
+      csvContent = `${currentEmployee.name} - ${year}年排休表\n\n`;
       
-      csvContent += `${record.date},${weekday},${leaveType?.name || '-'},${record.note || ''}\n`;
-    });
+      for (let m = 0; m < 12; m++) {
+        const monthStart = new Date(year, m, 1);
+        const daysInMonth = new Date(year, m + 1, 0).getDate();
+        
+        csvContent += `${m + 1}月\n`;
+        csvContent += "日,一,二,三,四,五,六\n";
+        
+        const startDay = monthStart.getDay();
+        let dayCounter = 1;
+        let weekRow = Array(startDay).fill('');
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${year}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const record = leaveRecords.find(r => r.employee_id === currentEmployee.id && r.date === dateStr);
+          const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
+          
+          weekRow.push(leaveType ? `${d}(${leaveType.short_name})` : d);
+          
+          if (weekRow.length === 7) {
+            csvContent += weekRow.join(',') + '\n';
+            weekRow = [];
+          }
+        }
+        
+        if (weekRow.length > 0) {
+          while (weekRow.length < 7) weekRow.push('');
+          csvContent += weekRow.join(',') + '\n';
+        }
+        
+        csvContent += '\n';
+      }
+    } else {
+      // 月視圖
+      csvContent = `${currentEmployee.name} - ${year}年${month + 1}月排休表\n\n`;
+      csvContent += "日,一,二,三,四,五,六\n";
+      
+      const monthStart = new Date(year, month, 1);
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const startDay = monthStart.getDay();
+      
+      let weekRow = Array(startDay).fill('');
+      
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const record = leaveRecords.find(r => r.employee_id === currentEmployee.id && r.date === dateStr);
+        const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
+        
+        weekRow.push(leaveType ? `${d}(${leaveType.short_name})` : d);
+        
+        if (weekRow.length === 7) {
+          csvContent += weekRow.join(',') + '\n';
+          weekRow = [];
+        }
+      }
+      
+      if (weekRow.length > 0) {
+        while (weekRow.length < 7) weekRow.push('');
+        csvContent += weekRow.join(',') + '\n';
+      }
+    }
     
     const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -527,22 +583,26 @@ export default function LeaveCalendar() {
             </Button>
             <div className="flex border border-gray-200 rounded-lg overflow-hidden">
               <Button
-                onClick={() => setViewMode('week')}
-                variant={viewMode === 'week' ? 'default' : 'ghost'}
-                size="sm"
-                className={`rounded-none ${viewMode === 'week' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
-              >
-                <CalendarDays className="w-4 h-4 mr-1" />
-                周
-              </Button>
-              <Button
                 onClick={() => setViewMode('month')}
                 variant={viewMode === 'month' ? 'default' : 'ghost'}
                 size="sm"
-                className={`rounded-none border-l ${viewMode === 'month' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
+                className={`rounded-none ${viewMode === 'month' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
               >
                 <Calendar className="w-4 h-4 mr-1" />
                 月
+              </Button>
+              <Button
+                onClick={() => {
+                  setViewMode('year');
+                  const newDate = new Date(currentDate.getFullYear(), -1, 1);
+                  setCurrentDate(newDate);
+                }}
+                variant={viewMode === 'year' ? 'default' : 'ghost'}
+                size="sm"
+                className={`rounded-none border-l ${viewMode === 'year' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
+              >
+                <CalendarDays className="w-4 h-4 mr-1" />
+                年
               </Button>
             </div>
           </div>
