@@ -150,11 +150,10 @@ export default function WeekCalendarTable({
               }
               
               const record = getLeaveRecord(currentEmployee.id, day.date);
-              const isToday = day.date === format(new Date(), 'yyyy-MM-dd');
               return (
                 <div 
                   key={`${weekIdx}-${dayIdx}`} 
-                  className={`h-16 border-r border-b border-gray-200 flex flex-col ${isToday ? 'ring-2 ring-inset ring-red-500' : ''}`}
+                  className="h-16 border-r border-b border-gray-200 flex flex-col"
                 >
                   <div className={`px-1 py-0.5 text-xs font-semibold ${
                     day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
