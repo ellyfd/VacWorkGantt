@@ -21,7 +21,7 @@ import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [legendOpen, setLegendOpen] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(true);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
@@ -589,19 +589,10 @@ export default function LeaveCalendar() {
           />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-            <Button
-              variant="ghost"
-              className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
-              onClick={() => setLegendOpen(!legendOpen)}
-            >
+            <div className="p-4 border-b border-gray-200 bg-white">
               <h3 className="text-sm font-semibold text-gray-700">操作說明與假別圖例</h3>
-              {legendOpen ? (
-                <ChevronUp className="w-4 h-4 text-gray-700" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-gray-700" />
-              )}
-            </Button>
-            {legendOpen && (
+            </div>
+            <div className="p-4">(
               <div className="px-4 pb-4 space-y-3">
                 <div>
                   <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
@@ -624,9 +615,8 @@ export default function LeaveCalendar() {
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+                </div>
+                </div>
           </div>
           </div>
           );
