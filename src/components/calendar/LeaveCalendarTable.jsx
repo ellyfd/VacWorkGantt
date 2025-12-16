@@ -103,8 +103,8 @@ export default function LeaveCalendarTable({
                   setHighlightedEmployeeId(null);
                 }}
                 className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
-                  highlightedDate === d.date ? 'bg-blue-200' : 
-                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
+                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 
+                  highlightedDate === d.date ? 'bg-yellow-200' : 'text-gray-600'
                 }`}
               >
                 <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
@@ -145,7 +145,7 @@ export default function LeaveCalendarTable({
                             setHighlightedDate(null);
                           }}
                           className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
-                            highlightedEmployeeId === emp.id ? 'bg-blue-200' :
+                            highlightedEmployeeId === emp.id ? 'bg-yellow-200' :
                             isCurrentUser ? 'bg-yellow-100' : 'bg-white'
                           }`}
                         >

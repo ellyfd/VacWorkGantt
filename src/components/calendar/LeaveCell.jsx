@@ -18,10 +18,10 @@ export default function LeaveCell({
       }) {
   const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
 
-  const cellBgClass = isHighlighted
-    ? "bg-blue-100"
-    : (isHoliday || isWeekend) 
+  const cellBgClass = (isHoliday || isWeekend) 
     ? "bg-gray-200" 
+    : isHighlighted
+    ? "bg-yellow-100"
     : isCurrentUser 
     ? "bg-yellow-100" 
     : "bg-white";
