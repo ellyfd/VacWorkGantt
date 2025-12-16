@@ -153,20 +153,12 @@ export default function LeaveCalendar() {
         const emp = employees.find(e => e.id === r.employee_id);
         return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
       });
-
-      // 計算該部門的總人數（active狀態）
-      const deptTotalCount = employees.filter(e => 
-        e.status === 'active' && 
-        e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-      ).length;
-
-      const threshold = Math.ceil(deptTotalCount / 3);
-
-      if (deptLeaves.length >= threshold) {
+      
+      if (deptLeaves.length >= 2) {
         const confirmed = window.confirm(
-          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假（部門總人數 ${deptTotalCount} 人，已達1/3門檻 ${threshold} 人），確定要繼續請假嗎？`
+          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假，確定要繼續請假嗎？`
         );
-
+        
         if (!confirmed) {
           throw new Error('取消請假');
         }
@@ -261,17 +253,9 @@ export default function LeaveCalendar() {
           const emp = employees.find(e => e.id === r.employee_id);
           return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
         });
-
-        // 計算該部門的總人數（active狀態）
-        const deptTotalCount = employees.filter(e => 
-          e.status === 'active' && 
-          e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-        ).length;
-
-        const threshold = Math.ceil(deptTotalCount / 3);
-
-        if (deptLeaves.length >= threshold) {
-          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（已達1/3門檻 ${threshold}/${deptTotalCount} 人）`);
+        
+        if (deptLeaves.length >= 2) {
+          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假`);
         }
       }
       
@@ -622,13 +606,11 @@ export default function LeaveCalendar() {
                 <div>
                   <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• <span className="font-medium">今日標示</span>：紅框標示今天的日期</li>
-                    <li>• <span className="font-medium">假日顯示</span>：灰色背景為週末或國定假日</li>
                     <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
                     <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
                     <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
                     <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                    <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門請假人數超過1/3時會提醒</li>
+                    <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
                   </ul>
                 </div>
                 <div className="border-t border-gray-300 pt-3">
