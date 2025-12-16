@@ -95,7 +95,7 @@ export default function LeaveCalendarTable({
             {days.map((d, idx) => (
               <th 
                 key={idx} 
-                className={`px-0.5 pt-1.5 pb-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-10 ${
+                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-10 ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
                 }`}
               >
