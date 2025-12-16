@@ -155,12 +155,12 @@ export default function WeekCalendarTable({
                  key={`${weekIdx}-${dayIdx}`} 
                  className="h-12 border-r border-b border-gray-200 flex flex-col"
                 >
-                  <div className={`px-1 py-0.5 text-xs font-semibold ${
+                  <div className={`px-1 py-0.5 text-xs font-semibold leading-none ${
                     day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
                   }`}>
                     {day.day}
                   </div>
-                  <div className="flex-1 flex items-center justify-center p-0.5">
+                  <div className="flex-1 flex items-center justify-center p-0">
                     <LeaveCell
                       record={record}
                       leaveTypes={leaveTypes}
