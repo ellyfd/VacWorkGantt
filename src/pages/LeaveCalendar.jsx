@@ -592,32 +592,31 @@ export default function LeaveCalendar() {
             <div className="p-4 border-b border-gray-200 bg-white">
               <h3 className="text-sm font-semibold text-gray-700">操作說明與假別圖例</h3>
             </div>
-            <div className="p-4">(
-              <div className="px-4 pb-4 space-y-3">
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
-                    <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
-                    <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
-                    <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                    <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
-                  </ul>
+            <div className="px-4 pb-4 space-y-3">
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
+                  <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
+                  <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
+                  <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
+                  <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過2人請假時會提醒</li>
+                </ul>
+              </div>
+              <div className="border-t border-gray-300 pt-3">
+                <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
+                <div className="flex flex-wrap gap-3">
+                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                    <div key={lt.id} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
+                      <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="border-t border-gray-300 pt-3">
-                  <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
-                  <div className="flex flex-wrap gap-3">
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <div key={lt.id} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
-                        <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                </div>
-                </div>
+              </div>
+            </div>
           </div>
-          </div>
-          );
-          }
+      </div>
+    </div>
+  );
+}
