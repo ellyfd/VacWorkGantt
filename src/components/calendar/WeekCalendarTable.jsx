@@ -151,33 +151,33 @@ export default function WeekCalendarTable({
 
                 const record = getLeaveRecord(currentEmployee.id, day.date);
                 return (
-                <div 
-                 key={`${weekIdx}-${dayIdx}`} 
-                 className="h-12 border-r border-b border-gray-200 flex flex-col"
-                >
-                  <div className={`px-1 py-0.5 text-xs font-semibold leading-none ${
-                    day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
-                  }`}>
-                    {day.day}
+                  <div 
+                    key={`${weekIdx}-${dayIdx}`} 
+                    className="h-12 border-r border-b border-gray-200 relative"
+                  >
+                    <div className={`absolute top-0 left-1 text-[10px] font-semibold leading-none ${
+                      day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
+                    }`}>
+                      {day.day}
+                    </div>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <LeaveCell
+                        record={record}
+                        leaveTypes={leaveTypes}
+                        selectedLeaveTypeId={selectedLeaveTypeId}
+                        isWeekend={day.isWeekend}
+                        isHoliday={day.isHoliday}
+                        rangeMode={rangeMode}
+                        dateRange={dateRange}
+                        currentDate={day.date}
+                        onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
+                        onClearLeave={() => record && handleClearLeave(record.id)}
+                        onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
+                        onRangeCellClick={() => rangeMode && onCellClickInRangeMode(day.date)}
+                      />
+                    </div>
                   </div>
-                  <div className="flex-1 flex items-center justify-center p-0">
-                    <LeaveCell
-                      record={record}
-                      leaveTypes={leaveTypes}
-                      selectedLeaveTypeId={selectedLeaveTypeId}
-                      isWeekend={day.isWeekend}
-                      isHoliday={day.isHoliday}
-                      rangeMode={rangeMode}
-                      dateRange={dateRange}
-                      currentDate={day.date}
-                      onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
-                      onClearLeave={() => record && handleClearLeave(record.id)}
-                      onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
-                      onRangeCellClick={() => rangeMode && onCellClickInRangeMode(day.date)}
-                    />
-                  </div>
-                </div>
-              );
+                );
             })
           ))}
         </div>
