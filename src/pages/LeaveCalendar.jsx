@@ -1,10 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2, ChevronDown, ChevronUp, CalendarRange, Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { Loader2, ChevronDown, ChevronUp, CalendarRange } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -27,8 +25,6 @@ export default function LeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
-  const [isExporting, setIsExporting] = useState(false);
-  const calendarRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -452,40 +448,6 @@ export default function LeaveCalendar() {
     queryClient.invalidateQueries(['employees']);
   };
 
-  const handleExportCalendar = async () => {
-    if (!calendarRef.current) return;
-    
-    setIsExporting(true);
-    try {
-      const canvas = await html2canvas(calendarRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-      });
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const fileName = month === -1 
-        ? `${currentEmployee?.name}_${year}年排休表.pdf`
-        : `${currentEmployee?.name}_${year}年${month + 1}月排休表.pdf`;
-      
-      pdf.save(fileName);
-    } catch (error) {
-      alert('匯出失敗：' + error.message);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const isLoading = loadingUser || loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
 
   if (isLoading) {
@@ -521,26 +483,7 @@ export default function LeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-full mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
-          <Button
-            onClick={handleExportCalendar}
-            disabled={isExporting}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                匯出中...
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4 mr-2" />
-                匯出日曆
-              </>
-            )}
-          </Button>
-        </div>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
 
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
@@ -644,24 +587,22 @@ export default function LeaveCalendar() {
             </div>
           </div>
 
-          <div ref={calendarRef}>
-            <WeekCalendarTable
-              currentDate={currentDate}
-              onDateChange={setCurrentDate}
-              currentEmployee={currentEmployee}
-              currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
-              leaveRecords={leaveRecords}
-              leaveTypes={leaveTypes}
-              holidays={holidays}
-              selectedLeaveTypeId={selectedLeaveTypeId}
-              rangeMode={rangeMode}
-              dateRange={dateRange}
-              onUpdateLeave={handleUpdateLeave}
-              onDeleteLeave={handleDeleteLeave}
-              onDeleteRangeLeave={handleDeleteRangeLeave}
-              onCellClickInRangeMode={handleCellClickInRangeMode}
-            />
-          </div>
+          <WeekCalendarTable
+            currentDate={currentDate}
+            onDateChange={setCurrentDate}
+            currentEmployee={currentEmployee}
+            currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
+            leaveRecords={leaveRecords}
+            leaveTypes={leaveTypes}
+            holidays={holidays}
+            selectedLeaveTypeId={selectedLeaveTypeId}
+            rangeMode={rangeMode}
+            dateRange={dateRange}
+            onUpdateLeave={handleUpdateLeave}
+            onDeleteLeave={handleDeleteLeave}
+            onDeleteRangeLeave={handleDeleteRangeLeave}
+            onCellClickInRangeMode={handleCellClickInRangeMode}
+          />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
             <Button
