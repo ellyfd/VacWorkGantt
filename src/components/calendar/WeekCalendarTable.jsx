@@ -89,6 +89,8 @@ export default function WeekCalendarTable({
     }
   };
 
+  const today = format(new Date(), 'yyyy-MM-dd');
+
   // 将日期按周分组，每周从周日开始
   const weeks = [];
   const firstDayOfMonth = allDays[0];
@@ -150,10 +152,13 @@ export default function WeekCalendarTable({
               }
               
               const record = getLeaveRecord(currentEmployee.id, day.date);
+              const isToday = day.date === today;
               return (
                 <div 
                   key={`${weekIdx}-${dayIdx}`} 
-                  className="h-16 border-r border-b border-gray-200 flex flex-col"
+                  className={`h-16 flex flex-col ${
+                    isToday ? 'border-r-2 border-b-2 border-red-500' : 'border-r border-b border-gray-200'
+                  }`}
                 >
                   <div className={`px-1 py-0.5 text-xs font-semibold ${
                     day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
