@@ -622,6 +622,8 @@ export default function LeaveCalendar() {
                 <div>
                   <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• <span className="font-medium">今日標示</span>：紅框標示今天的日期</li>
+                    <li>• <span className="font-medium">假日顯示</span>：灰色背景為週末或國定假日</li>
                     <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
                     <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
                     <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
