@@ -1,6 +1,8 @@
 import React from 'react';
-import { format, getDay } from "date-fns";
+import { format, startOfWeek, addDays, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+
 import LeaveCell from "./LeaveCell";
 import CalendarHeader from "./CalendarHeader";
 
@@ -17,7 +19,6 @@ export default function WeekCalendarTable({
               selectedLeaveTypeId,
               rangeMode = false,
               dateRange = { from: undefined, to: undefined },
-              viewMode = 'month',
               onUpdateLeave,
               onDeleteLeave,
               onDeleteRangeLeave,
@@ -32,12 +33,9 @@ export default function WeekCalendarTable({
   }
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
-  // Generate all days based on view mode
-  let allDays = [];
-
-  // Month or Year view
-  allDays = month === -1 
+  
+  // Generate all days in the selected period
+  const allDays = month === -1 
     ? Array.from({ length: 365 }, (_, i) => {
         const date = new Date(year, 0, i + 1);
         const dayOfWeek = getDay(date);
@@ -94,10 +92,11 @@ export default function WeekCalendarTable({
   // 将日期按周分组，每周从周日开始
   const weeks = [];
   const firstDayOfMonth = allDays[0];
-  const startDayOfWeek = getDay(firstDayOfMonth.fullDate);
-
+  const startDayOfWeek = getDay(firstDayOfMonth.fullDate); // 0=周日, 1=周一, ...
+  
+  // 填充第一周前面的空格
   let currentWeek = Array(startDayOfWeek).fill(null);
-
+  
   allDays.forEach((day) => {
     currentWeek.push(day);
     if (currentWeek.length === 7) {
@@ -105,7 +104,8 @@ export default function WeekCalendarTable({
       currentWeek = [];
     }
   });
-
+  
+  // 填充最后一周后面的空格
   if (currentWeek.length > 0) {
     while (currentWeek.length < 7) {
       currentWeek.push(null);

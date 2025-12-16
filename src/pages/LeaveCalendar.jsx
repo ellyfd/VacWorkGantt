@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2, ChevronDown, ChevronUp, CalendarRange, Download, Calendar, CalendarDays } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, CalendarRange } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -25,7 +25,6 @@ export default function LeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
-  const [viewMode, setViewMode] = useState('month'); // 'month' or 'year'
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -435,91 +434,6 @@ export default function LeaveCalendar() {
     }
   };
 
-  const handleExportCalendar = () => {
-    if (!currentEmployee) return;
-
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // 建立日曆格式的表格
-    let csvContent = "";
-    
-    if (month === -1) {
-      // 年視圖：每個月一個表格
-      csvContent = `${currentEmployee.name} - ${year}年排休表\n\n`;
-      
-      for (let m = 0; m < 12; m++) {
-        const monthStart = new Date(year, m, 1);
-        const daysInMonth = new Date(year, m + 1, 0).getDate();
-        
-        csvContent += `${m + 1}月\n`;
-        csvContent += "日,一,二,三,四,五,六\n";
-        
-        const startDay = monthStart.getDay();
-        let dayCounter = 1;
-        let weekRow = Array(startDay).fill('');
-        
-        for (let d = 1; d <= daysInMonth; d++) {
-          const dateStr = `${year}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          const record = leaveRecords.find(r => r.employee_id === currentEmployee.id && r.date === dateStr);
-          const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
-          
-          weekRow.push(leaveType ? `${d}(${leaveType.short_name})` : d);
-          
-          if (weekRow.length === 7) {
-            csvContent += weekRow.join(',') + '\n';
-            weekRow = [];
-          }
-        }
-        
-        if (weekRow.length > 0) {
-          while (weekRow.length < 7) weekRow.push('');
-          csvContent += weekRow.join(',') + '\n';
-        }
-        
-        csvContent += '\n';
-      }
-    } else {
-      // 月視圖
-      csvContent = `${currentEmployee.name} - ${year}年${month + 1}月排休表\n\n`;
-      csvContent += "日,一,二,三,四,五,六\n";
-      
-      const monthStart = new Date(year, month, 1);
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const startDay = monthStart.getDay();
-      
-      let weekRow = Array(startDay).fill('');
-      
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const record = leaveRecords.find(r => r.employee_id === currentEmployee.id && r.date === dateStr);
-        const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
-        
-        weekRow.push(leaveType ? `${d}(${leaveType.short_name})` : d);
-        
-        if (weekRow.length === 7) {
-          csvContent += weekRow.join(',') + '\n';
-          weekRow = [];
-        }
-      }
-      
-      if (weekRow.length > 0) {
-        while (weekRow.length < 7) weekRow.push('');
-        csvContent += weekRow.join(',') + '\n';
-      }
-    }
-    
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${currentEmployee.name}_排休_${year}年${month === -1 ? '全年' : `${month + 1}月`}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
     const deptEmployees = employees.filter(e => e.department_ids?.includes(departmentId));
     const sourceEmp = deptEmployees[sourceIndex];
@@ -569,44 +483,7 @@ export default function LeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-full mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleExportCalendar}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              匯出
-            </Button>
-            <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-              <Button
-                onClick={() => setViewMode('month')}
-                variant={viewMode === 'month' ? 'default' : 'ghost'}
-                size="sm"
-                className={`rounded-none ${viewMode === 'month' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
-              >
-                <Calendar className="w-4 h-4 mr-1" />
-                月
-              </Button>
-              <Button
-                onClick={() => {
-                  setViewMode('year');
-                  const newDate = new Date(currentDate.getFullYear(), -1, 1);
-                  setCurrentDate(newDate);
-                }}
-                variant={viewMode === 'year' ? 'default' : 'ghost'}
-                size="sm"
-                className={`rounded-none border-l ${viewMode === 'year' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
-              >
-                <CalendarDays className="w-4 h-4 mr-1" />
-                年
-              </Button>
-            </div>
-          </div>
-        </div>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
 
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
@@ -721,7 +598,6 @@ export default function LeaveCalendar() {
             selectedLeaveTypeId={selectedLeaveTypeId}
             rangeMode={rangeMode}
             dateRange={dateRange}
-            viewMode={viewMode}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
