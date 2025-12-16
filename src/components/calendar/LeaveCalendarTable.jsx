@@ -19,11 +19,16 @@ export default function LeaveCalendarTable({
   dateRange = { from: undefined, to: undefined },
   selectedEmployeeId,
   currentEmployeeId,
+  highlightedEmployee,
+  highlightedDate,
+  onHighlightEmployee,
+  onHighlightDate,
   onUpdateLeave,
   onDeleteLeave,
   onDeleteRangeLeave,
   onCellClickInRangeMode
 }) {
+  const [longPressTimer, setLongPressTimer] = React.useState(null);
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   
@@ -82,6 +87,24 @@ export default function LeaveCalendarTable({
     }
   };
 
+  const handleLongPressStart = (type, value) => {
+    const timer = setTimeout(() => {
+      if (type === 'employee') {
+        onHighlightEmployee(highlightedEmployee === value ? null : value);
+      } else if (type === 'date') {
+        onHighlightDate(highlightedDate === value ? null : value);
+      }
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
 
 
   return (
@@ -91,13 +114,19 @@ export default function LeaveCalendarTable({
             <tr className="bg-gray-50">
               <th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[70px]">
                 姓名
+                <div className="text-[9px] text-gray-400 mt-0.5">長按高亮</div>
               </th>
             {days.map((d, idx) => (
               <th 
                 key={idx} 
-                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 ${
-                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
+                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
+                  highlightedDate === d.date ? 'bg-yellow-200' : d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
                 }`}
+                onTouchStart={() => handleLongPressStart('date', d.date)}
+                onTouchEnd={handleLongPressEnd}
+                onMouseDown={() => handleLongPressStart('date', d.date)}
+                onMouseUp={handleLongPressEnd}
+                onMouseLeave={handleLongPressEnd}
               >
                 <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
                 <div className="text-[10px] font-normal">{d.weekday}</div>
@@ -131,7 +160,16 @@ export default function LeaveCalendarTable({
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
               return (
                 <tr key={emp.id} className="hover:bg-gray-50/50">
-                        <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
+                        <td 
+                          className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
+                            highlightedEmployee === emp.id ? 'bg-yellow-200' : isCurrentUser ? 'bg-yellow-100' : 'bg-white'
+                          }`}
+                          onTouchStart={() => handleLongPressStart('employee', emp.id)}
+                          onTouchEnd={handleLongPressEnd}
+                          onMouseDown={() => handleLongPressStart('employee', emp.id)}
+                          onMouseUp={handleLongPressEnd}
+                          onMouseLeave={handleLongPressEnd}
+                        >
                           <div>{emp.name}</div>
                           <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
                         </td>
@@ -140,8 +178,9 @@ export default function LeaveCalendarTable({
                     const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
+                    const isHighlighted = highlightedEmployee === emp.id || highlightedDate === d.date;
                     return (
-                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9">
+                      <td key={idx} className={`p-0 border-r border-b border-gray-200 h-9 ${isHighlighted ? 'bg-yellow-100' : ''}`}>
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
