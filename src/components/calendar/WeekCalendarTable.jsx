@@ -1,7 +1,8 @@
 import React from 'react';
-import { format, startOfWeek, addDays, getDay } from "date-fns";
+import { format, startOfWeek, addDays, getDay, endOfWeek } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import LeaveCell from "./LeaveCell";
 import CalendarHeader from "./CalendarHeader";
@@ -19,6 +20,7 @@ export default function WeekCalendarTable({
               selectedLeaveTypeId,
               rangeMode = false,
               dateRange = { from: undefined, to: undefined },
+              viewMode = 'month',
               onUpdateLeave,
               onDeleteLeave,
               onDeleteRangeLeave,
@@ -33,39 +35,62 @@ export default function WeekCalendarTable({
   }
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  
-  // Generate all days in the selected period
-  const allDays = month === -1 
-    ? Array.from({ length: 365 }, (_, i) => {
-        const date = new Date(year, 0, i + 1);
-        const dayOfWeek = getDay(date);
-        const dateStr = format(date, 'yyyy-MM-dd');
-        const isHoliday = holidays?.some(h => h.date === dateStr);
-        return {
-          day: date.getDate(),
-          month: date.getMonth() + 1,
-          date: dateStr,
-          weekday: WEEKDAY_NAMES[dayOfWeek],
-          isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday,
-          fullDate: date
-        };
-      })
-    : Array.from({ length: new Date(year, month + 1, 0).getDate() }, (_, i) => {
-        const date = new Date(year, month, i + 1);
-        const dayOfWeek = getDay(date);
-        const dateStr = format(date, 'yyyy-MM-dd');
-        const isHoliday = holidays?.some(h => h.date === dateStr);
-        return {
-          day: i + 1,
-          month: month + 1,
-          date: dateStr,
-          weekday: WEEKDAY_NAMES[dayOfWeek],
-          isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday,
-          fullDate: date
-        };
-      });
+
+  // Generate all days based on view mode
+  let allDays = [];
+
+  if (viewMode === 'week') {
+    // Week view: show only one week
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+    allDays = Array.from({ length: 7 }, (_, i) => {
+      const date = addDays(weekStart, i);
+      const dayOfWeek = getDay(date);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const isHoliday = holidays?.some(h => h.date === dateStr);
+      return {
+        day: date.getDate(),
+        month: date.getMonth() + 1,
+        date: dateStr,
+        weekday: WEEKDAY_NAMES[dayOfWeek],
+        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+        isHoliday,
+        fullDate: date
+      };
+    });
+  } else {
+    // Month view: show whole month/year
+    allDays = month === -1 
+      ? Array.from({ length: 365 }, (_, i) => {
+          const date = new Date(year, 0, i + 1);
+          const dayOfWeek = getDay(date);
+          const dateStr = format(date, 'yyyy-MM-dd');
+          const isHoliday = holidays?.some(h => h.date === dateStr);
+          return {
+            day: date.getDate(),
+            month: date.getMonth() + 1,
+            date: dateStr,
+            weekday: WEEKDAY_NAMES[dayOfWeek],
+            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+            isHoliday,
+            fullDate: date
+          };
+        })
+      : Array.from({ length: new Date(year, month + 1, 0).getDate() }, (_, i) => {
+          const date = new Date(year, month, i + 1);
+          const dayOfWeek = getDay(date);
+          const dateStr = format(date, 'yyyy-MM-dd');
+          const isHoliday = holidays?.some(h => h.date === dateStr);
+          return {
+            day: i + 1,
+            month: month + 1,
+            date: dateStr,
+            weekday: WEEKDAY_NAMES[dayOfWeek],
+            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+            isHoliday,
+            fullDate: date
+          };
+        });
+  }
 
 
 
@@ -91,36 +116,67 @@ export default function WeekCalendarTable({
 
   // 将日期按周分组，每周从周日开始
   const weeks = [];
-  const firstDayOfMonth = allDays[0];
-  const startDayOfWeek = getDay(firstDayOfMonth.fullDate); // 0=周日, 1=周一, ...
-  
-  // 填充第一周前面的空格
-  let currentWeek = Array(startDayOfWeek).fill(null);
-  
-  allDays.forEach((day) => {
-    currentWeek.push(day);
-    if (currentWeek.length === 7) {
-      weeks.push([...currentWeek]);
-      currentWeek = [];
+
+  if (viewMode === 'week') {
+    // Week view: single row of 7 days
+    weeks.push(allDays);
+  } else {
+    // Month view: multiple weeks
+    const firstDayOfMonth = allDays[0];
+    const startDayOfWeek = getDay(firstDayOfMonth.fullDate);
+
+    let currentWeek = Array(startDayOfWeek).fill(null);
+
+    allDays.forEach((day) => {
+      currentWeek.push(day);
+      if (currentWeek.length === 7) {
+        weeks.push([...currentWeek]);
+        currentWeek = [];
+      }
+    });
+
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push(null);
+      }
+      weeks.push(currentWeek);
     }
-  });
-  
-  // 填充最后一周后面的空格
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) {
-      currentWeek.push(null);
-    }
-    weeks.push(currentWeek);
   }
+
+  const handlePrevWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 7);
+    onDateChange(newDate);
+  };
+
+  const handleNextWeek = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 7);
+    onDateChange(newDate);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
         <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
-        <CalendarHeader 
-          currentDate={currentDate} 
-          onDateChange={onDateChange}
-        />
+        {viewMode === 'week' ? (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={handlePrevWeek}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-medium min-w-[200px] text-center">
+              {format(startOfWeek(currentDate, { weekStartsOn: 0 }), 'yyyy年MM月dd日')} - {format(endOfWeek(currentDate, { weekStartsOn: 0 }), 'MM月dd日')}
+            </span>
+            <Button variant="outline" size="icon" onClick={handleNextWeek}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <CalendarHeader 
+            currentDate={currentDate} 
+            onDateChange={onDateChange}
+          />
+        )}
       </div>
       
       <div className="p-4">

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { format } from 'date-fns';
-import { Loader2, ChevronDown, ChevronUp, CalendarRange } from 'lucide-react';
+import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
+import { Loader2, ChevronDown, ChevronUp, CalendarRange, Download, Calendar, CalendarDays } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -25,6 +25,7 @@ export default function LeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [viewMode, setViewMode] = useState('month'); // 'week' or 'month'
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -434,6 +435,35 @@ export default function LeaveCalendar() {
     }
   };
 
+  const handleExportCalendar = () => {
+    if (!currentEmployee) return;
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    let csvContent = "日期,星期,假別,備註\n";
+    
+    const relevantRecords = leaveRecords.filter(r => r.employee_id === currentEmployee.id);
+    
+    relevantRecords.sort((a, b) => a.date.localeCompare(b.date)).forEach(record => {
+      const date = new Date(record.date);
+      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+      const weekday = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+      
+      csvContent += `${record.date},${weekday},${leaveType?.name || '-'},${record.note || ''}\n`;
+    });
+    
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${currentEmployee.name}_排休_${year}年${month === -1 ? '全年' : `${month + 1}月`}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
     const deptEmployees = employees.filter(e => e.department_ids?.includes(departmentId));
     const sourceEmp = deptEmployees[sourceIndex];
@@ -483,7 +513,40 @@ export default function LeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-full mx-auto">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleExportCalendar}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              匯出
+            </Button>
+            <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+              <Button
+                onClick={() => setViewMode('week')}
+                variant={viewMode === 'week' ? 'default' : 'ghost'}
+                size="sm"
+                className={`rounded-none ${viewMode === 'week' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
+              >
+                <CalendarDays className="w-4 h-4 mr-1" />
+                周
+              </Button>
+              <Button
+                onClick={() => setViewMode('month')}
+                variant={viewMode === 'month' ? 'default' : 'ghost'}
+                size="sm"
+                className={`rounded-none border-l ${viewMode === 'month' ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
+              >
+                <Calendar className="w-4 h-4 mr-1" />
+                月
+              </Button>
+            </div>
+          </div>
+        </div>
 
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
@@ -598,6 +661,7 @@ export default function LeaveCalendar() {
             selectedLeaveTypeId={selectedLeaveTypeId}
             rangeMode={rangeMode}
             dateRange={dateRange}
+            viewMode={viewMode}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
