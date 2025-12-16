@@ -131,7 +131,7 @@ export default function LeaveCalendarTable({
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
               return (
                 <tr key={emp.id} className="hover:bg-gray-50/50">
-                        <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
+                        <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-50' : 'bg-white'}`}>
                           <div>{emp.name}</div>
                           <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
                         </td>
@@ -140,9 +140,8 @@ export default function LeaveCalendarTable({
                     const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
-                    const isToday = d.date === format(new Date(), 'yyyy-MM-dd');
                     return (
-                      <td key={idx} className={`p-0 border-r border-b border-gray-200 ${isToday ? 'bg-yellow-50' : ''}`}>
+                      <td key={idx} className="p-0 border-r border-b border-gray-200">
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}

@@ -20,7 +20,7 @@ export default function LeaveCell({
   const cellBgClass = (isHoliday || isWeekend) 
     ? "bg-gray-200" 
     : isCurrentUser 
-    ? "bg-yellow-100" 
+    ? "bg-yellow-50" 
     : "bg-white";
 
   // 檢查是否在選中的區間內
