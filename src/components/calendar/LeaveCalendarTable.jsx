@@ -19,14 +19,10 @@ export default function LeaveCalendarTable({
   dateRange = { from: undefined, to: undefined },
   selectedEmployeeId,
   currentEmployeeId,
-  highlightedEmployeeId,
-  highlightedDate,
   onUpdateLeave,
   onDeleteLeave,
   onDeleteRangeLeave,
-  onCellClickInRangeMode,
-  onHighlightEmployee,
-  onHighlightDate
+  onCellClickInRangeMode
 }) {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -86,24 +82,6 @@ export default function LeaveCalendarTable({
     }
   };
 
-  const handleHighlight = (type, id) => {
-    if (type === 'employee') {
-      if (highlightedEmployeeId === id) {
-        onHighlightEmployee?.(null);
-      } else {
-        onHighlightEmployee?.(id);
-        onHighlightDate?.(null);
-      }
-    } else if (type === 'date') {
-      if (highlightedDate === id) {
-        onHighlightDate?.(null);
-      } else {
-        onHighlightDate?.(id);
-        onHighlightEmployee?.(null);
-      }
-    }
-  };
-
 
 
   return (
@@ -117,9 +95,8 @@ export default function LeaveCalendarTable({
             {days.map((d, idx) => (
               <th 
                 key={idx} 
-                onDoubleClick={() => handleHighlight('date', d.date)}
-                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
-                  highlightedDate === d.date ? 'bg-blue-200' : d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
+                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 ${
+                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
                 }`}
               >
                 <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
@@ -152,15 +129,9 @@ export default function LeaveCalendarTable({
             
             return employeesToShow.map((emp) => {
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
-              const isHighlighted = highlightedEmployeeId === emp.id;
               return (
-                <tr key={emp.id} className={`hover:bg-gray-50/50 ${isHighlighted ? 'bg-blue-100' : ''}`}>
-                        <td 
-                          onDoubleClick={() => handleHighlight('employee', emp.id)}
-                          className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
-                            isHighlighted ? 'bg-blue-200' : isCurrentUser ? 'bg-yellow-100' : 'bg-white'
-                          }`}
-                        >
+                <tr key={emp.id} className="hover:bg-gray-50/50">
+                        <td className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 ${isCurrentUser ? 'bg-yellow-100' : 'bg-white'}`}>
                           <div>{emp.name}</div>
                           <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
                         </td>
@@ -170,12 +141,7 @@ export default function LeaveCalendarTable({
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
                     return (
-                      <td 
-                        key={idx} 
-                        className={`p-0 border-r border-b border-gray-200 h-9 ${
-                          (highlightedEmployeeId === emp.id || highlightedDate === d.date) ? 'bg-blue-50' : ''
-                        }`}
-                      >
+                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9">
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
