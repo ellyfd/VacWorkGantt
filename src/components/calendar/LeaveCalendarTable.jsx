@@ -62,8 +62,6 @@ export default function LeaveCalendarTable({
     );
   };
 
-  const today = format(new Date(), 'yyyy-MM-dd');
-
   const handleSelectLeave = (employeeId, date, leaveTypeId) => {
     if (rangeMode && onCellClickInRangeMode) {
       onCellClickInRangeMode(employeeId, date);
@@ -94,22 +92,17 @@ export default function LeaveCalendarTable({
               <th className="sticky left-0 z-20 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[70px]">
                 姓名
               </th>
-            {days.map((d, idx) => {
-              const isToday = d.date === today;
-              return (
-                <th 
-                  key={idx} 
-                  className={`px-0.5 py-1 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] ${
-                    isToday ? 'bg-red-50' : ''
-                  } ${
-                    d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
-                  }`}
-                >
-                  <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                  <div className="text-[10px] font-normal">{d.weekday}</div>
-                </th>
-              );
-            })}
+            {days.map((d, idx) => (
+              <th 
+                key={idx} 
+                className={`px-0.5 py-1 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] ${
+                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 'text-gray-600'
+                }`}
+              >
+                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                <div className="text-[10px] font-normal">{d.weekday}</div>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -147,9 +140,8 @@ export default function LeaveCalendarTable({
                     const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
-                    const isToday = d.date === today;
                     return (
-                      <td key={idx} className={`p-0 border-r border-b border-gray-200 ${isToday ? 'bg-red-50' : ''}`}>
+                      <td key={idx} className="p-0 border-r border-b border-gray-200">
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
