@@ -90,7 +90,7 @@ export default function LeaveCalendarTable({
   return (
     <div className="bg-white w-full">
       <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
-        <table className="border-collapse w-full min-w-[600px]">
+        <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 80, 600)}px` }}>
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
               <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-[70px] min-w-[70px]">
@@ -103,7 +103,7 @@ export default function LeaveCalendarTable({
                   setHighlightedDate(highlightedDate === d.date ? null : d.date);
                   setHighlightedEmployeeId(null);
                 }}
-                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 h-8 cursor-pointer select-none ${
+                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 
                   highlightedDate === d.date ? 'bg-yellow-200' : 'text-gray-600'
                 }`}
