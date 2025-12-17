@@ -423,7 +423,7 @@ export default function AllLeaveCalendar() {
                   onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
                   disabled={rangeMode}
                 >
-                  <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectTrigger className="w-[160px] sm:w-[200px]">
                     <SelectValue placeholder="選擇假別" />
                   </SelectTrigger>
                   <SelectContent>
