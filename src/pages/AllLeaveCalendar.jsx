@@ -415,7 +415,7 @@ export default function AllLeaveCalendar() {
               </div>
               </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-2 md:p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-1 md:p-4">
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
               <Select 
                 value={selectedLeaveTypeId || ''} 
