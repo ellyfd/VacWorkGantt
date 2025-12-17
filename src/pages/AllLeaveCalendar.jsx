@@ -380,7 +380,7 @@ export default function AllLeaveCalendar() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="w-full mx-auto">
+      <div className="max-w-full mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
         <div className="mb-4 space-y-3">
