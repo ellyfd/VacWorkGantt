@@ -416,13 +416,13 @@ export default function AllLeaveCalendar() {
               </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-2 md:p-4">
-            <div className="flex items-center gap-1 md:gap-3 flex-wrap">
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
               <Select 
                 value={selectedLeaveTypeId || ''} 
                 onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
                 disabled={rangeMode}
               >
-                <SelectTrigger className="w-full md:w-[200px]">
+                <SelectTrigger className="w-full h-7 text-xs md:w-[200px] md:h-10 md:text-sm">
                   <SelectValue placeholder="選擇假別" />
                 </SelectTrigger>
                 <SelectContent>
@@ -435,7 +435,7 @@ export default function AllLeaveCalendar() {
                 </SelectContent>
                 </Select>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 md:gap-2">
                 {!rangeMode ? (
                 <Button
                   onClick={() => {
@@ -445,8 +445,7 @@ export default function AllLeaveCalendar() {
                     }
                     setRangeMode(true);
                   }}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  size="icon"
+                  className="bg-blue-600 hover:bg-blue-700 h-7 w-7 md:h-10 md:w-10"
                 >
                   <CalendarRange className="h-5 w-5" />
                 </Button>
@@ -458,15 +457,14 @@ export default function AllLeaveCalendar() {
                       setDateRange({ from: undefined, to: undefined, employeeId: undefined });
                     }}
                     variant="outline"
-                    size="icon"
+                    className="h-7 w-7 md:h-10 md:w-10"
                   >
                     ✕
                   </Button>
                   <Button
                     onClick={handleRangeSubmit}
                     disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700"
-                    size="icon"
+                    className="bg-green-600 hover:bg-green-700 h-7 w-7 md:h-10 md:w-10"
                   >
                     {rangeLeaveMutation.isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
