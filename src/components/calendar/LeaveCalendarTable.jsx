@@ -93,25 +93,25 @@ export default function LeaveCalendarTable({
         <table className="min-w-full">
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
-              <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-[80px] md:w-[100px]">
+              <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[70px]">
                 姓名
               </th>
-              {days.map((d, idx) => (
+            {days.map((d, idx) => (
               <th 
                 key={idx} 
                 onDoubleClick={() => {
                   setHighlightedDate(highlightedDate === d.date ? null : d.date);
                   setHighlightedEmployeeId(null);
                 }}
-                className={`px-1 py-1.5 text-center text-xs font-semibold border-r border-b border-gray-200 w-[40px] md:w-[50px] cursor-pointer select-none ${
+                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 
                   highlightedDate === d.date ? 'bg-yellow-200' : 'text-gray-600'
                 }`}
               >
-                <div className="text-[11px] md:text-xs">{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                <div className="text-[9px] md:text-[10px] font-normal">{d.weekday}</div>
+                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                <div className="text-[10px] font-normal">{d.weekday}</div>
               </th>
-              ))}
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -145,21 +145,21 @@ export default function LeaveCalendarTable({
                             setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
                             setHighlightedDate(null);
                           }}
-                          className={`sticky left-0 z-10 px-2 py-1.5 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
+                          className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
                             highlightedEmployeeId === emp.id ? 'bg-yellow-200' :
                             isCurrentUser ? 'bg-yellow-100' : 'bg-white'
                           }`}
                         >
-                          <div className="text-xs md:text-sm font-medium">{emp.name}</div>
-                          <div className="text-[9px] md:text-[10px] text-gray-500">{emp.english_name || ''}</div>
+                          <div>{emp.name}</div>
+                          <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
                         </td>
-                        {days.map((d, idx) => {
-                        const record = getLeaveRecord(emp.id, d.date);
-                        const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
-                        dateRange.from && dateRange.to && 
-                        d.date >= dateRange.from && d.date <= dateRange.to;
-                        return (
-                        <td key={idx} className="p-0 border-r border-b border-gray-200 h-12">
+                  {days.map((d, idx) => {
+                    const record = getLeaveRecord(emp.id, d.date);
+                    const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
+                      dateRange.from && dateRange.to && 
+                      d.date >= dateRange.from && d.date <= dateRange.to;
+                    return (
+                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9">
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
