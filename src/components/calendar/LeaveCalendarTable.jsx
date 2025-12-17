@@ -89,7 +89,7 @@ export default function LeaveCalendarTable({
 
   return (
     <div className="relative bg-white rounded-xl shadow-sm border border-gray-200">
-      <div className="overflow-auto max-h-[calc(100vh-280px)]">
+      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
         <table className="min-w-full">
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
