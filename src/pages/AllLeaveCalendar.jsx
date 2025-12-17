@@ -383,9 +383,9 @@ export default function AllLeaveCalendar() {
       <div className="max-w-full mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
-        <div className="mb-4 space-y-3">
-          <div className="p-3 bg-white border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-3 flex-wrap">
+        <div className="mb-3 md:mb-4 space-y-2 md:space-y-3">
+          <div className="p-2 md:p-3 bg-white border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
               {departments.map((dept) => (
                 <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
@@ -413,8 +413,8 @@ export default function AllLeaveCalendar() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-3 flex-wrap">
+          <div className="bg-white border border-gray-200 rounded-lg p-2 md:p-4">
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
               <Select 
                 value={selectedLeaveTypeId || ''} 
                 onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
