@@ -385,27 +385,27 @@ export default function AllLeaveCalendar() {
 
         <div className="mb-4 space-y-3">
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">部門：</span>
-              {departments.map((dept) => (
-                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={selectedDepartments.includes(dept.id)}
-                    onChange={() => {
-                      if (selectedDepartments.includes(dept.id)) {
-                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
-                      } else {
-                        setSelectedDepartments([...selectedDepartments, dept.id]);
-                      }
-                    }}
-                    className="w-4 h-4 text-blue-600 rounded"
-                  />
-                  <span className="text-sm text-gray-700">{dept.name}</span>
-                </label>
-              ))}
-            </div>
-            <div className="flex justify-start md:justify-end">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">部門：</span>
+                {departments.map((dept) => (
+                  <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedDepartments.includes(dept.id)}
+                      onChange={() => {
+                        if (selectedDepartments.includes(dept.id)) {
+                          setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                        } else {
+                          setSelectedDepartments([...selectedDepartments, dept.id]);
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <span className="text-sm text-gray-700">{dept.name}</span>
+                  </label>
+                ))}
+              </div>
               <CalendarHeader 
                 currentDate={currentDate} 
                 onDateChange={setCurrentDate}
