@@ -50,7 +50,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
         </Button>
         <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[65px] h-7 text-xs md:w-[85px] md:h-8 md:text-sm">
+          <SelectTrigger className="w-[50px] h-7 text-xs md:w-[85px] md:h-8 md:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -60,7 +60,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           </SelectContent>
         </Select>
         <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-[55px] h-7 text-xs md:w-[75px] md:h-8 md:text-sm">
+          <SelectTrigger className="w-[45px] h-7 text-xs md:w-[75px] md:h-8 md:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
