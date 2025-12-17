@@ -145,7 +145,7 @@ export default function LeaveCalendarTable({
                             setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
                             setHighlightedDate(null);
                           }}
-                          className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
+                          className={`sticky left-0 z-20 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
                             highlightedEmployeeId === emp.id ? 'bg-yellow-200' :
                             isCurrentUser ? 'bg-yellow-100' : 'bg-white'
                           }`}
