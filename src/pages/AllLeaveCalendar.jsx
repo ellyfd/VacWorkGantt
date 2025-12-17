@@ -385,9 +385,9 @@ export default function AllLeaveCalendar() {
 
         <div className="mb-4 space-y-3">
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
-              <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap">
+            <div className="flex items-center gap-3 mb-3">
+              <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">部門：</Label>
+              <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap flex-1">
                 {departments.map((dept) => (
                   <label key={dept.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded border border-gray-200 whitespace-nowrap flex-shrink-0">
                     <input
@@ -406,12 +406,12 @@ export default function AllLeaveCalendar() {
                   </label>
                 ))}
               </div>
-              <div className="sm:ml-auto">
-                <CalendarHeader 
-                  currentDate={currentDate} 
-                  onDateChange={setCurrentDate}
-                />
-              </div>
+            </div>
+            <div className="flex justify-end">
+              <CalendarHeader 
+                currentDate={currentDate} 
+                onDateChange={setCurrentDate}
+              />
             </div>
           </div>
 
