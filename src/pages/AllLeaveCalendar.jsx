@@ -379,32 +379,34 @@ export default function AllLeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6">
       <div className="max-w-full mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
         <div className="mb-4 space-y-3">
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
-              {departments.map((dept) => (
-                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                  <input
-                    type="checkbox"
-                    checked={selectedDepartments.includes(dept.id)}
-                    onChange={() => {
-                      if (selectedDepartments.includes(dept.id)) {
-                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
-                      } else {
-                        setSelectedDepartments([...selectedDepartments, dept.id]);
-                      }
-                    }}
-                    className="w-3.5 h-3.5 text-blue-600 rounded"
-                  />
-                  <span className="text-xs text-gray-700">{dept.name}</span>
-                </label>
-              ))}
-              <div className="ml-auto">
+              <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap">
+                {departments.map((dept) => (
+                  <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedDepartments.includes(dept.id)}
+                      onChange={() => {
+                        if (selectedDepartments.includes(dept.id)) {
+                          setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                        } else {
+                          setSelectedDepartments([...selectedDepartments, dept.id]);
+                        }
+                      }}
+                      className="w-3.5 h-3.5 text-blue-600 rounded"
+                    />
+                    <span className="text-xs text-gray-700">{dept.name}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="sm:ml-auto">
                 <CalendarHeader 
                   currentDate={currentDate} 
                   onDateChange={setCurrentDate}
@@ -413,69 +415,72 @@ export default function AllLeaveCalendar() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center gap-3 flex-wrap">
-              <Select 
-                value={selectedLeaveTypeId || ''} 
-                onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
-                disabled={rangeMode}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="選擇假別" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={null}>不選擇</SelectItem>
-                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                    <SelectItem key={lt.id} value={lt.id}>
-                      {lt.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {!rangeMode ? (
-                <Button
-                  onClick={() => {
-                    if (!selectedLeaveTypeId) {
-                      alert('請先選擇假別');
-                      return;
-                    }
-                    setRangeMode(true);
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  size="icon"
+          <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2">
+                <Select 
+                  value={selectedLeaveTypeId || ''} 
+                  onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+                  disabled={rangeMode}
                 >
-                  <CalendarRange className="h-5 w-5" />
-                </Button>
-              ) : (
-                <>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="選擇假別" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>不選擇</SelectItem>
+                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                      <SelectItem key={lt.id} value={lt.id}>
+                        {lt.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {!rangeMode ? (
                   <Button
                     onClick={() => {
-                      setRangeMode(false);
-                      setDateRange({ from: undefined, to: undefined, employeeId: undefined });
+                      if (!selectedLeaveTypeId) {
+                        alert('請先選擇假別');
+                        return;
+                      }
+                      setRangeMode(true);
                     }}
-                    variant="outline"
+                    className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
                     size="icon"
                   >
-                    ✕
+                    <CalendarRange className="h-5 w-5" />
                   </Button>
-                  <Button
-                    onClick={handleRangeSubmit}
-                    disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700"
-                    size="icon"
-                  >
-                    {rangeLeaveMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      '✓'
-                    )}
-                  </Button>
-                </>
-              )}
-              
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        setRangeMode(false);
+                        setDateRange({ from: undefined, to: undefined, employeeId: undefined });
+                      }}
+                      variant="outline"
+                      size="icon"
+                      className="flex-shrink-0"
+                    >
+                      ✕
+                    </Button>
+                    <Button
+                      onClick={handleRangeSubmit}
+                      disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 flex-shrink-0"
+                      size="icon"
+                    >
+                      {rangeLeaveMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        '✓'
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               {rangeMode && (
-                <p className="text-xs text-blue-600">
+                <p className="text-xs text-blue-600 break-words">
                   {!dateRange.from && "📍 請在下方日曆點擊任一員工的格子選擇起始日期"}
                   {dateRange.from && !dateRange.to && (() => {
                     const emp = employees.find(e => e.id === dateRange.employeeId);
@@ -491,23 +496,27 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <LeaveCalendarTable
-          currentDate={currentDate}
-          departments={filteredDepartments}
-          employees={employees}
-          leaveRecords={leaveRecords}
-          leaveTypes={leaveTypes}
-          holidays={holidays}
-          selectedLeaveTypeId={selectedLeaveTypeId}
-          rangeMode={rangeMode}
-          dateRange={dateRange}
-          selectedEmployeeId={dateRange?.employeeId}
-          currentEmployeeId={currentEmployee?.id}
-          onUpdateLeave={handleUpdateLeave}
-          onDeleteLeave={handleDeleteLeave}
-          onDeleteRangeLeave={handleDeleteRangeLeave}
-          onCellClickInRangeMode={handleCellClickInRangeMode}
-        />
+        <div className="overflow-x-auto -mx-2 sm:mx-0">
+          <div className="min-w-[600px] sm:min-w-0">
+            <LeaveCalendarTable
+              currentDate={currentDate}
+              departments={filteredDepartments}
+              employees={employees}
+              leaveRecords={leaveRecords}
+              leaveTypes={leaveTypes}
+              holidays={holidays}
+              selectedLeaveTypeId={selectedLeaveTypeId}
+              rangeMode={rangeMode}
+              dateRange={dateRange}
+              selectedEmployeeId={dateRange?.employeeId}
+              currentEmployeeId={currentEmployee?.id}
+              onUpdateLeave={handleUpdateLeave}
+              onDeleteLeave={handleDeleteLeave}
+              onDeleteRangeLeave={handleDeleteRangeLeave}
+              onCellClickInRangeMode={handleCellClickInRangeMode}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
