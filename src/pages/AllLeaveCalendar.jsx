@@ -379,8 +379,8 @@ export default function AllLeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2 sm:p-6 w-screen max-w-full overflow-x-hidden">
-      <div className="w-full max-w-full">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-6 overflow-hidden">
+      <div className="w-full">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
         <div className="mb-4 space-y-3">
@@ -496,8 +496,9 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <LeaveCalendarTable
+        <div className="overflow-hidden rounded-lg border border-gray-200 -mx-2 sm:mx-0">
+          <div className="overflow-x-auto">
+            <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
             employees={employees}
@@ -514,6 +515,7 @@ export default function AllLeaveCalendar() {
             onDeleteRangeLeave={handleDeleteRangeLeave}
             onCellClickInRangeMode={handleCellClickInRangeMode}
           />
+          </div>
         </div>
       </div>
     </div>
