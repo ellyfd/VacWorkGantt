@@ -379,11 +379,11 @@ export default function AllLeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 md:p-6 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-full mx-auto">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-6">全部排休</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
-        <div className="mb-3 md:mb-4 space-y-3">
+        <div className="mb-4 space-y-3">
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
             <div className="flex items-center gap-3 flex-wrap">
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
