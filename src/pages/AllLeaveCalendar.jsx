@@ -497,7 +497,7 @@ export default function AllLeaveCalendar() {
         </div>
 
         <div className="overflow-hidden rounded-lg border border-gray-200 -mx-2 sm:mx-0">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto md:overflow-x-visible">
             <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
