@@ -481,19 +481,19 @@ export default function LeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6">
       <div className="max-w-full mx-auto">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">我的排休</h1>
 
-          <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
-              <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
+          <div className="mb-4 bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
               <Select 
                 value={selectedLeaveTypeId || ''} 
                 onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
                 disabled={rangeMode}
               >
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="選擇假別" />
                 </SelectTrigger>
                 <SelectContent>
@@ -578,31 +578,35 @@ export default function LeaveCalendar() {
               )}
               </div>
               {rangeMode && (
-                <p className="text-xs text-blue-600 w-full md:flex-1">
+                <p className="text-xs text-blue-600 break-words">
                   {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
                   {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
                   {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊左側按鈕確認`}
                 </p>
               )}
+              </div>
+              </div>
+
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <div className="min-w-[600px] sm:min-w-0">
+              <WeekCalendarTable
+                currentDate={currentDate}
+                onDateChange={setCurrentDate}
+                currentEmployee={currentEmployee}
+                currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
+                leaveRecords={leaveRecords}
+                leaveTypes={leaveTypes}
+                holidays={holidays}
+                selectedLeaveTypeId={selectedLeaveTypeId}
+                rangeMode={rangeMode}
+                dateRange={dateRange}
+                onUpdateLeave={handleUpdateLeave}
+                onDeleteLeave={handleDeleteLeave}
+                onDeleteRangeLeave={handleDeleteRangeLeave}
+                onCellClickInRangeMode={handleCellClickInRangeMode}
+              />
             </div>
           </div>
-
-          <WeekCalendarTable
-            currentDate={currentDate}
-            onDateChange={setCurrentDate}
-            currentEmployee={currentEmployee}
-            currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
-            leaveRecords={leaveRecords}
-            leaveTypes={leaveTypes}
-            holidays={holidays}
-            selectedLeaveTypeId={selectedLeaveTypeId}
-            rangeMode={rangeMode}
-            dateRange={dateRange}
-            onUpdateLeave={handleUpdateLeave}
-            onDeleteLeave={handleDeleteLeave}
-            onDeleteRangeLeave={handleDeleteRangeLeave}
-            onCellClickInRangeMode={handleCellClickInRangeMode}
-          />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
             <Button
