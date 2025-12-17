@@ -90,10 +90,10 @@ export default function LeaveCalendarTable({
   return (
     <div className="bg-white w-full">
       <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
-        <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 75, 600)}px` }}>
+        <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 80, 600)}px` }}>
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
-              <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-[75px] min-w-[75px]">
+              <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-[80px] min-w-[80px]">
                 姓名
               </th>
             {days.map((d, idx) => (
