@@ -89,7 +89,7 @@ export default function LeaveCalendarTable({
 
   return (
     <div className="relative bg-white rounded-xl shadow-sm border border-gray-200">
-      <div className="overflow-auto max-h-[calc(100vh-280px)]" style={{ overflowX: 'auto', overflowY: 'auto' }}>
+      <div className="overflow-auto max-h-[calc(100vh-280px)]" style={{ overflowX: 'auto', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <table className="w-max min-w-full">
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
@@ -103,7 +103,7 @@ export default function LeaveCalendarTable({
                   setHighlightedDate(highlightedDate === d.date ? null : d.date);
                   setHighlightedEmployeeId(null);
                 }}
-                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
+                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[40px] w-[40px] h-8 cursor-pointer select-none ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 
                   highlightedDate === d.date ? 'bg-yellow-200' : 'text-gray-600'
                 }`}
@@ -159,7 +159,7 @@ export default function LeaveCalendarTable({
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
                     return (
-                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9">
+                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9 min-w-[40px] w-[40px]">
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
