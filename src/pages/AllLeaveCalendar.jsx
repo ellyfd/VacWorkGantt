@@ -405,7 +405,7 @@ export default function AllLeaveCalendar() {
                 </label>
               ))}
             </div>
-            <div className="flex justify-start">
+            <div className="flex justify-start md:justify-end">
               <CalendarHeader 
                 currentDate={currentDate} 
                 onDateChange={setCurrentDate}
