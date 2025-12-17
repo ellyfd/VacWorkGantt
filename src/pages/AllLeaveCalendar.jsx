@@ -445,9 +445,9 @@ export default function AllLeaveCalendar() {
                     }
                     setRangeMode(true);
                   }}
-                  className="bg-blue-600 hover:bg-blue-700 h-7 w-6 md:h-10 md:w-10"
+                  className="bg-blue-600 hover:bg-blue-700 h-7 w-7 md:h-10 md:w-10"
                 >
-                  <CalendarRange className="h-4 w-4 md:h-5 md:w-5" />
+                  <CalendarRange className="h-5 w-5" />
                 </Button>
               ) : (
                 <>
@@ -457,17 +457,17 @@ export default function AllLeaveCalendar() {
                       setDateRange({ from: undefined, to: undefined, employeeId: undefined });
                     }}
                     variant="outline"
-                    className="h-7 w-6 md:h-10 md:w-10"
+                    className="h-7 w-7 md:h-10 md:w-10"
                   >
                     ✕
                   </Button>
                   <Button
                     onClick={handleRangeSubmit}
                     disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700 h-7 w-6 md:h-10 md:w-10"
+                    className="bg-green-600 hover:bg-green-700 h-7 w-7 md:h-10 md:w-10"
                   >
                     {rangeLeaveMutation.isPending ? (
-                      <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       '✓'
                     )}
