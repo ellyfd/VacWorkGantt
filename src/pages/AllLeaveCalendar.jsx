@@ -387,7 +387,7 @@ export default function AllLeaveCalendar() {
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
             <div className="flex flex-col md:flex-row md:items-center gap-3">
               <div className="flex items-center gap-3 flex-wrap flex-1">
-                <Label className="text-xs md:text-sm font-semibold text-gray-700 whitespace-nowrap">部門：</Label>
+                <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
                 {departments.map((dept) => (
                   <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
                     <input
