@@ -54,7 +54,7 @@ export default function LeaveCell({
 
   return (
     <div 
-      className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-all text-[8px] font-medium ${!record ? cellBgClass : ''} ${
+      className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-all text-xs font-medium ${!record ? cellBgClass : ''} ${
         isInRange ? 'ring-2 ring-inset ring-blue-500' : ''
       } ${isRangeStart || isRangeEnd ? 'ring-4 ring-blue-600' : ''}`}
       style={record && leaveType ? { backgroundColor: leaveType.color, color: '#fff' } : (isInRange && !record ? { backgroundColor: '#dbeafe' } : {})}
