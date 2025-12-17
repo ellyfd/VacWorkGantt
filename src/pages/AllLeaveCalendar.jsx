@@ -389,7 +389,7 @@ export default function AllLeaveCalendar() {
               <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
               <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap">
                 {departments.map((dept) => (
-                  <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap flex-shrink-0">
+                  <label key={dept.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded border border-gray-200 whitespace-nowrap flex-shrink-0">
                     <input
                       type="checkbox"
                       checked={selectedDepartments.includes(dept.id)}
@@ -400,7 +400,7 @@ export default function AllLeaveCalendar() {
                           setSelectedDepartments([...selectedDepartments, dept.id]);
                         }
                       }}
-                      className="w-3.5 h-3.5 text-blue-600 rounded"
+                      className="w-4 h-4 text-blue-600 rounded"
                     />
                     <span className="text-sm text-gray-700">{dept.name}</span>
                   </label>
