@@ -89,11 +89,11 @@ export default function LeaveCalendarTable({
 
   return (
     <div className="relative bg-white rounded-xl shadow-sm border border-gray-200">
-      <div className="overflow-auto max-h-[calc(100vh-280px)]">
-        <table className="min-w-full">
+      <div className="overflow-x-auto md:overflow-auto max-h-[calc(100vh-280px)]">
+        <table className="w-full md:min-w-full">
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
-              <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 min-w-[70px]">
+              <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-[10px] md:text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-[50px] md:min-w-[70px]">
                 姓名
               </th>
             {days.map((d, idx) => (
@@ -103,13 +103,13 @@ export default function LeaveCalendarTable({
                   setHighlightedDate(highlightedDate === d.date ? null : d.date);
                   setHighlightedEmployeeId(null);
                 }}
-                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
+                className={`px-0.5 py-0.5 text-center text-[10px] md:text-xs font-semibold border-r border-b border-gray-200 w-[24px] md:min-w-[28px] h-8 cursor-pointer select-none ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 
                   highlightedDate === d.date ? 'bg-yellow-200' : 'text-gray-600'
                 }`}
               >
-                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                <div className="text-[10px] font-normal">{d.weekday}</div>
+                <div className="leading-tight">{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                <div className="text-[9px] md:text-[10px] font-normal leading-tight">{d.weekday}</div>
               </th>
             ))}
           </tr>
@@ -145,13 +145,13 @@ export default function LeaveCalendarTable({
                             setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
                             setHighlightedDate(null);
                           }}
-                          className={`sticky left-0 z-10 px-1 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
+                          className={`sticky left-0 z-10 px-1 py-0.5 text-[10px] md:text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
                             highlightedEmployeeId === emp.id ? 'bg-yellow-200' :
                             isCurrentUser ? 'bg-yellow-100' : 'bg-white'
                           }`}
                         >
-                          <div>{emp.name}</div>
-                          <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
+                          <div className="leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{emp.name}</div>
+                          <div className="text-[9px] md:text-[10px] text-gray-500 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{emp.english_name || ''}</div>
                         </td>
                   {days.map((d, idx) => {
                     const record = getLeaveRecord(emp.id, d.date);
@@ -159,7 +159,7 @@ export default function LeaveCalendarTable({
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
                     return (
-                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9">
+                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-7 md:h-9">
                         <LeaveCell
                           record={record}
                           leaveTypes={leaveTypes}
