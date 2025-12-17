@@ -385,26 +385,28 @@ export default function AllLeaveCalendar() {
 
         <div className="mb-4 space-y-3">
           <div className="p-3 bg-white border border-gray-200 rounded-lg">
-            <div className="flex items-center gap-3 flex-wrap">
-              <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
-              {departments.map((dept) => (
-                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                  <input
-                    type="checkbox"
-                    checked={selectedDepartments.includes(dept.id)}
-                    onChange={() => {
-                      if (selectedDepartments.includes(dept.id)) {
-                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
-                      } else {
-                        setSelectedDepartments([...selectedDepartments, dept.id]);
-                      }
-                    }}
-                    className="w-3.5 h-3.5 text-blue-600 rounded"
-                  />
-                  <span className="text-xs text-gray-700">{dept.name}</span>
-                </label>
-              ))}
-              <div className="ml-auto">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap flex-1">
+                <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
+                {departments.map((dept) => (
+                  <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={selectedDepartments.includes(dept.id)}
+                      onChange={() => {
+                        if (selectedDepartments.includes(dept.id)) {
+                          setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                        } else {
+                          setSelectedDepartments([...selectedDepartments, dept.id]);
+                        }
+                      }}
+                      className="w-3.5 h-3.5 text-blue-600 rounded"
+                    />
+                    <span className="text-xs text-gray-700">{dept.name}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="md:ml-auto">
                 <CalendarHeader 
                   currentDate={currentDate} 
                   onDateChange={setCurrentDate}
