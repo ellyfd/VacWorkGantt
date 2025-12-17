@@ -379,7 +379,7 @@ export default function AllLeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2 sm:p-6 overflow-hidden">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-6">
       <div className="w-full">
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
@@ -496,8 +496,8 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-gray-200 -mx-2 sm:mx-0">
-          <div className="overflow-x-auto md:overflow-x-visible">
+        <div className="rounded-lg border border-gray-200">
+          <div className="overflow-x-auto">
             <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
