@@ -402,7 +402,7 @@ export default function AllLeaveCalendar() {
                       }}
                       className="w-3.5 h-3.5 text-blue-600 rounded"
                     />
-                    <span className="text-xs text-gray-700">{dept.name}</span>
+                    <span className="text-sm text-gray-700">{dept.name}</span>
                   </label>
                 ))}
               </div>
