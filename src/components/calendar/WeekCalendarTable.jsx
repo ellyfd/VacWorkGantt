@@ -123,8 +123,8 @@ export default function WeekCalendarTable({
         />
       </div>
       
-      <div className="p-4">
-        <div className="grid grid-cols-7 gap-0 border border-gray-200 rounded-lg overflow-hidden">
+      <div className="p-4 overflow-auto">
+        <div className="grid grid-cols-7 gap-0 border border-gray-200 rounded-lg overflow-hidden min-w-[600px]">
           {/* 星期標題 */}
           {WEEKDAY_NAMES.map((day, idx) => (
             <div 
