@@ -404,7 +404,7 @@ export default function AllLeaveCalendar() {
                   <span className="text-xs text-gray-700">{dept.name}</span>
                 </label>
               ))}
-              <div className="ml-auto scale-75 md:scale-100 origin-right">
+              <div className="ml-auto">
                 <CalendarHeader 
                   currentDate={currentDate} 
                   onDateChange={setCurrentDate}
