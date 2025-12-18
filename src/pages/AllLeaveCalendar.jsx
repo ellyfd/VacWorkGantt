@@ -541,17 +541,6 @@ export default function AllLeaveCalendar() {
                   <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，選擇員工和日期區間</li>
                 </ul>
                 </div>
-                <div>
-                <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
-                <div className="flex flex-wrap gap-3">
-                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                    <div key={lt.id} className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
-                      <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </div>
