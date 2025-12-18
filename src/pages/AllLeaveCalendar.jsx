@@ -495,7 +495,6 @@ export default function AllLeaveCalendar() {
               💡 小提示：雙擊姓名或日期可以highlight該列或該欄
             </p>
           </div>
-          </div>
         </div>
 
         <div className="rounded-lg border border-gray-200">
