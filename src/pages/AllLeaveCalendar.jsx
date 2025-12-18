@@ -523,7 +523,7 @@ export default function AllLeaveCalendar() {
             className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
             onClick={() => setLegendOpen(!legendOpen)}
           >
-            <h3 className="text-sm font-semibold text-gray-700">操作說明與假別圖例</h3>
+            <h3 className="text-sm font-semibold text-gray-700">操作說明</h3>
             {legendOpen ? (
               <ChevronUp className="w-4 h-4 text-gray-700" />
             ) : (
