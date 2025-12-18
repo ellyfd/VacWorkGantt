@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2, CalendarRange } from 'lucide-react';
+import { Loader2, CalendarRange, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,6 +23,7 @@ export default function AllLeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
+  const [legendOpen, setLegendOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -516,14 +517,43 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">操作提醒</h3>
-          <ul className="text-xs text-gray-600 space-y-1">
-            <li>• <span className="font-medium">雙擊姓名或日期</span>：將該列或該欄 highlight 標記，方便查看</li>
-            <li>• <span className="font-medium">單擊格子</span>：選好假別後，單擊格子填充請假</li>
-            <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-            <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，選擇員工和日期區間</li>
-          </ul>
+        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
+            onClick={() => setLegendOpen(!legendOpen)}
+          >
+            <h3 className="text-sm font-semibold text-gray-700">操作說明與假別圖例</h3>
+            {legendOpen ? (
+              <ChevronUp className="w-4 h-4 text-gray-700" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-700" />
+            )}
+          </Button>
+          {legendOpen && (
+            <div className="px-4 pb-4 space-y-3">
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• <span className="font-medium">雙擊姓名或日期</span>：將該列或該欄 highlight 標記，方便查看</li>
+                  <li>• <span className="font-medium">單擊格子</span>：選好假別後，單擊格子填充請假</li>
+                  <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
+                  <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，選擇員工和日期區間</li>
+                </ul>
+              </div>
+              <div className="border-t border-gray-300 pt-3">
+                <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
+                <div className="flex flex-wrap gap-3">
+                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                    <div key={lt.id} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
+                      <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
