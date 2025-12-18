@@ -533,14 +533,15 @@ export default function AllLeaveCalendar() {
           {legendOpen && (
             <div className="px-4 pb-4 space-y-3">
               <div>
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
                 <ul className="text-xs text-gray-600 space-y-1">
                   <li>• <span className="font-medium">雙擊姓名或日期</span>：將該列或該欄 highlight 標記，方便查看</li>
                   <li>• <span className="font-medium">單擊格子</span>：選好假別後，單擊格子填充請假</li>
                   <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
                   <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，選擇員工和日期區間</li>
                 </ul>
-              </div>
-              <div className="border-t border-gray-300 pt-3">
+                </div>
+                <div>
                 <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
                 <div className="flex flex-wrap gap-3">
                   {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
