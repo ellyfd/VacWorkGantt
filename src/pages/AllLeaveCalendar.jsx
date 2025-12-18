@@ -515,6 +515,16 @@ export default function AllLeaveCalendar() {
           />
           </div>
         </div>
+
+        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">操作提醒</h3>
+          <ul className="text-xs text-gray-600 space-y-1">
+            <li>• <span className="font-medium">雙擊姓名或日期</span>：將該列或該欄 highlight 標記，方便查看</li>
+            <li>• <span className="font-medium">單擊格子</span>：選好假別後，單擊格子填充請假</li>
+            <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
+            <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，選擇員工和日期區間</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
