@@ -368,8 +368,8 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead>假別</TableHead>
-                  <TableHead>人數</TableHead>
+                  <TableHead className="w-32 min-w-[128px]">假別</TableHead>
+                  <TableHead className="w-16 min-w-[64px]">人數</TableHead>
                   <TableHead>人員</TableHead>
                 </TableRow>
               </TableHeader>
@@ -392,19 +392,19 @@ export default function Dashboard() {
                   }, {})
                 ).map(([typeId, data]) => (
                   <TableRow key={typeId}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
+                    <TableCell className="w-32 min-w-[128px]">
+                      <div className="flex items-center gap-2 whitespace-nowrap">
                         {data.leaveType && (
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-3 h-3 rounded-full flex-shrink-0"
                             style={{ backgroundColor: data.leaveType.color }}
                           />
                         )}
                         <span className="font-medium">{data.leaveType ? data.leaveType.name : '-'}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-bold text-lg">{data.employees.length}</TableCell>
-                    <TableCell className="text-gray-700">{data.employees.join('、')}</TableCell>
+                    <TableCell className="w-16 min-w-[64px] font-bold text-lg whitespace-nowrap">{data.employees.length}</TableCell>
+                    <TableCell className="text-gray-700 break-words">{data.employees.join('、')}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
