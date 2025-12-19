@@ -404,7 +404,15 @@ export default function Dashboard() {
                       </div>
                     </TableCell>
                     <TableCell className="font-bold text-lg">{data.employees.length}</TableCell>
-                    <TableCell className="text-gray-700">{data.employees.join('、')}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-x-2 gap-y-1">
+                        {data.employees.map((name, idx) => (
+                          <span key={idx} className="text-gray-700">
+                            {name}{idx < data.employees.length - 1 && '、'}
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
