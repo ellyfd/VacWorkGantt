@@ -365,50 +365,52 @@ export default function Dashboard() {
               <p>今日無休假人員</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead>假別</TableHead>
-                  <TableHead>人數</TableHead>
-                  <TableHead>人員</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(
-                  filteredLeaves.reduce((acc, leave) => {
-                    const leaveType = getLeaveType(leave.leave_type_id);
-                    const typeId = leave.leave_type_id;
-                    if (!acc[typeId]) {
-                      acc[typeId] = {
-                        leaveType,
-                        employees: []
-                      };
-                    }
-                    const emp = employees.find(e => e.id === leave.employee_id);
-                    if (emp) {
-                      acc[typeId].employees.push(emp.name);
-                    }
-                    return acc;
-                  }, {})
-                ).map(([typeId, data]) => (
-                  <TableRow key={typeId}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {data.leaveType && (
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: data.leaveType.color }}
-                          />
-                        )}
-                        <span className="font-medium">{data.leaveType ? data.leaveType.name : '-'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-bold text-lg">{data.employees.length}</TableCell>
-                    <TableCell className="text-gray-700">{data.employees.join('、')}</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="min-w-[120px] w-[120px]">假別</TableHead>
+                    <TableHead className="min-w-[60px] w-[60px]">人數</TableHead>
+                    <TableHead>人員</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(
+                    filteredLeaves.reduce((acc, leave) => {
+                      const leaveType = getLeaveType(leave.leave_type_id);
+                      const typeId = leave.leave_type_id;
+                      if (!acc[typeId]) {
+                        acc[typeId] = {
+                          leaveType,
+                          employees: []
+                        };
+                      }
+                      const emp = employees.find(e => e.id === leave.employee_id);
+                      if (emp) {
+                        acc[typeId].employees.push(emp.name);
+                      }
+                      return acc;
+                    }, {})
+                  ).map(([typeId, data]) => (
+                    <TableRow key={typeId}>
+                      <TableCell className="min-w-[120px] w-[120px]">
+                        <div className="flex items-center gap-2 whitespace-nowrap">
+                          {data.leaveType && (
+                            <div
+                              className="w-3 h-3 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: data.leaveType.color }}
+                            />
+                          )}
+                          <span className="font-medium">{data.leaveType ? data.leaveType.name : '-'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-bold text-lg min-w-[60px] w-[60px]">{data.employees.length}</TableCell>
+                      <TableCell className="text-gray-700">{data.employees.join('、')}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </div>
       </div>
