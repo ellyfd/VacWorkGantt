@@ -150,15 +150,15 @@ export default function WeekCalendarTable({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row items-start md:items-center gap-3 md:justify-between">
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <h3 className="text-lg font-bold text-gray-800">
               {currentEmployee.name}
               {currentEmployee.english_name && (
                 <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
               )}
             </h3>
-            <span className="text-sm text-gray-600 ml-4">
-              工作天 <span className="font-semibold text-gray-800">{workDaysCount}</span> 天
+            <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">
+              本月工作天 <span className="font-semibold text-gray-800">{workDaysCount}</span> 天
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
