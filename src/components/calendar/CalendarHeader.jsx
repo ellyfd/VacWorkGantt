@@ -65,7 +65,10 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           </SelectTrigger>
           <SelectContent>
             {years.map((year) => (
-              <SelectItem key={year} value={year.toString()}>{year}年</SelectItem>
+              <SelectItem key={year} value={year.toString()}>
+                <span className="md:hidden">{year}</span>
+                <span className="hidden md:inline">{year}年</span>
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -79,7 +82,10 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           <SelectContent>
             <SelectItem value="-1">全年</SelectItem>
             {months.map((month) => (
-              <SelectItem key={month} value={month.toString()}>{month + 1}月</SelectItem>
+              <SelectItem key={month} value={month.toString()}>
+                <span className="md:hidden">{month + 1}</span>
+                <span className="hidden md:inline">{month + 1}月</span>
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
