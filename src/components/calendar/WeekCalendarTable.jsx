@@ -148,16 +148,21 @@ export default function WeekCalendarTable({
               <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
             )}
           </h3>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {monthlyLeaveStats.length > 0 ? (
               monthlyLeaveStats.map((stat) => (
-                <span 
+                <div 
                   key={stat.leaveTypeId}
-                  className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
-                  style={{ backgroundColor: stat.color }}
+                  className="flex items-center gap-1"
                 >
-                  {stat.shortName} {stat.count}
-                </span>
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: stat.color }}
+                  />
+                  <span className="text-xs text-gray-600">
+                    {stat.shortName} {stat.count}
+                  </span>
+                </div>
               ))
             ) : (
               <span className="text-xs text-gray-400">本月無休假</span>
