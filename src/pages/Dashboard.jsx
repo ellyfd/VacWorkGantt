@@ -228,25 +228,48 @@ export default function Dashboard() {
         </div>
 
         <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Label className="text-sm font-semibold text-gray-700 whitespace-nowrap">篩選部門：</Label>
-            {departments.map((dept) => (
-              <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200">
-                <input
-                  type="checkbox"
-                  checked={selectedDepartments.includes(dept.id)}
-                  onChange={() => {
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-700 flex-shrink-0">部門：</span>
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
+              {departments.map((dept) => (
+                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(dept.id)}
+                    onChange={() => {
+                      if (selectedDepartments.includes(dept.id)) {
+                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                      } else {
+                        setSelectedDepartments([...selectedDepartments, dept.id]);
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-gray-700">{dept.name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex sm:hidden gap-2 flex-wrap">
+              {departments.map((dept) => (
+                <button
+                  key={dept.id}
+                  onClick={() => {
                     if (selectedDepartments.includes(dept.id)) {
                       setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
                     } else {
                       setSelectedDepartments([...selectedDepartments, dept.id]);
                     }
                   }}
-                  className="w-3.5 h-3.5 text-blue-600 rounded"
-                />
-                <span className="text-xs text-gray-700">{dept.name}</span>
-              </label>
-            ))}
+                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                    selectedDepartments.includes(dept.id)
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300'
+                  }`}
+                >
+                  {dept.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
