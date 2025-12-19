@@ -481,9 +481,18 @@ export default function LeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 pb-8 sm:p-6">
       <div className="max-w-full mx-auto">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
+        {/* 標題和日期選擇器 */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
+          <div className="md:hidden">
+            <CalendarHeader 
+              currentDate={currentDate} 
+              onDateChange={setCurrentDate}
+            />
+          </div>
+        </div>
 
           <div className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
