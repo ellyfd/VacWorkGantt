@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Loader2, ChevronDown, ChevronUp, CalendarRange } from 'lucide-react';
+import { Loader2, CalendarRange } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -21,7 +21,6 @@ import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [legendOpen, setLegendOpen] = useState(false);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
@@ -613,44 +612,30 @@ export default function LeaveCalendar() {
             onCellClickInRangeMode={handleCellClickInRangeMode}
           />
 
-          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-            <Button
-              variant="ghost"
-              className="w-full flex items-center justify-between p-4 hover:bg-gray-100"
-              onClick={() => setLegendOpen(!legendOpen)}
-            >
-              <h3 className="text-sm font-semibold text-gray-700">操作說明與假別圖例</h3>
-              {legendOpen ? (
-                <ChevronUp className="w-4 h-4 text-gray-700" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-gray-700" />
-              )}
-            </Button>
-            {legendOpen && (
-              <div className="px-4 pb-4 space-y-3">
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
-                    <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
-                    <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
-                    <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                    <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過1/3成員請假時會提醒</li>
-                  </ul>
-                </div>
-                <div className="border-t border-gray-300 pt-3">
-                  <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
-                  <div className="flex flex-wrap gap-3">
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <div key={lt.id} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
-                        <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
-                      </div>
-                    ))}
-                  </div>
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
+                  <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
+                  <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
+                  <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
+                  <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過1/3成員請假時會提醒</li>
+                </ul>
+              </div>
+              <div className="border-t border-gray-300 pt-3">
+                <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
+                <div className="flex flex-wrap gap-3">
+                  {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                    <div key={lt.id} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: lt.color }} />
+                      <span className="text-xs text-gray-600">{lt.short_name} = {lt.name}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
           </div>
           </div>
