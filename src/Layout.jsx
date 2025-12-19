@@ -110,7 +110,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col fixed h-full">
         <div className="p-6 border-b border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-800">排休登記系統</h1>
+          <h1 className="text-3xl font-bold text-gray-800">排休登記系統</h1>
         </div>
         <nav className="flex-1 p-4 flex flex-col">
           <ul className="space-y-1 flex-1">
@@ -182,7 +182,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
         <div className="flex items-center justify-between p-4">
-          <h1 className="text-xl font-bold text-gray-800">排休登記系統</h1>
+          <h1 className="text-2xl font-bold text-gray-800">排休登記系統</h1>
           <Button
             variant="ghost"
             size="icon"
