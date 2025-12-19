@@ -129,7 +129,7 @@ export default function WeekCalendarTable({
         } else {
           monthlyLeaveStats.push({
             leaveTypeId: leaveType.id,
-            shortName: leaveType.short_name,
+            name: leaveType.name,
             color: leaveType.color,
             count: 1
           });
@@ -160,7 +160,7 @@ export default function WeekCalendarTable({
                     style={{ backgroundColor: stat.color }}
                   />
                   <span className="text-xs text-gray-600">
-                    {stat.shortName} {stat.count}
+                    {stat.name} {stat.count}天
                   </span>
                 </div>
               ))
