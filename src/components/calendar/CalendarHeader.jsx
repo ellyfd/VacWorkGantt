@@ -49,27 +49,9 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[85px] h-8 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {years.map((year) => (
-              <SelectItem key={year} value={year.toString()}>{year}年</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-[75px] h-8 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="-1">全年</SelectItem>
-            {months.map((month) => (
-              <SelectItem key={month} value={month.toString()}>{month + 1}月</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="px-3 h-8 flex items-center justify-center text-sm font-medium">
+          {currentMonth === -1 ? `${currentYear}` : `${currentYear}/${currentMonth + 1}`}
+        </div>
         <Button
           variant="outline"
           size="icon"

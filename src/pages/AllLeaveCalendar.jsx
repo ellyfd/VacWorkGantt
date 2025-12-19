@@ -434,7 +434,7 @@ export default function AllLeaveCalendar() {
               </div>
 
               {/* 日期選擇器 */}
-              <div className="flex justify-center sm:justify-end">
+              <div className="flex justify-start sm:justify-end">
                 <CalendarHeader 
                   currentDate={currentDate} 
                   onDateChange={setCurrentDate}
