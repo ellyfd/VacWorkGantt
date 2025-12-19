@@ -57,7 +57,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[70px] md:w-[85px] h-8 text-sm">
+          <SelectTrigger className="w-[80px] md:w-[85px] h-8 text-sm">
             <SelectValue>
               <span className="md:hidden">{currentYear}</span>
               <span className="hidden md:inline">{currentYear}年</span>
