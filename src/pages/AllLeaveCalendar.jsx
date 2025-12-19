@@ -388,8 +388,8 @@ export default function AllLeaveCalendar() {
           <div className="bg-white border border-gray-200 rounded-lg p-3">
             <div className="space-y-3">
               {/* 部門選擇 - 手機版改為下拉選單，桌面版保持原樣 */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700">部門：</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700 flex-shrink-0">部門：</span>
                 <div className="hidden sm:flex items-center gap-2 flex-wrap">
                   {departments.map((dept) => (
                     <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
