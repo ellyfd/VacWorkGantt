@@ -113,18 +113,10 @@ export default function WeekCalendarTable({
     weeks.push(currentWeek);
   }
 
-  // 計算當月休假統計和工作天數
+  // 計算當月休假統計
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   const monthlyLeaveStats = [];
-  
-  // 計算當月工作天數（排除週末和假日）
-  let workDaysCount = 0;
-  allDays.forEach(day => {
-    if (!day.isWeekend && !day.isHoliday) {
-      workDaysCount++;
-    }
-  });
   
   leaveRecords.forEach(record => {
     const recordDate = new Date(record.date);
@@ -150,17 +142,12 @@ export default function WeekCalendarTable({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row items-start md:items-center gap-3 md:justify-between">
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between w-full">
-            <h3 className="text-lg font-bold text-gray-800">
-              {currentEmployee.name}
-              {currentEmployee.english_name && (
-                <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
-              )}
-            </h3>
-            <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap">
-              本月工作天 <span className="font-semibold text-gray-800">{workDaysCount}</span> 天
-            </span>
-          </div>
+          <h3 className="text-lg font-bold text-gray-800">
+            {currentEmployee.name}
+            {currentEmployee.english_name && (
+              <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
+            )}
+          </h3>
           <div className="flex flex-wrap gap-2">
             {monthlyLeaveStats.length > 0 ? (
               monthlyLeaveStats.map((stat) => (
