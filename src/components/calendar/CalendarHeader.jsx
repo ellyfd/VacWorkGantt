@@ -5,6 +5,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addMonths, subMonths } from "date-fns";
 
 export default function CalendarHeader({ currentDate, onDateChange }) {
+  const formatValue = (year, month) => {
+    if (month === -1) {
+      return `${year}`;
+    }
+    return `${year}/${month + 1}`;
+  };
+
   const handlePrevMonth = () => {
     const currentMonth = currentDate.getMonth();
     if (currentMonth === -1) {
@@ -50,8 +57,11 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[85px] h-8 text-sm">
-            <SelectValue />
+          <SelectTrigger className="w-[70px] md:w-[85px] h-8 text-sm">
+            <SelectValue>
+              <span className="md:hidden">{currentYear}</span>
+              <span className="hidden md:inline">{currentYear}年</span>
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {years.map((year) => (
@@ -60,8 +70,11 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           </SelectContent>
         </Select>
         <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-[75px] h-8 text-sm">
-            <SelectValue />
+          <SelectTrigger className="w-[60px] md:w-[75px] h-8 text-sm">
+            <SelectValue>
+              <span className="md:hidden">{currentMonth === -1 ? '全年' : currentMonth + 1}</span>
+              <span className="hidden md:inline">{currentMonth === -1 ? '全年' : `${currentMonth + 1}月`}</span>
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="-1">全年</SelectItem>
