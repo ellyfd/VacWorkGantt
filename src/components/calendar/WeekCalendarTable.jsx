@@ -113,14 +113,43 @@ export default function WeekCalendarTable({
     weeks.push(currentWeek);
   }
 
+  // 計算當月休假統計
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  const monthlyLeaveStats = {};
+  
+  leaveRecords.forEach(record => {
+    const recordDate = new Date(record.date);
+    if (recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear) {
+      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+      if (leaveType) {
+        monthlyLeaveStats[leaveType.short_name] = (monthlyLeaveStats[leaveType.short_name] || 0) + 1;
+      }
+    }
+  });
+
+  const leaveStatsText = Object.entries(monthlyLeaveStats)
+    .map(([shortName, count]) => `${shortName}${count}`)
+    .join(' ') || '無';
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row items-start md:items-center gap-3 md:justify-between">
-        <h3 className="text-lg font-bold text-gray-800">{currentEmployee.name}</h3>
-        <CalendarHeader 
-          currentDate={currentDate} 
-          onDateChange={onDateChange}
-        />
+        <div className="flex flex-col gap-1">
+          <h3 className="text-lg font-bold text-gray-800">
+            {currentEmployee.name}
+            {currentEmployee.english_name && (
+              <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
+            )}
+          </h3>
+          <p className="text-xs text-gray-500">{leaveStatsText}</p>
+        </div>
+        <div className="hidden md:block">
+          <CalendarHeader 
+            currentDate={currentDate} 
+            onDateChange={onDateChange}
+          />
+        </div>
       </div>
       
       <div className="p-4">
