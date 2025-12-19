@@ -382,7 +382,16 @@ export default function AllLeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 pb-8 sm:p-6">
       <div className="w-full">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
+        {/* 標題和日期選擇器 */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">全部排休</h1>
+          <div className="md:hidden">
+            <CalendarHeader 
+              currentDate={currentDate} 
+              onDateChange={setCurrentDate}
+            />
+          </div>
+        </div>
 
         <div className="mb-4 space-y-3">
           <div className="bg-white border border-gray-200 rounded-lg p-3">
@@ -433,8 +442,8 @@ export default function AllLeaveCalendar() {
                 </div>
               </div>
 
-              {/* 日期選擇器 */}
-              <div className="flex justify-center sm:justify-end">
+              {/* 日期選擇器 - 僅桌面版顯示 */}
+              <div className="hidden md:flex justify-end">
                 <CalendarHeader 
                   currentDate={currentDate} 
                   onDateChange={setCurrentDate}
