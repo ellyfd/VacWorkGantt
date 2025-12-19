@@ -385,112 +385,141 @@ export default function AllLeaveCalendar() {
         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">全部排休</h1>
 
         <div className="mb-4 space-y-3">
-          <div className="p-3 bg-white border border-gray-200 rounded-lg">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">部門：</span>
-                {departments.map((dept) => (
-                  <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedDepartments.includes(dept.id)}
-                      onChange={() => {
+          <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="space-y-3">
+              {/* 部門選擇 - 手機版改為下拉選單，桌面版保持原樣 */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700">部門：</span>
+                <div className="hidden sm:flex items-center gap-2 flex-wrap">
+                  {departments.map((dept) => (
+                    <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedDepartments.includes(dept.id)}
+                        onChange={() => {
+                          if (selectedDepartments.includes(dept.id)) {
+                            setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                          } else {
+                            setSelectedDepartments([...selectedDepartments, dept.id]);
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span className="text-sm text-gray-700">{dept.name}</span>
+                    </label>
+                  ))}
+                </div>
+                {/* 手機版下拉選單 */}
+                <div className="flex sm:hidden gap-2 flex-wrap">
+                  {departments.map((dept) => (
+                    <button
+                      key={dept.id}
+                      onClick={() => {
                         if (selectedDepartments.includes(dept.id)) {
                           setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
                         } else {
                           setSelectedDepartments([...selectedDepartments, dept.id]);
                         }
                       }}
-                      className="w-4 h-4 text-blue-600 rounded"
-                    />
-                    <span className="text-sm text-gray-700">{dept.name}</span>
-                  </label>
-                ))}
+                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                        selectedDepartments.includes(dept.id)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300'
+                      }`}
+                    >
+                      {dept.name}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <CalendarHeader 
-                currentDate={currentDate} 
-                onDateChange={setCurrentDate}
-              />
-            </div>
-          </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-2">
-                <Select 
-                  value={selectedLeaveTypeId || ''} 
-                  onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
-                  disabled={rangeMode}
-                >
-                  <SelectTrigger className="w-[160px] sm:w-[200px]">
-                    <SelectValue placeholder="選擇假別" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不選擇</SelectItem>
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <SelectItem key={lt.id} value={lt.id}>
-                        {lt.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* 日期選擇器 */}
+              <div className="flex justify-center sm:justify-end">
+                <CalendarHeader 
+                  currentDate={currentDate} 
+                  onDateChange={setCurrentDate}
+                />
+              </div>
 
-                {!rangeMode ? (
-                  <Button
-                    onClick={() => {
-                      if (!selectedLeaveTypeId) {
-                        alert('請先選擇假別');
-                        return;
-                      }
-                      setRangeMode(true);
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
-                    size="icon"
+              {/* 假別選擇和區間按鈕 */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Select 
+                    value={selectedLeaveTypeId || ''} 
+                    onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+                    disabled={rangeMode}
                   >
-                    <CalendarRange className="h-5 w-5" />
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="選擇假別" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>不選擇</SelectItem>
+                      {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                        <SelectItem key={lt.id} value={lt.id}>
+                          {lt.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {!rangeMode ? (
                     <Button
                       onClick={() => {
-                        setRangeMode(false);
-                        setDateRange({ from: undefined, to: undefined, employeeId: undefined });
+                        if (!selectedLeaveTypeId) {
+                          alert('請先選擇假別');
+                          return;
+                        }
+                        setRangeMode(true);
                       }}
-                      variant="outline"
-                      size="icon"
-                      className="flex-shrink-0"
-                    >
-                      ✕
-                    </Button>
-                    <Button
-                      onClick={handleRangeSubmit}
-                      disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
-                      className="bg-green-600 hover:bg-green-700 flex-shrink-0"
+                      className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
                       size="icon"
                     >
-                      {rangeLeaveMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        '✓'
-                      )}
+                      <CalendarRange className="h-5 w-5" />
                     </Button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setRangeMode(false);
+                          setDateRange({ from: undefined, to: undefined, employeeId: undefined });
+                        }}
+                        variant="outline"
+                        size="icon"
+                        className="flex-shrink-0"
+                      >
+                        ✕
+                      </Button>
+                      <Button
+                        onClick={handleRangeSubmit}
+                        disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700 flex-shrink-0"
+                        size="icon"
+                      >
+                        {rangeLeaveMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          '✓'
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 區間選擇提示 */}
+                {rangeMode && (
+                  <p className="text-xs text-blue-600 leading-relaxed">
+                    {!dateRange.from && "📍 請在下方日曆點擊任一員工的格子選擇起始日期"}
+                    {dateRange.from && !dateRange.to && (() => {
+                      const emp = employees.find(e => e.id === dateRange.employeeId);
+                      return `📍 ${emp?.name} - 已選開始：${dateRange.from}，請繼續選擇結束日期`;
+                    })()}
+                    {dateRange.from && dateRange.to && (() => {
+                      const emp = employees.find(e => e.id === dateRange.employeeId);
+                      return `✓ ${emp?.name} - 已選區間：${dateRange.from} 至 ${dateRange.to}，點擊 ✓ 確認`;
+                    })()}
+                  </p>
                 )}
               </div>
-
-              {rangeMode && (
-                <p className="text-xs text-blue-600 break-words">
-                  {!dateRange.from && "📍 請在下方日曆點擊任一員工的格子選擇起始日期"}
-                  {dateRange.from && !dateRange.to && (() => {
-                    const emp = employees.find(e => e.id === dateRange.employeeId);
-                    return `📍 ${emp?.name} - 已選開始：${dateRange.from}，請繼續選擇結束日期`;
-                  })()}
-                  {dateRange.from && dateRange.to && (() => {
-                    const emp = employees.find(e => e.id === dateRange.employeeId);
-                    return `✓ ${emp?.name} - 已選區間：${dateRange.from} 至 ${dateRange.to}，點擊 ✓ 確認`;
-                  })()}
-                </p>
-              )}
             </div>
           </div>
         </div>
