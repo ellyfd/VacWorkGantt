@@ -405,7 +405,7 @@ export default function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="font-bold text-lg min-w-[60px] w-[60px]">{data.employees.length}</TableCell>
-                      <TableCell className="text-gray-700">{data.employees.join('、')}</TableCell>
+                      <TableCell className="text-gray-700 whitespace-nowrap">{data.employees.join('、')}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
