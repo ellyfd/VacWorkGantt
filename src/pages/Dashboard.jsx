@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
+  const [isScanningWarnings, setIsScanningWarnings] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -173,11 +174,11 @@ export default function Dashboard() {
     try {
       // 先獲取所有請假記錄
       const records = await base44.entities.LeaveRecord.list();
-      
+
       // 找出重複的記錄
       const recordMap = new Map();
       const duplicatesToDelete = [];
-      
+
       records.forEach(record => {
         const key = `${record.employee_id}-${record.date}-${record.leave_type_id}`;
         if (recordMap.has(key)) {
@@ -188,7 +189,7 @@ export default function Dashboard() {
           recordMap.set(key, record.id);
         }
       });
-      
+
       if (duplicatesToDelete.length === 0) {
         alert('沒有發現重複的記錄');
       } else {
@@ -196,18 +197,109 @@ export default function Dashboard() {
         await Promise.all(
           duplicatesToDelete.map(id => base44.entities.LeaveRecord.delete(id))
         );
-        
+
         // 重新載入資料
         queryClient.invalidateQueries(['todayLeaves']);
         queryClient.invalidateQueries(['leaveRecords']);
         queryClient.invalidateQueries(['allLeaveRecords']);
-        
+
         alert(`成功清理 ${duplicatesToDelete.length} 筆重複記錄`);
       }
     } catch (error) {
       alert('清理失敗：' + error.message);
     } finally {
       setIsCleaningDuplicates(false);
+    }
+  };
+
+  const handleScanWarnings = async () => {
+    if (!window.confirm('確定要重新掃描所有請假記錄的警示資訊嗎？\n\n系統會檢查所有現有的請假記錄，為符合條件的記錄補上警示資訊（職代衝突、部門超標）。\n\n這可能需要一些時間。')) {
+      return;
+    }
+
+    setIsScanningWarnings(true);
+    try {
+      // 獲取所有資料
+      const allRecords = await base44.entities.LeaveRecord.list();
+      const allEmployees = await base44.entities.Employee.list();
+      const allLeaveTypes = await base44.entities.LeaveType.list();
+
+      let updatedCount = 0;
+
+      // 為每筆記錄檢查警示
+      for (const record of allRecords) {
+        const currentEmployee = allEmployees.find(e => e.id === record.employee_id);
+        if (!currentEmployee) continue;
+
+        const warningTypes = [];
+        const warningDetails = {};
+
+        // 檢查職代衝突
+        if (currentEmployee.deputy_1 || currentEmployee.deputy_2) {
+          const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
+          const deputyConflicts = allRecords.filter(r => 
+            deputies.includes(r.employee_id) && r.date === record.date && r.id !== record.id
+          );
+
+          if (deputyConflicts.length > 0) {
+            warningTypes.push('deputy_conflict');
+            warningDetails.deputy_conflicts = deputyConflicts.map(c => {
+              const emp = allEmployees.find(e => e.id === c.employee_id);
+              const lt = allLeaveTypes.find(l => l.id === c.leave_type_id);
+              return {
+                employee_id: c.employee_id,
+                employee_name: emp?.name || '未知',
+                leave_type: lt?.name || '未知'
+              };
+            });
+          }
+        }
+
+        // 檢查部門超標
+        const deptLeaves = allRecords.filter(r => {
+          if (r.employee_id === record.employee_id || r.id === record.id) return false;
+          const emp = allEmployees.find(e => e.id === r.employee_id);
+          return emp?.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId)) && r.date === record.date;
+        });
+
+        const deptTotalMembers = allEmployees.filter(e => 
+          e.status === 'active' && 
+          e.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId))
+        ).length;
+
+        const deptLimit = Math.floor(deptTotalMembers / 3);
+
+        if (deptLeaves.length >= deptLimit && deptTotalMembers > 0) {
+          warningTypes.push('department_over_limit');
+          warningDetails.department_info = {
+            total_members: deptTotalMembers,
+            leave_count: deptLeaves.length + 1,
+            limit: deptLimit,
+            percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
+          };
+        }
+
+        // 如果有警示且記錄尚未包含警示資訊，則更新
+        if (warningTypes.length > 0 && (!record.warning_type || record.warning_type.length === 0)) {
+          await base44.entities.LeaveRecord.update(record.id, {
+            warning_type: warningTypes,
+            warning_details: warningDetails
+          });
+          updatedCount++;
+        }
+      }
+
+      // 重新載入資料
+      queryClient.invalidateQueries(['todayLeaves']);
+      queryClient.invalidateQueries(['warningLeaves']);
+      queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries(['allLeaveRecords']);
+
+      alert(`掃描完成！共更新 ${updatedCount} 筆記錄的警示資訊。`);
+    } catch (error) {
+      alert('掃描失敗：' + error.message);
+    } finally {
+      setIsScanningWarnings(false);
     }
   };
 
@@ -348,22 +440,40 @@ export default function Dashboard() {
               休假人員
             </h2>
             {currentUser?.role === 'admin' && (
-              <Button
-                onClick={handleCleanDuplicates}
-                disabled={isCleaningDuplicates}
-                variant="outline"
-                size="sm"
-                className="border-orange-500 text-orange-600 hover:bg-orange-50"
-              >
-                {isCleaningDuplicates ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    清理中...
-                  </>
-                ) : (
-                  '清理重複記錄'
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleCleanDuplicates}
+                  disabled={isCleaningDuplicates || isScanningWarnings}
+                  variant="outline"
+                  size="sm"
+                  className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                >
+                  {isCleaningDuplicates ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      清理中...
+                    </>
+                  ) : (
+                    '清理重複記錄'
+                  )}
+                </Button>
+                <Button
+                  onClick={handleScanWarnings}
+                  disabled={isCleaningDuplicates || isScanningWarnings}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                >
+                  {isScanningWarnings ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      掃描中...
+                    </>
+                  ) : (
+                    '掃描警示資訊'
+                  )}
+                </Button>
+              </div>
             )}
           </div>
 
