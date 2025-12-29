@@ -443,7 +443,6 @@ export default function Dashboard() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead>員工姓名</TableHead>
-                    <TableHead>部門</TableHead>
                     <TableHead>請假日期</TableHead>
                     <TableHead>假別</TableHead>
                     <TableHead>警示類型</TableHead>
@@ -454,10 +453,6 @@ export default function Dashboard() {
                   {warningLeaves.map((record) => {
                     const employee = employees.find(e => e.id === record.employee_id);
                     const leaveType = getLeaveType(record.leave_type_id);
-                    const deptNames = departments
-                      .filter(d => employee?.department_ids?.includes(d.id))
-                      .map(d => d.name)
-                      .join('、');
 
                     const warningTypes = record.warning_type || [];
                     const warningDetails = record.warning_details || {};
@@ -465,7 +460,6 @@ export default function Dashboard() {
                     return (
                       <TableRow key={record.id}>
                         <TableCell className="font-medium">{employee?.name || '-'}</TableCell>
-                        <TableCell>{deptNames || '-'}</TableCell>
                         <TableCell>{record.date}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -528,10 +522,6 @@ export default function Dashboard() {
               {warningLeaves.map((record) => {
                 const employee = employees.find(e => e.id === record.employee_id);
                 const leaveType = getLeaveType(record.leave_type_id);
-                const deptNames = departments
-                  .filter(d => employee?.department_ids?.includes(d.id))
-                  .map(d => d.name)
-                  .join('、');
 
                 const warningTypes = record.warning_type || [];
                 const warningDetails = record.warning_details || {};
@@ -539,10 +529,7 @@ export default function Dashboard() {
                 return (
                   <div key={record.id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-bold text-gray-800">{employee?.name || '-'}</div>
-                        <div className="text-sm text-gray-500">{deptNames || '-'}</div>
-                      </div>
+                      <div className="font-bold text-gray-800">{employee?.name || '-'}</div>
                       <div className="text-xs text-gray-500">{record.date}</div>
                     </div>
 
