@@ -545,7 +545,10 @@ export default function Dashboard() {
           )}
         </div>
 
-        {warningLeaves.length > 0 && (
+        {warningLeaves.filter(r => {
+          const lt = getLeaveType(r.leave_type_id);
+          return lt?.name !== '出差';
+        }).length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden mt-8">
             <div className="p-6 border-b border-orange-200 bg-orange-50">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -553,7 +556,7 @@ export default function Dashboard() {
                 異常請假記錄
               </h2>
             </div>
-            
+
             {/* 桌面版 - 表格 */}
             <div className="hidden md:block">
               <Table>
@@ -567,7 +570,10 @@ export default function Dashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {warningLeaves.map((record) => {
+                  {warningLeaves.filter(r => {
+                    const lt = getLeaveType(r.leave_type_id);
+                    return lt?.name !== '出差';
+                  }).map((record) => {
                     const employee = employees.find(e => e.id === record.employee_id);
                     const leaveType = getLeaveType(record.leave_type_id);
 
@@ -636,7 +642,10 @@ export default function Dashboard() {
 
             {/* 手機版 - 卡片式 */}
             <div className="md:hidden divide-y divide-gray-200">
-              {warningLeaves.map((record) => {
+              {warningLeaves.filter(r => {
+                const lt = getLeaveType(r.leave_type_id);
+                return lt?.name !== '出差';
+              }).map((record) => {
                 const employee = employees.find(e => e.id === record.employee_id);
                 const leaveType = getLeaveType(record.leave_type_id);
 
