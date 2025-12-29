@@ -533,7 +533,7 @@ export default function Dashboard() {
                       <div className="text-xs text-gray-500">{record.date}</div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {leaveType && (
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
@@ -541,9 +541,6 @@ export default function Dashboard() {
                         />
                       )}
                       <span className="text-sm font-medium">{leaveType?.name || '-'}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
                       {warningTypes.map((type, idx) => (
                         <span 
                           key={idx}
