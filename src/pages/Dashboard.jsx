@@ -545,10 +545,46 @@ export default function Dashboard() {
           )}
         </div>
 
-        {warningLeaves.filter(r => {
-          const lt = getLeaveType(r.leave_type_id);
-          return lt?.name !== '出差';
-        }).length > 0 && (
+        {(() => {
+          // 即時檢查是否真的有警示
+          const actualWarnings = warningLeaves.filter(r => {
+            const lt = getLeaveType(r.leave_type_id);
+            if (lt?.name === '出差') return false;
+
+            const emp = employees.find(e => e.id === r.employee_id);
+            if (!emp) return false;
+
+            // 檢查職代衝突
+            let hasDeputyConflict = false;
+            if (emp.deputy_1 || emp.deputy_2) {
+              const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
+              const conflicts = todayLeaves.filter(lr => {
+                const lrType = getLeaveType(lr.leave_type_id);
+                return deputies.includes(lr.employee_id) && lr.date === r.date && lrType?.name !== '出差';
+              });
+              hasDeputyConflict = conflicts.length > 0;
+            }
+
+            // 檢查部門超標
+            let hasDeptOverLimit = false;
+            const deptLeaves = todayLeaves.filter(lr => {
+              if (lr.employee_id === r.employee_id) return false;
+              const e = employees.find(e => e.id === lr.employee_id);
+              const lrType = getLeaveType(lr.leave_type_id);
+              return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
+            });
+            const deptTotalMembers = employees.filter(e => 
+              e.status === 'active' && 
+              e.department_ids?.some(deptId => emp?.department_ids?.includes(deptId))
+            ).length;
+            const deptLimit = Math.floor(deptTotalMembers / 3);
+            hasDeptOverLimit = deptLeaves.length >= deptLimit;
+
+            return hasDeputyConflict || hasDeptOverLimit;
+          });
+
+          return actualWarnings.length > 0;
+        })() && (
           <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden mt-8">
             <div className="p-6 border-b border-orange-200 bg-orange-50">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -572,7 +608,37 @@ export default function Dashboard() {
                 <TableBody>
                   {warningLeaves.filter(r => {
                     const lt = getLeaveType(r.leave_type_id);
-                    return lt?.name !== '出差';
+                    if (lt?.name === '出差') return false;
+
+                    const emp = employees.find(e => e.id === r.employee_id);
+                    if (!emp) return false;
+
+                    // 即時檢查是否真的有警示
+                    let hasDeputyConflict = false;
+                    if (emp.deputy_1 || emp.deputy_2) {
+                      const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
+                      const conflicts = todayLeaves.filter(lr => {
+                        const lrType = getLeaveType(lr.leave_type_id);
+                        return deputies.includes(lr.employee_id) && lr.date === r.date && lrType?.name !== '出差';
+                      });
+                      hasDeputyConflict = conflicts.length > 0;
+                    }
+
+                    let hasDeptOverLimit = false;
+                    const deptLeaves = todayLeaves.filter(lr => {
+                      if (lr.employee_id === r.employee_id) return false;
+                      const e = employees.find(e => e.id === lr.employee_id);
+                      const lrType = getLeaveType(lr.leave_type_id);
+                      return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
+                    });
+                    const deptTotalMembers = employees.filter(e => 
+                      e.status === 'active' && 
+                      e.department_ids?.some(deptId => emp?.department_ids?.includes(deptId))
+                    ).length;
+                    const deptLimit = Math.floor(deptTotalMembers / 3);
+                    hasDeptOverLimit = deptLeaves.length >= deptLimit;
+
+                    return hasDeputyConflict || hasDeptOverLimit;
                   }).map((record) => {
                     const employee = employees.find(e => e.id === record.employee_id);
                     const leaveType = getLeaveType(record.leave_type_id);
@@ -662,7 +728,37 @@ export default function Dashboard() {
             <div className="md:hidden divide-y divide-gray-200">
               {warningLeaves.filter(r => {
                 const lt = getLeaveType(r.leave_type_id);
-                return lt?.name !== '出差';
+                if (lt?.name === '出差') return false;
+
+                const emp = employees.find(e => e.id === r.employee_id);
+                if (!emp) return false;
+
+                // 即時檢查是否真的有警示
+                let hasDeputyConflict = false;
+                if (emp.deputy_1 || emp.deputy_2) {
+                  const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
+                  const conflicts = todayLeaves.filter(lr => {
+                    const lrType = getLeaveType(lr.leave_type_id);
+                    return deputies.includes(lr.employee_id) && lr.date === r.date && lrType?.name !== '出差';
+                  });
+                  hasDeputyConflict = conflicts.length > 0;
+                }
+
+                let hasDeptOverLimit = false;
+                const deptLeaves = todayLeaves.filter(lr => {
+                  if (lr.employee_id === r.employee_id) return false;
+                  const e = employees.find(e => e.id === lr.employee_id);
+                  const lrType = getLeaveType(lr.leave_type_id);
+                  return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
+                });
+                const deptTotalMembers = employees.filter(e => 
+                  e.status === 'active' && 
+                  e.department_ids?.some(deptId => emp?.department_ids?.includes(deptId))
+                ).length;
+                const deptLimit = Math.floor(deptTotalMembers / 3);
+                hasDeptOverLimit = deptLeaves.length >= deptLimit;
+
+                return hasDeputyConflict || hasDeptOverLimit;
               }).map((record) => {
                 const employee = employees.find(e => e.id === record.employee_id);
                 const leaveType = getLeaveType(record.leave_type_id);
