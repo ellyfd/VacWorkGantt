@@ -233,13 +233,11 @@ export default function AllLeaveCalendar() {
 
         dates.push(dateStr);
 
-        if (currentEmployee?.code) {
-          const sameCodeEmployees = employees.filter(e => 
-            e.code === currentEmployee.code && e.id !== employeeId
-          );
-
+        // 檢查職代衝突
+        if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
+          const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
           const conflicts = leaveRecords.filter(r => 
-            sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === dateStr
+            deputies.includes(r.employee_id) && r.date === dateStr
           );
 
           if (conflicts.length > 0) {
@@ -247,8 +245,26 @@ export default function AllLeaveCalendar() {
               const emp = employees.find(e => e.id === c.employee_id);
               return emp?.name || '未知';
             }).join('、');
-            warnings.push(`${dateStr}: 同職代 ${conflictNames} 已請假`);
+            warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
           }
+        }
+        
+        // 檢查部門人數限制
+        const deptLeaves = leaveRecords.filter(r => {
+          if (r.employee_id === employeeId) return false;
+          const emp = employees.find(e => e.id === r.employee_id);
+          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
+        });
+
+        const deptTotalMembers = employees.filter(e => 
+          e.status === 'active' && 
+          e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
+        ).length;
+
+        const deptLimit = Math.floor(deptTotalMembers / 3);
+
+        if (deptLeaves.length >= deptLimit) {
+          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（達到1/3人數 ${deptLimit}）`);
         }
       }
 
@@ -275,7 +291,7 @@ export default function AllLeaveCalendar() {
           // 職代衝突警示
           if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
             const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-            const deputyConflicts = allLeaveRecords.filter(r => 
+            const deputyConflicts = leaveRecords.filter(r => 
               deputies.includes(r.employee_id) && r.date === dateStr
             );
             
@@ -294,7 +310,7 @@ export default function AllLeaveCalendar() {
           }
           
           // 部門人數警示
-          const deptLeaves = allLeaveRecords.filter(r => {
+          const deptLeaves = leaveRecords.filter(r => {
             if (r.employee_id === employeeId) return false;
             const emp = employees.find(e => e.id === r.employee_id);
             return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
