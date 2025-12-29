@@ -584,7 +584,7 @@ export default function Dashboard() {
                     const getCurrentDeputies = () => {
                       if (!employee) return [];
                       const deputies = [employee.deputy_1, employee.deputy_2].filter(Boolean);
-                      const deputyConflicts = leaveRecords.filter(lr => {
+                      const deputyConflicts = todayLeaves.filter(lr => {
                         const lrType = getLeaveType(lr.leave_type_id);
                         return deputies.includes(lr.employee_id) && lr.date === record.date && lrType?.name !== '出差';
                       });
@@ -674,7 +674,7 @@ export default function Dashboard() {
                 const getCurrentDeputies = () => {
                   if (!employee) return [];
                   const deputies = [employee.deputy_1, employee.deputy_2].filter(Boolean);
-                  const deputyConflicts = leaveRecords.filter(lr => {
+                  const deputyConflicts = todayLeaves.filter(lr => {
                     const lrType = getLeaveType(lr.leave_type_id);
                     return deputies.includes(lr.employee_id) && lr.date === record.date && lrType?.name !== '出差';
                   });
