@@ -580,6 +580,21 @@ export default function Dashboard() {
                     const warningTypes = record.warning_type || [];
                     const warningDetails = record.warning_details || {};
 
+                    // 即時查詢當前職代資訊
+                    const getCurrentDeputies = () => {
+                      if (!employee) return [];
+                      const deputies = [employee.deputy_1, employee.deputy_2].filter(Boolean);
+                      const deputyConflicts = leaveRecords.filter(lr => {
+                        const lrType = getLeaveType(lr.leave_type_id);
+                        return deputies.includes(lr.employee_id) && lr.date === record.date && lrType?.name !== '出差';
+                      });
+                      return deputyConflicts.map(dc => {
+                        const dep = employees.find(e => e.id === dc.employee_id);
+                        const lt = getLeaveType(dc.leave_type_id);
+                        return { name: dep?.name || '未知', leaveType: lt?.name || '未知' };
+                      });
+                    };
+
                     return (
                       <TableRow key={record.id}>
                         <TableCell className="font-medium">{employee?.name || '-'}</TableCell>
@@ -613,17 +628,20 @@ export default function Dashboard() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm space-y-1">
-                            {warningTypes.includes('deputy_conflict') && warningDetails.deputy_conflicts && (
-                              <div>
-                                <span className="font-medium">職代：</span>
-                                {warningDetails.deputy_conflicts.map((c, idx) => (
-                                  <span key={idx}>
-                                    {c.employee_name} ({c.leave_type})
-                                    {idx < warningDetails.deputy_conflicts.length - 1 && '、'}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                            {warningTypes.includes('deputy_conflict') && (() => {
+                              const currentDeputies = getCurrentDeputies();
+                              return currentDeputies.length > 0 && (
+                                <div>
+                                  <span className="font-medium">職代：</span>
+                                  {currentDeputies.map((c, idx) => (
+                                    <span key={idx}>
+                                      {c.name} ({c.leaveType})
+                                      {idx < currentDeputies.length - 1 && '、'}
+                                    </span>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                             {warningTypes.includes('department_over_limit') && warningDetails.department_info && (
                               <div>
                                 <span className="font-medium">部門請假比例：</span>
@@ -651,6 +669,21 @@ export default function Dashboard() {
 
                 const warningTypes = record.warning_type || [];
                 const warningDetails = record.warning_details || {};
+
+                // 即時查詢當前職代資訊
+                const getCurrentDeputies = () => {
+                  if (!employee) return [];
+                  const deputies = [employee.deputy_1, employee.deputy_2].filter(Boolean);
+                  const deputyConflicts = leaveRecords.filter(lr => {
+                    const lrType = getLeaveType(lr.leave_type_id);
+                    return deputies.includes(lr.employee_id) && lr.date === record.date && lrType?.name !== '出差';
+                  });
+                  return deputyConflicts.map(dc => {
+                    const dep = employees.find(e => e.id === dc.employee_id);
+                    const lt = getLeaveType(dc.leave_type_id);
+                    return { name: dep?.name || '未知', leaveType: lt?.name || '未知' };
+                  });
+                };
 
                 return (
                   <div key={record.id} className="p-4 space-y-3">
@@ -682,17 +715,20 @@ export default function Dashboard() {
                     </div>
 
                     <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded space-y-1">
-                      {warningTypes.includes('deputy_conflict') && warningDetails.deputy_conflicts && (
-                        <div>
-                          <span className="font-medium">職代：</span>
-                          {warningDetails.deputy_conflicts.map((c, idx) => (
-                            <span key={idx}>
-                              {c.employee_name} ({c.leave_type})
-                              {idx < warningDetails.deputy_conflicts.length - 1 && '、'}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      {warningTypes.includes('deputy_conflict') && (() => {
+                        const currentDeputies = getCurrentDeputies();
+                        return currentDeputies.length > 0 && (
+                          <div>
+                            <span className="font-medium">職代：</span>
+                            {currentDeputies.map((c, idx) => (
+                              <span key={idx}>
+                                {c.name} ({c.leaveType})
+                                {idx < currentDeputies.length - 1 && '、'}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                       {warningTypes.includes('department_over_limit') && warningDetails.department_info && (
                         <div>
                           <span className="font-medium">部門請假比例：</span>
