@@ -31,7 +31,7 @@ import { Plus, Pencil, Trash2, Loader2, Users, Upload, Download } from 'lucide-r
 export default function EmployeeManagement() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [formData, setFormData] = useState({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
+  const [formData, setFormData] = useState({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', role: 'user', user_emails: [] });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -118,11 +118,12 @@ export default function EmployeeManagement() {
         deputy_2: employee.deputy_2 || '',
         department_ids: employee.department_ids || [],
         status: employee.status || 'active',
+        role: employee.role || 'user',
         user_emails: employee.user_emails || [],
       });
     } else {
       setEditingEmployee(null);
-      setFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', user_emails: [] });
+      setFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', role: 'user', user_emails: [] });
     }
     setIsOpen(true);
   };
@@ -461,23 +462,40 @@ export default function EmployeeManagement() {
                     </Select>
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="status">狀態</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => setFormData({ ...formData, status: value })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="選擇狀態" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">在職</SelectItem>
-                      <SelectItem value="inactive">離職</SelectItem>
-                      <SelectItem value="parental_leave">育嬰假</SelectItem>
-                      <SelectItem value="hidden">隱藏</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="status">狀態</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value) => setFormData({ ...formData, status: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="選擇狀態" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">在職</SelectItem>
+                        <SelectItem value="inactive">離職</SelectItem>
+                        <SelectItem value="parental_leave">育嬰假</SelectItem>
+                        <SelectItem value="hidden">隱藏</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                  <div>
+                    <Label htmlFor="role">角色</Label>
+                    <Select
+                      value={formData.role}
+                      onValueChange={(value) => setFormData({ ...formData, role: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="選擇角色" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                   <div>
                   <Label htmlFor="user_emails">綁定登入帳號（可多個）</Label>
                   <div className="mt-1 space-y-2">
@@ -642,11 +660,12 @@ export default function EmployeeManagement() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                     />
                   </TableHead>
-                  <TableHead className="min-w-[100px] md:w-[18%]">姓名</TableHead>
-                  <TableHead className="min-w-[120px] hidden md:table-cell md:w-[18%]">英文名字</TableHead>
-                  <TableHead className="min-w-[150px] md:w-[26%]">部門排序</TableHead>
-                  <TableHead className="w-24 md:w-[13%]">狀態</TableHead>
-                  <TableHead className="w-16 md:w-[20%]">編輯</TableHead>
+                  <TableHead className="min-w-[100px] md:w-[15%]">姓名</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell md:w-[15%]">英文名字</TableHead>
+                  <TableHead className="min-w-[150px] md:w-[23%]">部門排序</TableHead>
+                  <TableHead className="w-20 md:w-[10%]">狀態</TableHead>
+                  <TableHead className="w-20 md:w-[10%]">角色</TableHead>
+                  <TableHead className="w-16 md:w-[17%]">編輯</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -696,6 +715,15 @@ export default function EmployeeManagement() {
                             : 'bg-gray-100 text-gray-800'
                         }`}>
                           {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
+                          emp.role === 'admin' 
+                            ? 'bg-purple-100 text-purple-800' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {emp.role === 'admin' ? 'Admin' : 'User'}
                         </span>
                       </TableCell>
                       <TableCell>
