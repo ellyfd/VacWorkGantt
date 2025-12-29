@@ -81,13 +81,21 @@ export default function AllLeaveCalendar() {
   const updateLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
       const currentEmployee = employees.find(e => e.id === employeeId);
-      if (currentEmployee?.code) {
-        const sameCodeEmployees = employees.filter(e => 
-          e.code === currentEmployee.code && e.id !== employeeId
-        );
-        
+      
+      const existing = leaveRecords.find(
+        r => r.employee_id === employeeId && r.date === date
+      );
+      
+      // 如果已存在相同假別，直接返回
+      if (existing && existing.leave_type_id === leaveTypeId) {
+        return existing;
+      }
+      
+      // 檢查職代衝突
+      if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
+        const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
         const conflicts = leaveRecords.filter(r => 
-          sameCodeEmployees.some(e => e.id === r.employee_id) && r.date === date
+          deputies.includes(r.employee_id) && r.date === date
         );
         
         if (conflicts.length > 0) {
@@ -97,7 +105,7 @@ export default function AllLeaveCalendar() {
           }).join('、');
           
           const confirmed = window.confirm(
-            `⚠️ 警告：同職代同仁 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
+            `⚠️ 警告：職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
           );
           
           if (!confirmed) {
@@ -106,23 +114,75 @@ export default function AllLeaveCalendar() {
         }
       }
       
-      const existing = leaveRecords.find(
-        r => r.employee_id === employeeId && r.date === date
-      );
-      if (existing) {
-        // 如果是同一個假別，不做任何操作
-        if (existing.leave_type_id === leaveTypeId) {
-          return existing;
+      // 檢查部門人數限制
+      const deptLeaves = leaveRecords.filter(r => {
+        if (r.employee_id === employeeId) return false;
+        const emp = employees.find(e => e.id === r.employee_id);
+        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
+      });
+      const deptTotalMembers = employees.filter(e => 
+        e.status === 'active' && 
+        e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
+      ).length;
+      const deptLimit = Math.floor(deptTotalMembers / 3);
+
+      if (deptLeaves.length >= deptLimit) {
+        const confirmed = window.confirm(
+          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假（超過部門1/3人數 ${deptLimit}），確定要繼續請假嗎？`
+        );
+
+        if (!confirmed) {
+          throw new Error('取消請假');
         }
-        // 不同假別則更新
+      }
+      
+      // 計算警示資訊
+      const warningTypes = [];
+      const warningDetails = {};
+      
+      if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
+        const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
+        const deputyConflicts = leaveRecords.filter(r => 
+          deputies.includes(r.employee_id) && r.date === date
+        );
+        
+        if (deputyConflicts.length > 0) {
+          warningTypes.push('deputy_conflict');
+          warningDetails.deputy_conflicts = deputyConflicts.map(c => {
+            const emp = employees.find(e => e.id === c.employee_id);
+            const lt = leaveTypes.find(l => l.id === c.leave_type_id);
+            return {
+              employee_id: c.employee_id,
+              employee_name: emp?.name || '未知',
+              leave_type: lt?.name || '未知'
+            };
+          });
+        }
+      }
+      
+      if (deptLeaves.length >= deptLimit) {
+        warningTypes.push('department_over_limit');
+        warningDetails.department_info = {
+          total_members: deptTotalMembers,
+          leave_count: deptLeaves.length + 1,
+          limit: deptLimit,
+          percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
+        };
+      }
+      
+      if (existing) {
         return base44.entities.LeaveRecord.update(existing.id, {
-          leave_type_id: leaveTypeId
+          leave_type_id: leaveTypeId,
+          warning_type: warningTypes.length > 0 ? warningTypes : undefined,
+          warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
       } else {
         return base44.entities.LeaveRecord.create({
           employee_id: employeeId,
           date: date,
-          leave_type_id: leaveTypeId
+          leave_type_id: leaveTypeId,
+          warning_type: warningTypes.length > 0 ? warningTypes : undefined,
+          warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
       }
     },
@@ -202,17 +262,65 @@ export default function AllLeaveCalendar() {
         }
       }
 
-      // 過濾掉已存在相同假別的日期
+      // 過濾掉已存在相同假別的日期，並計算每個日期的警示資訊
       const recordsToCreate = [];
       for (const dateStr of dates) {
         const existing = leaveRecords.find(
           r => r.employee_id === employeeId && r.date === dateStr && r.leave_type_id === leaveTypeId
         );
         if (!existing) {
+          const warningTypes = [];
+          const warningDetails = {};
+          
+          // 職代衝突警示
+          if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
+            const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
+            const deputyConflicts = allLeaveRecords.filter(r => 
+              deputies.includes(r.employee_id) && r.date === dateStr
+            );
+            
+            if (deputyConflicts.length > 0) {
+              warningTypes.push('deputy_conflict');
+              warningDetails.deputy_conflicts = deputyConflicts.map(c => {
+                const emp = employees.find(e => e.id === c.employee_id);
+                const lt = leaveTypes.find(l => l.id === c.leave_type_id);
+                return {
+                  employee_id: c.employee_id,
+                  employee_name: emp?.name || '未知',
+                  leave_type: lt?.name || '未知'
+                };
+              });
+            }
+          }
+          
+          // 部門人數警示
+          const deptLeaves = allLeaveRecords.filter(r => {
+            if (r.employee_id === employeeId) return false;
+            const emp = employees.find(e => e.id === r.employee_id);
+            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
+          });
+          const deptTotalMembers = employees.filter(e => 
+            e.status === 'active' && 
+            e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
+          ).length;
+          const deptLimit = Math.floor(deptTotalMembers / 3);
+          
+          if (deptLeaves.length >= deptLimit) {
+            warningTypes.push('department_over_limit');
+            warningDetails.department_info = {
+              total_members: deptTotalMembers,
+              leave_count: deptLeaves.length + 1,
+              limit: deptLimit,
+              percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
+            };
+          }
+          
           recordsToCreate.push({
             employee_id: employeeId,
             date: dateStr,
-            leave_type_id: leaveTypeId
+            leave_type_id: leaveTypeId,
+            warning_type: warningTypes.length > 0 ? warningTypes : undefined,
+            warning_details: warningTypes.length > 0 ? warningDetails : undefined
           });
         }
       }

@@ -54,6 +54,14 @@ export default function Dashboard() {
     queryFn: () => base44.entities.LeaveRecord.filter({ date: selectedDate }),
   });
 
+  const { data: warningLeaves = [], isLoading: loadingWarnings } = useQuery({
+    queryKey: ['warningLeaves', selectedDate],
+    queryFn: () => base44.entities.LeaveRecord.filter({ 
+      date: selectedDate,
+      warning_type: { $exists: true, $ne: [] }
+    }),
+  });
+
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays'],
     queryFn: () => base44.entities.Holiday.list(),
@@ -419,7 +427,100 @@ export default function Dashboard() {
             </Table>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
+
+        {warningLeaves.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden mt-8">
+            <div className="p-6 border-b border-orange-200 bg-orange-50">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-orange-600">⚠️</span>
+                異常請假記錄
+              </h2>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead>員工姓名</TableHead>
+                  <TableHead>部門</TableHead>
+                  <TableHead>請假日期</TableHead>
+                  <TableHead>假別</TableHead>
+                  <TableHead>警示類型</TableHead>
+                  <TableHead>警示細節</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {warningLeaves.map((record) => {
+                  const employee = employees.find(e => e.id === record.employee_id);
+                  const leaveType = getLeaveType(record.leave_type_id);
+                  const deptNames = departments
+                    .filter(d => employee?.department_ids?.includes(d.id))
+                    .map(d => d.name)
+                    .join('、');
+
+                  const warningTypes = record.warning_type || [];
+                  const warningDetails = record.warning_details || {};
+
+                  return (
+                    <TableRow key={record.id}>
+                      <TableCell className="font-medium">{employee?.name || '-'}</TableCell>
+                      <TableCell>{deptNames || '-'}</TableCell>
+                      <TableCell>{record.date}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {leaveType && (
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: leaveType.color }}
+                            />
+                          )}
+                          <span>{leaveType?.name || '-'}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {warningTypes.map((type, idx) => (
+                            <span 
+                              key={idx}
+                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                                type === 'deputy_conflict' 
+                                  ? 'bg-orange-100 text-orange-700' 
+                                  : 'bg-red-100 text-red-700'
+                              }`}
+                            >
+                              {type === 'deputy_conflict' ? '職代衝突' : '部門請假超標'}
+                            </span>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm space-y-1">
+                          {warningTypes.includes('deputy_conflict') && warningDetails.deputy_conflicts && (
+                            <div>
+                              <span className="font-medium">職代：</span>
+                              {warningDetails.deputy_conflicts.map((c, idx) => (
+                                <span key={idx}>
+                                  {c.employee_name} ({c.leave_type})
+                                  {idx < warningDetails.deputy_conflicts.length - 1 && '、'}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {warningTypes.includes('department_over_limit') && warningDetails.department_info && (
+                            <div>
+                              <span className="font-medium">部門請假比例：</span>
+                              {warningDetails.department_info.percentage}% 
+                              ({warningDetails.department_info.leave_count}/{warningDetails.department_info.total_members}人)
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        </div>
+        </div>
+        );
+        }

@@ -1,21 +1,23 @@
-import LeaveCalendar from './pages/LeaveCalendar';
-import EmployeeManagement from './pages/EmployeeManagement';
-import DepartmentManagement from './pages/DepartmentManagement';
-import LeaveTypeManagement from './pages/LeaveTypeManagement';
-import HolidayManagement from './pages/HolidayManagement';
-import Dashboard from './pages/Dashboard';
 import AllLeaveCalendar from './pages/AllLeaveCalendar';
+import Dashboard from './pages/Dashboard';
+import DepartmentManagement from './pages/DepartmentManagement';
+import EmployeeManagement from './pages/EmployeeManagement';
+import HolidayManagement from './pages/HolidayManagement';
+import Home from './pages/Home';
+import LeaveCalendar from './pages/LeaveCalendar';
+import LeaveTypeManagement from './pages/LeaveTypeManagement';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "LeaveCalendar": LeaveCalendar,
-    "EmployeeManagement": EmployeeManagement,
-    "DepartmentManagement": DepartmentManagement,
-    "LeaveTypeManagement": LeaveTypeManagement,
-    "HolidayManagement": HolidayManagement,
-    "Dashboard": Dashboard,
     "AllLeaveCalendar": AllLeaveCalendar,
+    "Dashboard": Dashboard,
+    "DepartmentManagement": DepartmentManagement,
+    "EmployeeManagement": EmployeeManagement,
+    "HolidayManagement": HolidayManagement,
+    "Home": Home,
+    "LeaveCalendar": LeaveCalendar,
+    "LeaveTypeManagement": LeaveTypeManagement,
 }
 
 export const pagesConfig = {
