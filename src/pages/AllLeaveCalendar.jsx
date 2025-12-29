@@ -91,12 +91,16 @@ export default function AllLeaveCalendar() {
         return existing;
       }
       
-      // 檢查職代衝突
-      if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
+      // 檢查職代衝突（排除出差）
+      const currentLeaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
+      const isBusinessTrip = currentLeaveType?.name === '出差';
+
+      if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
         const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-        const conflicts = leaveRecords.filter(r => 
-          deputies.includes(r.employee_id) && r.date === date
-        );
+        const conflicts = leaveRecords.filter(r => {
+          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+          return deputies.includes(r.employee_id) && r.date === date && rLeaveType?.name !== '出差';
+        });
         
         if (conflicts.length > 0) {
           const conflictNames = conflicts.map(c => {
@@ -114,11 +118,13 @@ export default function AllLeaveCalendar() {
         }
       }
       
-      // 檢查部門人數限制
+      // 檢查部門人數限制（排除出差）
+      if (!isBusinessTrip) {
       const deptLeaves = leaveRecords.filter(r => {
         if (r.employee_id === employeeId) return false;
         const emp = employees.find(e => e.id === r.employee_id);
-        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date;
+        const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date && rLeaveType?.name !== '出差';
       });
       const deptTotalMembers = employees.filter(e => 
         e.status === 'active' && 
@@ -134,6 +140,7 @@ export default function AllLeaveCalendar() {
         if (!confirmed) {
           throw new Error('取消請假');
         }
+      }
       }
       
       // 計算警示資訊
@@ -233,12 +240,13 @@ export default function AllLeaveCalendar() {
 
         dates.push(dateStr);
 
-        // 檢查職代衝突
-        if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
+        // 檢查職代衝突（排除出差）
+        if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
           const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-          const conflicts = leaveRecords.filter(r => 
-            deputies.includes(r.employee_id) && r.date === dateStr
-          );
+          const conflicts = leaveRecords.filter(r => {
+            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+            return deputies.includes(r.employee_id) && r.date === dateStr && rLeaveType?.name !== '出差';
+          });
 
           if (conflicts.length > 0) {
             const conflictNames = conflicts.map(c => {
@@ -249,11 +257,13 @@ export default function AllLeaveCalendar() {
           }
         }
         
-        // 檢查部門人數限制
+        // 檢查部門人數限制（排除出差）
+        if (!isBusinessTrip) {
         const deptLeaves = leaveRecords.filter(r => {
           if (r.employee_id === employeeId) return false;
           const emp = employees.find(e => e.id === r.employee_id);
-          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
+          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr && rLeaveType?.name !== '出差';
         });
 
         const deptTotalMembers = employees.filter(e => 
@@ -266,7 +276,8 @@ export default function AllLeaveCalendar() {
         if (deptLeaves.length >= deptLimit) {
           warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（達到1/3人數 ${deptLimit}）`);
         }
-      }
+        }
+        }
 
       if (warnings.length > 0) {
         const confirmed = window.confirm(
@@ -288,12 +299,13 @@ export default function AllLeaveCalendar() {
           const warningTypes = [];
           const warningDetails = {};
           
-          // 職代衝突警示
-          if (currentEmployee?.deputy_1 || currentEmployee?.deputy_2) {
+          // 職代衝突警示（排除出差）
+          if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
             const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-            const deputyConflicts = leaveRecords.filter(r => 
-              deputies.includes(r.employee_id) && r.date === dateStr
-            );
+            const deputyConflicts = leaveRecords.filter(r => {
+              const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+              return deputies.includes(r.employee_id) && r.date === dateStr && rLeaveType?.name !== '出差';
+            });
             
             if (deputyConflicts.length > 0) {
               warningTypes.push('deputy_conflict');
@@ -309,18 +321,20 @@ export default function AllLeaveCalendar() {
             }
           }
           
-          // 部門人數警示
+          // 部門人數警示（排除出差）
+          if (!isBusinessTrip) {
           const deptLeaves = leaveRecords.filter(r => {
             if (r.employee_id === employeeId) return false;
             const emp = employees.find(e => e.id === r.employee_id);
-            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr;
+            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr && rLeaveType?.name !== '出差';
           });
           const deptTotalMembers = employees.filter(e => 
             e.status === 'active' && 
             e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
           ).length;
           const deptLimit = Math.floor(deptTotalMembers / 3);
-          
+
           if (deptLeaves.length >= deptLimit) {
             warningTypes.push('department_over_limit');
             warningDetails.department_info = {
@@ -329,6 +343,7 @@ export default function AllLeaveCalendar() {
               limit: deptLimit,
               percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
             };
+          }
           }
           
           recordsToCreate.push({

@@ -234,12 +234,16 @@ export default function Dashboard() {
         const warningTypes = [];
         const warningDetails = {};
 
-        // 檢查職代衝突
-        if (currentEmployee.deputy_1 || currentEmployee.deputy_2) {
+        // 檢查職代衝突（排除出差）
+        const currentLeaveType = allLeaveTypes.find(lt => lt.id === record.leave_type_id);
+        const isBusinessTrip = currentLeaveType?.name === '出差';
+
+        if (!isBusinessTrip && (currentEmployee.deputy_1 || currentEmployee.deputy_2)) {
           const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-          const deputyConflicts = allRecords.filter(r => 
-            deputies.includes(r.employee_id) && r.date === record.date && r.id !== record.id
-          );
+          const deputyConflicts = allRecords.filter(r => {
+            const rLeaveType = allLeaveTypes.find(lt => lt.id === r.leave_type_id);
+            return deputies.includes(r.employee_id) && r.date === record.date && r.id !== record.id && rLeaveType?.name !== '出差';
+          });
 
           if (deputyConflicts.length > 0) {
             warningTypes.push('deputy_conflict');
@@ -255,11 +259,13 @@ export default function Dashboard() {
           }
         }
 
-        // 檢查部門超標
+        // 檢查部門超標（排除出差）
+        if (!isBusinessTrip) {
         const deptLeaves = allRecords.filter(r => {
           if (r.employee_id === record.employee_id || r.id === record.id) return false;
           const emp = allEmployees.find(e => e.id === r.employee_id);
-          return emp?.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId)) && r.date === record.date;
+          const rLeaveType = allLeaveTypes.find(lt => lt.id === r.leave_type_id);
+          return emp?.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId)) && r.date === record.date && rLeaveType?.name !== '出差';
         });
 
         const deptTotalMembers = allEmployees.filter(e => 
@@ -277,6 +283,7 @@ export default function Dashboard() {
             limit: deptLimit,
             percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
           };
+        }
         }
 
         // 如果有警示且記錄尚未包含警示資訊，則更新
