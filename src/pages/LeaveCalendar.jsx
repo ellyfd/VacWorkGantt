@@ -15,6 +15,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
@@ -24,6 +32,8 @@ export default function LeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDialogData, setDeleteDialogData] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -511,7 +521,6 @@ export default function LeaveCalendar() {
       const currentDate = sameTypeRecords[i].date;
       const nextDate = rangeRecords[0].date;
 
-      // 計算日期差（使用字串比較更可靠）
       const current = new Date(currentDate + 'T00:00:00');
       const next = new Date(nextDate + 'T00:00:00');
       const diffDays = (next - current) / (1000 * 60 * 60 * 24);
@@ -528,7 +537,6 @@ export default function LeaveCalendar() {
       const currentDate = rangeRecords[rangeRecords.length - 1].date;
       const nextDate = sameTypeRecords[i].date;
 
-      // 計算日期差
       const current = new Date(currentDate + 'T00:00:00');
       const next = new Date(nextDate + 'T00:00:00');
       const diffDays = (next - current) / (1000 * 60 * 60 * 24);
@@ -540,20 +548,37 @@ export default function LeaveCalendar() {
       }
     }
 
-    // 如果是區間（超過1天），確認後刪除
+    // 如果是區間（超過1天），顯示對話框讓使用者選擇
     if (rangeRecords.length > 1) {
       const startDate = rangeRecords[0].date;
       const endDate = rangeRecords[rangeRecords.length - 1].date;
-      const confirmed = window.confirm(
-        `確定要取消 ${startDate} 至 ${endDate} 共 ${rangeRecords.length} 天的請假嗎？`
-      );
-      if (confirmed) {
-        deleteRangeMutation.mutate(rangeRecords.map(r => r.id));
-      }
+      setDeleteDialogData({
+        record,
+        rangeRecords,
+        startDate,
+        endDate,
+        count: rangeRecords.length
+      });
+      setDeleteDialogOpen(true);
     } else {
       // 單天直接刪除
       deleteLeaveMutation.mutate(record.id);
     }
+  };
+
+  const handleDeleteConfirm = (action) => {
+    if (!deleteDialogData) return;
+
+    if (action === 'single') {
+      // 只刪除單日
+      deleteLeaveMutation.mutate(deleteDialogData.record.id);
+    } else if (action === 'range') {
+      // 刪除整個區間
+      deleteRangeMutation.mutate(deleteDialogData.rangeRecords.map(r => r.id));
+    }
+
+    setDeleteDialogOpen(false);
+    setDeleteDialogData(null);
   };
 
   const handleRangeSubmit = async () => {
@@ -788,6 +813,42 @@ export default function LeaveCalendar() {
               </div>
             </div>
           </div>
+
+          {/* 刪除確認對話框 */}
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>取消請假</DialogTitle>
+                <DialogDescription>
+                  檢測到連續假期：{deleteDialogData?.startDate} 至 {deleteDialogData?.endDate} 共 {deleteDialogData?.count} 天
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDeleteDialogOpen(false);
+                    setDeleteDialogData(null);
+                  }}
+                >
+                  取消
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleDeleteConfirm('single')}
+                  className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                >
+                  取消單日 ({deleteDialogData?.record?.date})
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDeleteConfirm('range')}
+                >
+                  全部取消 ({deleteDialogData?.count} 天)
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           </div>
           </div>
           );
