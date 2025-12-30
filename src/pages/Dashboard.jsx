@@ -319,9 +319,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">儀表板</h1>
-          <div className="flex items-center gap-2">
+        <div className="mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-0">儀表板</h1>
+          <div className="flex items-center gap-2 md:absolute md:top-6 md:right-6">
             <Button
               variant="outline"
               size="icon"
@@ -340,7 +340,7 @@ export default function Dashboard() {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-[240px] justify-start text-left font-normal",
+                  "flex-1 md:w-[240px] justify-start text-left font-normal",
                   !selectedDate && "text-muted-foreground"
                 )}
               >
