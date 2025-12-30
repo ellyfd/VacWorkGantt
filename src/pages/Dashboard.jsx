@@ -841,5 +841,64 @@ export default function Dashboard() {
         )}
         </div>
         </div>
+        )}
+
+        {(() => {
+        const actualWarnings = warningLeaves.filter(r => {
+        const lt = getLeaveType(r.leave_type_id);
+        if (lt?.name === '出差') return false;
+
+        const emp = employees.find(e => e.id === r.employee_id);
+        if (!emp) return false;
+
+        let hasDeputyConflict = false;
+        if (emp.deputy_1 || emp.deputy_2) {
+          const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
+          const conflicts = todayLeaves.filter(lr => {
+            const lrType = getLeaveType(lr.leave_type_id);
+            return deputies.includes(lr.employee_id) && lr.date === r.date && lrType?.name !== '出差';
+          });
+          hasDeputyConflict = conflicts.length > 0;
+        }
+
+        let hasDeptOverLimit = false;
+        const deptLeaves = todayLeaves.filter(lr => {
+          if (lr.employee_id === r.employee_id) return false;
+          const e = employees.find(e => e.id === lr.employee_id);
+          const lrType = getLeaveType(lr.leave_type_id);
+          return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
+        });
+        const deptTotalMembers = employees.filter(e => 
+          e.status === 'active' && 
+          e.department_ids?.some(deptId => emp?.department_ids?.includes(deptId))
+        ).length;
+        const deptLimit = Math.floor(deptTotalMembers / 3);
+        hasDeptOverLimit = deptLeaves.length >= deptLimit;
+
+        return hasDeputyConflict || hasDeptOverLimit;
+        });
+
+        return actualWarnings.length > 0;
+        })() && (
+        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">說明</h3>
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="flex items-start gap-2">
+            <span className="font-medium text-orange-600 flex-shrink-0">⚠️ 職代衝突：</span>
+            <span>員工與其職務代理人在同一天請假（出差除外），可能影響業務運作</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="font-medium text-red-600 flex-shrink-0">⚠️ 部門請假超標：</span>
+            <span>該部門當天請假人數達到或超過部門總人數的 1/3（出差除外），可能影響部門運作</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-gray-500 flex-shrink-0">💡 提示：</span>
+            <span>「出差」不會觸發上述警示，因為出差員工仍可協助處理業務</span>
+          </div>
+        </div>
+        </div>
+        )}
+        </div>
+        </div>
         );
         }
