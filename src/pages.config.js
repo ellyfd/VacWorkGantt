@@ -6,6 +6,7 @@ import HolidayManagement from './pages/HolidayManagement';
 import Home from './pages/Home';
 import LeaveCalendar from './pages/LeaveCalendar';
 import LeaveTypeManagement from './pages/LeaveTypeManagement';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Home": Home,
     "LeaveCalendar": LeaveCalendar,
     "LeaveTypeManagement": LeaveTypeManagement,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
