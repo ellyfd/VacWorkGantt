@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
@@ -25,6 +26,8 @@ export default function Dashboard() {
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
   const [isScanningWarnings, setIsScanningWarnings] = useState(false);
+  const [cleanDialogOpen, setCleanDialogOpen] = useState(false);
+  const [scanDialogOpen, setScanDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
@@ -166,10 +169,6 @@ export default function Dashboard() {
   const holidayInfo = holidays.find(h => h.date === selectedDate);
 
   const handleCleanDuplicates = async () => {
-    if (!window.confirm('確定要清理重複的請假記錄嗎？\n\n系統會檢查資料庫中同一人、同一天、同一假別的重複記錄，只保留最早的一筆。')) {
-      return;
-    }
-
     setIsCleaningDuplicates(true);
     try {
       // 先獲取所有請假記錄
@@ -213,10 +212,6 @@ export default function Dashboard() {
   };
 
   const handleScanWarnings = async () => {
-    if (!window.confirm('確定要重新掃描所有請假記錄的警示資訊嗎？\n\n系統會檢查所有現有的請假記錄，為符合條件的記錄補上警示資訊（職代衝突、部門超標）。\n\n這可能需要一些時間。')) {
-      return;
-    }
-
     setIsScanningWarnings(true);
     try {
       // 獲取所有資料
@@ -448,7 +443,7 @@ export default function Dashboard() {
             </h2>
             {currentUser?.role === 'admin' && (
               <Button
-                onClick={handleCleanDuplicates}
+                onClick={() => setCleanDialogOpen(true)}
                 disabled={isCleaningDuplicates || isScanningWarnings}
                 variant="outline"
                 size="sm"
@@ -581,7 +576,7 @@ export default function Dashboard() {
               </h2>
               {currentUser?.role === 'admin' && (
                 <Button
-                  onClick={handleScanWarnings}
+                  onClick={() => setScanDialogOpen(true)}
                   disabled={isCleaningDuplicates || isScanningWarnings}
                   variant="outline"
                   size="sm"
@@ -885,9 +880,67 @@ export default function Dashboard() {
                 <span>出差不會觸發警示</span>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+            </div>
+            )}
+
+            {/* Clean Duplicates Dialog */}
+            <Dialog open={cleanDialogOpen} onOpenChange={setCleanDialogOpen}>
+            <DialogContent>
+            <DialogHeader>
+              <DialogTitle>清理重複記錄</DialogTitle>
+              <DialogDescription>
+                系統會檢查資料庫中同一人、同一天、同一假別的重複記錄，只保留最早的一筆。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCleanDialogOpen(false)}
+              >
+                取消
+              </Button>
+              <Button
+                onClick={() => {
+                  setCleanDialogOpen(false);
+                  handleCleanDuplicates();
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                確定清理
+              </Button>
+            </DialogFooter>
+            </DialogContent>
+            </Dialog>
+
+            {/* Scan Warnings Dialog */}
+            <Dialog open={scanDialogOpen} onOpenChange={setScanDialogOpen}>
+            <DialogContent>
+            <DialogHeader>
+              <DialogTitle>掃描警示資訊</DialogTitle>
+              <DialogDescription>
+                系統會檢查所有現有的請假記錄，為符合條件的記錄補上警示資訊（職代衝突、部門超標）。這可能需要一些時間。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setScanDialogOpen(false)}
+              >
+                取消
+              </Button>
+              <Button
+                onClick={() => {
+                  setScanDialogOpen(false);
+                  handleScanWarnings();
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                開始掃描
+              </Button>
+            </DialogFooter>
+            </DialogContent>
+            </Dialog>
+            </div>
+            </div>
+            );
+            }

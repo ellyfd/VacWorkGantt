@@ -5,7 +5,7 @@ import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut, 
 import { Button } from "@/components/ui/button";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
@@ -81,18 +81,26 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [currentUser, boundEmployee, loadingBoundEmployee]);
 
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
+
   const bindMutation = useMutation({
     mutationFn: async (employeeId) => {
       const emp = employees.find(e => e.id === employeeId);
       const existingEmails = emp?.user_emails || [];
       
       if (existingEmails.length > 0 && !existingEmails.includes(currentUser.email)) {
-        const confirmed = window.confirm(
-          `此員工 ${emp.name} 已綁定以下帳號：\n${existingEmails.join('\n')}\n\n確定要綁定新帳號 ${currentUser.email} 嗎？`
-        );
-        if (!confirmed) {
-          throw new Error('取消綁定');
-        }
+        // 顯示確認對話框
+        return new Promise((resolve, reject) => {
+          setConfirmData({
+            emp,
+            existingEmails,
+            employeeId,
+            resolve,
+            reject
+          });
+          setShowConfirmDialog(true);
+        });
       }
       
       if (!existingEmails.includes(currentUser.email)) {
@@ -109,6 +117,27 @@ export default function Layout({ children, currentPageName }) {
       setSelectedDepartmentId('');
     },
   });
+
+  const handleConfirmBind = async () => {
+    if (!confirmData) return;
+    
+    try {
+      await base44.entities.Employee.update(confirmData.employeeId, { 
+        user_emails: [...confirmData.existingEmails, currentUser.email] 
+      });
+      confirmData.resolve();
+      queryClient.invalidateQueries(['boundEmployee']);
+      queryClient.invalidateQueries(['employees']);
+      setShowBindDialog(false);
+      setSelectedEmployeeId('');
+      setSelectedDepartmentId('');
+    } catch (error) {
+      confirmData.reject(error);
+    } finally {
+      setShowConfirmDialog(false);
+      setConfirmData(null);
+    }
+  };
 
   const handleBind = () => {
     if (selectedEmployeeId) {
@@ -345,6 +374,46 @@ export default function Layout({ children, currentPageName }) {
               {bindMutation.isPending ? '綁定中...' : '確認綁定'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Bind Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>確認綁定</DialogTitle>
+            <DialogDescription>
+              此員工 {confirmData?.emp?.name} 已綁定以下帳號：
+              <div className="mt-2 space-y-1">
+                {confirmData?.existingEmails?.map((email, idx) => (
+                  <div key={idx} className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                    {email}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2">
+                確定要綁定新帳號 <span className="font-semibold">{currentUser?.email}</span> 嗎？
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                confirmData?.reject(new Error('取消綁定'));
+                setShowConfirmDialog(false);
+                setConfirmData(null);
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleConfirmBind}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              確定綁定
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
