@@ -1,4 +1,3 @@
-import AllLeaveCalendar from './pages/AllLeaveCalendar';
 import Dashboard from './pages/Dashboard';
 import DepartmentManagement from './pages/DepartmentManagement';
 import EmployeeManagement from './pages/EmployeeManagement';
@@ -7,11 +6,11 @@ import Home from './pages/Home';
 import LeaveCalendar from './pages/LeaveCalendar';
 import LeaveTypeManagement from './pages/LeaveTypeManagement';
 import Notifications from './pages/Notifications';
+import AllLeaveCalendar from './pages/AllLeaveCalendar';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AllLeaveCalendar": AllLeaveCalendar,
     "Dashboard": Dashboard,
     "DepartmentManagement": DepartmentManagement,
     "EmployeeManagement": EmployeeManagement,
@@ -20,6 +19,7 @@ export const PAGES = {
     "LeaveCalendar": LeaveCalendar,
     "LeaveTypeManagement": LeaveTypeManagement,
     "Notifications": Notifications,
+    "AllLeaveCalendar": AllLeaveCalendar,
 }
 
 export const pagesConfig = {

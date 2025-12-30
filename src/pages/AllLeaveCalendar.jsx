@@ -217,6 +217,15 @@ export default function AllLeaveCalendar() {
         const adminEmps = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0);
         for (const admin of adminEmps) {
           for (const email of admin.user_emails) {
+            // 刪除該日期該收件人的舊通知
+            const oldNotifications = await base44.entities.Notification.filter({
+              recipient_email: email,
+              message: { $regex: date }
+            });
+            for (const oldNotif of oldNotifications) {
+              await base44.entities.Notification.delete(oldNotif.id);
+            }
+            
             await base44.entities.Notification.create({
               recipient_email: email,
               type: 'leave_created',
@@ -234,6 +243,15 @@ export default function AllLeaveCalendar() {
             const deputy = employees.find(e => e.id === deputyId);
             if (deputy?.user_emails?.length > 0) {
               for (const email of deputy.user_emails) {
+                // 刪除該日期該收件人的舊通知
+                const oldNotifications = await base44.entities.Notification.filter({
+                  recipient_email: email,
+                  message: { $regex: date }
+                });
+                for (const oldNotif of oldNotifications) {
+                  await base44.entities.Notification.delete(oldNotif.id);
+                }
+                
                 await base44.entities.Notification.create({
                   recipient_email: email,
                   type: 'leave_created',
@@ -255,7 +273,64 @@ export default function AllLeaveCalendar() {
   });
 
   const deleteLeaveMutation = useMutation({
-    mutationFn: (recordId) => base44.entities.LeaveRecord.delete(recordId),
+    mutationFn: async (recordId) => {
+      const record = leaveRecords.find(r => r.id === recordId);
+      await base44.entities.LeaveRecord.delete(recordId);
+      
+      if (record) {
+        const emp = employees.find(e => e.id === record.employee_id);
+        const leaveTypeName = leaveTypes.find(lt => lt.id === record.leave_type_id)?.name || '未知假別';
+        
+        // 通知所有 admin
+        const adminEmps = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0);
+        for (const admin of adminEmps) {
+          for (const email of admin.user_emails) {
+            // 刪除該日期該收件人的舊通知
+            const oldNotifications = await base44.entities.Notification.filter({
+              recipient_email: email,
+              message: { $regex: record.date }
+            });
+            for (const oldNotif of oldNotifications) {
+              await base44.entities.Notification.delete(oldNotif.id);
+            }
+            
+            await base44.entities.Notification.create({
+              recipient_email: email,
+              type: 'leave_created',
+              message: `${emp?.name || '未知員工'} 取消了 ${record.date} 的 ${leaveTypeName}`,
+              related_entity_type: 'LeaveRecord'
+            });
+          }
+        }
+
+        // 通知職代
+        if (emp?.deputy_1 || emp?.deputy_2) {
+          const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
+          for (const deputyId of deputies) {
+            const deputy = employees.find(e => e.id === deputyId);
+            if (deputy?.user_emails?.length > 0) {
+              for (const email of deputy.user_emails) {
+                // 刪除該日期該收件人的舊通知
+                const oldNotifications = await base44.entities.Notification.filter({
+                  recipient_email: email,
+                  message: { $regex: record.date }
+                });
+                for (const oldNotif of oldNotifications) {
+                  await base44.entities.Notification.delete(oldNotif.id);
+                }
+                
+                await base44.entities.Notification.create({
+                  recipient_email: email,
+                  type: 'leave_created',
+                  message: `您的職務代理人 ${emp.name} 取消了 ${record.date} 的 ${leaveTypeName}`,
+                  related_entity_type: 'LeaveRecord'
+                });
+              }
+            }
+          }
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
     },
@@ -263,7 +338,68 @@ export default function AllLeaveCalendar() {
 
   const deleteRangeMutation = useMutation({
     mutationFn: async (recordIds) => {
+      const recordsToDelete = leaveRecords.filter(r => recordIds.includes(r.id));
       await Promise.all(recordIds.map(id => base44.entities.LeaveRecord.delete(id)));
+      
+      // 為每個日期發送通知
+      const dateSet = new Set(recordsToDelete.map(r => r.date));
+      for (const date of dateSet) {
+        const recordsOnDate = recordsToDelete.filter(r => r.date === date);
+        if (recordsOnDate.length === 0) continue;
+        
+        const record = recordsOnDate[0];
+        const emp = employees.find(e => e.id === record.employee_id);
+        const leaveTypeName = leaveTypes.find(lt => lt.id === record.leave_type_id)?.name || '未知假別';
+        
+        // 通知所有 admin
+        const adminEmps = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0);
+        for (const admin of adminEmps) {
+          for (const email of admin.user_emails) {
+            // 刪除該日期該收件人的舊通知
+            const oldNotifications = await base44.entities.Notification.filter({
+              recipient_email: email,
+              message: { $regex: date }
+            });
+            for (const oldNotif of oldNotifications) {
+              await base44.entities.Notification.delete(oldNotif.id);
+            }
+            
+            await base44.entities.Notification.create({
+              recipient_email: email,
+              type: 'leave_created',
+              message: `${emp?.name || '未知員工'} 取消了 ${date} 的 ${leaveTypeName}`,
+              related_entity_type: 'LeaveRecord'
+            });
+          }
+        }
+
+        // 通知職代
+        if (emp?.deputy_1 || emp?.deputy_2) {
+          const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
+          for (const deputyId of deputies) {
+            const deputy = employees.find(e => e.id === deputyId);
+            if (deputy?.user_emails?.length > 0) {
+              for (const email of deputy.user_emails) {
+                // 刪除該日期該收件人的舊通知
+                const oldNotifications = await base44.entities.Notification.filter({
+                  recipient_email: email,
+                  message: { $regex: date }
+                });
+                for (const oldNotif of oldNotifications) {
+                  await base44.entities.Notification.delete(oldNotif.id);
+                }
+                
+                await base44.entities.Notification.create({
+                  recipient_email: email,
+                  type: 'leave_created',
+                  message: `您的職務代理人 ${emp.name} 取消了 ${date} 的 ${leaveTypeName}`,
+                  related_entity_type: 'LeaveRecord'
+                });
+              }
+            }
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
