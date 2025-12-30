@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { Loader2, Calendar as CalendarIcon, Users, TrendingUp } from 'lucide-react';
+import { Loader2, Calendar as CalendarIcon, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -320,7 +320,19 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                const currentDate = new Date(selectedDate + 'T00:00:00');
+                currentDate.setDate(currentDate.getDate() - 1);
+                setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+              }}
+              className="h-10 w-10"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
             <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -349,6 +361,18 @@ export default function Dashboard() {
               />
             </PopoverContent>
           </Popover>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              const currentDate = new Date(selectedDate + 'T00:00:00');
+              currentDate.setDate(currentDate.getDate() + 1);
+              setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+            }}
+            className="h-10 w-10"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
           </div>
         </div>
 
