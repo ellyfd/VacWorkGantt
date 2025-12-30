@@ -320,11 +320,16 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
-          <CalendarHeader 
-            currentDate={currentDate} 
-            onDateChange={setCurrentDate}
-          />
+          <h1 className="text-xl md:text-3xl font-bold text-gray-800">儀表板</h1>
+          <div className="flex items-center gap-2">
+            <span className="text-sm md:text-base font-medium text-gray-700">
+              {format(currentDate, 'yyyy年MM月dd日 (E)', { locale: zhTW })}
+            </span>
+            <CalendarHeader 
+              currentDate={currentDate} 
+              onDateChange={setCurrentDate}
+            />
+          </div>
         </div>
 
         <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
