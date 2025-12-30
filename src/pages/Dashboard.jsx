@@ -23,6 +23,7 @@ import {
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
   const [isScanningWarnings, setIsScanningWarnings] = useState(false);
@@ -328,6 +329,7 @@ export default function Dashboard() {
                 const currentDate = new Date(selectedDate + 'T00:00:00');
                 currentDate.setDate(currentDate.getDate() - 1);
                 setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+                setCalendarMonth(currentDate);
               }}
               className="h-10 w-10"
             >
@@ -353,8 +355,11 @@ export default function Dashboard() {
                 onSelect={(date) => {
                   if (date) {
                     setSelectedDate(format(date, 'yyyy-MM-dd'));
+                    setCalendarMonth(date);
                   }
                 }}
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
                 locale={zhTW}
                 weekStartsOn={0}
                 initialFocus
@@ -368,6 +373,7 @@ export default function Dashboard() {
               const currentDate = new Date(selectedDate + 'T00:00:00');
               currentDate.setDate(currentDate.getDate() + 1);
               setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+              setCalendarMonth(currentDate);
             }}
             className="h-10 w-10"
           >
