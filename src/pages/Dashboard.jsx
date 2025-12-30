@@ -447,40 +447,22 @@ export default function Dashboard() {
               休假人員
             </h2>
             {currentUser?.role === 'admin' && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleCleanDuplicates}
-                  disabled={isCleaningDuplicates || isScanningWarnings}
-                  variant="outline"
-                  size="sm"
-                  className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                >
-                  {isCleaningDuplicates ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      清理中...
-                    </>
-                  ) : (
-                    '清理重複記錄'
-                  )}
-                </Button>
-                <Button
-                  onClick={handleScanWarnings}
-                  disabled={isCleaningDuplicates || isScanningWarnings}
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                >
-                  {isScanningWarnings ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      掃描中...
-                    </>
-                  ) : (
-                    '掃描警示資訊'
-                  )}
-                </Button>
-              </div>
+              <Button
+                onClick={handleCleanDuplicates}
+                disabled={isCleaningDuplicates || isScanningWarnings}
+                variant="outline"
+                size="sm"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50"
+              >
+                {isCleaningDuplicates ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    清理中...
+                  </>
+                ) : (
+                  '清理重複記錄'
+                )}
+              </Button>
             )}
           </div>
 
@@ -546,13 +528,20 @@ export default function Dashboard() {
         </div>
 
         {(() => {
-          // 即時檢查是否真的有警示
+          // 即時檢查是否真的有警示，並按部門篩選
           const actualWarnings = warningLeaves.filter(r => {
             const lt = getLeaveType(r.leave_type_id);
             if (lt?.name === '出差') return false;
 
             const emp = employees.find(e => e.id === r.employee_id);
             if (!emp) return false;
+
+            // 部門篩選
+            if (selectedDepartments.length > 0) {
+              if (!emp.department_ids?.some(deptId => selectedDepartments.includes(deptId))) {
+                return false;
+              }
+            }
 
             // 檢查職代衝突
             let hasDeputyConflict = false;
@@ -586,11 +575,28 @@ export default function Dashboard() {
           return actualWarnings.length > 0;
         })() && (
           <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden mt-8">
-            <div className="p-6 border-b border-orange-200 bg-orange-50">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <span className="text-orange-600">⚠️</span>
+            <div className="p-6 border-b border-orange-200 bg-orange-50 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800">
                 異常請假記錄
               </h2>
+              {currentUser?.role === 'admin' && (
+                <Button
+                  onClick={handleScanWarnings}
+                  disabled={isCleaningDuplicates || isScanningWarnings}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-500 text-blue-600 hover:bg-blue-50 bg-white"
+                >
+                  {isScanningWarnings ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      掃描中...
+                    </>
+                  ) : (
+                    '掃描警示資訊'
+                  )}
+                </Button>
+              )}
             </div>
 
             {/* 桌面版 - 表格 */}
@@ -612,6 +618,13 @@ export default function Dashboard() {
 
                     const emp = employees.find(e => e.id === r.employee_id);
                     if (!emp) return false;
+
+                    // 部門篩選
+                    if (selectedDepartments.length > 0) {
+                      if (!emp.department_ids?.some(deptId => selectedDepartments.includes(deptId))) {
+                        return false;
+                      }
+                    }
 
                     // 即時檢查是否真的有警示
                     let hasDeputyConflict = false;
@@ -732,6 +745,13 @@ export default function Dashboard() {
 
                 const emp = employees.find(e => e.id === r.employee_id);
                 if (!emp) return false;
+
+                // 部門篩選
+                if (selectedDepartments.length > 0) {
+                  if (!emp.department_ids?.some(deptId => selectedDepartments.includes(deptId))) {
+                    return false;
+                  }
+                }
 
                 // 即時檢查是否真的有警示
                 let hasDeputyConflict = false;
