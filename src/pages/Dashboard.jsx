@@ -704,7 +704,7 @@ export default function Dashboard() {
                           </div>
                         </TableCell>
                         <TableCell className="py-2">
-                          <div className="text-sm space-y-1">
+                          <div className="text-sm flex gap-3 flex-wrap">
                             {warningTypes.includes('deputy_conflict') && (() => {
                               const currentDeputies = getCurrentDeputies();
                               return currentDeputies.length > 0 && (
