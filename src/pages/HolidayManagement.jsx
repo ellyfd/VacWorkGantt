@@ -30,25 +30,7 @@ export default function HolidayManagement() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data) => {
-      const newHoliday = await base44.entities.Holiday.create(data);
-      
-      // 通知所有有 email 的員工
-      const employeesWithEmails = employees.filter(e => e.user_emails?.length > 0);
-      for (const emp of employeesWithEmails) {
-        for (const email of emp.user_emails) {
-          await base44.entities.Notification.create({
-            recipient_email: email,
-            type: 'holiday_added',
-            message: `新增假日：${data.name} (${data.date}) - ${data.type === 'national' ? '國定假日' : '公司特別假'}`,
-            related_entity_id: newHoliday.id,
-            related_entity_type: 'Holiday'
-          });
-        }
-      }
-      
-      return newHoliday;
-    },
+    mutationFn: (data) => base44.entities.Holiday.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['holidays']);
       setIsDialogOpen(false);
@@ -67,23 +49,7 @@ export default function HolidayManagement() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const holiday = holidays.find(h => h.id === id);
-      await base44.entities.Holiday.delete(id);
-      
-      // 通知所有有 email 的員工
-      const employeesWithEmails = employees.filter(e => e.user_emails?.length > 0);
-      for (const emp of employeesWithEmails) {
-        for (const email of emp.user_emails) {
-          await base44.entities.Notification.create({
-            recipient_email: email,
-            type: 'holiday_removed',
-            message: `刪除假日：${holiday?.name || '未知'} (${holiday?.date || '未知日期'})`,
-            related_entity_type: 'Holiday'
-          });
-        }
-      }
-    },
+    mutationFn: (id) => base44.entities.Holiday.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['holidays']);
     },
