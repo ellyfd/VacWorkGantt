@@ -201,13 +201,52 @@ export default function AllLeaveCalendar() {
           warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
       } else {
-        return base44.entities.LeaveRecord.create({
+        const newRecord = await base44.entities.LeaveRecord.create({
           employee_id: employeeId,
           date: date,
           leave_type_id: leaveTypeId,
           warning_type: warningTypes.length > 0 ? warningTypes : undefined,
           warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
+
+        // 發送通知
+        const emp = employees.find(e => e.id === employeeId);
+        const leaveTypeName = leaveTypes.find(lt => lt.id === leaveTypeId)?.name || '未知假別';
+        
+        // 1. 通知所有 admin
+        const adminEmps = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0);
+        for (const admin of adminEmps) {
+          for (const email of admin.user_emails) {
+            await base44.entities.Notification.create({
+              recipient_email: email,
+              type: 'leave_created',
+              message: `${emp?.name || '未知員工'} 新增了 ${date} 的 ${leaveTypeName}`,
+              related_entity_id: newRecord.id,
+              related_entity_type: 'LeaveRecord'
+            });
+          }
+        }
+
+        // 2. 通知職代
+        if (emp?.deputy_1 || emp?.deputy_2) {
+          const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
+          for (const deputyId of deputies) {
+            const deputy = employees.find(e => e.id === deputyId);
+            if (deputy?.user_emails?.length > 0) {
+              for (const email of deputy.user_emails) {
+                await base44.entities.Notification.create({
+                  recipient_email: email,
+                  type: 'leave_created',
+                  message: `您的職務代理人 ${emp.name} 新增了 ${date} 的 ${leaveTypeName}`,
+                  related_entity_id: newRecord.id,
+                  related_entity_type: 'LeaveRecord'
+                });
+              }
+            }
+          }
+        }
+
+        return newRecord;
       }
     },
     onSuccess: () => {
