@@ -577,7 +577,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden mt-8">
             <div className="p-6 border-b border-orange-200 bg-orange-50 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-800">
-                異常請假記錄
+                異常請假
               </h2>
               {currentUser?.role === 'admin' && (
                 <Button
@@ -828,32 +828,8 @@ export default function Dashboard() {
                           {type === 'deputy_conflict' ? '職代衝突' : '部門請假超標'}
                         </span>
                       ))}
-                    </div>
-
-                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded space-y-1">
-                      {warningTypes.includes('deputy_conflict') && (() => {
-                        const currentDeputies = getCurrentDeputies();
-                        return currentDeputies.length > 0 && (
-                          <div>
-                            <span className="font-medium">職代：</span>
-                            {currentDeputies.map((c, idx) => (
-                              <span key={idx}>
-                                {c.name} ({c.leaveType})
-                                {idx < currentDeputies.length - 1 && '、'}
-                              </span>
-                            ))}
-                          </div>
-                        );
-                      })()}
-                      {warningTypes.includes('department_over_limit') && warningDetails.department_info && (
-                        <div>
-                          <span className="font-medium">部門請假比例：</span>
-                          {warningDetails.department_info.percentage}% 
-                          ({warningDetails.department_info.leave_count}/{warningDetails.department_info.total_members}人)
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                      </div>
                 );
               })}
             </div>
