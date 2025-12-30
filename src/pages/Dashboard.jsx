@@ -605,9 +605,8 @@ export default function Dashboard() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="py-2">員工姓名</TableHead>
-                    <TableHead className="py-2">請假日期</TableHead>
                     <TableHead className="py-2">假別</TableHead>
-                    <TableHead className="py-2">警示類型</TableHead>
+                    <TableHead className="py-2">異常類型</TableHead>
                     <TableHead className="py-2">警示細節</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -677,7 +676,6 @@ export default function Dashboard() {
                     return (
                       <TableRow key={record.id}>
                         <TableCell className="font-medium py-2">{employee?.name || '-'}</TableCell>
-                        <TableCell className="py-2">{record.date}</TableCell>
                         <TableCell className="py-2">
                           <div className="flex items-center gap-2">
                             {leaveType && (
@@ -690,7 +688,7 @@ export default function Dashboard() {
                           </div>
                         </TableCell>
                         <TableCell className="py-2">
-                          <div className="flex flex-col gap-1">
+                          <div className="flex gap-1 flex-wrap">
                             {warningTypes.map((type, idx) => (
                               <span 
                                 key={idx}
@@ -700,7 +698,7 @@ export default function Dashboard() {
                                     : 'bg-red-100 text-red-700'
                                 }`}
                               >
-                                {type === 'deputy_conflict' ? '職代衝突' : '部門請假超標'}
+                                {type === 'deputy_conflict' ? '職代' : '超標'}
                               </span>
                             ))}
                           </div>
@@ -802,24 +800,18 @@ export default function Dashboard() {
                 };
 
                 return (
-                  <div key={record.id} className="p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="font-bold text-gray-800">{employee?.name || '-'}</div>
-                        <div className="flex items-center gap-1">
-                          {leaveType && (
-                            <div
-                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: leaveType.color }}
-                            />
-                          )}
-                          <span className="text-sm text-gray-600">{leaveType?.name || '-'}</span>
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-500">{record.date}</div>
-                    </div>
-
+                  <div key={record.id} className="p-3">
                     <div className="flex items-center gap-2 flex-wrap">
+                      <div className="font-bold text-gray-800">{employee?.name || '-'}</div>
+                      <div className="flex items-center gap-1">
+                        {leaveType && (
+                          <div
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: leaveType.color }}
+                          />
+                        )}
+                        <span className="text-sm text-gray-600">{leaveType?.name || '-'}</span>
+                      </div>
                       {warningTypes.map((type, idx) => (
                         <span 
                           key={idx}
@@ -829,7 +821,7 @@ export default function Dashboard() {
                               : 'bg-red-100 text-red-700'
                           }`}
                         >
-                          {type === 'deputy_conflict' ? '職代衝突' : '部門請假超標'}
+                          {type === 'deputy_conflict' ? '職代' : '超標'}
                         </span>
                       ))}
                     </div>
@@ -881,16 +873,16 @@ export default function Dashboard() {
             <h3 className="text-sm font-semibold text-gray-700 mb-2">說明</h3>
             <div className="space-y-2 text-sm text-gray-600">
               <div className="flex items-start gap-2">
-                <span className="font-medium text-orange-600 flex-shrink-0">⚠️ 職代衝突：</span>
-                <span>員工與其職務代理人在同一天請假（出差除外），可能影響業務運作</span>
+                <span className="font-medium text-orange-600 flex-shrink-0">職代：</span>
+                <span>員工與其職務代理人在同一天請假（出差除外）</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-medium text-red-600 flex-shrink-0">⚠️ 部門請假超標：</span>
-                <span>該部門當天請假人數達到或超過部門總人數的 1/3（出差除外），可能影響部門運作</span>
+                <span className="font-medium text-red-600 flex-shrink-0">超標：</span>
+                <span>該部門當天請假人數達到或超過部門總人數的 1/3（出差除外）</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-gray-500 flex-shrink-0">💡 提示：</span>
-                <span>「出差」不會觸發上述警示，因為出差員工仍可協助處理業務</span>
+                <span className="text-gray-500 flex-shrink-0">💡</span>
+                <span>出差不會觸發警示</span>
               </div>
             </div>
           </div>
