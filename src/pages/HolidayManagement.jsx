@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, Loader2, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
@@ -14,6 +14,8 @@ export default function HolidayManagement() {
   const [formData, setFormData] = useState({ date: '', name: '', type: 'company' });
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [holidayToDelete, setHolidayToDelete] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -204,9 +206,8 @@ export default function HolidayManagement() {
                         variant="outline"
                         size="icon"
                         onClick={() => {
-                          if (confirm('確定要刪除此假日嗎？')) {
-                            deleteMutation.mutate(holiday.id);
-                          }
+                          setHolidayToDelete(holiday);
+                          setDeleteDialogOpen(true);
                         }}
                         className="h-6 w-6 text-red-600 hover:text-red-700"
                       >
@@ -265,7 +266,7 @@ export default function HolidayManagement() {
                   </Select>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex flex-col sm:flex-row gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   取消
                 </Button>
@@ -274,6 +275,39 @@ export default function HolidayManagement() {
                 </Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>刪除假日</DialogTitle>
+              <DialogDescription>
+                確定要刪除假日「{holidayToDelete?.name}」({holidayToDelete?.date}) 嗎？此操作無法復原。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setHolidayToDelete(null);
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deleteMutation.mutate(holidayToDelete.id);
+                  setDeleteDialogOpen(false);
+                  setHolidayToDelete(null);
+                }}
+              >
+                刪除
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
