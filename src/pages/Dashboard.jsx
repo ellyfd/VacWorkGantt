@@ -324,6 +324,7 @@ export default function Dashboard() {
           <CalendarHeader 
             currentDate={currentDate} 
             onDateChange={setCurrentDate}
+            showDaySelector={true}
           />
         </div>
 
