@@ -475,9 +475,9 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead>假別</TableHead>
-                  <TableHead>人數</TableHead>
-                  <TableHead>人員</TableHead>
+                  <TableHead className="py-2">假別</TableHead>
+                  <TableHead className="py-2">人數</TableHead>
+                  <TableHead className="py-2">人員</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -499,7 +499,7 @@ export default function Dashboard() {
                   }, {})
                 ).map(([typeId, data]) => (
                   <TableRow key={typeId}>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <div className="flex items-center gap-2">
                         {data.leaveType && (
                           <div
@@ -510,8 +510,8 @@ export default function Dashboard() {
                         <span className="font-medium">{data.leaveType ? data.leaveType.name : '-'}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-bold text-lg">{data.employees.length}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-bold text-lg py-2">{data.employees.length}</TableCell>
+                    <TableCell className="py-2">
                       <div className="grid grid-cols-3 gap-x-2 gap-y-1 sm:flex sm:flex-wrap">
                         {data.employees.map((name, idx) => (
                           <span key={idx} className="text-gray-700 text-sm">
@@ -604,11 +604,11 @@ export default function Dashboard() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
-                    <TableHead>員工姓名</TableHead>
-                    <TableHead>請假日期</TableHead>
-                    <TableHead>假別</TableHead>
-                    <TableHead>警示類型</TableHead>
-                    <TableHead>警示細節</TableHead>
+                    <TableHead className="py-2">員工姓名</TableHead>
+                    <TableHead className="py-2">請假日期</TableHead>
+                    <TableHead className="py-2">假別</TableHead>
+                    <TableHead className="py-2">警示類型</TableHead>
+                    <TableHead className="py-2">警示細節</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -676,9 +676,9 @@ export default function Dashboard() {
 
                     return (
                       <TableRow key={record.id}>
-                        <TableCell className="font-medium">{employee?.name || '-'}</TableCell>
-                        <TableCell>{record.date}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-medium py-2">{employee?.name || '-'}</TableCell>
+                        <TableCell className="py-2">{record.date}</TableCell>
+                        <TableCell className="py-2">
                           <div className="flex items-center gap-2">
                             {leaveType && (
                               <div
@@ -689,7 +689,7 @@ export default function Dashboard() {
                             <span>{leaveType?.name || '-'}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-2">
                           <div className="flex flex-col gap-1">
                             {warningTypes.map((type, idx) => (
                               <span 
@@ -705,7 +705,7 @@ export default function Dashboard() {
                             ))}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-2">
                           <div className="text-sm space-y-1">
                             {warningTypes.includes('deputy_conflict') && (() => {
                               const currentDeputies = getCurrentDeputies();
