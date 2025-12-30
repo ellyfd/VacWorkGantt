@@ -802,20 +802,24 @@ export default function Dashboard() {
                 };
 
                 return (
-                  <div key={record.id} className="p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="font-bold text-gray-800">{employee?.name || '-'}</div>
+                  <div key={record.id} className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-gray-800">{employee?.name || '-'}</div>
+                        <div className="flex items-center gap-1">
+                          {leaveType && (
+                            <div
+                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: leaveType.color }}
+                            />
+                          )}
+                          <span className="text-sm text-gray-600">{leaveType?.name || '-'}</span>
+                        </div>
+                      </div>
                       <div className="text-xs text-gray-500">{record.date}</div>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                      {leaveType && (
-                        <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: leaveType.color }}
-                        />
-                      )}
-                      <span className="text-sm font-medium">{leaveType?.name || '-'}</span>
                       {warningTypes.map((type, idx) => (
                         <span 
                           key={idx}
@@ -828,8 +832,8 @@ export default function Dashboard() {
                           {type === 'deputy_conflict' ? '職代衝突' : '部門請假超標'}
                         </span>
                       ))}
-                      </div>
-                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>
