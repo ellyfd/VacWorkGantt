@@ -6,10 +6,11 @@ import { zhTW } from 'date-fns/locale';
 import { Loader2, Calendar as CalendarIcon, Users, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import CalendarHeader from '@/components/calendar/CalendarHeader';
 import {
   Table,
   TableBody,
@@ -21,15 +22,13 @@ import {
 
 
 export default function Dashboard() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
   const [isScanningWarnings, setIsScanningWarnings] = useState(false);
   const [cleanDialogOpen, setCleanDialogOpen] = useState(false);
   const [scanDialogOpen, setScanDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-
-  const selectedDate = format(currentDate, 'yyyy-MM-dd');
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -320,12 +319,37 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">儀表板</h1>
-          <CalendarHeader 
-            currentDate={currentDate} 
-            onDateChange={setCurrentDate}
-            showDaySelector={true}
-          />
+          <h1 className="text-3xl font-bold text-gray-800">儀表板</h1>
+          <div className="flex items-center gap-3">
+            <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(new Date(selectedDate), 'yyyy年MM月dd日 (E)', { locale: zhTW }) : "選擇日期"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate ? new Date(selectedDate + 'T00:00:00') : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(format(date, 'yyyy-MM-dd'));
+                  }
+                }}
+                locale={zhTW}
+                weekStartsOn={0}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          </div>
         </div>
 
         <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
