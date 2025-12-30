@@ -212,99 +212,35 @@ export default function AllLeaveCalendar() {
         // 發送通知
         const emp = employees.find(e => e.id === employeeId);
         const leaveTypeName = leaveTypes.find(lt => lt.id === leaveTypeId)?.name || '未知假別';
-
-        // 1. 通知所有 admin (all_admin 類別)
+        
+        // 1. 通知所有 admin
         const adminEmps = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0);
         for (const admin of adminEmps) {
           for (const email of admin.user_emails) {
-            // 檢查是否已有當天 all_admin 類別的通知
-            const existingNotifs = await base44.entities.Notification.filter({
+            await base44.entities.Notification.create({
               recipient_email: email,
-              leave_date: date,
-              notification_category: 'all_admin',
-              is_read: false
+              type: 'leave_created',
+              message: `${emp?.name || '未知員工'} 新增了 ${date} 的 ${leaveTypeName}`,
+              related_entity_id: newRecord.id,
+              related_entity_type: 'LeaveRecord'
             });
-
-            if (existingNotifs.length > 0) {
-              // 更新現有通知
-              const existing = existingNotifs[0];
-              const updatedMessage = `${existing.message}\n• ${emp?.name || '未知員工'} - ${leaveTypeName}`;
-              await base44.entities.Notification.update(existing.id, {
-                message: updatedMessage
-              });
-            } else {
-              // 創建新通知
-              await base44.entities.Notification.create({
-                recipient_email: email,
-                type: 'leave_created',
-                message: `${date} 全部請假統整：\n• ${emp?.name || '未知員工'} - ${leaveTypeName}`,
-                leave_date: date,
-                notification_category: 'all_admin',
-                related_entity_type: 'LeaveRecord'
-              });
-            }
           }
         }
 
-        // 2. 通知請假員工本人 (self 類別)
-        if (emp?.user_emails?.length > 0) {
-          for (const email of emp.user_emails) {
-            const existingNotifs = await base44.entities.Notification.filter({
-              recipient_email: email,
-              leave_date: date,
-              notification_category: 'self',
-              is_read: false
-            });
-
-            if (existingNotifs.length > 0) {
-              const existing = existingNotifs[0];
-              const updatedMessage = `${existing.message}\n• ${leaveTypeName}`;
-              await base44.entities.Notification.update(existing.id, {
-                message: updatedMessage
-              });
-            } else {
-              await base44.entities.Notification.create({
-                recipient_email: email,
-                type: 'leave_created',
-                message: `您在 ${date} 新增的請假：\n• ${leaveTypeName}`,
-                leave_date: date,
-                notification_category: 'self',
-                related_entity_type: 'LeaveRecord'
-              });
-            }
-          }
-        }
-
-        // 3. 通知職代 (deputy 類別)
+        // 2. 通知職代
         if (emp?.deputy_1 || emp?.deputy_2) {
           const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
           for (const deputyId of deputies) {
             const deputy = employees.find(e => e.id === deputyId);
             if (deputy?.user_emails?.length > 0) {
               for (const email of deputy.user_emails) {
-                const existingNotifs = await base44.entities.Notification.filter({
+                await base44.entities.Notification.create({
                   recipient_email: email,
-                  leave_date: date,
-                  notification_category: 'deputy',
-                  is_read: false
+                  type: 'leave_created',
+                  message: `您的職務代理人 ${emp.name} 新增了 ${date} 的 ${leaveTypeName}`,
+                  related_entity_id: newRecord.id,
+                  related_entity_type: 'LeaveRecord'
                 });
-
-                if (existingNotifs.length > 0) {
-                  const existing = existingNotifs[0];
-                  const updatedMessage = `${existing.message}\n• ${emp.name} - ${leaveTypeName}`;
-                  await base44.entities.Notification.update(existing.id, {
-                    message: updatedMessage
-                  });
-                } else {
-                  await base44.entities.Notification.create({
-                    recipient_email: email,
-                    type: 'leave_created',
-                    message: `${date} 您的職代請假統整：\n• ${emp.name} - ${leaveTypeName}`,
-                    leave_date: date,
-                    notification_category: 'deputy',
-                    related_entity_type: 'LeaveRecord'
-                  });
-                }
               }
             }
           }
