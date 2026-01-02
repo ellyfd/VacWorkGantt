@@ -57,11 +57,11 @@ export default function ReportManagement() {
   };
 
   // 計算月度出席數據
-  const calculateAttendanceData = () => {
+  const calculateAttendanceData = (records, emps) => {
     const year = parseInt(selectedYear);
     const month = parseInt(selectedMonth);
     const daysInMonth = new Date(year, month, 0).getDate();
-    
+
     // 計算工作日數（排除週末和假日）
     let workDays = 0;
     for (let day = 1; day <= daysInMonth; day++) {
@@ -70,20 +70,20 @@ export default function ReportManagement() {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       const isHoliday = holidays.some(h => h.date === dateStr);
-      
+
       if (!isWeekend && !isHoliday) {
         workDays++;
       }
     }
 
-    const activeEmployees = employees.filter(e => e.status === 'active');
+    const activeEmployees = emps.filter(e => e.status === 'active');
     const totalEmployees = activeEmployees.length;
     const standardHoursPerDay = 7.5;
     const totalStandardHours = workDays * totalEmployees * standardHoursPerDay;
 
     // 計算總請假時數
     let totalLeaveHours = 0;
-    leaveRecords.forEach(record => {
+    records.forEach(record => {
       const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
       if (leaveType) {
         totalLeaveHours += calculateLeaveHours(leaveType.name);
@@ -298,6 +298,10 @@ export default function ReportManagement() {
     );
   }
 
+  const filteredEmployees = selectedDepartments.length > 0
+    ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
+    : employees;
+
   const filteredLeaveRecords = selectedDepartments.length > 0
     ? leaveRecords.filter(record => {
         const emp = employees.find(e => e.id === record.employee_id);
@@ -305,7 +309,7 @@ export default function ReportManagement() {
       })
     : leaveRecords;
 
-  const attendanceData = calculateAttendanceData();
+  const attendanceData = calculateAttendanceData(filteredLeaveRecords, filteredEmployees);
   const leaveTypeStats = calculateLeaveTypeStats(filteredLeaveRecords);
   const departmentStats = calculateDepartmentStats(filteredLeaveRecords);
   const employeeRanking = calculateEmployeeRanking(filteredLeaveRecords);
@@ -415,7 +419,9 @@ export default function ReportManagement() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="week" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip 
+                    formatter={(value) => `${typeof value === 'number' ? value.toFixed(1) : value} 小時`}
+                  />
                   <Legend />
                   {departments.map((dept, idx) => (
                     <Bar key={dept.id} dataKey={dept.name} fill={COLORS[idx % COLORS.length]} />
