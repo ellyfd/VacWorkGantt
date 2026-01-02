@@ -417,61 +417,6 @@ export default function ReportManagement() {
           </CardContent>
         </Card>
 
-        {/* 假別使用統計 */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              假別使用統計
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {leaveTypeStats.length > 0 ? (
-              <div className="flex flex-col lg:flex-row gap-6 items-center">
-                <div className="w-full lg:w-1/2">
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={leaveTypeStats}
-                        dataKey="count"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label={(entry) => {
-                          const percent = ((entry.count / leaveTypeStats.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(0);
-                          return percent > 5 ? `${entry.name}: ${entry.count}` : '';
-                        }}
-                        labelLine={false}
-                      >
-                        {leaveTypeStats.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="w-full lg:w-1/2 space-y-2">
-                  {leaveTypeStats.map((stat, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stat.color }} />
-                        <span>{stat.name}</span>
-                      </div>
-                      <div className="text-gray-600">
-                        {stat.count}次 ({stat.hours}小時)
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
-            )}
-          </CardContent>
-        </Card>
-
         {/* 員工請假時數排行 TOP 10 */}
         <Card>
           <CardHeader>
