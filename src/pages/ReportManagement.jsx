@@ -8,6 +8,7 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 
 export default function ReportManagement() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
   const selectedYear = currentDate.getFullYear().toString();
   const selectedMonth = (currentDate.getMonth() + 1).toString();
 
@@ -172,41 +173,14 @@ export default function ReportManagement() {
     })).sort((a, b) => b.leaveCount - a.leaveCount);
   };
 
-  // 計算員工請假排行（不含出差）
+  // 計算員工排行（合併請假和出差）
   const calculateEmployeeRanking = () => {
     const stats = {};
     employees.forEach(emp => {
       if (emp.status === 'active') {
         stats[emp.id] = {
           name: emp.name,
-          leaveCount: 0,
-          leaveHours: 0
-        };
-      }
-    });
-
-    leaveRecords.forEach(record => {
-      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-      if (stats[record.employee_id] && leaveType && leaveType.name !== '出差') {
-        stats[record.employee_id].leaveCount++;
-        stats[record.employee_id].leaveHours += calculateLeaveHours(leaveType.name);
-      }
-    });
-
-    return Object.values(stats)
-      .filter(emp => emp.leaveHours > 0)
-      .sort((a, b) => b.leaveHours - a.leaveHours)
-      .slice(0, 10);
-  };
-
-  // 計算員工出差排行
-  const calculateBusinessTripRanking = () => {
-    const stats = {};
-    employees.forEach(emp => {
-      if (emp.status === 'active') {
-        stats[emp.id] = {
-          name: emp.name,
-          tripCount: 0,
+          leaveHours: 0,
           tripHours: 0
         };
       }
@@ -214,16 +188,104 @@ export default function ReportManagement() {
 
     leaveRecords.forEach(record => {
       const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-      if (stats[record.employee_id] && leaveType && leaveType.name === '出差') {
-        stats[record.employee_id].tripCount++;
-        stats[record.employee_id].tripHours += calculateLeaveHours(leaveType.name);
+      if (stats[record.employee_id] && leaveType) {
+        const hours = calculateLeaveHours(leaveType.name);
+        if (leaveType.name === '出差') {
+          stats[record.employee_id].tripHours += hours;
+        } else {
+          stats[record.employee_id].leaveHours += hours;
+        }
       }
     });
 
     return Object.values(stats)
-      .filter(emp => emp.tripHours > 0)
-      .sort((a, b) => b.tripHours - a.tripHours)
+      .filter(emp => emp.leaveHours > 0 || emp.tripHours > 0)
+      .sort((a, b) => (b.leaveHours + b.tripHours) - (a.leaveHours + a.tripHours))
       .slice(0, 10);
+  };
+
+  // 計算各部門每週人均工作時數
+  const calculateWeeklyDeptWorkHours = () => {
+    const year = parseInt(selectedYear);
+    const month = parseInt(selectedMonth);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    // 取得該月份的所有週
+    const weeks = [];
+    let currentWeek = { start: null, end: null, days: [] };
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month - 1, day);
+      const dayOfWeek = date.getDay();
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      if (dayOfWeek === 1 || day === 1) { // 週一或月初第一天
+        if (currentWeek.start) {
+          weeks.push({...currentWeek});
+        }
+        currentWeek = { start: dateStr, end: dateStr, days: [dateStr] };
+      } else {
+        currentWeek.end = dateStr;
+        currentWeek.days.push(dateStr);
+      }
+      
+      if (day === daysInMonth) {
+        weeks.push(currentWeek);
+      }
+    }
+    
+    // 計算每週每部門的人均工作時數
+    const weeklyStats = weeks.map((week, weekIdx) => {
+      const deptStats = {};
+      
+      departments.forEach(dept => {
+        const deptEmployees = employees.filter(e => 
+          e.status === 'active' && e.department_ids?.includes(dept.id)
+        );
+        
+        if (deptEmployees.length === 0) {
+          deptStats[dept.name] = 0;
+          return;
+        }
+        
+        // 計算該週工作日數
+        let workDays = 0;
+        week.days.forEach(dateStr => {
+          const date = new Date(dateStr + 'T00:00:00');
+          const dayOfWeek = date.getDay();
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+          const isHoliday = holidays.some(h => h.date === dateStr);
+          if (!isWeekend && !isHoliday) {
+            workDays++;
+          }
+        });
+        
+        const standardHours = workDays * deptEmployees.length * 7.5;
+        
+        // 計算該週該部門的請假時數
+        let leaveHours = 0;
+        leaveRecords.forEach(record => {
+          if (week.days.includes(record.date)) {
+            const emp = deptEmployees.find(e => e.id === record.employee_id);
+            const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+            if (emp && leaveType) {
+              leaveHours += calculateLeaveHours(leaveType.name);
+            }
+          }
+        });
+        
+        const actualHours = standardHours - leaveHours;
+        const avgHours = deptEmployees.length > 0 ? actualHours / deptEmployees.length : 0;
+        deptStats[dept.name] = avgHours;
+      });
+      
+      return {
+        week: `第 ${weekIdx + 1} 週 (${week.start.slice(5)} ~ ${week.end.slice(5)})`,
+        ...deptStats
+      };
+    });
+    
+    return weeklyStats;
   };
 
   const isLoading = loadingEmps || loadingDepts || loadingTypes || loadingRecords || loadingHolidays;
@@ -240,7 +302,14 @@ export default function ReportManagement() {
   const leaveTypeStats = calculateLeaveTypeStats();
   const departmentStats = calculateDepartmentStats();
   const employeeRanking = calculateEmployeeRanking();
-  const businessTripRanking = calculateBusinessTripRanking();
+  const weeklyDeptWorkHours = calculateWeeklyDeptWorkHours();
+  
+  const filteredLeaveRecords = selectedDepartments.length > 0
+    ? leaveRecords.filter(record => {
+        const emp = employees.find(e => e.id === record.employee_id);
+        return emp?.department_ids?.some(deptId => selectedDepartments.includes(deptId));
+      })
+    : leaveRecords;
 
   const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
@@ -255,8 +324,55 @@ export default function ReportManagement() {
           <CalendarHeader currentDate={currentDate} onDateChange={setCurrentDate} />
         </div>
 
+        {/* 部門選擇 */}
+        <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-700 flex-shrink-0">部門：</span>
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
+              {departments.map((dept) => (
+                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(dept.id)}
+                    onChange={() => {
+                      if (selectedDepartments.includes(dept.id)) {
+                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                      } else {
+                        setSelectedDepartments([...selectedDepartments, dept.id]);
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-gray-700">{dept.name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex sm:hidden gap-2 flex-wrap">
+              {departments.map((dept) => (
+                <button
+                  key={dept.id}
+                  onClick={() => {
+                    if (selectedDepartments.includes(dept.id)) {
+                      setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                    } else {
+                      setSelectedDepartments([...selectedDepartments, dept.id]);
+                    }
+                  }}
+                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                    selectedDepartments.includes(dept.id)
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300'
+                  }`}
+                >
+                  {dept.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* 出席率統計卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">出席率</CardTitle>
@@ -269,17 +385,7 @@ export default function ReportManagement() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">人均工作時數</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">
-                {attendanceData.avgWorkHoursPerPerson.toFixed(1)}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">小時/人</p>
-            </CardContent>
-          </Card>
+
 
           <Card>
             <CardHeader className="pb-2">
@@ -293,6 +399,34 @@ export default function ReportManagement() {
             </CardContent>
           </Card>
         </div>
+
+        {/* 各部門每週人均工作時數 */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              各部門每週人均工作時數
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {weeklyDeptWorkHours.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={weeklyDeptWorkHours}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="week" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {departments.map((dept, idx) => (
+                    <Bar key={dept.id} dataKey={dept.name} fill={COLORS[idx % COLORS.length]} />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-gray-500 py-8">無數據</p>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* 假別使用統計 */}
@@ -375,82 +509,43 @@ export default function ReportManagement() {
           </Card>
         </div>
 
-        {/* 員工請假排行（不含出差）& 出差排行 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                員工請假時數排行 TOP 10（不含出差）
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {employeeRanking.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">排名</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">員工姓名</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">請假時數</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">次數</th>
+        {/* 員工請假時數排行 TOP 10 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              員工請假時數排行 TOP 10
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {employeeRanking.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">排名</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">員工姓名</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">請假時數</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">出差時數</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {employeeRanking.map((emp, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-sm text-gray-800">{idx + 1}</td>
+                        <td className="px-4 py-2 text-sm font-medium text-gray-800">{emp.name}</td>
+                        <td className="px-4 py-2 text-sm text-blue-600 font-semibold">{emp.leaveHours.toFixed(1)} 小時</td>
+                        <td className="px-4 py-2 text-sm text-green-600 font-semibold">{emp.tripHours.toFixed(1)} 小時</td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {employeeRanking.map((emp, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 text-sm text-gray-800">{idx + 1}</td>
-                          <td className="px-4 py-2 text-sm font-medium text-gray-800">{emp.name}</td>
-                          <td className="px-4 py-2 text-sm text-blue-600 font-semibold">{emp.leaveHours.toFixed(1)} 小時</td>
-                          <td className="px-4 py-2 text-sm text-gray-600">{emp.leaveCount} 次</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                員工出差時數排行 TOP 10
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {businessTripRanking.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">排名</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">員工姓名</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">出差時數</th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">次數</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {businessTripRanking.map((emp, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 text-sm text-gray-800">{idx + 1}</td>
-                          <td className="px-4 py-2 text-sm font-medium text-gray-800">{emp.name}</td>
-                          <td className="px-4 py-2 text-sm text-green-600 font-semibold">{emp.tripHours.toFixed(1)} 小時</td>
-                          <td className="px-4 py-2 text-sm text-gray-600">{emp.tripCount} 次</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-center text-gray-500 py-8">本月無出差記錄</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* 計算說明 */}
         <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
