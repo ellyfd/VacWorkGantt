@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Bell, Loader2 } from 'lucide-react';
+import { Bell, Loader2, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function Notifications() {
@@ -44,6 +44,13 @@ export default function Notifications() {
     mutationFn: async () => {
       await Promise.all(notifications.map(n => base44.entities.Notification.delete(n.id)));
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notifications']);
+    },
+  });
+
+  const deleteNotificationMutation = useMutation({
+    mutationFn: (notificationId) => base44.entities.Notification.delete(notificationId),
     onSuccess: () => {
       queryClient.invalidateQueries(['notifications']);
     },
@@ -114,9 +121,16 @@ export default function Notifications() {
               {notifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`p-4 hover:bg-gray-50 transition-colors ${!notif.is_read ? 'bg-blue-50' : ''}`}
+                  className={`p-4 hover:bg-gray-50 transition-colors ${!notif.is_read ? 'bg-blue-50' : ''} relative`}
                 >
-                  <div className="flex items-start gap-3">
+                  <button
+                    onClick={() => deleteNotificationMutation.mutate(notif.id)}
+                    className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={deleteNotificationMutation.isPending}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="flex items-start gap-3 pr-8">
                     <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!notif.is_read ? 'bg-blue-500' : 'bg-gray-300'}`} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-800 break-words">{notif.message}</p>
