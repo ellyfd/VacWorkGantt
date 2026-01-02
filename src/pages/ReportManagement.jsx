@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Loader2, BarChart3, TrendingUp, Users, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from 'recharts';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 
 export default function ReportManagement() {
@@ -285,7 +285,7 @@ export default function ReportManagement() {
       });
 
       return {
-        week: `第 ${weekIdx + 1} 週 (${week.start.slice(5)} ~ ${week.end.slice(5)})`,
+        week: `W${weekIdx + 1}`,
         ...deptStats
       };
     });
@@ -407,7 +407,16 @@ export default function ReportManagement() {
                   />
                   <Legend />
                   {filteredDepartments.map((dept, idx) => (
-                    <Bar key={dept.id} dataKey={dept.name} fill={COLORS[idx % COLORS.length]} />
+                    <Bar key={dept.id} dataKey={dept.name} fill={COLORS[idx % COLORS.length]}>
+                      <LabelList 
+                        dataKey={dept.name} 
+                        position="inside" 
+                        fill="#fff" 
+                        fontSize={11}
+                        fontWeight="bold"
+                        formatter={(value) => value > 0 ? value.toFixed(1) : ''}
+                      />
+                    </Bar>
                   ))}
                 </BarChart>
               </ResponsiveContainer>
