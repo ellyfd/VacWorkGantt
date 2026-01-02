@@ -172,7 +172,7 @@ export default function ReportManagement() {
     })).sort((a, b) => b.leaveCount - a.leaveCount);
   };
 
-  // 計算員工請假排行
+  // 計算員工請假排行（不含出差）
   const calculateEmployeeRanking = () => {
     const stats = {};
     employees.forEach(emp => {
@@ -187,15 +187,42 @@ export default function ReportManagement() {
 
     leaveRecords.forEach(record => {
       const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-      if (stats[record.employee_id] && leaveType) {
+      if (stats[record.employee_id] && leaveType && leaveType.name !== '出差') {
         stats[record.employee_id].leaveCount++;
         stats[record.employee_id].leaveHours += calculateLeaveHours(leaveType.name);
       }
     });
 
     return Object.values(stats)
-      .filter(emp => emp.leaveCount > 0)
-      .sort((a, b) => b.leaveCount - a.leaveCount)
+      .filter(emp => emp.leaveHours > 0)
+      .sort((a, b) => b.leaveHours - a.leaveHours)
+      .slice(0, 10);
+  };
+
+  // 計算員工出差排行
+  const calculateBusinessTripRanking = () => {
+    const stats = {};
+    employees.forEach(emp => {
+      if (emp.status === 'active') {
+        stats[emp.id] = {
+          name: emp.name,
+          tripCount: 0,
+          tripHours: 0
+        };
+      }
+    });
+
+    leaveRecords.forEach(record => {
+      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+      if (stats[record.employee_id] && leaveType && leaveType.name === '出差') {
+        stats[record.employee_id].tripCount++;
+        stats[record.employee_id].tripHours += calculateLeaveHours(leaveType.name);
+      }
+    });
+
+    return Object.values(stats)
+      .filter(emp => emp.tripHours > 0)
+      .sort((a, b) => b.tripHours - a.tripHours)
       .slice(0, 10);
   };
 
@@ -213,6 +240,7 @@ export default function ReportManagement() {
   const leaveTypeStats = calculateLeaveTypeStats();
   const departmentStats = calculateDepartmentStats();
   const employeeRanking = calculateEmployeeRanking();
+  const businessTripRanking = calculateBusinessTripRanking();
 
   const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
@@ -228,7 +256,7 @@ export default function ReportManagement() {
         </div>
 
         {/* 出席率統計卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">出席率</CardTitle>
@@ -250,18 +278,6 @@ export default function ReportManagement() {
                 {attendanceData.avgWorkHoursPerPerson.toFixed(1)}
               </div>
               <p className="text-xs text-gray-500 mt-1">小時/人</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">總請假時數</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">
-                {attendanceData.totalLeaveHours.toFixed(1)}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">小時</p>
             </CardContent>
           </Card>
 
@@ -299,7 +315,11 @@ export default function ReportManagement() {
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
-                        label={(entry) => `${entry.name}: ${entry.count}`}
+                        label={(entry) => {
+                          const percent = ((entry.count / leaveTypeStats.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(0);
+                          return percent > 5 ? `${entry.name}: ${entry.count}` : '';
+                        }}
+                        labelLine={false}
                       >
                         {leaveTypeStats.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
@@ -339,14 +359,14 @@ export default function ReportManagement() {
             <CardContent>
               {departmentStats.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={departmentStats}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="leaveCount" fill="#3b82f6" name="請假次數" />
-                  </BarChart>
+                <BarChart data={departmentStats}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="avgLeavePerPerson" fill="#3b82f6" name="平均每人請假次數" />
+                </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <p className="text-center text-gray-500 py-8">無部門數據</p>
@@ -355,43 +375,82 @@ export default function ReportManagement() {
           </Card>
         </div>
 
-        {/* 員工請假排行 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              員工請假排行 TOP 10
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {employeeRanking.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">排名</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">員工姓名</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">請假次數</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">請假時數</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {employeeRanking.map((emp, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-800">{idx + 1}</td>
-                        <td className="px-4 py-2 text-sm font-medium text-gray-800">{emp.name}</td>
-                        <td className="px-4 py-2 text-sm text-gray-600">{emp.leaveCount} 次</td>
-                        <td className="px-4 py-2 text-sm text-gray-600">{emp.leaveHours.toFixed(1)} 小時</td>
+        {/* 員工請假排行（不含出差）& 出差排行 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                員工請假時數排行 TOP 10（不含出差）
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {employeeRanking.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">排名</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">員工姓名</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">請假時數</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">次數</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
-            )}
-          </CardContent>
-        </Card>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {employeeRanking.map((emp, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-sm text-gray-800">{idx + 1}</td>
+                          <td className="px-4 py-2 text-sm font-medium text-gray-800">{emp.name}</td>
+                          <td className="px-4 py-2 text-sm text-blue-600 font-semibold">{emp.leaveHours.toFixed(1)} 小時</td>
+                          <td className="px-4 py-2 text-sm text-gray-600">{emp.leaveCount} 次</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                員工出差時數排行 TOP 10
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {businessTripRanking.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">排名</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">員工姓名</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">出差時數</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">次數</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {businessTripRanking.map((emp, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-sm text-gray-800">{idx + 1}</td>
+                          <td className="px-4 py-2 text-sm font-medium text-gray-800">{emp.name}</td>
+                          <td className="px-4 py-2 text-sm text-green-600 font-semibold">{emp.tripHours.toFixed(1)} 小時</td>
+                          <td className="px-4 py-2 text-sm text-gray-600">{emp.tripCount} 次</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-8">本月無出差記錄</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* 計算說明 */}
         <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
