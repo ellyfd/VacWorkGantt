@@ -393,6 +393,7 @@ export default function ReportManagement() {
               <Users className="w-5 h-5" />
               各部門每週人均工作時數
             </CardTitle>
+            <p className="text-sm text-gray-500 mt-1">工作日天數：{attendanceData.workDays} 天（排除週末假日）</p>
           </CardHeader>
           <CardContent>
             {weeklyDeptWorkHours.length > 0 ? (
@@ -413,19 +414,6 @@ export default function ReportManagement() {
             ) : (
               <p className="text-center text-gray-500 py-8">無數據</p>
             )}
-          </CardContent>
-        </Card>
-
-        {/* 工作日天數 */}
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">工作日天數</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-600">
-              {attendanceData.workDays}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">天（排除週末假日）</p>
           </CardContent>
         </Card>
 
