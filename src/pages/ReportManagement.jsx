@@ -106,9 +106,9 @@ export default function ReportManagement() {
   };
 
   // 計算假別統計
-  const calculateLeaveTypeStats = () => {
+  const calculateLeaveTypeStats = (records) => {
     const stats = {};
-    leaveRecords.forEach(record => {
+    records.forEach(record => {
       const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
       if (leaveType) {
         if (!stats[leaveType.name]) {
@@ -131,7 +131,7 @@ export default function ReportManagement() {
   };
 
   // 計算部門統計
-  const calculateDepartmentStats = () => {
+  const calculateDepartmentStats = (records) => {
     const stats = {};
     departments.forEach(dept => {
       stats[dept.id] = {
@@ -152,7 +152,7 @@ export default function ReportManagement() {
       }
     });
 
-    leaveRecords.forEach(record => {
+    records.forEach(record => {
       const emp = employees.find(e => e.id === record.employee_id);
       const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
       if (emp && emp.department_ids && leaveType) {
@@ -174,7 +174,7 @@ export default function ReportManagement() {
   };
 
   // 計算員工排行（合併請假和出差）
-  const calculateEmployeeRanking = () => {
+  const calculateEmployeeRanking = (records) => {
     const stats = {};
     employees.forEach(emp => {
       if (emp.status === 'active') {
@@ -186,7 +186,7 @@ export default function ReportManagement() {
       }
     });
 
-    leaveRecords.forEach(record => {
+    records.forEach(record => {
       const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
       if (stats[record.employee_id] && leaveType) {
         const hours = calculateLeaveHours(leaveType.name);
@@ -200,7 +200,7 @@ export default function ReportManagement() {
 
     return Object.values(stats)
       .filter(emp => emp.leaveHours > 0 || emp.tripHours > 0)
-      .sort((a, b) => (b.leaveHours + b.tripHours) - (a.leaveHours + a.tripHours))
+      .sort((a, b) => b.leaveHours - a.leaveHours)
       .slice(0, 10);
   };
 
@@ -298,18 +298,18 @@ export default function ReportManagement() {
     );
   }
 
-  const attendanceData = calculateAttendanceData();
-  const leaveTypeStats = calculateLeaveTypeStats();
-  const departmentStats = calculateDepartmentStats();
-  const employeeRanking = calculateEmployeeRanking();
-  const weeklyDeptWorkHours = calculateWeeklyDeptWorkHours();
-  
   const filteredLeaveRecords = selectedDepartments.length > 0
     ? leaveRecords.filter(record => {
         const emp = employees.find(e => e.id === record.employee_id);
         return emp?.department_ids?.some(deptId => selectedDepartments.includes(deptId));
       })
     : leaveRecords;
+
+  const attendanceData = calculateAttendanceData();
+  const leaveTypeStats = calculateLeaveTypeStats(filteredLeaveRecords);
+  const departmentStats = calculateDepartmentStats(filteredLeaveRecords);
+  const employeeRanking = calculateEmployeeRanking(filteredLeaveRecords);
+  const weeklyDeptWorkHours = calculateWeeklyDeptWorkHours();
 
   const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
