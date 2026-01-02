@@ -394,7 +394,7 @@ export default function ReportManagement() {
                 <Users className="w-5 h-5" />
                 各部門每週人均工作時數
               </CardTitle>
-              <span className="text-xs text-gray-400">（標準時數 - 請假時數）÷ 部門人數</span>
+              <span className="text-xs text-gray-400">（工作日數 × 7.5小時 - 請假時數）÷ 部門人數</span>
             </div>
             <p className="text-sm text-gray-500 mt-1">工作日天數：<span className="text-lg font-semibold text-purple-600">{attendanceData.workDays}</span> 天（排除週末假日）</p>
           </CardHeader>
