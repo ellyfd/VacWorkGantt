@@ -3,12 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Loader2, BarChart3, TrendingUp, Users, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import CalendarHeader from '@/components/calendar/CalendarHeader';
 
 export default function ReportManagement() {
-  const [selectedYear, setSelectedYear] = useState('2025');
-  const [selectedMonth, setSelectedMonth] = useState('1');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const selectedYear = currentDate.getFullYear().toString();
+  const selectedMonth = (currentDate.getMonth() + 1).toString();
 
   const { data: employees = [], isLoading: loadingEmps } = useQuery({
     queryKey: ['employees'],
@@ -223,30 +224,7 @@ export default function ReportManagement() {
             <BarChart3 className="w-8 h-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-800">報表管理</h1>
           </div>
-          <div className="flex gap-2">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2025">2025年</SelectItem>
-                <SelectItem value="2026">2026年</SelectItem>
-                <SelectItem value="2027">2027年</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <SelectItem key={i + 1} value={String(i + 1)}>
-                    {i + 1}月
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <CalendarHeader currentDate={currentDate} onDateChange={setCurrentDate} />
         </div>
 
         {/* 出席率統計卡片 */}
