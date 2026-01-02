@@ -69,7 +69,7 @@ export default function Notifications() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Bell className="w-6 h-6 text-blue-600" />
@@ -108,6 +108,12 @@ export default function Notifications() {
               </Button>
             )}
           </div>
+        </div>
+
+        <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            💡 只有您的職務代理人請假或取消請假時，才會收到通知
+          </p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
