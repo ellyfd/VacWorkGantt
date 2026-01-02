@@ -1,0 +1,433 @@
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Loader2, BarChart3, TrendingUp, Users, Calendar } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+export default function ReportManagement() {
+  const [selectedYear, setSelectedYear] = useState('2025');
+  const [selectedMonth, setSelectedMonth] = useState('1');
+
+  const { data: employees = [], isLoading: loadingEmps } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list(),
+  });
+
+  const { data: departments = [], isLoading: loadingDepts } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const depts = await base44.entities.Department.list('sort_order');
+      return depts.filter(d => d.status !== 'hidden');
+    },
+  });
+
+  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
+    queryKey: ['leaveTypes'],
+    queryFn: () => base44.entities.LeaveType.list(),
+  });
+
+  const { data: holidays = [], isLoading: loadingHolidays } = useQuery({
+    queryKey: ['holidays'],
+    queryFn: () => base44.entities.Holiday.list(),
+  });
+
+  const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
+    queryKey: ['leaveRecords', selectedYear, selectedMonth],
+    queryFn: async () => {
+      const year = parseInt(selectedYear);
+      const month = parseInt(selectedMonth);
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      return base44.entities.LeaveRecord.filter({
+        date: { $gte: startDate, $lte: endDate }
+      });
+    },
+  });
+
+  // 計算請假扣除時數
+  const calculateLeaveHours = (leaveTypeName) => {
+    if (leaveTypeName.includes('上午')) return 3;
+    if (leaveTypeName.includes('下午')) return 4.5;
+    return 7.5; // 全天休/病休/出差等
+  };
+
+  // 計算月度出席數據
+  const calculateAttendanceData = () => {
+    const year = parseInt(selectedYear);
+    const month = parseInt(selectedMonth);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    // 計算工作日數（排除週末和假日）
+    let workDays = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month - 1, day);
+      const dayOfWeek = date.getDay();
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const isHoliday = holidays.some(h => h.date === dateStr);
+      
+      if (!isWeekend && !isHoliday) {
+        workDays++;
+      }
+    }
+
+    const activeEmployees = employees.filter(e => e.status === 'active');
+    const totalEmployees = activeEmployees.length;
+    const standardHoursPerDay = 7.5;
+    const totalStandardHours = workDays * totalEmployees * standardHoursPerDay;
+
+    // 計算總請假時數
+    let totalLeaveHours = 0;
+    leaveRecords.forEach(record => {
+      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+      if (leaveType) {
+        totalLeaveHours += calculateLeaveHours(leaveType.name);
+      }
+    });
+
+    const actualWorkHours = totalStandardHours - totalLeaveHours;
+    const attendanceRate = totalStandardHours > 0 ? (actualWorkHours / totalStandardHours * 100) : 0;
+    const avgWorkHoursPerPerson = totalEmployees > 0 ? actualWorkHours / totalEmployees : 0;
+
+    return {
+      workDays,
+      totalEmployees,
+      totalStandardHours,
+      totalLeaveHours,
+      actualWorkHours,
+      attendanceRate,
+      avgWorkHoursPerPerson
+    };
+  };
+
+  // 計算假別統計
+  const calculateLeaveTypeStats = () => {
+    const stats = {};
+    leaveRecords.forEach(record => {
+      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+      if (leaveType) {
+        if (!stats[leaveType.name]) {
+          stats[leaveType.name] = {
+            count: 0,
+            hours: 0,
+            color: leaveType.color
+          };
+        }
+        stats[leaveType.name].count++;
+        stats[leaveType.name].hours += calculateLeaveHours(leaveType.name);
+      }
+    });
+    return Object.entries(stats).map(([name, data]) => ({
+      name,
+      count: data.count,
+      hours: data.hours,
+      color: data.color
+    })).sort((a, b) => b.count - a.count);
+  };
+
+  // 計算部門統計
+  const calculateDepartmentStats = () => {
+    const stats = {};
+    departments.forEach(dept => {
+      stats[dept.id] = {
+        name: dept.name,
+        employeeCount: 0,
+        leaveCount: 0,
+        leaveHours: 0
+      };
+    });
+
+    employees.forEach(emp => {
+      if (emp.status === 'active' && emp.department_ids) {
+        emp.department_ids.forEach(deptId => {
+          if (stats[deptId]) {
+            stats[deptId].employeeCount++;
+          }
+        });
+      }
+    });
+
+    leaveRecords.forEach(record => {
+      const emp = employees.find(e => e.id === record.employee_id);
+      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+      if (emp && emp.department_ids && leaveType) {
+        const hours = calculateLeaveHours(leaveType.name);
+        emp.department_ids.forEach(deptId => {
+          if (stats[deptId]) {
+            stats[deptId].leaveCount++;
+            stats[deptId].leaveHours += hours;
+          }
+        });
+      }
+    });
+
+    return Object.values(stats).map(dept => ({
+      ...dept,
+      avgLeavePerPerson: dept.employeeCount > 0 ? (dept.leaveCount / dept.employeeCount).toFixed(1) : 0,
+      avgHoursPerPerson: dept.employeeCount > 0 ? (dept.leaveHours / dept.employeeCount).toFixed(1) : 0
+    })).sort((a, b) => b.leaveCount - a.leaveCount);
+  };
+
+  // 計算員工請假排行
+  const calculateEmployeeRanking = () => {
+    const stats = {};
+    employees.forEach(emp => {
+      if (emp.status === 'active') {
+        stats[emp.id] = {
+          name: emp.name,
+          leaveCount: 0,
+          leaveHours: 0
+        };
+      }
+    });
+
+    leaveRecords.forEach(record => {
+      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+      if (stats[record.employee_id] && leaveType) {
+        stats[record.employee_id].leaveCount++;
+        stats[record.employee_id].leaveHours += calculateLeaveHours(leaveType.name);
+      }
+    });
+
+    return Object.values(stats)
+      .filter(emp => emp.leaveCount > 0)
+      .sort((a, b) => b.leaveCount - a.leaveCount)
+      .slice(0, 10);
+  };
+
+  const isLoading = loadingEmps || loadingDepts || loadingTypes || loadingRecords || loadingHolidays;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  const attendanceData = calculateAttendanceData();
+  const leaveTypeStats = calculateLeaveTypeStats();
+  const departmentStats = calculateDepartmentStats();
+  const employeeRanking = calculateEmployeeRanking();
+
+  const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <BarChart3 className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-800">報表管理</h1>
+          </div>
+          <div className="flex gap-2">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2025">2025年</SelectItem>
+                <SelectItem value="2026">2026年</SelectItem>
+                <SelectItem value="2027">2027年</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>
+                    {i + 1}月
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* 出席率統計卡片 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">出席率</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600">
+                {attendanceData.attendanceRate.toFixed(1)}%
+              </div>
+              <p className="text-xs text-gray-500 mt-1">月度平均</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">人均工作時數</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">
+                {attendanceData.avgWorkHoursPerPerson.toFixed(1)}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">小時/人</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">總請假時數</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-600">
+                {attendanceData.totalLeaveHours.toFixed(1)}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">小時</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">工作日天數</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600">
+                {attendanceData.workDays}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">天（排除週末假日）</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* 假別使用統計 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                假別使用統計
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {leaveTypeStats.length > 0 ? (
+                <div className="space-y-3">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={leaveTypeStats}
+                        dataKey="count"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label={(entry) => `${entry.name}: ${entry.count}`}
+                      >
+                        {leaveTypeStats.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="space-y-2">
+                    {leaveTypeStats.map((stat, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stat.color }} />
+                          <span>{stat.name}</span>
+                        </div>
+                        <div className="text-gray-600">
+                          {stat.count}次 ({stat.hours}小時)
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 部門請假比較 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                部門請假比較
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {departmentStats.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={departmentStats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="leaveCount" fill="#3b82f6" name="請假次數" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500 py-8">無部門數據</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 員工請假排行 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              員工請假排行 TOP 10
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {employeeRanking.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">排名</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">員工姓名</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">請假次數</th>
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">請假時數</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {employeeRanking.map((emp, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-sm text-gray-800">{idx + 1}</td>
+                        <td className="px-4 py-2 text-sm font-medium text-gray-800">{emp.name}</td>
+                        <td className="px-4 py-2 text-sm text-gray-600">{emp.leaveCount} 次</td>
+                        <td className="px-4 py-2 text-sm text-gray-600">{emp.leaveHours.toFixed(1)} 小時</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 計算說明 */}
+        <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">計算說明</h3>
+          <div className="text-xs text-gray-600 space-y-1">
+            <p>• 標準工作時間：每日 7.5 小時（9:00-18:00，扣除 1.5 小時午休）</p>
+            <p>• 上午休：扣除 3 小時</p>
+            <p>• 下午休：扣除 4.5 小時</p>
+            <p>• 全天休/病休/出差：扣除 7.5 小時</p>
+            <p>• 出席率 = 實際工作時數 ÷ 應工作時數 × 100%</p>
+            <p>• 工作日計算已排除週末和假日</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

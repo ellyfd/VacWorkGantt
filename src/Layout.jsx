@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut, Settings, ChevronDown, ChevronRight, Bell } from 'lucide-react';
+import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut, Settings, ChevronDown, ChevronRight, Bell, BarChart3 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +21,7 @@ const settingsItems = [
   { name: 'DepartmentManagement', label: '部門管理', icon: Building2 },
   { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },
   { name: 'HolidayManagement', label: '假日管理', icon: CalendarClock },
+  { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
 ];
 
 export default function Layout({ children, currentPageName }) {
