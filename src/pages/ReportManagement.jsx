@@ -209,16 +209,16 @@ export default function ReportManagement() {
     const year = parseInt(selectedYear);
     const month = parseInt(selectedMonth);
     const daysInMonth = new Date(year, month, 0).getDate();
-    
+
     // 取得該月份的所有週
     const weeks = [];
     let currentWeek = { start: null, end: null, days: [] };
-    
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dayOfWeek = date.getDay();
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      
+
       if (dayOfWeek === 1 || day === 1) { // 週一或月初第一天
         if (currentWeek.start) {
           weeks.push({...currentWeek});
@@ -228,26 +228,31 @@ export default function ReportManagement() {
         currentWeek.end = dateStr;
         currentWeek.days.push(dateStr);
       }
-      
+
       if (day === daysInMonth) {
         weeks.push(currentWeek);
       }
     }
-    
+
+    // 使用篩選後的部門
+    const deptsToCalculate = selectedDepartments.length > 0
+      ? departments.filter(d => selectedDepartments.includes(d.id))
+      : departments;
+
     // 計算每週每部門的人均工作時數
     const weeklyStats = weeks.map((week, weekIdx) => {
       const deptStats = {};
-      
-      departments.forEach(dept => {
-        const deptEmployees = employees.filter(e => 
+
+      deptsToCalculate.forEach(dept => {
+        const deptEmployees = filteredEmployees.filter(e => 
           e.status === 'active' && e.department_ids?.includes(dept.id)
         );
-        
+
         if (deptEmployees.length === 0) {
           deptStats[dept.name] = 0;
           return;
         }
-        
+
         // 計算該週工作日數
         let workDays = 0;
         week.days.forEach(dateStr => {
@@ -259,12 +264,12 @@ export default function ReportManagement() {
             workDays++;
           }
         });
-        
+
         const standardHours = workDays * deptEmployees.length * 7.5;
-        
+
         // 計算該週該部門的請假時數
         let leaveHours = 0;
-        leaveRecords.forEach(record => {
+        filteredLeaveRecords.forEach(record => {
           if (week.days.includes(record.date)) {
             const emp = deptEmployees.find(e => e.id === record.employee_id);
             const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
@@ -273,30 +278,20 @@ export default function ReportManagement() {
             }
           }
         });
-        
+
         const actualHours = standardHours - leaveHours;
         const avgHours = deptEmployees.length > 0 ? actualHours / deptEmployees.length : 0;
         deptStats[dept.name] = avgHours;
       });
-      
+
       return {
         week: `第 ${weekIdx + 1} 週 (${week.start.slice(5)} ~ ${week.end.slice(5)})`,
         ...deptStats
       };
     });
-    
+
     return weeklyStats;
   };
-
-  const isLoading = loadingEmps || loadingDepts || loadingTypes || loadingRecords || loadingHolidays;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
 
   const filteredEmployees = selectedDepartments.length > 0
     ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
@@ -309,11 +304,25 @@ export default function ReportManagement() {
       })
     : leaveRecords;
 
+  const isLoading = loadingEmps || loadingDepts || loadingTypes || loadingRecords || loadingHolidays;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   const attendanceData = calculateAttendanceData(filteredLeaveRecords, filteredEmployees);
   const leaveTypeStats = calculateLeaveTypeStats(filteredLeaveRecords);
   const departmentStats = calculateDepartmentStats(filteredLeaveRecords);
   const employeeRanking = calculateEmployeeRanking(filteredLeaveRecords);
   const weeklyDeptWorkHours = calculateWeeklyDeptWorkHours();
+
+  const filteredDepartments = selectedDepartments.length > 0
+    ? departments.filter(d => selectedDepartments.includes(d.id))
+    : departments;
 
   const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
@@ -396,7 +405,7 @@ export default function ReportManagement() {
                     formatter={(value) => `${typeof value === 'number' ? value.toFixed(1) : value} 小時`}
                   />
                   <Legend />
-                  {departments.map((dept, idx) => (
+                  {filteredDepartments.map((dept, idx) => (
                     <Bar key={dept.id} dataKey={dept.name} fill={COLORS[idx % COLORS.length]} />
                   ))}
                 </BarChart>
@@ -420,86 +429,58 @@ export default function ReportManagement() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* 假別使用統計 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                假別使用統計
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {leaveTypeStats.length > 0 ? (
-                <div className="space-y-3">
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={leaveTypeStats}
-                        dataKey="count"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label={(entry) => {
-                          const percent = ((entry.count / leaveTypeStats.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(0);
-                          return percent > 5 ? `${entry.name}: ${entry.count}` : '';
-                        }}
-                        labelLine={false}
-                      >
-                        {leaveTypeStats.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="space-y-2">
-                    {leaveTypeStats.map((stat, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stat.color }} />
-                          <span>{stat.name}</span>
-                        </div>
-                        <div className="text-gray-600">
-                          {stat.count}次 ({stat.hours}小時)
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 部門請假比較 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                部門請假比較
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {departmentStats.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={departmentStats}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="avgLeavePerPerson" fill="#3b82f6" name="平均每人請假次數" />
-                </BarChart>
+        {/* 假別使用統計 */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              假別使用統計
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {leaveTypeStats.length > 0 ? (
+              <div className="space-y-3">
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={leaveTypeStats}
+                      dataKey="count"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={(entry) => {
+                        const percent = ((entry.count / leaveTypeStats.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(0);
+                        return percent > 5 ? `${entry.name}: ${entry.count}` : '';
+                      }}
+                      labelLine={false}
+                    >
+                      {leaveTypeStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
                 </ResponsiveContainer>
-              ) : (
-                <p className="text-center text-gray-500 py-8">無部門數據</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                <div className="space-y-2">
+                  {leaveTypeStats.map((stat, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stat.color }} />
+                        <span>{stat.name}</span>
+                      </div>
+                      <div className="text-gray-600">
+                        {stat.count}次 ({stat.hours}小時)
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* 員工請假時數排行 TOP 10 */}
         <Card>
