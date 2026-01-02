@@ -393,7 +393,7 @@ export default function ReportManagement() {
               <Users className="w-5 h-5" />
               各部門每週人均工作時數
             </CardTitle>
-            <p className="text-sm text-gray-500 mt-1">工作日天數：{attendanceData.workDays} 天（排除週末假日）</p>
+            <p className="text-sm text-gray-500 mt-1">工作日天數：<span className="text-lg font-semibold text-purple-600">{attendanceData.workDays}</span> 天（排除週末假日）</p>
           </CardHeader>
           <CardContent>
             {weeklyDeptWorkHours.length > 0 ? (
@@ -427,30 +427,32 @@ export default function ReportManagement() {
           </CardHeader>
           <CardContent>
             {leaveTypeStats.length > 0 ? (
-              <div className="space-y-3">
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie
-                      data={leaveTypeStats}
-                      dataKey="count"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={(entry) => {
-                        const percent = ((entry.count / leaveTypeStats.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(0);
-                        return percent > 5 ? `${entry.name}: ${entry.count}` : '';
-                      }}
-                      labelLine={false}
-                    >
-                      {leaveTypeStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-2">
+              <div className="flex flex-col lg:flex-row gap-6 items-center">
+                <div className="w-full lg:w-1/2">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={leaveTypeStats}
+                        dataKey="count"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label={(entry) => {
+                          const percent = ((entry.count / leaveTypeStats.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(0);
+                          return percent > 5 ? `${entry.name}: ${entry.count}` : '';
+                        }}
+                        labelLine={false}
+                      >
+                        {leaveTypeStats.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="w-full lg:w-1/2 space-y-2">
                   {leaveTypeStats.map((stat, idx) => (
                     <div key={idx} className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-2">
