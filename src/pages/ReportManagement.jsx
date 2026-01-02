@@ -375,34 +375,7 @@ export default function ReportManagement() {
           </div>
         </div>
 
-        {/* 出席率統計卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">出席率</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">
-                {attendanceData.attendanceRate.toFixed(1)}%
-              </div>
-              <p className="text-xs text-gray-500 mt-1">月度平均</p>
-            </CardContent>
-          </Card>
 
-
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">工作日天數</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600">
-                {attendanceData.workDays}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">天（排除週末假日）</p>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* 各部門每週人均工作時數 */}
         <Card className="mb-6">
@@ -431,6 +404,19 @@ export default function ReportManagement() {
             ) : (
               <p className="text-center text-gray-500 py-8">無數據</p>
             )}
+          </CardContent>
+        </Card>
+
+        {/* 工作日天數 */}
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">工作日天數</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-600">
+              {attendanceData.workDays}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">天（排除週末假日）</p>
           </CardContent>
         </Card>
 
