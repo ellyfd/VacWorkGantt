@@ -124,8 +124,29 @@ export default function Dashboard() {
 
   const activeEmployees = filteredEmployees.filter(emp => emp.status === 'active');
   
-  // 計算今日請假人數（所有當天請假都顯示，不分上下午）
-  const totalOnLeave = filteredLeaves.length;
+  // 計算實際請假人數（考慮上午休/下午休）
+  const currentHour = new Date().getHours();
+  const isAfternoon = currentHour >= 12;
+  
+  const totalOnLeave = filteredLeaves.filter(leave => {
+    const leaveType = getLeaveType(leave.leave_type_id);
+    if (!leaveType) return true;
+    
+    const leaveName = leaveType.name || '';
+    const isAMLeave = leaveName.includes('上午');
+    const isPMLeave = leaveName.includes('下午');
+    
+    // 全天休：無論何時都算請假
+    if (!isAMLeave && !isPMLeave) return true;
+    
+    // 上午休：只在上午算請假
+    if (isAMLeave && !isAfternoon) return true;
+    
+    // 下午休：只在下午算請假
+    if (isPMLeave && isAfternoon) return true;
+    
+    return false;
+  }).length;
   
   // 檢查是否為週末或假日
   const selectedDateObj = new Date(selectedDate + 'T00:00:00');
