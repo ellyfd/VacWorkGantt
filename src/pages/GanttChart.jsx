@@ -46,10 +46,11 @@ export default function GanttChart() {
   const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
   const [showDurationDialog, setShowDurationDialog] = useState(false);
   const [showRollingDialog, setShowRollingDialog] = useState(false);
-  
+  const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
+
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [creatingProjectId, setCreatingProjectId] = useState(null);
-  const [taskCreationMode, setTaskCreationMode] = useState('manual'); // 'manual' or 'import'
+  const [createdPhaseIds, setCreatedPhaseIds] = useState([]);
   const [scheduleFile, setScheduleFile] = useState(null);
   const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
 
