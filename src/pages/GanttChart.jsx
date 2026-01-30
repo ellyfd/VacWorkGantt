@@ -966,12 +966,26 @@ export default function GanttChart() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDurationDialog(false)}>
-              取消
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                updateGanttTask.mutate({
+                  id: selectedTaskId,
+                  data: { time_type: null, start_date: null, end_date: null },
+                });
+                setShowDurationDialog(false);
+              }}
+            >
+              清除時間
             </Button>
-            <Button onClick={handleConfirmDuration} className="bg-blue-600 hover:bg-blue-700">
-              確認
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowDurationDialog(false)}>
+                取消
+              </Button>
+              <Button onClick={handleConfirmDuration} className="bg-blue-600 hover:bg-blue-700">
+                確認
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
