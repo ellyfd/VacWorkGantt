@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Plus, Edit2, Trash2, Search, Upload, AlertCircle } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, Search } from 'lucide-react';
 
 export default function ProjectSettings() {
   const queryClient = useQueryClient();
