@@ -439,11 +439,11 @@ export default function GanttChart() {
     if (row.type === 'project') {
       return (
         <div
-          className={`flex items-center gap-2 px-3 bg-gray-200 ${isDragging ? 'bg-blue-200' : 'hover:bg-gray-300'} cursor-pointer font-semibold text-sm`}
+          className={`flex items-center gap-2 px-3 bg-gray-800 text-white ${isDragging ? 'bg-blue-700' : 'hover:bg-gray-900'} cursor-pointer font-bold text-sm`}
           style={{ height: ROW_HEIGHT }}
           onClick={() => toggleProject(row.data.id)}
         >
-          <GripVertical className="w-4 h-4 flex-shrink-0 text-gray-500" />
+          <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
           {expandedProjects[row.data.id] ? (
             <ChevronDown className="w-4 h-4 flex-shrink-0" />
           ) : (
@@ -457,7 +457,7 @@ export default function GanttChart() {
     if (row.type === 'phase') {
       return (
         <div
-          className={`flex items-center gap-2 px-3 pl-6 bg-gray-100 ${isDragging ? 'bg-blue-100' : 'hover:bg-gray-200'} cursor-pointer font-medium text-sm`}
+          className={`flex items-center gap-2 px-3 pl-8 bg-gray-100 ${isDragging ? 'bg-blue-100' : 'hover:bg-gray-200'} cursor-pointer font-medium text-sm text-gray-800`}
           style={{ height: ROW_HEIGHT }}
           onClick={() => togglePhase(row.data.id)}
         >
@@ -487,14 +487,14 @@ export default function GanttChart() {
     if (row.type === 'task') {
       return (
         <div
-          className={`flex items-center px-3 pl-10 text-sm cursor-pointer ${
-            selectedTaskId === row.data.id ? 'bg-blue-100' : isDragging ? 'bg-blue-100' : 'bg-white hover:bg-blue-50'
+          className={`flex items-center px-3 pl-12 text-sm cursor-pointer ${
+            selectedTaskId === row.data.id ? 'bg-blue-100 font-medium' : isDragging ? 'bg-blue-100' : 'bg-white hover:bg-blue-50'
           }`}
           style={{ height: ROW_HEIGHT }}
           onClick={() => handleTaskClick(row.data.id)}
         >
           <GripVertical className="w-3 h-3 mr-2 flex-shrink-0 text-gray-400" />
-          <span className="truncate">{row.data.name}</span>
+          <span className="truncate text-gray-700">{row.data.name}</span>
         </div>
       );
     }
