@@ -147,27 +147,6 @@ export default function GanttChart() {
       });
       return response;
     },
-    onSuccess: async (data) => {
-      if (data && data.tasks && data.tasks.length > 0 && currentPhaseId) {
-        for (const task of data.tasks) {
-          if (task.name.trim()) {
-            const tasksInPhase = ganttTasks.filter(t => t.gantt_phase_id === currentPhaseId);
-            await base44.entities.GanttTask.create({
-              name: task.name.trim(),
-              gantt_phase_id: currentPhaseId,
-              sort_order: tasksInPhase.length + 1,
-              time_type: 'milestone',
-            });
-          }
-        }
-
-        queryClient.invalidateQueries(['ganttTasks']);
-        setShowAddTaskDialog(false);
-        setScheduleFile(null);
-        setTaskCreationMode('manual');
-        setCurrentPhaseId(null);
-      }
-    },
   });
 
   const createGanttTask = useMutation({
