@@ -60,7 +60,7 @@ export default function ProjectSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries(['samples']);
       setShowSampleDialog(false);
-      setSampleFormData({ full_name: '', short_name: '', name: '', type: 'universal', project_id: '' });
+      setSampleFormData({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
     },
   });
 
