@@ -1095,9 +1095,32 @@ export default function GanttChart() {
               </Select>
             </div>
             {projectFormData.brand_id && projectFormData.season && (
-              <div className="text-sm text-gray-600 p-2 bg-gray-50 rounded">
-                專案名稱：<strong>{getBrandName(projectFormData.brand_id)} {projectFormData.season}</strong>
+            <>
+            <div className="text-sm text-gray-600 p-2 bg-gray-50 rounded">
+              專案名稱：<strong>{getBrandName(projectFormData.brand_id)} {projectFormData.season}</strong>
+            </div>
+            <div className="pt-4 border-t">
+              <Label className="mb-2 block">建立方式</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={projectCreationMode === 'manual' ? 'default' : 'outline'}
+                  className="flex-1"
+                  onClick={() => setProjectCreationMode('manual')}
+                >
+                  📝 手動選擇樣品
+                </Button>
+                <Button
+                  type="button"
+                  variant={projectCreationMode === 'import' ? 'default' : 'outline'}
+                  className="flex-1"
+                  onClick={() => setProjectCreationMode('import')}
+                >
+                  📎 上傳時程表
+                </Button>
               </div>
+            </div>
+            </>
             )}
           </div>
           <DialogFooter>
