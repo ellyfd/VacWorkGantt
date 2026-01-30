@@ -31,7 +31,7 @@ export default function SampleManagement() {
   const [editingId, setEditingId] = useState(null);
   const [editingType, setEditingType] = useState(null);
   const [sampleFormData, setSampleFormData] = useState({ name: '', type: 'universal', project_id: '' });
-  const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
+  const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active' });
   const [groupFormData, setGroupFormData] = useState({ name: '', status: 'active' });
   const [searchText, setSearchText] = useState('');
   const [projectSearchText, setProjectSearchText] = useState('');
@@ -84,25 +84,25 @@ export default function SampleManagement() {
   // Project Mutations
   const createProject = useMutation({
     mutationFn: (data) => {
-      const name = `${data.short_name} ${data.season}`;
+      const name = data.short_name;
       return base44.entities.Project.create({ ...data, name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setShowProjectDialog(false);
-      setProjectFormData({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
+      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
     },
   });
 
   const updateProject = useMutation({
     mutationFn: ({ id, data }) => {
-      const name = `${data.short_name} ${data.season}`;
+      const name = data.short_name;
       return base44.entities.Project.update(id, { ...data, name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setShowProjectDialog(false);
-      setProjectFormData({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
+      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
       setEditingId(null);
     },
   });
@@ -181,14 +181,13 @@ export default function SampleManagement() {
       setProjectFormData({
         full_name: project.full_name,
         short_name: project.short_name,
-        season: project.season,
         group_id: project.group_id || '',
         status: project.status || 'active',
       });
     } else {
       setEditingId(null);
       setEditingType('project');
-      setProjectFormData({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
+      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
     }
     setShowProjectDialog(true);
   };
@@ -214,7 +213,6 @@ export default function SampleManagement() {
   );
 
   const filteredProjects = projects.filter(p =>
-    p.name?.toLowerCase().includes(projectSearchText.toLowerCase()) ||
     p.full_name?.toLowerCase().includes(projectSearchText.toLowerCase()) ||
     p.short_name?.toLowerCase().includes(projectSearchText.toLowerCase())
   );
@@ -399,11 +397,10 @@ export default function SampleManagement() {
              <Table className="min-w-full">
                <TableHeader>
                  <TableRow className="bg-gray-50 border-b whitespace-nowrap">
-                   <TableHead className="w-[25%]">品牌縮寫</TableHead>
-                   <TableHead className="w-[20%]">品牌全名</TableHead>
-                   <TableHead className="w-[12%]">季節</TableHead>
-                   <TableHead className="w-[20%]">集團</TableHead>
-                   <TableHead className="w-[13%]">狀態</TableHead>
+                   <TableHead className="w-[20%]">品牌縮寫</TableHead>
+                   <TableHead className="w-[30%]">品牌全名</TableHead>
+                   <TableHead className="w-[25%]">集團</TableHead>
+                   <TableHead className="w-[15%]">狀態</TableHead>
                    <TableHead className="w-[10%] text-right">操作</TableHead>
                  </TableRow>
                </TableHeader>
@@ -419,7 +416,6 @@ export default function SampleManagement() {
                      <TableRow key={project.id} className="hover:bg-gray-50 whitespace-nowrap">
                        <TableCell className="font-medium text-sm md:text-base truncate">{project.short_name}</TableCell>
                        <TableCell className="text-xs md:text-sm truncate">{project.full_name}</TableCell>
-                       <TableCell className="text-xs md:text-sm">{project.season}</TableCell>
                        <TableCell className="text-xs md:text-sm">{getGroupName(project.group_id)}</TableCell>
                        <TableCell className="text-xs md:text-sm">
                          <span
@@ -636,22 +632,6 @@ export default function SampleManagement() {
                 placeholder="例：IP"
                 className="mt-1"
               />
-            </div>
-            <div>
-              <Label>季節</Label>
-              <Select
-                value={projectFormData.season}
-                onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {['SS25', 'FW25', 'SS26', 'FW26', 'SS27', 'FW27'].map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             <div>
               <Label>集團</Label>
