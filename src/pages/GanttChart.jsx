@@ -395,14 +395,15 @@ export default function GanttChart() {
   };
 
   // 渲染左側單元格
-  const renderLeftCell = (row) => {
+  const renderLeftCell = (row, isDragging) => {
     if (row.type === 'project') {
       return (
         <div
-          className="flex items-center gap-2 px-3 bg-gray-200 hover:bg-gray-300 cursor-pointer font-semibold text-sm"
+          className={`flex items-center gap-2 px-3 bg-gray-200 ${isDragging ? 'bg-blue-200' : 'hover:bg-gray-300'} cursor-pointer font-semibold text-sm`}
           style={{ height: ROW_HEIGHT }}
           onClick={() => toggleProject(row.data.id)}
         >
+          <GripVertical className="w-4 h-4 flex-shrink-0 text-gray-500" />
           {expandedProjects[row.data.id] ? (
             <ChevronDown className="w-4 h-4 flex-shrink-0" />
           ) : (
@@ -416,10 +417,11 @@ export default function GanttChart() {
     if (row.type === 'phase') {
       return (
         <div
-          className="flex items-center gap-2 px-3 pl-6 bg-gray-100 hover:bg-gray-200 cursor-pointer font-medium text-sm"
+          className={`flex items-center gap-2 px-3 pl-6 bg-gray-100 ${isDragging ? 'bg-blue-100' : 'hover:bg-gray-200'} cursor-pointer font-medium text-sm`}
           style={{ height: ROW_HEIGHT }}
           onClick={() => togglePhase(row.data.id)}
         >
+          <GripVertical className="w-4 h-4 flex-shrink-0 text-gray-400" />
           {expandedPhases[row.data.id] ? (
             <ChevronDown className="w-4 h-4 flex-shrink-0" />
           ) : (
@@ -446,11 +448,12 @@ export default function GanttChart() {
       return (
         <div
           className={`flex items-center px-3 pl-10 text-sm cursor-pointer ${
-            selectedTaskId === row.data.id ? 'bg-blue-100' : 'bg-white hover:bg-blue-50'
+            selectedTaskId === row.data.id ? 'bg-blue-100' : isDragging ? 'bg-blue-100' : 'bg-white hover:bg-blue-50'
           }`}
           style={{ height: ROW_HEIGHT }}
           onClick={() => handleTaskClick(row.data.id)}
         >
+          <GripVertical className="w-3 h-3 mr-2 flex-shrink-0 text-gray-400" />
           <span className="truncate">{row.data.name}</span>
         </div>
       );
