@@ -1,779 +1,685 @@
-
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { format, getDaysInMonth, getDay, addMonths, subMonths } from "date-fns";
-import { Loader2, Plus, ChevronLeft, ChevronRight, Search, ChevronDown } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-
-import { GanttEditDialog } from '@/components/gantt';
-import GanttBar from '@/components/gantt/GanttBar';
-
-const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
-const PHASE_TYPES = ['3D Proto', '3D LA', '3D JSS', '3D RS'];
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card } from '@/components/ui/card';
+import { Loader2, Plus, ChevronDown, ChevronRight, MoreVertical } from 'lucide-react';
+import { addMonths, format, eachDayOfInterval, isToday } from 'date-fns';
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [filterText, setFilterText] = useState('');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [expandedProjects, setExpandedProjects] = useState({});
   const [expandedPhases, setExpandedPhases] = useState({});
-  
-  // Dialogs
-  const [showProjectDialog, setShowProjectDialog] = useState(false);
-  const [showQuickAddDialog, setShowQuickAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [editingType, setEditingType] = useState(null);
+  const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
+  const [showSelectSamplesDialog, setShowSelectSamplesDialog] = useState(false);
+  const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
+  const [currentPhaseId, setCurrentPhaseId] = useState(null);
 
-  // Edit mode states
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [selectedPhaseId, setSelectedPhaseId] = useState(null);
-  const [firstClickDate, setFirstClickDate] = useState(null);
-  const [isRollingMode, setIsRollingMode] = useState(false);
+  const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '' });
+  const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '' });
+  const [selectedSamples, setSelectedSamples] = useState({});
 
-  // New forms
-  const [newProject, setNewProject] = useState({ name: '', brand_name: '', season: 'SS26', year: 2026 });
-  const [quickAddTask, setQuickAddTask] = useState({ name: '', phaseId: '', selectedDate: '' });
+  // Fetch data
+  const { data: ganttProjects = [] } = useQuery({
+    queryKey: ['ganttProjects'],
+    queryFn: () => base44.entities.GanttProject.list('sort_order'),
+  });
 
-  // Generate days array
-  const days = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    return Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => {
-      const date = new Date(year, month, i + 1);
-      const dayOfWeek = getDay(date);
-      return {
-        day: i + 1,
-        date: format(date, 'yyyy-MM-dd'),
-        weekday: WEEKDAY_NAMES[dayOfWeek],
-        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      };
-    });
-  }, [currentDate]);
+  const { data: ganttPhases = [] } = useQuery({
+    queryKey: ['ganttPhases'],
+    queryFn: () => base44.entities.GanttPhase.list('sort_order'),
+  });
 
-  // Queries
-  const { data: projects = [], isLoading: loadingProjects } = useQuery({
+  const { data: ganttTasks = [] } = useQuery({
+    queryKey: ['ganttTasks'],
+    queryFn: () => base44.entities.GanttTask.list('sort_order'),
+  });
+
+  const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('sort_order'),
   });
 
-  const { data: phases = [], isLoading: loadingPhases } = useQuery({
-    queryKey: ['phases'],
-    queryFn: () => base44.entities.Phase.list('sort_order'),
-  });
-
-  const { data: tasks = [], isLoading: loadingTasks } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('sort_order'),
-  });
-
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
-  });
-
-  const { data: leaveRecords = [] } = useQuery({
-    queryKey: ['leaveRecords', format(currentDate, 'yyyy-MM')],
-    queryFn: async () => {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const startDate = format(new Date(year, month, 1), 'yyyy-MM-dd');
-      const endDate = format(new Date(year, month + 1, 0), 'yyyy-MM-dd');
-      return base44.entities.LeaveRecord.filter({
-        date: { $gte: startDate, $lte: endDate }
-      });
-    },
-  });
-
-  const { data: leaveTypes = [] } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list('sort_order'),
-  });
-
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
+  const { data: samples = [] } = useQuery({
+    queryKey: ['samples'],
+    queryFn: () => base44.entities.Sample.list('sort_order'),
   });
 
   // Mutations
-  const createProject = useMutation({
-    mutationFn: async (data) => {
-      const project = await base44.entities.Project.create(data);
-      // 自動建立 4 個階段
-      for (let i = 0; i < PHASE_TYPES.length; i++) {
-        await base44.entities.Phase.create({
-          project_id: project.id,
-          phase_type: PHASE_TYPES[i],
-          sort_order: i,
-          status: 'pending',
-          time_type: 'duration',
-        });
+  const createGanttProject = useMutation({
+    mutationFn: (data) => base44.entities.GanttProject.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttProjects']);
+      setShowAddProjectDialog(false);
+      setProjectFormData({ brand_id: '', season: '' });
+    },
+  });
+
+  const createGanttPhase = useMutation({
+    mutationFn: (data) => base44.entities.GanttPhase.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttPhases']);
+      setShowSelectSamplesDialog(false);
+      setSelectedSamples({});
+    },
+  });
+
+  const createGanttTask = useMutation({
+    mutationFn: (data) => base44.entities.GanttTask.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttTasks']);
+      setShowAddTaskDialog(false);
+      setTaskFormData({ name: '', is_important: false, note: '' });
+      setCurrentPhaseId(null);
+    },
+  });
+
+  const updateGanttTask = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.GanttTask.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttTasks']);
+      setSelectedDate(null);
+      setSelectedTaskId(null);
+    },
+  });
+
+  // Get month range
+  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Get weeks for column headers
+  const weeks = useMemo(() => {
+    const w = [];
+    let currentWeek = [];
+    days.forEach((day, idx) => {
+      currentWeek.push(day);
+      if ((idx + 1) % 7 === 0) {
+        w.push([...currentWeek]);
+        currentWeek = [];
       }
-      return project;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['projects']);
-      queryClient.invalidateQueries(['phases']);
-      setShowProjectDialog(false);
-      setNewProject({ name: '', brand_name: '', season: 'SS26', year: 2026 });
-    },
-  });
+    });
+    if (currentWeek.length > 0) w.push(currentWeek);
+    return w;
+  }, [days]);
 
-  const createTask = useMutation({
-    mutationFn: (data) => base44.entities.Task.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      setShowQuickAddDialog(false);
-      setQuickAddTask({ name: '', phaseId: '', selectedDate: '' });
-    },
-  });
+  const getBrandName = (brandId) => {
+    const project = projects.find(p => p.id === brandId);
+    return project ? project.short_name : '-';
+  };
 
-  const updatePhase = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Phase.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['phases']);
-      setShowEditDialog(false);
-      setEditingItem(null);
-    },
-  });
+  const getSampleName = (sampleId) => {
+    const sample = samples.find(s => s.id === sampleId);
+    return sample ? sample.short_name : '-';
+  };
 
-  const updateTask = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      setShowEditDialog(false);
-      setEditingItem(null);
-    },
-  });
+  const getSamplesByBrand = (brandId) => {
+    return samples.filter(s => s.project_id === brandId);
+  };
 
-  const deletePhase = useMutation({
-    mutationFn: (id) => base44.entities.Phase.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['phases']);
-      setShowEditDialog(false);
-      setEditingItem(null);
-    },
-  });
+  const handleAddProject = () => {
+    if (!projectFormData.brand_id || !projectFormData.season) return;
 
-  const deleteTask = useMutation({
-    mutationFn: (id) => base44.entities.Task.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      setShowEditDialog(false);
-      setEditingItem(null);
-    },
-  });
+    const brand = projects.find(p => p.id === projectFormData.brand_id);
+    const name = `${brand.short_name} ${projectFormData.season}`;
 
-  // Handlers
-  const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+    createGanttProject.mutate({
+      ...projectFormData,
+      name,
+    });
+  };
+
+  const handleSelectSamples = () => {
+    const projectId = Object.keys(projectFormData)[0]; // Temp store
+    const selectedSampleIds = Object.keys(selectedSamples).filter(k => selectedSamples[k]);
+
+    selectedSampleIds.forEach((sampleId) => {
+      const sample = samples.find(s => s.id === sampleId);
+      createGanttPhase.mutate({
+        gantt_project_id: projectId,
+        sample_id: sampleId,
+        name: sample.short_name,
+      });
+    });
+  };
+
+  const handleAddTask = () => {
+    if (!taskFormData.name || !currentPhaseId) return;
+
+    createGanttTask.mutate({
+      ...taskFormData,
+      gantt_phase_id: currentPhaseId,
+    });
+  };
+
+  const handleTaskClick = (taskId) => {
+    setSelectedTaskId(taskId);
+  };
+
+  const handleDateClick = (date) => {
+    if (!selectedTaskId) return;
+    setSelectedDate(date);
+  };
+
+  const handleSetMilestone = () => {
+    const task = ganttTasks.find(t => t.id === selectedTaskId);
+    if (!selectedDate || !task) return;
+
+    updateGanttTask.mutate({
+      id: selectedTaskId,
+      data: {
+        time_type: 'milestone',
+        start_date: format(selectedDate, 'yyyy-MM-dd'),
+      },
+    });
+  };
+
+  const handleSetDuration = () => {
+    if (!selectedDate || !selectedTaskId) return;
+    // In real app, would show dialog to select end date
+    updateGanttTask.mutate({
+      id: selectedTaskId,
+      data: {
+        time_type: 'duration',
+        start_date: format(selectedDate, 'yyyy-MM-dd'),
+      },
+    });
+  };
+
+  const handleSetRolling = () => {
+    if (!selectedDate || !selectedTaskId) return;
+
+    updateGanttTask.mutate({
+      id: selectedTaskId,
+      data: {
+        time_type: 'rolling',
+        start_date: format(selectedDate, 'yyyy-MM-dd'),
+      },
+    });
+  };
 
   const toggleProject = (projectId) => {
-    setExpandedProjects(prev => ({ ...prev, [projectId]: !prev[projectId] }));
+    setExpandedProjects(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId],
+    }));
   };
 
   const togglePhase = (phaseId) => {
-    setExpandedPhases(prev => ({ ...prev, [phaseId]: !prev[phaseId] }));
+    setExpandedPhases(prev => ({
+      ...prev,
+      [phaseId]: !prev[phaseId],
+    }));
   };
-
-  const handleQuickAddTask = (phaseId, date) => {
-    setQuickAddTask({ name: '', phaseId, selectedDate: date });
-    setShowQuickAddDialog(true);
-  };
-
-  const handleRowClick = (item, type) => {
-    setEditingItem(item);
-    setEditingType(type);
-    setShowEditDialog(true);
-  };
-
-  const handleSaveEdit = (data) => {
-    if (editingType === 'phase') {
-      updatePhase.mutate({ id: data.id, data });
-    } else {
-      updateTask.mutate({ id: data.id, data });
-    }
-  };
-
-  const handleDeleteEdit = (id) => {
-    if (editingType === 'phase') {
-      deletePhase.mutate(id);
-    } else {
-      deleteTask.mutate(id);
-    }
-  };
-
-  const handleCreateProject = () => {
-    const name = `${newProject.brand_name} ${newProject.season}`;
-    createProject.mutate({ ...newProject, name });
-  };
-
-  const handleCreateQuickAddTask = () => {
-    if (quickAddTask.phaseId && quickAddTask.name && quickAddTask.selectedDate) {
-      createTask.mutate({
-        phase_id: quickAddTask.phaseId,
-        name: quickAddTask.name,
-        status: 'pending',
-        time_type: 'milestone',
-        date: quickAddTask.selectedDate,
-      });
-    }
-  };
-
-  // Handle cell click for quick add task and Gantt editing
-  const handleCellClick = (date, phaseId) => {
-    // 如果沒有進入編輯模式，直接打開快速新增任務
-    if (!selectedPhaseId) {
-      handleQuickAddTask(phaseId, date);
-      return;
-    }
-
-    if (isRollingMode) {
-      // Rolling 模式：選擇開始和結束日期
-      if (!firstClickDate) {
-        setFirstClickDate(date);
-      } else if (firstClickDate !== date) {
-        const [start, end] = [firstClickDate, date].sort();
-        updatePhase.mutate({
-          id: selectedPhaseId,
-          data: {
-            time_type: 'rolling',
-            start_date: start,
-            end_date: end,
-            date: null,
-          }
-        });
-        setFirstClickDate(null);
-      }
-      return;
-    }
-
-    if (!firstClickDate) {
-      setFirstClickDate(date);
-    } else if (firstClickDate === date) {
-      // 同一天 → 里程碑
-      updatePhase.mutate({
-        id: selectedPhaseId,
-        data: {
-          time_type: 'milestone',
-          date: date,
-          start_date: null,
-          end_date: null,
-        }
-      });
-      setFirstClickDate(null);
-    } else {
-      // 不同天 → 區間
-      const [start, end] = [firstClickDate, date].sort();
-      updatePhase.mutate({
-        id: selectedPhaseId,
-        data: {
-          time_type: 'duration',
-          start_date: start,
-          end_date: end,
-          date: null,
-        }
-      });
-      setFirstClickDate(null);
-    }
-  };
-
-  // Handle double click to clear
-  const handleBarDoubleClick = (e, phaseId, type) => {
-    e.stopPropagation();
-    if (type === 'phase') {
-      updatePhase.mutate({
-        id: phaseId,
-        data: {
-          time_type: null,
-          start_date: null,
-          end_date: null,
-          date: null,
-        }
-      });
-    } else {
-      updateTask.mutate({
-        id: phaseId,
-        data: {
-          time_type: null,
-          start_date: null,
-          end_date: null,
-          date: null,
-        }
-      });
-    }
-  };
-
-  const clearSelection = () => {
-    setSelectedProjectId(null);
-    setSelectedPhaseId(null);
-    setFirstClickDate(null);
-    setIsRollingMode(false);
-  };
-
-  const getEmployeeName = (assigneeId) => {
-    const emp = employees.find(e => e.id === assigneeId);
-    return emp ? emp.name : '-';
-  };
-
-  const isHoliday = (date) => holidays?.some(h => h.date === date);
-  const today = format(new Date(), 'yyyy-MM-dd');
-
-  // 篩選專案
-  const filteredProjects = filterText
-    ? projects.filter(p => 
-        p.name?.toLowerCase().includes(filterText.toLowerCase()) ||
-        p.brand_name?.toLowerCase().includes(filterText.toLowerCase())
-      )
-    : projects;
-
-  // 建立扁平化的行列表（左側和右側共用）
-  const rows = useMemo(() => {
-    const result = [];
-    filteredProjects.forEach((project) => {
-      result.push({ type: 'project', data: project, level: 0 });
-      
-      if (expandedProjects[project.id]) {
-        const projectPhases = phases
-          .filter(p => p.project_id === project.id)
-          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-        
-        projectPhases.forEach((phase) => {
-          result.push({ type: 'phase', data: phase, level: 1 });
-          
-          if (expandedPhases[phase.id]) {
-            const phaseTasks = tasks
-              .filter(t => t.phase_id === phase.id)
-              .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-            
-            phaseTasks.forEach((task) => {
-              result.push({ type: 'task', data: task, level: 2 });
-            });
-          }
-        });
-      }
-    });
-    return result;
-  }, [filteredProjects, phases, tasks, expandedProjects, expandedPhases]);
-
-  const isLoading = loadingProjects || loadingPhases || loadingTasks;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Main Header */}
-      <div className="bg-white border-b border-gray-200 px-2 md:px-4 py-2 md:py-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
-        <h1 className="text-lg md:text-xl font-bold text-gray-800">專案甘特圖</h1>
-        <div className="flex flex-wrap items-center gap-1 md:gap-2 w-full md:w-auto">
-          <Button variant="outline" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handlePrevMonth}>
-            <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />
-          </Button>
-          <Select
-            value={currentDate.getFullYear().toString()}
-            onValueChange={(v) => setCurrentDate(new Date(parseInt(v), currentDate.getMonth(), 1))}
-          >
-            <SelectTrigger className="w-[70px] md:w-[90px] h-8 md:h-9 text-xs md:text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[2025, 2026, 2027].map((y) => (
-                <SelectItem key={y} value={y.toString()}>{y}年</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={currentDate.getMonth().toString()}
-            onValueChange={(v) => setCurrentDate(new Date(currentDate.getFullYear(), parseInt(v), 1))}
-          >
-            <SelectTrigger className="w-[60px] md:w-[80px] h-8 md:h-9 text-xs md:text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 12 }, (_, i) => (
-                <SelectItem key={i} value={i.toString()}>{i + 1}月</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleNextMonth}>
-            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-          </Button>
-          <div className="relative flex-1 md:flex-none md:w-48 md:ml-4">
-            <Search className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-            <Input
-              placeholder="搜尋..."
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-              className="pl-7 md:pl-9 h-8 md:h-9 text-xs md:text-sm"
-            />
-          </div>
-          <Button onClick={() => setShowProjectDialog(true)} className="h-8 md:h-9 text-xs md:text-sm px-2 md:px-4">
-            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-0 md:mr-2" />
-            <span className="hidden md:inline">新增專案</span>
-          </Button>
-        </div>
+    <div className="p-4 md:p-6 space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">專案甘特圖</h1>
+        <Button
+          onClick={() => setShowAddProjectDialog(true)}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          新增專案
+        </Button>
       </div>
 
-      {/* Edit Toolbar */}
-      {selectedPhaseId && (
-        <div className="bg-blue-50 border-b border-blue-200 px-2 md:px-4 py-2 md:py-3 flex flex-wrap items-center gap-2 md:gap-4">
-          <span className="hidden md:inline text-sm font-medium text-blue-800">編輯模式：</span>
-          
-          <Select value={selectedProjectId || ''} onValueChange={setSelectedProjectId}>
-            <SelectTrigger className="w-[140px] md:w-[180px] h-8 text-xs md:text-sm">
-              <SelectValue placeholder="選擇專案..." />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredProjects.map(p => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Month Navigation */}
+      <div className="flex gap-4 items-center">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}
+        >
+          上月
+        </Button>
+        <span className="font-semibold text-lg">
+          {format(currentMonth, 'yyyy年MM月')}
+        </span>
+        <Button
+          variant="outline"
+          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+        >
+          下月
+        </Button>
+      </div>
 
-          <Select value={selectedPhaseId || ''} onValueChange={setSelectedPhaseId}>
-            <SelectTrigger className="w-[110px] md:w-[140px] h-8 text-xs md:text-sm">
-              <SelectValue placeholder="選擇階段..." />
-            </SelectTrigger>
-            <SelectContent>
-              {selectedProjectId && phases
-                .filter(p => p.project_id === selectedProjectId)
-                .map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.phase_type}</SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-
-          <label className="flex items-center gap-1 md:gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isRollingMode}
-              onChange={(e) => {
-                setIsRollingMode(e.target.checked);
-                setFirstClickDate(null);
-              }}
-              className="w-3 h-3 md:w-4 md:h-4"
-            />
-            <span className="text-xs md:text-sm text-blue-800">Rolling</span>
-          </label>
-
-          {firstClickDate && (
-            <span className="text-xs md:text-sm text-blue-600 hidden lg:inline">
-              {firstClickDate} {isRollingMode ? '→結束' : '→區間/里程'}
-            </span>
-          )}
-
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={clearSelection}
-            className="ml-auto h-8 text-xs md:text-sm"
-          >
-            清除
-          </Button>
-        </div>
+      {/* Selected Task Toolbar */}
+      {selectedTaskId && (
+        <Card className="p-4 bg-blue-50 border-blue-200">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="text-sm font-medium text-gray-900">
+              已選任務 | 已選日期：{selectedDate ? format(selectedDate, 'MM/dd') : '未選'}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSetMilestone}
+                disabled={!selectedDate}
+              >
+                里程碑
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSetDuration}
+                disabled={!selectedDate}
+              >
+                區間
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSetRolling}
+                disabled={!selectedDate}
+              >
+                Rolling
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setSelectedTaskId(null);
+                  setSelectedDate(null);
+                }}
+              >
+                取消
+              </Button>
+            </div>
+          </div>
+        </Card>
       )}
 
-      {/* Gantt Chart Container */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto">
-        <div className="flex min-w-max">
+      {/* Gantt Table */}
+      <Card className="overflow-x-auto">
+        <div className="flex">
           {/* Left Panel - Project Tree */}
-          <div className="sticky left-0 z-20 bg-white border-r border-gray-200 flex-shrink-0">
-            {/* Header */}
-            <div className="flex border-b border-gray-200 bg-gray-50 h-10 md:h-12">
-              <div className="w-[120px] md:w-[200px] px-2 md:px-3 flex items-center text-[10px] md:text-xs font-semibold text-gray-600">
-                名稱
-              </div>
-              <div className="w-[60px] md:w-[80px] px-1 md:px-2 flex items-center justify-center text-[10px] md:text-xs font-semibold text-gray-600 border-l border-gray-200">
-                負責人
-              </div>
+          <div className="w-64 border-r border-gray-200 bg-gray-50">
+            <div className="sticky top-0 bg-gray-100 border-b p-3 font-semibold text-sm">
+              專案名稱
             </div>
+            <div className="max-h-96 overflow-y-auto">
+              {ganttProjects.map((project) => (
+                <div key={project.id} className="border-b">
+                  {/* Project Row */}
+                  <div
+                    className="flex items-center gap-2 p-3 bg-gray-100 hover:bg-gray-200 cursor-pointer font-medium text-sm"
+                    onClick={() => toggleProject(project.id)}
+                  >
+                    {expandedProjects[project.id] ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                    <span className="truncate">{project.name}</span>
+                  </div>
 
-            {/* Rows */}
-            {rows.map((row, idx) => (
-              <div 
-                key={`left-${row.type}-${row.data.id}`}
-                className={`flex border-b border-gray-100 h-8 md:h-10 hover:bg-gray-50 ${
-                  row.type === 'project' ? 'bg-blue-50/50' : ''
-                }`}
-              >
-                <div 
-                  className="w-[120px] md:w-[200px] px-2 md:px-3 flex items-center gap-1 cursor-pointer min-w-0"
-                  style={{ paddingLeft: `${8 + row.level * 12}px` }}
-                  onClick={() => {
-                    if (row.type === 'project') toggleProject(row.data.id);
-                    else if (row.type === 'phase') togglePhase(row.data.id);
-                  }}
-                >
-                  {/* Expand Icon */}
-                  {row.type === 'project' && phases.some(p => p.project_id === row.data.id) && (
-                    <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 text-gray-400 transition-transform flex-shrink-0 ${
-                      expandedProjects[row.data.id] ? '' : '-rotate-90'
-                    }`} />
+                  {expandedProjects[project.id] && (
+                    <>
+                      {ganttPhases
+                        .filter(p => p.gantt_project_id === project.id)
+                        .map((phase) => (
+                          <div key={phase.id} className="ml-4 border-b">
+                            {/* Phase Row */}
+                            <div
+                              className="flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 cursor-pointer font-medium text-sm"
+                              onClick={() => togglePhase(phase.id)}
+                            >
+                              {expandedPhases[phase.id] ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                              <span className="truncate">{phase.name}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="ml-auto"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCurrentPhaseId(phase.id);
+                                  setShowAddTaskDialog(true);
+                                }}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+
+                            {expandedPhases[phase.id] && (
+                              <>
+                                {ganttTasks
+                                  .filter(t => t.gantt_phase_id === phase.id)
+                                  .map((task) => (
+                                    <div
+                                      key={task.id}
+                                      className={`ml-8 p-3 border-b text-xs cursor-pointer hover:bg-blue-50 ${
+                                        selectedTaskId === task.id ? 'bg-blue-100' : 'bg-white'
+                                      }`}
+                                      onClick={() => handleTaskClick(task.id)}
+                                    >
+                                      {task.name}
+                                    </div>
+                                  ))}
+                              </>
+                            )}
+                          </div>
+                        ))}
+                    </>
                   )}
-                  {row.type === 'phase' && tasks.some(t => t.phase_id === row.data.id) && (
-                    <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 text-gray-400 transition-transform flex-shrink-0 ${
-                      expandedPhases[row.data.id] ? '' : '-rotate-90'
-                    }`} />
-                  )}
-                  {row.type === 'task' && <div className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />}
-
-                  {/* Name */}
-                  <span className={`truncate text-[11px] md:text-sm ${
-                    row.type === 'project' ? 'font-semibold text-gray-800' : 
-                    row.type === 'phase' ? 'text-gray-700' : 
-                    'text-gray-600'
-                  }`}>
-                    {row.type === 'project' ? row.data.name : 
-                     row.type === 'phase' ? row.data.phase_type : 
-                     row.data.name}
-                  </span>
                 </div>
-                <div 
-                  className="w-[60px] md:w-[80px] px-1 md:px-2 flex items-center justify-center text-[10px] md:text-xs text-gray-500 border-l border-gray-200 cursor-pointer hover:bg-gray-100"
-                  onClick={() => row.type !== 'project' && handleRowClick(row.data, row.type)}
-                >
-                  {row.type !== 'project' ? getEmployeeName(row.data.assignee_id) : '-'}
-                </div>
-              </div>
-            ))}
-
-            {rows.length === 0 && (
-              <div className="p-4 md:p-8 text-center text-gray-400 text-xs md:text-sm">
-                沒有專案資料
-              </div>
-            )}
+              ))}
+            </div>
           </div>
 
           {/* Right Panel - Timeline */}
-          <div className="flex-1 bg-white">
-            {/* Date Header */}
-            <div className="flex border-b border-gray-200 bg-gray-50 h-10 md:h-12">
-              {days.map((d, idx) => (
-                <div
-                  key={idx}
-                  className={`w-[28px] md:w-[32px] min-w-[28px] md:min-w-[32px] flex flex-col items-center justify-center text-[9px] md:text-xs border-r border-gray-200 ${
-                    d.isWeekend || isHoliday(d.date) ? 'bg-gray-200 text-red-500' : 
-                    d.date === today ? 'bg-blue-100 text-blue-600 font-bold' : 'text-gray-600'
-                  }`}
-                >
-                  <div className="leading-tight">{d.day}</div>
-                  <div className="text-[7px] md:text-[10px] leading-tight">{d.weekday}</div>
-                </div>
-              ))}
+          <div className="flex-1 overflow-x-auto">
+            <div className="sticky top-0 bg-gray-100 border-b">
+              {/* Month Header */}
+              <div className="flex">
+                {weeks.map((week, idx) => (
+                  <div
+                    key={idx}
+                    className="flex border-r border-gray-200"
+                    style={{ width: '280px' }}
+                  >
+                    {week.map((day) => (
+                      <div
+                        key={day.toISOString()}
+                        className="flex-1 border-r border-gray-200 p-2 text-center text-xs font-semibold"
+                        style={{ minWidth: '40px' }}
+                      >
+                        {format(day, 'd')}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Timeline Rows */}
-            {rows.map((row, idx) => (
-              <div 
-                key={`right-${row.type}-${row.data.id}`}
-                className={`flex border-b border-gray-100 h-8 md:h-10 relative ${
-                  row.type === 'project' ? 'bg-blue-50/30' : ''
-                }`}
-              >
-                {/* Day cells */}
-                {days.map((d, dayIdx) => (
-                  <div
-                    key={dayIdx}
-                    className={`w-[28px] md:w-[32px] min-w-[28px] md:min-w-[32px] h-8 md:h-10 border-r border-gray-100 cursor-pointer hover:bg-yellow-100 transition-colors ${
-                      d.isWeekend || isHoliday(d.date) ? 'bg-gray-100' : 
-                      d.date === today ? 'bg-blue-50' : ''
-                    } ${firstClickDate === d.date ? 'ring-2 ring-orange-400 ring-inset' : ''}`}
-                    onClick={() => {
-                      if (row.type === 'phase') {
-                        handleCellClick(d.date, row.data.id);
-                      } else if (row.type === 'task' && selectedPhaseId) {
-                        handleCellClick(d.date);
-                      }
-                    }}
-                  />
-                ))}
-
-                {/* Gantt Bar */}
-                {(row.type === 'phase' || row.type === 'task') && row.data.time_type && (
-                  <div onDoubleClick={(e) => handleBarDoubleClick(e, row.data.id, row.type)}>
-                    <GanttBar
-                      timeType={row.data.time_type}
-                      startDate={row.data.start_date}
-                      endDate={row.data.end_date}
-                      date={row.data.date}
-                      status={row.data.status}
-                      days={days}
-                      cellWidth={28}
-                      label={row.type === 'task' ? row.data.name : row.data.phase_type}
-                      onClick={() => !selectedPhaseId && handleRowClick(row.data, row.type)}
-                    />
-                  </div>
+            {/* Gantt Rows */}
+            {ganttProjects.map((project) => (
+              <div key={project.id}>
+                {expandedProjects[project.id] && (
+                  <>
+                    {ganttPhases
+                      .filter(p => p.gantt_project_id === project.id)
+                      .map((phase) => (
+                        <div key={phase.id}>
+                          {expandedPhases[phase.id] && (
+                            <>
+                              {ganttTasks
+                                .filter(t => t.gantt_phase_id === phase.id)
+                                .map((task) => (
+                                  <div
+                                    key={task.id}
+                                    className={`flex border-b h-10 ${
+                                      selectedTaskId === task.id ? 'bg-blue-50' : ''
+                                    }`}
+                                  >
+                                    {weeks.map((week, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex border-r border-gray-200"
+                                        style={{ width: '280px' }}
+                                      >
+                                        {week.map((day) => (
+                                          <div
+                                            key={day.toISOString()}
+                                            className="flex-1 border-r border-gray-200 relative cursor-pointer hover:bg-yellow-50"
+                                            style={{ minWidth: '40px' }}
+                                            onClick={() => {
+                                              handleTaskClick(task.id);
+                                              handleDateClick(day);
+                                            }}
+                                          >
+                                            {task.start_date &&
+                                              format(new Date(task.start_date), 'yyyy-MM-dd') ===
+                                                format(day, 'yyyy-MM-dd') &&
+                                              (task.time_type === 'milestone' ? (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                  <div
+                                                    className={`w-3 h-3 transform rotate-45 ${
+                                                      task.is_important
+                                                        ? 'bg-yellow-500'
+                                                        : 'bg-blue-500'
+                                                    }`}
+                                                  />
+                                                </div>
+                                              ) : (
+                                                <div className="absolute left-0 right-0 top-1/2 h-1.5 bg-blue-400 transform -translate-y-1/2" />
+                                              ))}
+                                            {isToday(day) && (
+                                              <div className="absolute inset-0 border-l-2 border-red-500" />
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ))}
+                            </>
+                          )}
+                        </div>
+                      ))}
+                  </>
                 )}
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Legend */}
-      <div className="bg-white border-t border-gray-200 px-2 md:px-4 py-2 flex flex-wrap items-center gap-3 md:gap-6 text-[11px] md:text-xs text-gray-600">
-        <div className="flex items-center gap-1 md:gap-2">
-          <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rotate-45 rounded-sm flex-shrink-0" />
-          <span>Milestone</span>
-        </div>
-        <div className="flex items-center gap-1 md:gap-2">
-          <div className="w-6 md:w-8 h-3 md:h-4 bg-blue-500 rounded flex-shrink-0" />
-          <span>Duration</span>
-        </div>
-        <div className="flex items-center gap-1 md:gap-2">
-          <div className="w-6 md:w-8 h-3 md:h-4 rounded flex-shrink-0" style={{ background: 'repeating-linear-gradient(90deg, #3b82f6, #3b82f6 4px, #2563eb 4px, #2563eb 8px)' }} />
-          <span>Rolling</span>
-        </div>
-      </div>
-
-      {/* New Project Dialog */}
-      <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
+      {/* Add Project Dialog */}
+      <Dialog open={showAddProjectDialog} onOpenChange={setShowAddProjectDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>新增專案</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>品牌名稱</Label>
-              <Input
-                value={newProject.brand_name}
-                onChange={(e) => setNewProject({ ...newProject, brand_name: e.target.value })}
-                placeholder="例：iPhone"
-                className="mt-1"
-              />
+              <Label>品牌 *</Label>
+              <Select
+                value={projectFormData.brand_id}
+                onValueChange={(v) => {
+                  setProjectFormData({ ...projectFormData, brand_id: v });
+                }}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="選擇品牌..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>季節</Label>
-                <Select
-                  value={newProject.season}
-                  onValueChange={(v) => setNewProject({ ...newProject, season: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {['SS25', 'FW25', 'SS26', 'FW26', 'SS27', 'FW27'].map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>年份</Label>
-                <Select
-                  value={newProject.year.toString()}
-                  onValueChange={(v) => setNewProject({ ...newProject, year: parseInt(v) })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[2025, 2026, 2027].map((y) => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label>季節 *</Label>
+              <Select
+                value={projectFormData.season}
+                onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="選擇季節..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SS26">SS26</SelectItem>
+                  <SelectItem value="FW26">FW26</SelectItem>
+                  <SelectItem value="HO26">HO26</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProjectDialog(false)}>取消</Button>
-            <Button onClick={handleCreateProject} disabled={!newProject.brand_name || createProject.isPending}>
-              {createProject.isPending ? '建立中...' : '建立'}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAddProjectDialog(false);
+                setProjectFormData({ brand_id: '', season: '' });
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={() => {
+                setProjectFormData(prev => ({
+                  ...prev,
+                  _tempProjectId: prev.brand_id,
+                }));
+                setShowSelectSamplesDialog(true);
+                setShowAddProjectDialog(false);
+              }}
+              disabled={!projectFormData.brand_id || !projectFormData.season}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              下一步
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Quick Add Task Dialog */}
-      <Dialog open={showQuickAddDialog} onOpenChange={setShowQuickAddDialog}>
+      {/* Select Samples Dialog */}
+      <Dialog open={showSelectSamplesDialog} onOpenChange={setShowSelectSamplesDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>選擇樣品類別</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {projectFormData.brand_id && (
+              <>
+                <p className="text-sm text-gray-600">
+                  品牌：{getBrandName(projectFormData.brand_id)}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {getSamplesByBrand(projectFormData.brand_id).map((sample) => (
+                    <label
+                      key={sample.id}
+                      className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSamples[sample.id] || false}
+                        onChange={(e) =>
+                          setSelectedSamples(prev => ({
+                            ...prev,
+                            [sample.id]: e.target.checked,
+                          }))
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">{sample.short_name}</span>
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSelectSamplesDialog(false);
+                setShowAddProjectDialog(true);
+              }}
+            >
+              上一步
+            </Button>
+            <Button
+              onClick={() => {
+                handleAddProject();
+                handleSelectSamples();
+              }}
+              disabled={Object.values(selectedSamples).every(v => !v)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              建立專案
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Task Dialog */}
+      <Dialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>新增任務</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>選擇日期</Label>
-              <div className="mt-1 p-3 bg-gray-100 rounded text-sm font-medium">
-                {quickAddTask.selectedDate}
-              </div>
-            </div>
-            <div>
-              <Label>任務名稱</Label>
+              <Label>任務名稱 *</Label>
               <Input
-                value={quickAddTask.name}
-                onChange={(e) => setQuickAddTask({ ...quickAddTask, name: e.target.value })}
-                placeholder="例：設計3D原型"
+                value={taskFormData.name}
+                onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
+                placeholder="例：SPR raised in Centric"
                 className="mt-1"
               />
             </div>
             <div>
-              <Label>選擇階段</Label>
-              <Select
-                value={quickAddTask.phaseId}
-                onValueChange={(v) => setQuickAddTask({ ...quickAddTask, phaseId: v })}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="選擇階段..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectedProjectId && phases
-                    .filter(p => p.project_id === selectedProjectId)
-                    .map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.phase_type}</SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={taskFormData.is_important}
+                  onChange={(e) =>
+                    setTaskFormData({ ...taskFormData, is_important: e.target.checked })
+                  }
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">標記為重要</span>
+              </label>
+            </div>
+            <div>
+              <Label>備註</Label>
+              <Input
+                value={taskFormData.note}
+                onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
+                placeholder="備註說明"
+                className="mt-1"
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowQuickAddDialog(false)}>取消</Button>
-            <Button 
-              onClick={handleCreateQuickAddTask} 
-              disabled={!quickAddTask.name || !quickAddTask.phaseId || createTask.isPending}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAddTaskDialog(false);
+                setCurrentPhaseId(null);
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleAddTask}
+              disabled={!taskFormData.name}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {createTask.isPending ? '建立中...' : '建立'}
+              新增任務
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Edit Dialog */}
-      <GanttEditDialog
-        isOpen={showEditDialog}
-        onClose={() => setShowEditDialog(false)}
-        item={editingItem}
-        itemType={editingType}
-        employees={employees}
-        onSave={handleSaveEdit}
-        onDelete={handleDeleteEdit}
-        isSubmitting={updatePhase.isPending || updateTask.isPending}
-      />
     </div>
   );
 }

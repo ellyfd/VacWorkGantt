@@ -30,7 +30,7 @@ export default function ProjectSettings() {
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingType, setEditingType] = useState(null);
-  const [sampleFormData, setSampleFormData] = useState({ full_name: '', short_name: '', name: '', project_id: '' });
+  const [sampleFormData, setSampleFormData] = useState({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
   const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active' });
   const [groupFormData, setGroupFormData] = useState({ name: '', status: 'active' });
   const [searchText, setSearchText] = useState('');
@@ -69,7 +69,7 @@ export default function ProjectSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries(['samples']);
       setShowSampleDialog(false);
-      setSampleFormData({ full_name: '', short_name: '', name: '', type: 'universal', project_id: '' });
+      setSampleFormData({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
       setEditingId(null);
     },
   });
@@ -154,7 +154,7 @@ export default function ProjectSettings() {
     } else {
       setEditingId(null);
       setEditingType('sample');
-      setSampleFormData({ full_name: '', short_name: '', name: '', project_id: '' });
+      setSampleFormData({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
     }
     setShowSampleDialog(true);
   };
@@ -525,6 +525,21 @@ export default function ProjectSettings() {
                 placeholder="例：3D Reference Sample"
                 className="mt-1"
               />
+            </div>
+            <div>
+              <Label>狀態</Label>
+              <Select
+                value={sampleFormData.status}
+                onValueChange={(v) => setSampleFormData({ ...sampleFormData, status: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">啟用</SelectItem>
+                  <SelectItem value="inactive">停用</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
