@@ -142,15 +142,15 @@ export default function SampleManagement() {
 
       {/* Samples List */}
       <Card>
-        <CardContent className="p-0">
-          <Table>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table className="min-w-full">
             <TableHeader>
-              <TableRow className="bg-gray-50 border-b">
-                <TableHead className="w-[40%]">名稱</TableHead>
+              <TableRow className="bg-gray-50 border-b whitespace-nowrap">
+                <TableHead className="w-[35%] md:w-[40%]">名稱</TableHead>
                 <TableHead className="w-[20%]">類型</TableHead>
-                <TableHead className="w-[20%]">品牌/範圍</TableHead>
-                <TableHead className="w-[10%]">狀態</TableHead>
-                <TableHead className="w-[10%] text-right">操作</TableHead>
+                <TableHead className="w-[25%] md:w-[20%]">品牌/範圍</TableHead>
+                <TableHead className="w-[12%] md:w-[10%]">狀態</TableHead>
+                <TableHead className="w-[8%] md:w-[10%] text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -162,19 +162,19 @@ export default function SampleManagement() {
                 </TableRow>
               ) : (
                 filteredSamples.map((sample) => (
-                  <TableRow key={sample.id} className="hover:bg-gray-50">
-                    <TableCell className="font-medium">{sample.name}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(sample.type)}`}>
+                  <TableRow key={sample.id} className="hover:bg-gray-50 whitespace-nowrap">
+                    <TableCell className="font-medium text-sm md:text-base truncate">{sample.name}</TableCell>
+                    <TableCell className="text-xs md:text-sm">
+                      <span className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium ${getTypeColor(sample.type)}`}>
                         {getTypeLabel(sample.type)}
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-600">
+                    <TableCell className="text-xs md:text-sm text-gray-600 truncate">
                       {sample.type === 'brand' ? getProjectName(sample.project_id) : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-xs md:text-sm">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
+                        className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium inline-block ${
                           sample.status === 'active'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-800'
@@ -183,23 +183,23 @@ export default function SampleManagement() {
                         {sample.status === 'active' ? '啟用' : '停用'}
                       </span>
                     </TableCell>
-                    <TableCell className="flex gap-1 md:gap-2 justify-end">
+                    <TableCell className="flex gap-0.5 md:gap-2 justify-end flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-8 h-8"
+                        className="w-7 h-7 md:w-8 md:h-8"
                         onClick={() => handleOpenDialog(sample)}
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="w-8 h-8"
+                        className="w-7 h-7 md:w-8 md:h-8"
                         onClick={() => deleteSample.mutate(sample.id)}
                         disabled={deleteSample.isPending}
                       >
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
                       </Button>
                     </TableCell>
                   </TableRow>
