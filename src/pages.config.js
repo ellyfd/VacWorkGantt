@@ -49,18 +49,12 @@
  */
 import AllLeaveCalendar from './pages/AllLeaveCalendar';
 import Dashboard from './pages/Dashboard';
-import DepartmentManagement from './pages/DepartmentManagement';
-import EmployeeManagement from './pages/EmployeeManagement';
 import GanttChart from './pages/GanttChart';
 import GanttManagement from './pages/GanttManagement';
-import HolidayManagement from './pages/HolidayManagement';
 import Home from './pages/Home';
 import LeaveCalendar from './pages/LeaveCalendar';
-import LeaveTypeManagement from './pages/LeaveTypeManagement';
 import Notifications from './pages/Notifications';
-import ProjectManagement from './pages/ProjectManagement';
 import ReportManagement from './pages/ReportManagement';
-import SampleManagement from './pages/SampleManagement';
 import ProjectSettings from './pages/ProjectSettings';
 import PeopleManagement from './pages/PeopleManagement';
 import LeaveSettings from './pages/LeaveSettings';
@@ -70,18 +64,12 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "AllLeaveCalendar": AllLeaveCalendar,
     "Dashboard": Dashboard,
-    "DepartmentManagement": DepartmentManagement,
-    "EmployeeManagement": EmployeeManagement,
     "GanttChart": GanttChart,
     "GanttManagement": GanttManagement,
-    "HolidayManagement": HolidayManagement,
     "Home": Home,
     "LeaveCalendar": LeaveCalendar,
-    "LeaveTypeManagement": LeaveTypeManagement,
     "Notifications": Notifications,
-    "ProjectManagement": ProjectManagement,
     "ReportManagement": ReportManagement,
-    "SampleManagement": SampleManagement,
     "ProjectSettings": ProjectSettings,
     "PeopleManagement": PeopleManagement,
     "LeaveSettings": LeaveSettings,
