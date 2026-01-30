@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Loader2, BarChart3, Plus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, BarChart3, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CalendarHeader from '@/components/calendar/CalendarHeader';
+import ProjectTree from '@/components/gantt/ProjectTree';
+import GanttTimeline from '@/components/gantt/GanttTimeline';
 
 export default function GanttManagement() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [expanded, setExpanded] = useState(['group-0', 'brand-0', 'project-0']);
 
   const { data: clientGroups = [], isLoading: loadingGroups } = useQuery({
     queryKey: ['clientGroups'],
@@ -19,8 +24,8 @@ export default function GanttManagement() {
   });
 
   const { data: projects = [], isLoading: loadingProjects } = useQuery({
-    queryKey: ['projects', selectedYear],
-    queryFn: () => base44.entities.Project.filter({ year: selectedYear }),
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list('-year'),
   });
 
   const { data: phases = [], isLoading: loadingPhases } = useQuery({
@@ -49,75 +54,78 @@ export default function GanttManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BarChart3 className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-800">專案甘特圖</h1>
+            <h1 className="text-2xl font-bold text-gray-800">專案甘特圖</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value={2025}>2025年</option>
-              <option value={2026}>2026年</option>
-              <option value={2027}>2027年</option>
-            </select>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-5 h-5 mr-2" />
-              新增專案
-            </Button>
-          </div>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>專案總覽</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {clientGroups.map((group) => {
-                const groupBrands = brands.filter(b => b.group_id === group.id);
-                return (
-                  <div key={group.id} className="border-l-4 border-blue-500 pl-4">
-                    <h3 className="font-bold text-lg text-gray-800 mb-2">{group.name}</h3>
-                    {groupBrands.map((brand) => {
-                      const brandProjects = projects.filter(p => p.brand_id === brand.id);
-                      return (
-                        <div key={brand.id} className="ml-4 mb-3">
-                          <h4 className="font-semibold text-gray-700 mb-1">{brand.name}</h4>
-                          <div className="ml-4 space-y-1">
-                            {brandProjects.map((project) => {
-                              const projectPhases = phases.filter(p => p.project_id === project.id);
-                              return (
-                                <div key={project.id} className="text-sm text-gray-600">
-                                  {project.season} {project.year} - {projectPhases.length} 個階段
-                                </div>
-                              );
-                            })}
-                          </div>
+          <div className="flex items-center gap-3">
+            <CalendarHeader currentDate={currentDate} onDateChange={setCurrentDate} />
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>設定管理</SheetTitle>
+                </SheetHeader>
+                <Tabs defaultValue="groups" className="mt-4">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="groups">客戶群組</TabsTrigger>
+                    <TabsTrigger value="brands">品牌</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="groups" className="mt-4">
+                    <p className="text-xs text-gray-500 mb-4">進入「設定管理 → 客戶群組管理」建立客戶群組</p>
+                    <div className="space-y-2">
+                      {clientGroups.map((group) => (
+                        <div key={group.id} className="p-2 bg-gray-50 rounded text-sm">
+                          {group.name}
                         </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-blue-800 mb-2">💡 功能說明</h3>
-          <div className="text-xs text-blue-700 space-y-1">
-            <p>• 此頁面用於管理專案的階段（Phase）和任務（Task）</p>
-            <p>• 每個專案可包含多個階段（3D Proto / 3D LA / 3D JSS / 3D RS）</p>
-            <p>• 每個階段可包含多個子任務</p>
-            <p>• 支援時間區間（duration）和里程碑（milestone）兩種時間類型</p>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="brands" className="mt-4">
+                    <p className="text-xs text-gray-500 mb-4">進入「設定管理 → 品牌管理」建立品牌</p>
+                    <div className="space-y-2">
+                      {brands.map((brand) => (
+                        <div key={brand.id} className="p-2 bg-gray-50 rounded text-sm">
+                          {brand.name}
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        <ProjectTree 
+          clientGroups={clientGroups}
+          brands={brands}
+          projects={projects}
+          phases={phases}
+          tasks={tasks}
+          expanded={expanded}
+          setExpanded={setExpanded}
+        />
+        <GanttTimeline 
+          currentDate={currentDate}
+          clientGroups={clientGroups}
+          brands={brands}
+          projects={projects}
+          phases={phases}
+          tasks={tasks}
+          employees={employees}
+        />
       </div>
     </div>
   );
