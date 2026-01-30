@@ -40,7 +40,12 @@ export default function GanttChart() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [editingType, setEditingType] = useState(null);
+
+  // Edit mode states
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedPhaseId, setSelectedPhaseId] = useState(null);
+  const [firstClickDate, setFirstClickDate] = useState(null);
+  const [isRollingMode, setIsRollingMode] = useState(false);
 
   // New forms
   const [newProject, setNewProject] = useState({ name: '', brand_name: '', season: 'SS26', year: 2026 });
@@ -231,6 +236,93 @@ export default function GanttChart() {
     }
   };
 
+  // Handle cell click for Gantt editing
+  const handleCellClick = (date) => {
+    if (!selectedPhaseId) return;
+
+    if (isRollingMode) {
+      // Rolling 模式：選擇開始和結束日期
+      if (!firstClickDate) {
+        setFirstClickDate(date);
+      } else if (firstClickDate !== date) {
+        const [start, end] = [firstClickDate, date].sort();
+        updatePhase.mutate({
+          id: selectedPhaseId,
+          data: {
+            time_type: 'rolling',
+            start_date: start,
+            end_date: end,
+            date: null,
+          }
+        });
+        setFirstClickDate(null);
+      }
+      return;
+    }
+
+    if (!firstClickDate) {
+      setFirstClickDate(date);
+    } else if (firstClickDate === date) {
+      // 同一天 → 里程碑
+      updatePhase.mutate({
+        id: selectedPhaseId,
+        data: {
+          time_type: 'milestone',
+          date: date,
+          start_date: null,
+          end_date: null,
+        }
+      });
+      setFirstClickDate(null);
+    } else {
+      // 不同天 → 區間
+      const [start, end] = [firstClickDate, date].sort();
+      updatePhase.mutate({
+        id: selectedPhaseId,
+        data: {
+          time_type: 'duration',
+          start_date: start,
+          end_date: end,
+          date: null,
+        }
+      });
+      setFirstClickDate(null);
+    }
+  };
+
+  // Handle double click to clear
+  const handleBarDoubleClick = (e, phaseId, type) => {
+    e.stopPropagation();
+    if (type === 'phase') {
+      updatePhase.mutate({
+        id: phaseId,
+        data: {
+          time_type: null,
+          start_date: null,
+          end_date: null,
+          date: null,
+        }
+      });
+    } else {
+      updateTask.mutate({
+        id: phaseId,
+        data: {
+          time_type: null,
+          start_date: null,
+          end_date: null,
+          date: null,
+        }
+      });
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedProjectId(null);
+    setSelectedPhaseId(null);
+    setFirstClickDate(null);
+    setIsRollingMode(false);
+  };
+
   const getEmployeeName = (assigneeId) => {
     const emp = employees.find(e => e.id === assigneeId);
     return emp ? emp.name : '-';
@@ -288,52 +380,50 @@ export default function GanttChart() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
+      {/* Main Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800">專案甘特圖</h1>
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Select
+            value={currentDate.getFullYear().toString()}
+            onValueChange={(v) => setCurrentDate(new Date(parseInt(v), currentDate.getMonth(), 1))}
+          >
+            <SelectTrigger className="w-[90px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[2025, 2026, 2027].map((y) => (
+                <SelectItem key={y} value={y.toString()}>{y}年</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={currentDate.getMonth().toString()}
+            onValueChange={(v) => setCurrentDate(new Date(currentDate.getFullYear(), parseInt(v), 1))}
+          >
+            <SelectTrigger className="w-[80px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }, (_, i) => (
+                <SelectItem key={i} value={i.toString()}>{i + 1}月</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" onClick={handleNextMonth}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+          <div className="relative w-48 ml-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               placeholder="搜尋專案..."
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              className="pl-9 w-48"
+              className="pl-9"
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handlePrevMonth}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Select
-              value={currentDate.getFullYear().toString()}
-              onValueChange={(v) => setCurrentDate(new Date(parseInt(v), currentDate.getMonth(), 1))}
-            >
-              <SelectTrigger className="w-[90px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[2025, 2026, 2027].map((y) => (
-                  <SelectItem key={y} value={y.toString()}>{y}年</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={currentDate.getMonth().toString()}
-              onValueChange={(v) => setCurrentDate(new Date(currentDate.getFullYear(), parseInt(v), 1))}
-            >
-              <SelectTrigger className="w-[80px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <SelectItem key={i} value={i.toString()}>{i + 1}月</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="icon" onClick={handleNextMonth}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
           </div>
           <Button onClick={() => setShowProjectDialog(true)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -341,6 +431,65 @@ export default function GanttChart() {
           </Button>
         </div>
       </div>
+
+      {/* Edit Toolbar */}
+      {selectedPhaseId && (
+        <div className="bg-blue-50 border-b border-blue-200 px-4 py-3 flex items-center gap-4">
+          <span className="text-sm font-medium text-blue-800">編輯模式：</span>
+          
+          <Select value={selectedProjectId || ''} onValueChange={setSelectedProjectId}>
+            <SelectTrigger className="w-[180px] h-8">
+              <SelectValue placeholder="選擇專案..." />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredProjects.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedPhaseId || ''} onValueChange={setSelectedPhaseId}>
+            <SelectTrigger className="w-[140px] h-8">
+              <SelectValue placeholder="選擇階段..." />
+            </SelectTrigger>
+            <SelectContent>
+              {selectedProjectId && phases
+                .filter(p => p.project_id === selectedProjectId)
+                .map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.phase_type}</SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+
+          <label className="flex items-center gap-2 cursor-pointer ml-2">
+            <input
+              type="checkbox"
+              checked={isRollingMode}
+              onChange={(e) => {
+                setIsRollingMode(e.target.checked);
+                setFirstClickDate(null);
+              }}
+              className="w-4 h-4"
+            />
+            <span className="text-sm text-blue-800">Rolling 模式</span>
+          </label>
+
+          {firstClickDate && (
+            <span className="text-sm text-blue-600 ml-2">
+              已選擇：{firstClickDate} {isRollingMode ? '（點另一格設定結束日期）' : '（再點一格設定區間，或點同一格設定里程碑）'}
+            </span>
+          )}
+
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={clearSelection}
+            className="ml-auto"
+          >
+            清除選擇
+          </Button>
+        </div>
+      )}
 
       {/* Gantt Chart Container */}
       <div className="flex-1 overflow-auto">
@@ -455,26 +604,29 @@ export default function GanttChart() {
                 {days.map((d, dayIdx) => (
                   <div
                     key={dayIdx}
-                    className={`w-[32px] min-w-[32px] h-10 border-r border-gray-100 ${
+                    className={`w-[32px] min-w-[32px] h-10 border-r border-gray-100 cursor-pointer hover:bg-yellow-100 transition-colors ${
                       d.isWeekend || isHoliday(d.date) ? 'bg-gray-100' : 
                       d.date === today ? 'bg-blue-50' : ''
-                    }`}
+                    } ${firstClickDate === d.date ? 'ring-2 ring-orange-400 ring-inset' : ''}`}
+                    onClick={() => selectedPhaseId && (row.type === 'phase' || row.type === 'task') && handleCellClick(d.date)}
                   />
                 ))}
 
                 {/* Gantt Bar */}
                 {(row.type === 'phase' || row.type === 'task') && row.data.time_type && (
-                  <GanttBar
-                    timeType={row.data.time_type}
-                    startDate={row.data.start_date}
-                    endDate={row.data.end_date}
-                    date={row.data.date}
-                    status={row.data.status}
-                    days={days}
-                    cellWidth={32}
-                    label={row.type === 'task' ? row.data.name : row.data.phase_type}
-                    onClick={() => handleRowClick(row.data, row.type)}
-                  />
+                  <div onDoubleClick={(e) => handleBarDoubleClick(e, row.data.id, row.type)}>
+                    <GanttBar
+                      timeType={row.data.time_type}
+                      startDate={row.data.start_date}
+                      endDate={row.data.end_date}
+                      date={row.data.date}
+                      status={row.data.status}
+                      days={days}
+                      cellWidth={32}
+                      label={row.type === 'task' ? row.data.name : row.data.phase_type}
+                      onClick={() => !selectedPhaseId && handleRowClick(row.data, row.type)}
+                    />
+                  </div>
                 )}
               </div>
             ))}
