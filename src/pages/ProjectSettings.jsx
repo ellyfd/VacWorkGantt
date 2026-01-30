@@ -36,10 +36,6 @@ export default function ProjectSettings() {
   const [searchText, setSearchText] = useState('');
   const [projectSearchText, setProjectSearchText] = useState('');
   const [groupSearchText, setGroupSearchText] = useState('');
-  const [showScheduleImport, setShowScheduleImport] = useState(false);
-  const [scheduleFile, setScheduleFile] = useState(null);
-  const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
-  const [scheduleError, setScheduleError] = useState('');
 
   // Queries
   const { data: samples = [], isLoading: loadingSamples } = useQuery({
