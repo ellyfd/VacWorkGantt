@@ -274,11 +274,10 @@ export default function ProjectSettings() {
       </div>
 
       <Tabs defaultValue="groups" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="groups">集團管理</TabsTrigger>
           <TabsTrigger value="projects">品牌管理</TabsTrigger>
           <TabsTrigger value="samples">樣品管理</TabsTrigger>
-          <TabsTrigger value="schedule">匯入時程表</TabsTrigger>
         </TabsList>
 
         {/* Groups Tab */}
