@@ -1218,130 +1218,47 @@ export default function GanttChart() {
           <DialogHeader>
             <DialogTitle>新增任務</DialogTitle>
           </DialogHeader>
-
-          {taskCreationMode === 'manual' ? (
-            <>
-              <div className="space-y-4 py-4">
-                <div>
-                  <Label>任務名稱 *</Label>
-                  <Input
-                    value={taskFormData.name}
-                    onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
-                    placeholder="例：SPR raised in Centric"
-                    className="mt-1"
-                  />
-                </div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={taskFormData.is_important}
-                    onChange={(e) => setTaskFormData({ ...taskFormData, is_important: e.target.checked })}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm">標記為重要（黃色里程碑）</span>
-                </label>
-                <div>
-                  <Label>備註</Label>
-                  <Input
-                    value={taskFormData.note}
-                    onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
-                    placeholder="選填"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between gap-2">
-                <Button variant="outline" onClick={() => setTaskCreationMode('import')}>
-                  <Upload className="w-4 h-4 mr-2" />
-                  或上傳時程表
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowAddTaskDialog(false)}>
-                    取消
-                  </Button>
-                  <Button
-                    onClick={handleAddTask}
-                    disabled={!taskFormData.name}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    新增
-                  </Button>
-                </div>
-              </DialogFooter>
-            </>
-          ) : (
-            <>
-              <div className="space-y-4 py-4">
-                <p className="text-sm text-gray-600">上傳時程表 (PDF、PNG、JPG)，自動識別任務</p>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setScheduleFile(e.target.files[0]);
-                      }
-                    }}
-                    className="hidden"
-                    id="schedule-file"
-                  />
-                  <label htmlFor="schedule-file">
-                    <Button asChild variant="outline" className="cursor-pointer">
-                      <span><Upload className="w-4 h-4 mr-2" />選擇檔案</span>
-                    </Button>
-                  </label>
-                  {scheduleFile && (
-                    <p className="mt-2 text-sm text-gray-700">✓ {scheduleFile.name}</p>
-                  )}
-                </div>
-              </div>
-              <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between gap-2">
-                <Button variant="outline" onClick={() => setTaskCreationMode('manual')}>
-                  ← 手動新增
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowAddTaskDialog(false)}>
-                    取消
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      if (!scheduleFile || !currentPhaseId) return;
-                      setIsAnalyzingSchedule(true);
-                      try {
-                        const { file_url } = await uploadScheduleFile.mutateAsync(scheduleFile);
-                        const result = await analyzeSchedule.mutateAsync(file_url);
-
-                        if (result && result.tasks && result.tasks.length > 0) {
-                          let sortOrder = ganttTasks.filter(t => t.gantt_phase_id === currentPhaseId).length + 1;
-                          for (const task of result.tasks) {
-                            if (task.name.trim()) {
-                              await base44.entities.GanttTask.create({
-                                name: task.name.trim(),
-                                gantt_phase_id: currentPhaseId,
-                                sort_order: sortOrder++,
-                                time_type: 'milestone',
-                              });
-                            }
-                          }
-                          queryClient.invalidateQueries(['ganttTasks']);
-                          setShowAddTaskDialog(false);
-                          setScheduleFile(null);
-                          setTaskCreationMode('manual');
-                          setCurrentPhaseId(null);
-                        }
-                      } finally {
-                        setIsAnalyzingSchedule(false);
-                      }
-                    }}
-                    disabled={!scheduleFile || isAnalyzingSchedule}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {isAnalyzingSchedule ? '分析中...' : '開始分析'}
-                  </Button>
-                </div>
-              </DialogFooter>
-            </>
-          )}
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>任務名稱 *</Label>
+              <Input
+                value={taskFormData.name}
+                onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
+                placeholder="例：SPR raised in Centric"
+                className="mt-1"
+              />
+            </div>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={taskFormData.is_important}
+                onChange={(e) => setTaskFormData({ ...taskFormData, is_important: e.target.checked })}
+                className="w-4 h-4"
+              />
+              <span className="text-sm">標記為重要（黃色里程碑）</span>
+            </label>
+            <div>
+              <Label>備註</Label>
+              <Input
+                value={taskFormData.note}
+                onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
+                placeholder="選填"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddTaskDialog(false)}>
+              取消
+            </Button>
+            <Button
+              onClick={handleAddTask}
+              disabled={!taskFormData.name}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              新增
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
