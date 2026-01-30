@@ -27,12 +27,15 @@ export default function SampleManagement() {
   const queryClient = useQueryClient();
   const [showSampleDialog, setShowSampleDialog] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingType, setEditingType] = useState(null);
   const [sampleFormData, setSampleFormData] = useState({ name: '', type: 'universal', project_id: '' });
   const [projectFormData, setProjectFormData] = useState({ brand_name: '', season: 'SS26', year: 2026 });
+  const [groupFormData, setGroupFormData] = useState({ name: '', status: 'active' });
   const [searchText, setSearchText] = useState('');
   const [projectSearchText, setProjectSearchText] = useState('');
+  const [groupSearchText, setGroupSearchText] = useState('');
 
   // Queries
   const { data: samples = [], isLoading: loadingSamples } = useQuery({
@@ -43,6 +46,11 @@ export default function SampleManagement() {
   const { data: projects = [], isLoading: loadingProjects } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('sort_order'),
+  });
+
+  const { data: groups = [], isLoading: loadingGroups } = useQuery({
+    queryKey: ['groups'],
+    queryFn: () => base44.entities.Group.list('sort_order'),
   });
 
   // Mutations
@@ -103,6 +111,33 @@ export default function SampleManagement() {
     mutationFn: (id) => base44.entities.Project.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
+    },
+  });
+
+  // Group Mutations
+  const createGroup = useMutation({
+    mutationFn: (data) => base44.entities.Group.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['groups']);
+      setShowGroupDialog(false);
+      setGroupFormData({ name: '', status: 'active' });
+    },
+  });
+
+  const updateGroup = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Group.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['groups']);
+      setShowGroupDialog(false);
+      setGroupFormData({ name: '', status: 'active' });
+      setEditingId(null);
+    },
+  });
+
+  const deleteGroup = useMutation({
+    mutationFn: (id) => base44.entities.Group.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['groups']);
     },
   });
 
@@ -184,7 +219,37 @@ export default function SampleManagement() {
   const getTypeLabel = (type) => type === 'universal' ? '通用' : '品牌專用';
   const getTypeColor = (type) => type === 'universal' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
 
-  const isLoading = loadingSamples || loadingProjects;
+  const handleOpenGroupDialog = (group = null) => {
+    if (group) {
+      setEditingId(group.id);
+      setEditingType('group');
+      setGroupFormData({
+        name: group.name,
+        status: group.status || 'active',
+      });
+    } else {
+      setEditingId(null);
+      setEditingType('group');
+      setGroupFormData({ name: '', status: 'active' });
+    }
+    setShowGroupDialog(true);
+  };
+
+  const handleSaveGroup = () => {
+    if (!groupFormData.name.trim()) return;
+
+    if (editingId) {
+      updateGroup.mutate({ id: editingId, data: groupFormData });
+    } else {
+      createGroup.mutate(groupFormData);
+    }
+  };
+
+  const filteredGroups = groups.filter(g =>
+    g.name?.toLowerCase().includes(groupSearchText.toLowerCase())
+  );
+
+  const isLoading = loadingSamples || loadingProjects || loadingGroups;
 
   if (isLoading) {
     return (
@@ -201,10 +266,11 @@ export default function SampleManagement() {
       </div>
 
       <Tabs defaultValue="samples" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="samples">樣品管理</TabsTrigger>
-          <TabsTrigger value="projects">品牌管理</TabsTrigger>
-        </TabsList>
+         <TabsList className="grid w-full grid-cols-3">
+           <TabsTrigger value="samples">樣品管理</TabsTrigger>
+           <TabsTrigger value="projects">品牌管理</TabsTrigger>
+           <TabsTrigger value="groups">集團管理</TabsTrigger>
+         </TabsList>
 
         {/* Samples Tab */}
         <TabsContent value="samples" className="space-y-4">
@@ -385,6 +451,88 @@ export default function SampleManagement() {
            </CardContent>
          </Card>
         </TabsContent>
+
+        {/* Groups Tab */}
+        <TabsContent value="groups" className="space-y-4">
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+           <h2 className="text-lg font-semibold text-gray-900">集團列表</h2>
+           <Button onClick={() => handleOpenGroupDialog()} className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
+             <Plus className="w-4 h-4 mr-2" />
+             新增集團
+           </Button>
+         </div>
+
+         {/* Search Bar */}
+         <div className="relative">
+           <Input
+             placeholder="搜尋集團名稱..."
+             value={groupSearchText}
+             onChange={(e) => setGroupSearchText(e.target.value)}
+             className="pl-10"
+           />
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+         </div>
+
+         {/* Groups List */}
+         <Card>
+           <CardContent className="p-0 overflow-x-auto">
+             <Table className="min-w-full">
+               <TableHeader>
+                 <TableRow className="bg-gray-50 border-b whitespace-nowrap">
+                   <TableHead className="w-[50%] md:w-[60%]">集團名稱</TableHead>
+                   <TableHead className="w-[30%] md:w-[20%]">狀態</TableHead>
+                   <TableHead className="w-[20%] md:w-[20%] text-right">操作</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {filteredGroups.length === 0 ? (
+                   <TableRow>
+                     <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                       {groupSearchText ? '未找到匹配的集團' : '沒有集團資料'}
+                     </TableCell>
+                   </TableRow>
+                 ) : (
+                   filteredGroups.map((group) => (
+                     <TableRow key={group.id} className="hover:bg-gray-50 whitespace-nowrap">
+                       <TableCell className="font-medium text-sm md:text-base truncate">{group.name}</TableCell>
+                       <TableCell className="text-xs md:text-sm">
+                         <span
+                           className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium inline-block ${
+                             group.status === 'active'
+                               ? 'bg-green-100 text-green-800'
+                               : 'bg-gray-100 text-gray-800'
+                           }`}
+                         >
+                           {group.status === 'active' ? '啟用' : '停用'}
+                         </span>
+                       </TableCell>
+                       <TableCell className="flex gap-0.5 md:gap-2 justify-end flex-shrink-0">
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           className="w-7 h-7 md:w-8 md:h-8"
+                           onClick={() => handleOpenGroupDialog(group)}
+                         >
+                           <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           className="w-7 h-7 md:w-8 md:h-8"
+                           onClick={() => deleteGroup.mutate(group.id)}
+                           disabled={deleteGroup.isPending}
+                         >
+                           <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
+                         </Button>
+                       </TableCell>
+                     </TableRow>
+                   ))
+                 )}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+        </TabsContent>
         </Tabs>
 
         {/* Sample Dialog */}
@@ -519,6 +667,53 @@ export default function SampleManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
+
+      {/* Group Dialog */}
+      <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingId && editingType === 'group' ? '編輯集團' : '新增集團'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>集團名稱</Label>
+              <Input
+                value={groupFormData.name}
+                onChange={(e) => setGroupFormData({ ...groupFormData, name: e.target.value })}
+                placeholder="例：高端品牌"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>狀態</Label>
+              <Select
+                value={groupFormData.status}
+                onValueChange={(v) => setGroupFormData({ ...groupFormData, status: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">啟用</SelectItem>
+                  <SelectItem value="inactive">停用</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGroupDialog(false)}>
+              取消
+            </Button>
+            <Button
+              onClick={handleSaveGroup}
+              disabled={!groupFormData.name}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {editingId && editingType === 'group' ? '更新' : '建立'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      </div>
+      );
+      }
