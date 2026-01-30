@@ -22,6 +22,7 @@ const settingsItems = [
   { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },
   { name: 'HolidayManagement', label: '假日管理', icon: CalendarClock },
   { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
+  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3 },
 ];
 
 export default function Layout({ children, currentPageName }) {
