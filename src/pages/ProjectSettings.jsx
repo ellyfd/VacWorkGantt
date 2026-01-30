@@ -472,68 +472,6 @@ export default function ProjectSettings() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Schedule Import Tab */}
-        <TabsContent value="schedule" className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">匯入時程表</h2>
-              <p className="text-sm text-gray-500 mt-1">上傳時程表 PDF/圖片，自動建立任務</p>
-            </div>
-          </div>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-sm text-gray-600 mb-4">上傳時程表 (PDF、PNG、JPG)</p>
-                  <input
-                    type="file"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setScheduleFile(e.target.files[0]);
-                        setScheduleError('');
-                      }
-                    }}
-                    className="hidden"
-                    id="schedule-file"
-                  />
-                  <label htmlFor="schedule-file">
-                    <Button asChild variant="outline" className="cursor-pointer">
-                      <span>選擇檔案</span>
-                    </Button>
-                  </label>
-                  {scheduleFile && (
-                    <p className="mt-2 text-sm text-gray-700">✓ {scheduleFile.name}</p>
-                  )}
-                </div>
-
-                {scheduleError && (
-                  <div className="flex gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-red-700">{scheduleError}</span>
-                  </div>
-                )}
-
-                <div className="text-sm text-gray-500 space-y-2">
-                  <p>✓ 自動識別時程表中的任務</p>
-                  <p>✓ 建立任務到目前展開的階段（Phase）</p>
-                  <p>ℹ 請先在甘特圖頁面展開一個階段</p>
-                </div>
-
-                <Button
-                  onClick={handleScheduleUpload}
-                  disabled={!scheduleFile || isAnalyzingSchedule}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  {isAnalyzingSchedule ? '分析中...' : '開始分析'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Sample Dialog */}
