@@ -13,22 +13,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export default function ProjectManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [formData, setFormData] = useState({ brand_id: '', season: '', year: new Date().getFullYear(), status: 'active' });
+  const [formData, setFormData] = useState({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' });
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('-year'),
-  });
-
-  const { data: brands = [] } = useQuery({
-    queryKey: ['brands'],
-    queryFn: () => base44.entities.Brand.list('sort_order'),
-  });
-
-  const { data: clientGroups = [] } = useQuery({
-    queryKey: ['clientGroups'],
-    queryFn: () => base44.entities.ClientGroup.list('sort_order'),
+    queryFn: () => base44.entities.Project.list('sort_order'),
   });
 
   const createMutation = useMutation({
@@ -36,7 +26,7 @@ export default function ProjectManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setDialogOpen(false);
-      setFormData({ brand_id: '', season: '', year: new Date().getFullYear(), status: 'active' });
+      setFormData({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' });
     },
   });
 
@@ -46,7 +36,7 @@ export default function ProjectManagement() {
       queryClient.invalidateQueries(['projects']);
       setDialogOpen(false);
       setEditingProject(null);
-      setFormData({ brand_id: '', season: '', year: new Date().getFullYear(), status: 'active' });
+      setFormData({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' });
     },
   });
 
@@ -68,7 +58,7 @@ export default function ProjectManagement() {
 
   const handleEdit = (project) => {
     setEditingProject(project);
-    setFormData({ brand_id: project.brand_id, season: project.season, year: project.year, status: project.status || 'active' });
+    setFormData({ name: project.name, brand_name: project.brand_name, season: project.season, year: project.year, status: project.status || 'active' });
     setDialogOpen(true);
   };
 
@@ -76,18 +66,6 @@ export default function ProjectManagement() {
     if (confirm('確定要刪除此專案嗎？')) {
       deleteMutation.mutate(id);
     }
-  };
-
-  const getBrandName = (brandId) => {
-    const brand = brands.find(b => b.id === brandId);
-    return brand ? brand.name : '-';
-  };
-
-  const getGroupName = (brandId) => {
-    const brand = brands.find(b => b.id === brandId);
-    if (!brand) return '-';
-    const group = clientGroups.find(g => g.id === brand.group_id);
-    return group ? group.name : '-';
   };
 
   if (isLoading) {
@@ -106,7 +84,7 @@ export default function ProjectManagement() {
             <BarChart3 className="w-8 h-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-800">專案管理</h1>
           </div>
-          <Button onClick={() => { setEditingProject(null); setFormData({ brand_id: '', season: '', year: new Date().getFullYear(), status: 'active' }); setDialogOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => { setEditingProject(null); setFormData({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' }); setDialogOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-5 h-5 mr-2" />
             新增專案
           </Button>
@@ -120,7 +98,7 @@ export default function ProjectManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>客戶群組</TableHead>
+                  <TableHead>專案名稱</TableHead>
                   <TableHead>品牌</TableHead>
                   <TableHead>季度</TableHead>
                   <TableHead>年份</TableHead>
@@ -131,8 +109,8 @@ export default function ProjectManagement() {
               <TableBody>
                 {projects.map((project) => (
                   <TableRow key={project.id}>
-                    <TableCell>{getGroupName(project.brand_id)}</TableCell>
-                    <TableCell>{getBrandName(project.brand_id)}</TableCell>
+                    <TableCell className="font-medium">{project.name}</TableCell>
+                    <TableCell>{project.brand_name}</TableCell>
                     <TableCell className="font-medium">{project.season}</TableCell>
                     <TableCell>{project.year}</TableCell>
                     <TableCell>
@@ -167,17 +145,24 @@ export default function ProjectManagement() {
             <form onSubmit={handleSubmit}>
               <div className="space-y-4 py-4">
                 <div>
-                  <Label htmlFor="brand_id">品牌</Label>
-                  <Select value={formData.brand_id} onValueChange={(value) => setFormData({ ...formData, brand_id: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="選擇品牌" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {brands.map((brand) => (
-                        <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="name">專案名稱</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="例: iPhone SS26"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="brand_name">品牌名稱</Label>
+                  <Input
+                    id="brand_name"
+                    value={formData.brand_name}
+                    onChange={(e) => setFormData({ ...formData, brand_name: e.target.value })}
+                    placeholder="例: iPhone"
+                    required
+                  />
                 </div>
                 <div>
                   <Label htmlFor="season">季度</Label>
