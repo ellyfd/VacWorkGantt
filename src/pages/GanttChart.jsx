@@ -42,7 +42,6 @@ export default function GanttChart() {
   // Dialog 狀態
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showSelectSamplesDialog, setShowSelectSamplesDialog] = useState(false);
-  const [showScheduleImportDialog, setShowScheduleImportDialog] = useState(false);
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
   const [showDurationDialog, setShowDurationDialog] = useState(false);
