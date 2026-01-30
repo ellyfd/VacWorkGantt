@@ -184,6 +184,21 @@ export default function GanttChart() {
     },
   });
 
+  // Update task (with optimistic update for time changes)
+  const updateTaskWithOptimistic = (id, data) => {
+    const previousTasks = queryClient.getQueryData(['ganttTasks']);
+    const newTasks = previousTasks?.map(task => 
+      task.id === id ? { ...task, ...data } : task
+    );
+    queryClient.setQueryData(['ganttTasks'], newTasks);
+    
+    updateGanttTask.mutate({ id, data }, {
+      onError: () => {
+        queryClient.setQueryData(['ganttTasks'], previousTasks);
+      }
+    });
+  };
+
   const updateGanttTask = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GanttTask.update(id, data),
     onSuccess: () => {
