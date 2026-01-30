@@ -46,11 +46,10 @@ export default function GanttChart() {
   const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
   const [showDurationDialog, setShowDurationDialog] = useState(false);
   const [showRollingDialog, setShowRollingDialog] = useState(false);
-  const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
-
+  
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [creatingProjectId, setCreatingProjectId] = useState(null);
-  const [createdPhaseIds, setCreatedPhaseIds] = useState([]);
+  const [taskCreationMode, setTaskCreationMode] = useState('manual'); // 'manual' or 'import'
   const [scheduleFile, setScheduleFile] = useState(null);
   const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
 
@@ -98,19 +97,17 @@ export default function GanttChart() {
 
   const bulkCreatePhases = useMutation({
     mutationFn: async (phases) => {
-      const createdIds = [];
       for (const phase of phases) {
-        const created = await base44.entities.GanttPhase.create(phase);
-        createdIds.push(created.id);
+        await base44.entities.GanttPhase.create(phase);
       }
-      return createdIds;
     },
-    onSuccess: (createdIds) => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['ganttPhases']);
-      setCreatedPhaseIds(createdIds);
       setShowSelectSamplesDialog(false);
-      setShowImportScheduleDialog(true);
       setSelectedSamples({});
+      setProjectFormData({ brand_id: '', season: '' });
+      setTaskCreationMode('manual');
+      setScheduleFile(null);
     },
   });
 
@@ -1132,91 +1129,6 @@ export default function GanttChart() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               建立
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Import Schedule Dialog */}
-      <Dialog open={showImportScheduleDialog} onOpenChange={setShowImportScheduleDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>導入時程表（可選）</DialogTitle>
-            <DialogDescription>
-              上傳時程表 PDF 或圖片，自動識別任務並添加到各階段
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    setScheduleFile(e.target.files[0]);
-                  }
-                }}
-                className="hidden"
-                id="schedule-file-import"
-              />
-              <label htmlFor="schedule-file-import">
-                <Button asChild variant="outline" className="cursor-pointer">
-                  <span><Upload className="w-4 h-4 mr-2" />選擇檔案</span>
-                </Button>
-              </label>
-              {scheduleFile && (
-                <p className="mt-2 text-sm text-gray-700">✓ {scheduleFile.name}</p>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowImportScheduleDialog(false);
-                setScheduleFile(null);
-                setProjectFormData({ brand_id: '', season: '' });
-                setCreatedPhaseIds([]);
-              }}
-            >
-              跳過
-            </Button>
-            <Button
-              onClick={async () => {
-                if (!scheduleFile || createdPhaseIds.length === 0) return;
-                setIsAnalyzingSchedule(true);
-                try {
-                  const { file_url } = await uploadScheduleFile.mutateAsync(scheduleFile);
-                  const result = await analyzeSchedule.mutateAsync(file_url);
-
-                  if (result && result.tasks && result.tasks.length > 0) {
-                    for (const phaseId of createdPhaseIds) {
-                      let sortOrder = ganttTasks.filter(t => t.gantt_phase_id === phaseId).length + 1;
-                      for (const task of result.tasks) {
-                        if (task.name.trim()) {
-                          await base44.entities.GanttTask.create({
-                            name: task.name.trim(),
-                            gantt_phase_id: phaseId,
-                            sort_order: sortOrder++,
-                            time_type: 'milestone',
-                          });
-                        }
-                      }
-                    }
-                    queryClient.invalidateQueries(['ganttTasks']);
-                  }
-                  setShowImportScheduleDialog(false);
-                  setScheduleFile(null);
-                  setProjectFormData({ brand_id: '', season: '' });
-                  setCreatedPhaseIds([]);
-                } finally {
-                  setIsAnalyzingSchedule(false);
-                }
-              }}
-              disabled={!scheduleFile || isAnalyzingSchedule}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isAnalyzingSchedule ? '分析中...' : '開始導入'}
             </Button>
           </DialogFooter>
         </DialogContent>
