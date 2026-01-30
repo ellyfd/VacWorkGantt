@@ -227,8 +227,8 @@ export default function SampleManagement() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
 
-      {/* Samples List */}
-      <Card>
+          {/* Samples List */}
+          <Card>
         <CardContent className="p-0 overflow-x-auto">
           <Table className="min-w-full">
             <TableHeader>
@@ -272,12 +272,12 @@ export default function SampleManagement() {
                     </TableCell>
                     <TableCell className="flex gap-0.5 md:gap-2 justify-end flex-shrink-0">
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-7 h-7 md:w-8 md:h-8"
-                        onClick={() => handleOpenDialog(sample)}
+                       variant="ghost"
+                       size="icon"
+                       className="w-7 h-7 md:w-8 md:h-8"
+                       onClick={() => handleOpenSampleDialog(sample)}
                       >
-                        <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+                       <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -295,9 +295,99 @@ export default function SampleManagement() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+         </Card>
+        </TabsContent>
 
-      {/* Sample Dialog */}
+        {/* Projects Tab */}
+        <TabsContent value="projects" className="space-y-4">
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+           <h2 className="text-lg font-semibold text-gray-900">品牌列表</h2>
+           <Button onClick={() => handleOpenProjectDialog()} className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
+             <Plus className="w-4 h-4 mr-2" />
+             新增品牌
+           </Button>
+         </div>
+
+         {/* Search Bar */}
+         <div className="relative">
+           <Input
+             placeholder="搜尋品牌名稱..."
+             value={projectSearchText}
+             onChange={(e) => setProjectSearchText(e.target.value)}
+             className="pl-10"
+           />
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+         </div>
+
+         {/* Projects List */}
+         <Card>
+           <CardContent className="p-0 overflow-x-auto">
+             <Table className="min-w-full">
+               <TableHeader>
+                 <TableRow className="bg-gray-50 border-b whitespace-nowrap">
+                   <TableHead className="w-[35%] md:w-[40%]">品牌名稱</TableHead>
+                   <TableHead className="w-[15%] md:w-[20%]">季節</TableHead>
+                   <TableHead className="w-[15%] md:w-[15%]">年份</TableHead>
+                   <TableHead className="w-[15%] md:w-[15%]">狀態</TableHead>
+                   <TableHead className="w-[20%] md:w-[10%] text-right">操作</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {filteredProjects.length === 0 ? (
+                   <TableRow>
+                     <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                       {projectSearchText ? '未找到匹配的品牌' : '沒有品牌資料'}
+                     </TableCell>
+                   </TableRow>
+                 ) : (
+                   filteredProjects.map((project) => (
+                     <TableRow key={project.id} className="hover:bg-gray-50 whitespace-nowrap">
+                       <TableCell className="font-medium text-sm md:text-base truncate">{project.brand_name}</TableCell>
+                       <TableCell className="text-xs md:text-sm">{project.season}</TableCell>
+                       <TableCell className="text-xs md:text-sm">{project.year}</TableCell>
+                       <TableCell className="text-xs md:text-sm">
+                         <span
+                           className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium inline-block ${
+                             project.status === 'active'
+                               ? 'bg-green-100 text-green-800'
+                               : project.status === 'completed'
+                               ? 'bg-blue-100 text-blue-800'
+                               : 'bg-gray-100 text-gray-800'
+                           }`}
+                         >
+                           {project.status === 'active' ? '進行中' : project.status === 'completed' ? '已完成' : '已存檔'}
+                         </span>
+                       </TableCell>
+                       <TableCell className="flex gap-0.5 md:gap-2 justify-end flex-shrink-0">
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           className="w-7 h-7 md:w-8 md:h-8"
+                           onClick={() => handleOpenProjectDialog(project)}
+                         >
+                           <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           className="w-7 h-7 md:w-8 md:h-8"
+                           onClick={() => deleteProject.mutate(project.id)}
+                           disabled={deleteProject.isPending}
+                         >
+                           <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
+                         </Button>
+                       </TableCell>
+                     </TableRow>
+                   ))
+                 )}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+        </TabsContent>
+        </Tabs>
+
+        {/* Sample Dialog */}
       <Dialog open={showSampleDialog} onOpenChange={setShowSampleDialog}>
         <DialogContent>
           <DialogHeader>
