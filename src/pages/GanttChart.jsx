@@ -1019,12 +1019,26 @@ export default function GanttChart() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRollingDialog(false)}>
-              取消
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                updateGanttTask.mutate({
+                  id: selectedTaskId,
+                  data: { time_type: null, start_date: null, end_date: null },
+                });
+                setShowRollingDialog(false);
+              }}
+            >
+              清除時間
             </Button>
-            <Button onClick={handleConfirmRolling} className="bg-purple-600 hover:bg-purple-700">
-              確認
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowRollingDialog(false)}>
+                取消
+              </Button>
+              <Button onClick={handleConfirmRolling} className="bg-purple-600 hover:bg-purple-700">
+                確認
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
