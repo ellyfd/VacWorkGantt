@@ -20,13 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, Search } from 'lucide-react';
 
 export default function SampleManagement() {
   const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', type: 'universal', project_id: '' });
+  const [searchText, setSearchText] = useState('');
 
   // Queries
   const { data: samples = [], isLoading } = useQuery({
@@ -102,8 +103,13 @@ export default function SampleManagement() {
     return project ? project.name : '-';
   };
 
-  const universalSamples = samples.filter(s => s.type === 'universal');
-  const brandSamples = samples.filter(s => s.type === 'brand');
+  const filteredSamples = samples.filter(s =>
+    s.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+    getProjectName(s.project_id)?.toLowerCase().includes(searchText.toLowerCase())
+  );
+  
+  const getTypeLabel = (type) => type === 'universal' ? '通用' : '品牌專用';
+  const getTypeColor = (type) => type === 'universal' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
 
   if (isLoading) {
     return (
@@ -114,103 +120,58 @@ export default function SampleManagement() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">樣品種類管理</h1>
-        <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">樣品種類管理</h1>
+        <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           新增樣品
         </Button>
       </div>
 
-      {/* Universal Samples */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">通用樣品</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>名稱</TableHead>
-                <TableHead>狀態</TableHead>
-                <TableHead className="w-[100px]">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {universalSamples.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-gray-500 py-8">
-                    沒有通用樣品
-                  </TableCell>
-                </TableRow>
-              ) : (
-                universalSamples.map((sample) => (
-                  <TableRow key={sample.id}>
-                    <TableCell className="font-medium">{sample.name}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          sample.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {sample.status === 'active' ? '啟用' : '停用'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenDialog(sample)}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteSample.mutate(sample.id)}
-                        disabled={deleteSample.isPending}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Search Bar */}
+      <div className="relative">
+        <Input
+          placeholder="搜尋樣品名稱或品牌..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="pl-10"
+        />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      </div>
 
-      {/* Brand-specific Samples */}
+      {/* Samples List */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">品牌專用樣品</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>名稱</TableHead>
-                <TableHead>品牌</TableHead>
-                <TableHead>狀態</TableHead>
-                <TableHead className="w-[100px]">操作</TableHead>
+              <TableRow className="bg-gray-50 border-b">
+                <TableHead className="w-[40%]">名稱</TableHead>
+                <TableHead className="w-[20%]">類型</TableHead>
+                <TableHead className="w-[20%]">品牌/範圍</TableHead>
+                <TableHead className="w-[10%]">狀態</TableHead>
+                <TableHead className="w-[10%] text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {brandSamples.length === 0 ? (
+              {filteredSamples.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-gray-500 py-8">
-                    沒有品牌專用樣品
+                  <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                    {searchText ? '未找到匹配的樣品' : '沒有樣品資料'}
                   </TableCell>
                 </TableRow>
               ) : (
-                brandSamples.map((sample) => (
-                  <TableRow key={sample.id}>
+                filteredSamples.map((sample) => (
+                  <TableRow key={sample.id} className="hover:bg-gray-50">
                     <TableCell className="font-medium">{sample.name}</TableCell>
-                    <TableCell>{getProjectName(sample.project_id)}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(sample.type)}`}>
+                        {getTypeLabel(sample.type)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {sample.type === 'brand' ? getProjectName(sample.project_id) : '-'}
+                    </TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded text-xs font-medium ${
@@ -222,10 +183,11 @@ export default function SampleManagement() {
                         {sample.status === 'active' ? '啟用' : '停用'}
                       </span>
                     </TableCell>
-                    <TableCell className="flex gap-2">
+                    <TableCell className="flex gap-1 md:gap-2 justify-end">
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="w-8 h-8"
                         onClick={() => handleOpenDialog(sample)}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -233,6 +195,7 @@ export default function SampleManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="w-8 h-8"
                         onClick={() => deleteSample.mutate(sample.id)}
                         disabled={deleteSample.isPending}
                       >
