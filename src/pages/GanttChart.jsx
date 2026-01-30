@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -36,7 +37,7 @@ export default function GanttChart() {
   
   // Dialogs
   const [showProjectDialog, setShowProjectDialog] = useState(false);
-  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [showQuickAddDialog, setShowQuickAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [editingType, setEditingType] = useState(null);
@@ -49,7 +50,7 @@ export default function GanttChart() {
 
   // New forms
   const [newProject, setNewProject] = useState({ name: '', brand_name: '', season: 'SS26', year: 2026 });
-  const [newTask, setNewTask] = useState({ name: '' });
+  const [quickAddTask, setQuickAddTask] = useState({ name: '', phaseId: '', selectedDate: '' });
 
   // Generate days array
   const days = useMemo(() => {
@@ -139,9 +140,8 @@ export default function GanttChart() {
     mutationFn: (data) => base44.entities.Task.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
-      setShowTaskDialog(false);
-      setNewTask({ name: '' });
-      setSelectedPhaseId(null);
+      setShowQuickAddDialog(false);
+      setQuickAddTask({ name: '', phaseId: '', selectedDate: '' });
     },
   });
 
@@ -193,9 +193,9 @@ export default function GanttChart() {
     setExpandedPhases(prev => ({ ...prev, [phaseId]: !prev[phaseId] }));
   };
 
-  const handleAddTask = (phaseId) => {
-    setSelectedPhaseId(phaseId);
-    setShowTaskDialog(true);
+  const handleQuickAddTask = (phaseId, date) => {
+    setQuickAddTask({ name: '', phaseId, selectedDate: date });
+    setShowQuickAddDialog(true);
   };
 
   const handleRowClick = (item, type) => {
@@ -225,20 +225,25 @@ export default function GanttChart() {
     createProject.mutate({ ...newProject, name });
   };
 
-  const handleCreateTask = () => {
-    if (selectedPhaseId && newTask.name) {
+  const handleCreateQuickAddTask = () => {
+    if (quickAddTask.phaseId && quickAddTask.name && quickAddTask.selectedDate) {
       createTask.mutate({
-        phase_id: selectedPhaseId,
-        name: newTask.name,
+        phase_id: quickAddTask.phaseId,
+        name: quickAddTask.name,
         status: 'pending',
         time_type: 'milestone',
+        date: quickAddTask.selectedDate,
       });
     }
   };
 
-  // Handle cell click for Gantt editing
-  const handleCellClick = (date) => {
-    if (!selectedPhaseId) return;
+  // Handle cell click for quick add task and Gantt editing
+  const handleCellClick = (date, phaseId) => {
+    // 如果沒有進入編輯模式，直接打開快速新增任務
+    if (!selectedPhaseId) {
+      handleQuickAddTask(phaseId, date);
+      return;
+    }
 
     if (isRollingMode) {
       // Rolling 模式：選擇開始和結束日期
@@ -537,26 +542,14 @@ export default function GanttChart() {
 
                   {/* Name */}
                   <span className={`truncate text-[11px] md:text-sm ${
-                    row.type === 'project' ? 'font-semibold text-gray-800' :
-                    row.type === 'phase' ? 'text-gray-700' :
+                    row.type === 'project' ? 'font-semibold text-gray-800' : 
+                    row.type === 'phase' ? 'text-gray-700' : 
                     'text-gray-600'
                   }`}>
                     {row.type === 'project' ? row.data.name : 
                      row.type === 'phase' ? row.data.phase_type : 
                      row.data.name}
                   </span>
-
-                  {/* Add button for phase */}
-                  {row.type === 'phase' && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-4 h-4 md:w-5 md:h-5 ml-auto opacity-0 hover:opacity-100 flex-shrink-0"
-                      onClick={(e) => { e.stopPropagation(); handleAddTask(row.data.id); }}
-                    >
-                      <Plus className="w-2 h-2 md:w-3 md:h-3" />
-                    </Button>
-                  )}
                 </div>
                 <div 
                   className="w-[60px] md:w-[80px] px-1 md:px-2 flex items-center justify-center text-[10px] md:text-xs text-gray-500 border-l border-gray-200 cursor-pointer hover:bg-gray-100"
@@ -608,7 +601,13 @@ export default function GanttChart() {
                       d.isWeekend || isHoliday(d.date) ? 'bg-gray-100' : 
                       d.date === today ? 'bg-blue-50' : ''
                     } ${firstClickDate === d.date ? 'ring-2 ring-orange-400 ring-inset' : ''}`}
-                    onClick={() => selectedPhaseId && (row.type === 'phase' || row.type === 'task') && handleCellClick(d.date)}
+                    onClick={() => {
+                      if (row.type === 'phase') {
+                        handleCellClick(d.date, row.data.id);
+                      } else if (row.type === 'task' && selectedPhaseId) {
+                        handleCellClick(d.date);
+                      }
+                    }}
                   />
                 ))}
 
@@ -710,26 +709,54 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
-      {/* New Task Dialog */}
-      <Dialog open={showTaskDialog} onOpenChange={setShowTaskDialog}>
+      {/* Quick Add Task Dialog */}
+      <Dialog open={showQuickAddDialog} onOpenChange={setShowQuickAddDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>新增任務</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
+              <Label>選擇日期</Label>
+              <div className="mt-1 p-3 bg-gray-100 rounded text-sm font-medium">
+                {quickAddTask.selectedDate}
+              </div>
+            </div>
+            <div>
               <Label>任務名稱</Label>
               <Input
-                value={newTask.name}
-                onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
+                value={quickAddTask.name}
+                onChange={(e) => setQuickAddTask({ ...quickAddTask, name: e.target.value })}
                 placeholder="例：設計3D原型"
                 className="mt-1"
               />
             </div>
+            <div>
+              <Label>選擇階段</Label>
+              <Select
+                value={quickAddTask.phaseId}
+                onValueChange={(v) => setQuickAddTask({ ...quickAddTask, phaseId: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="選擇階段..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedProjectId && phases
+                    .filter(p => p.project_id === selectedProjectId)
+                    .map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.phase_type}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTaskDialog(false)}>取消</Button>
-            <Button onClick={handleCreateTask} disabled={!newTask.name || createTask.isPending}>
+            <Button variant="outline" onClick={() => setShowQuickAddDialog(false)}>取消</Button>
+            <Button 
+              onClick={handleCreateQuickAddTask} 
+              disabled={!quickAddTask.name || !quickAddTask.phaseId || createTask.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               {createTask.isPending ? '建立中...' : '建立'}
             </Button>
           </DialogFooter>
