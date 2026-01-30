@@ -261,6 +261,101 @@ export default function ProjectSettings() {
     g.name?.toLowerCase().includes(groupSearchText.toLowerCase())
   );
 
+  // 上傳時程表
+  const { data: ganttPhases = [] } = useQuery({
+    queryKey: ['ganttPhases'],
+    queryFn: () => base44.entities.GanttPhase.list('sort_order'),
+  });
+
+  const { data: ganttTasks = [] } = useQuery({
+    queryKey: ['ganttTasks'],
+    queryFn: () => base44.entities.GanttTask.list('sort_order'),
+  });
+
+  const uploadScheduleFile = useMutation({
+    mutationFn: async (file) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      return file_url;
+    },
+  });
+
+  const analyzeSchedule = useMutation({
+    mutationFn: async (file_url) => {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `分析這張時程表圖片，提取所有的任務名稱。請返回一個包含任務列表的JSON，格式如下：
+{
+  "tasks": [
+    {"name": "任務名稱1"},
+    {"name": "任務名稱2"}
+  ]
+}
+只返回JSON，不要有其他文字。`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            tasks: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      });
+      return response;
+    },
+    onSuccess: async (data) => {
+      if (data && data.tasks && data.tasks.length > 0) {
+        // 找到第一個展開的 Phase
+        const phaseId = Object.keys(ganttPhases).find(id => {
+          const phase = ganttPhases[id];
+          return phase && phase.gantt_project_id;
+        });
+
+        if (!phaseId) {
+          setScheduleError('請先在甘特圖中展開並選擇一個階段');
+          return;
+        }
+
+        // 建立任務
+        for (const task of data.tasks) {
+          if (task.name.trim()) {
+            const tasksInPhase = ganttTasks.filter(t => t.gantt_phase_id === phaseId);
+            await base44.entities.GanttTask.create({
+              name: task.name.trim(),
+              gantt_phase_id: phaseId,
+              sort_order: tasksInPhase.length + 1,
+              time_type: 'milestone',
+            });
+          }
+        }
+
+        queryClient.invalidateQueries(['ganttTasks']);
+        setShowScheduleImport(false);
+        setScheduleFile(null);
+        setScheduleError('');
+      }
+    },
+    onError: () => {
+      setScheduleError('分析時程表失敗，請重試');
+    },
+  });
+
+  const handleScheduleUpload = async () => {
+    if (!scheduleFile) return;
+
+    setIsAnalyzingSchedule(true);
+    setScheduleError('');
+
+    const file_url = await uploadScheduleFile.mutateAsync(scheduleFile);
+    analyzeSchedule.mutate(file_url);
+    setIsAnalyzingSchedule(false);
+  };
+
   const isLoading = loadingSamples || loadingProjects || loadingGroups;
 
   if (isLoading) {
