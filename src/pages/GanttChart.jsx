@@ -1144,6 +1144,89 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
+      {/* Import Schedule Dialog */}
+      <Dialog open={showImportScheduleDialog} onOpenChange={setShowImportScheduleDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>上傳時程表</DialogTitle>
+            <DialogDescription>
+              上傳時程表圖片或 PDF，AI 將自動辨識階段和任務
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
+                onChange={(e) => setScheduleFile(e.target.files?.[0] || null)}
+                className="hidden"
+                id="schedule-file-input"
+              />
+              <label htmlFor="schedule-file-input" className="cursor-pointer">
+                <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm text-gray-600">點擊或拖曳檔案到此處</p>
+                <p className="text-xs text-gray-400 mt-1">支援 PNG, JPG, PDF</p>
+              </label>
+              {scheduleFile && (
+                <p className="mt-3 text-sm text-green-600">✓ {scheduleFile.name}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowImportScheduleDialog(false);
+              setShowSelectSamplesDialog(true);
+              setScheduleFile(null);
+            }}>
+              改用手動
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!scheduleFile || !creatingProjectId) return;
+                setIsAnalyzingSchedule(true);
+                try {
+                  const { file_url } = await uploadScheduleFile.mutateAsync(scheduleFile);
+                  const result = await analyzeSchedule.mutateAsync(file_url);
+
+                  if (result && result.tasks && result.tasks.length > 0) {
+                    // 建立階段和任務
+                    let phaseIndex = 1;
+                    for (const task of result.tasks) {
+                      if (task.name.trim()) {
+                        const phase = await base44.entities.GanttPhase.create({
+                          gantt_project_id: creatingProjectId,
+                          name: task.name.trim(),
+                          sort_order: phaseIndex++,
+                        });
+
+                        await base44.entities.GanttTask.create({
+                          gantt_phase_id: phase.id,
+                          name: task.name.trim(),
+                          sort_order: 1,
+                          time_type: 'milestone',
+                        });
+                      }
+                    }
+                    queryClient.invalidateQueries(['ganttPhases']);
+                    queryClient.invalidateQueries(['ganttTasks']);
+                    setShowImportScheduleDialog(false);
+                    setScheduleFile(null);
+                    setCreatingProjectId(null);
+                    setProjectCreationMode('manual');
+                  }
+                } finally {
+                  setIsAnalyzingSchedule(false);
+                }
+              }}
+              disabled={!scheduleFile || isAnalyzingSchedule}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isAnalyzingSchedule ? '分析中...' : '開始辨識'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Select Samples Dialog */}
       <Dialog open={showSelectSamplesDialog} onOpenChange={setShowSelectSamplesDialog}>
         <DialogContent>
