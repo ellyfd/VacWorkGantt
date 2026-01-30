@@ -13,6 +13,7 @@ const navItems = [
   { name: 'Dashboard', label: '儀表板', icon: Calendar },
   { name: 'LeaveCalendar', label: '我的排休', icon: CalendarClock },
   { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
+  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3 },
   { name: 'Notifications', label: '通知', icon: Bell },
 ];
 
@@ -22,7 +23,9 @@ const settingsItems = [
   { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },
   { name: 'HolidayManagement', label: '假日管理', icon: CalendarClock },
   { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
-  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3 },
+  { name: 'ClientGroupManagement', label: '客戶群組管理', icon: Users },
+  { name: 'BrandManagement', label: '品牌管理', icon: Building2 },
+  { name: 'ProjectManagement', label: '專案管理', icon: BarChart3 },
 ];
 
 export default function Layout({ children, currentPageName }) {

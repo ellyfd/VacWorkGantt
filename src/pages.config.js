@@ -58,6 +58,9 @@ import LeaveTypeManagement from './pages/LeaveTypeManagement';
 import Notifications from './pages/Notifications';
 import ReportManagement from './pages/ReportManagement';
 import GanttManagement from './pages/GanttManagement';
+import ClientGroupManagement from './pages/ClientGroupManagement';
+import BrandManagement from './pages/BrandManagement';
+import ProjectManagement from './pages/ProjectManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +76,9 @@ export const PAGES = {
     "Notifications": Notifications,
     "ReportManagement": ReportManagement,
     "GanttManagement": GanttManagement,
+    "ClientGroupManagement": ClientGroupManagement,
+    "BrandManagement": BrandManagement,
+    "ProjectManagement": ProjectManagement,
 }
 
 export const pagesConfig = {
