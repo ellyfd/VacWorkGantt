@@ -568,14 +568,41 @@ export default function GanttChart() {
     if (row.type === 'task') {
       return (
         <div
-          className={`flex items-center px-3 pl-12 text-sm cursor-pointer ${
-            selectedTaskId === row.data.id ? 'bg-blue-100 font-medium' : isDragging ? 'bg-blue-100' : 'bg-white hover:bg-blue-50'
+          className={`group flex items-center px-3 pl-12 text-sm cursor-pointer ${
+            selectedTaskId === row.data.id ? 'bg-blue-100 font-medium' : isDragging && dragTaskId === row.data.id ? 'bg-blue-100' : 'bg-white hover:bg-blue-50'
           }`}
           style={{ height: ROW_HEIGHT }}
           onClick={() => handleTaskClick(row.data.id)}
+          onDoubleClick={() => {
+            setEditingTask(row.data);
+            setTaskFormData({ name: row.data.name, is_important: row.data.is_important, note: row.data.note });
+            setShowEditTaskDialog(true);
+          }}
         >
           <GripVertical className="w-3 h-3 mr-2 flex-shrink-0 text-gray-400" />
-          <span className="truncate text-gray-700">{row.data.name}</span>
+          <span className="truncate flex-1 text-gray-700">{row.data.name}</span>
+          <div className="hidden group-hover:flex gap-1">
+            <button 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setEditingTask(row.data);
+                setTaskFormData({ name: row.data.name, is_important: row.data.is_important, note: row.data.note });
+                setShowEditTaskDialog(true);
+              }} 
+              className="p-1 hover:bg-gray-200 rounded"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+            <button 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                deleteGanttTask.mutate(row.data.id);
+              }} 
+              className="p-1 hover:bg-red-100 rounded"
+            >
+              <Trash2 className="w-3 h-3 text-red-500" />
+            </button>
+          </div>
         </div>
       );
     }
@@ -627,25 +654,60 @@ export default function GanttChart() {
       task.time_type === 'rolling' && taskStartDate && dateStr >= taskStartDate;
 
     return (
-      <div
-        key={dateStr}
-        className={`border-r border-gray-200 relative cursor-pointer transition-colors ${
-          selectedTaskId === task.id ? 'bg-blue-50' : 'bg-white'
-        } ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100' : ''} hover:bg-yellow-50`}
-        style={{ width: 40, height: ROW_HEIGHT }}
-        onClick={() => {
-          if (task.start_date && (isStart || isInRange || isRolling)) {
-            // 點擊已有甘特條，打開編輯 Dialog
-            setSelectedTaskId(task.id);
-            setShowMilestoneDialog(task.time_type === 'milestone');
-            setShowDurationDialog(task.time_type === 'duration');
-            setShowRollingDialog(task.time_type === 'rolling');
-          } else {
-            // 點擊空白格子，選擇日期
-            handleDateClick(day, task.id);
-          }
-        }}
-      >
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            key={dateStr}
+            className={`border-r border-gray-200 relative cursor-pointer transition-colors ${
+              selectedTaskId === task.id ? 'bg-blue-50' : 'bg-white'
+            } ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100' : ''} ${isInDragRange(task, dateStr) ? 'bg-blue-200' : ''} hover:bg-yellow-50`}
+            style={{ width: 40, height: ROW_HEIGHT }}
+            onMouseDown={(e) => {
+              if (e.button !== 0) return;
+              setIsDragging(true);
+              setDragTaskId(task.id);
+              setDragStart(day);
+              setDragEnd(day);
+              setSelectedTaskId(task.id);
+            }}
+            onMouseEnter={() => {
+              if (isDragging && dragTaskId === task.id) {
+                setDragEnd(day);
+              }
+            }}
+            onMouseUp={() => {
+              if (!isDragging || !dragTaskId) return;
+              
+              let start = dragStart < dragEnd ? dragStart : dragEnd;
+              let end = dragStart < dragEnd ? dragEnd : dragStart;
+              
+              if (format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')) {
+                updateGanttTask.mutate({
+                  id: dragTaskId,
+                  data: { time_type: 'milestone', start_date: format(start, 'yyyy-MM-dd'), end_date: null }
+                });
+              } else {
+                updateGanttTask.mutate({
+                  id: dragTaskId,
+                  data: { time_type: 'duration', start_date: format(start, 'yyyy-MM-dd'), end_date: format(end, 'yyyy-MM-dd') }
+                });
+              }
+              
+              setIsDragging(false);
+              setDragTaskId(null);
+            }}
+            onClick={() => {
+              if (isDragging) return;
+              if (task.start_date && (isStart || isInRange || isRolling)) {
+                setSelectedTaskId(task.id);
+                setShowMilestoneDialog(task.time_type === 'milestone');
+                setShowDurationDialog(task.time_type === 'duration');
+                setShowRollingDialog(task.time_type === 'rolling');
+              } else {
+                handleDateClick(day, task.id);
+              }
+            }}
+          >
         {/* 里程碑 ◆ */}
         {task.time_type === 'milestone' && isStart && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -696,7 +758,20 @@ export default function GanttChart() {
             2
           </div>
         )}
-      </div>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem onClick={() => handleSetMilestone(task.id, day)}>
+            <Diamond className="w-4 h-4 mr-2" /> 設為里程碑
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => handleSetRolling(task.id, day)}>
+            <Repeat className="w-4 h-4 mr-2" /> 設為 Rolling
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => handleClearTime(task.id)}>
+            <X className="w-4 h-4 mr-2" /> 清除時間
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
     );
   };
 
