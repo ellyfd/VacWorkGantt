@@ -453,7 +453,7 @@ export default function GanttChart() {
     }));
   };
 
-  // 拖曳排序
+  // 拖曳排序 (with optimistic update)
   const updateSortOrder = useMutation({
     mutationFn: ({ id, entityType, sortOrder }) => {
       if (entityType === 'project') {
@@ -464,10 +464,41 @@ export default function GanttChart() {
         return base44.entities.GanttTask.update(id, { sort_order: sortOrder });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['ganttProjects']);
-      queryClient.invalidateQueries(['ganttPhases']);
-      queryClient.invalidateQueries(['ganttTasks']);
+    onMutate: ({ id, entityType, sortOrder }) => {
+      // 保存原始数据用于回滚
+      let previousData = {};
+      
+      if (entityType === 'project') {
+        previousData = queryClient.getQueryData(['ganttProjects']);
+        const newData = previousData?.map(item => 
+          item.id === id ? { ...item, sort_order: sortOrder } : item
+        );
+        queryClient.setQueryData(['ganttProjects'], newData);
+      } else if (entityType === 'phase') {
+        previousData = queryClient.getQueryData(['ganttPhases']);
+        const newData = previousData?.map(item => 
+          item.id === id ? { ...item, sort_order: sortOrder } : item
+        );
+        queryClient.setQueryData(['ganttPhases'], newData);
+      } else if (entityType === 'task') {
+        previousData = queryClient.getQueryData(['ganttTasks']);
+        const newData = previousData?.map(item => 
+          item.id === id ? { ...item, sort_order: sortOrder } : item
+        );
+        queryClient.setQueryData(['ganttTasks'], newData);
+      }
+      
+      return { previousData, entityType };
+    },
+    onError: (error, variables, context) => {
+      // 恢复原始数据
+      if (context?.entityType === 'project') {
+        queryClient.setQueryData(['ganttProjects'], context.previousData);
+      } else if (context?.entityType === 'phase') {
+        queryClient.setQueryData(['ganttPhases'], context.previousData);
+      } else if (context?.entityType === 'task') {
+        queryClient.setQueryData(['ganttTasks'], context.previousData);
+      }
     },
   });
 
