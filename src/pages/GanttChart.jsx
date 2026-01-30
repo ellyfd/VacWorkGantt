@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Plus, ChevronDown, ChevronRight, Diamond, ArrowRight, Repeat, GripVertical } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Diamond, ArrowRight, Repeat, GripVertical, Upload } from 'lucide-react';
 import { addMonths, format, eachDayOfInterval, isToday } from 'date-fns';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
