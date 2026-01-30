@@ -987,10 +987,10 @@ export default function GanttChart() {
               {days.map((day) => (
                 <div
                   key={day.toISOString()}
-                  className={`flex-shrink-0 border-r border-gray-200 flex items-center justify-center text-xs font-medium ${
-                    isToday(day) ? 'bg-red-100 text-red-700' : ''
+                  className={`flex-shrink-0 border-r border-gray-200 flex items-center justify-center text-xs font-semibold leading-none ${
+                    isToday(day) ? 'bg-red-100 text-red-700' : 'text-gray-700'
                   }`}
-                  style={{ width: 40 }}
+                  style={{ width: 40, minHeight: ROW_HEIGHT }}
                 >
                   {format(day, 'd')}
                 </div>
