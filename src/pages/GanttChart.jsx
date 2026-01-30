@@ -552,8 +552,18 @@ export default function GanttChart() {
           selectedTaskId === task.id ? 'bg-blue-50' : 'bg-white'
         } ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100' : ''} hover:bg-yellow-50`}
         style={{ width: 40, height: ROW_HEIGHT }}
-        onClick={() => handleDateClick(day, task.id)}
-        onDoubleClick={() => handleDoubleClick(task.id)}
+        onClick={() => {
+          if (task.start_date && (isStart || isInRange || isRolling)) {
+            // 點擊已有甘特條，打開編輯 Dialog
+            setSelectedTaskId(task.id);
+            setShowMilestoneDialog(task.time_type === 'milestone');
+            setShowDurationDialog(task.time_type === 'duration');
+            setShowRollingDialog(task.time_type === 'rolling');
+          } else {
+            // 點擊空白格子，選擇日期
+            handleDateClick(day, task.id);
+          }
+        }}
       >
         {/* 里程碑 ◆ */}
         {task.time_type === 'milestone' && isStart && (
