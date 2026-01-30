@@ -1117,9 +1117,10 @@ export default function GanttChart() {
             <Button 
               variant="destructive" 
               onClick={() => {
-                updateGanttTask.mutate({
-                  id: selectedTaskId,
-                  data: { time_type: null, start_date: null, end_date: null },
+                updateTaskWithOptimistic(selectedTaskId, { 
+                  time_type: null, 
+                  start_date: null, 
+                  end_date: null 
                 });
                 setShowMilestoneDialog(false);
               }}
@@ -1178,14 +1179,15 @@ export default function GanttChart() {
           </div>
           <DialogFooter>
             <Button 
-              variant="destructive" 
-              onClick={() => {
-                updateGanttTask.mutate({
-                  id: selectedTaskId,
-                  data: { time_type: null, start_date: null, end_date: null },
-                });
-                setShowDurationDialog(false);
-              }}
+             variant="destructive" 
+             onClick={() => {
+               updateTaskWithOptimistic(selectedTaskId, { 
+                 time_type: null, 
+                 start_date: null, 
+                 end_date: null 
+               });
+               setShowDurationDialog(false);
+             }}
             >
               清除時間
             </Button>
@@ -1231,14 +1233,15 @@ export default function GanttChart() {
           </div>
           <DialogFooter>
             <Button 
-              variant="destructive" 
-              onClick={() => {
-                updateGanttTask.mutate({
-                  id: selectedTaskId,
-                  data: { time_type: null, start_date: null, end_date: null },
-                });
-                setShowRollingDialog(false);
-              }}
+             variant="destructive" 
+             onClick={() => {
+               updateTaskWithOptimistic(selectedTaskId, { 
+                 time_type: null, 
+                 start_date: null, 
+                 end_date: null 
+               });
+               setShowRollingDialog(false);
+             }}
             >
               清除時間
             </Button>
