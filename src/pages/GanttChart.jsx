@@ -105,8 +105,68 @@ export default function GanttChart() {
       queryClient.invalidateQueries(['ganttPhases']);
       setShowSelectSamplesDialog(false);
       setSelectedSamples({});
-      setCreatingProjectId(null);
       setProjectFormData({ brand_id: '', season: '' });
+      setTaskCreationMode('manual');
+      setScheduleFile(null);
+    },
+  });
+
+  const uploadScheduleFile = useMutation({
+    mutationFn: async (file) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      return file_url;
+    },
+  });
+
+  const analyzeSchedule = useMutation({
+    mutationFn: async (file_url) => {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `分析這張時程表圖片或PDF，提取所有的任務名稱。請返回一個包含任務列表的JSON，格式如下：
+{
+  "tasks": [
+    {"name": "任務名稱1"},
+    {"name": "任務名稱2"}
+  ]
+}
+只返回JSON，不要有其他文字。`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            tasks: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      });
+      return response;
+    },
+    onSuccess: async (data) => {
+      if (data && data.tasks && data.tasks.length > 0 && currentPhaseId) {
+        for (const task of data.tasks) {
+          if (task.name.trim()) {
+            const tasksInPhase = ganttTasks.filter(t => t.gantt_phase_id === currentPhaseId);
+            await base44.entities.GanttTask.create({
+              name: task.name.trim(),
+              gantt_phase_id: currentPhaseId,
+              sort_order: tasksInPhase.length + 1,
+              time_type: 'milestone',
+            });
+          }
+        }
+
+        queryClient.invalidateQueries(['ganttTasks']);
+        setShowAddTaskDialog(false);
+        setScheduleFile(null);
+        setTaskCreationMode('manual');
+        setCurrentPhaseId(null);
+      }
     },
   });
 
