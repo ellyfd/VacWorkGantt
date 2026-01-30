@@ -31,7 +31,7 @@ export default function SampleManagement() {
   const [editingId, setEditingId] = useState(null);
   const [editingType, setEditingType] = useState(null);
   const [sampleFormData, setSampleFormData] = useState({ name: '', type: 'universal', project_id: '' });
-  const [projectFormData, setProjectFormData] = useState({ brand_name: '', season: 'SS26', year: 2026 });
+  const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
   const [groupFormData, setGroupFormData] = useState({ name: '', status: 'active' });
   const [searchText, setSearchText] = useState('');
   const [projectSearchText, setProjectSearchText] = useState('');
@@ -84,25 +84,25 @@ export default function SampleManagement() {
   // Project Mutations
   const createProject = useMutation({
     mutationFn: (data) => {
-      const name = `${data.brand_name} ${data.season}`;
+      const name = `${data.short_name} ${data.season}`;
       return base44.entities.Project.create({ ...data, name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setShowProjectDialog(false);
-      setProjectFormData({ brand_name: '', season: 'SS26', year: 2026 });
+      setProjectFormData({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
     },
   });
 
   const updateProject = useMutation({
     mutationFn: ({ id, data }) => {
-      const name = `${data.brand_name} ${data.season}`;
+      const name = `${data.short_name} ${data.season}`;
       return base44.entities.Project.update(id, { ...data, name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setShowProjectDialog(false);
-      setProjectFormData({ brand_name: '', season: 'SS26', year: 2026 });
+      setProjectFormData({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
       setEditingId(null);
     },
   });
@@ -179,14 +179,16 @@ export default function SampleManagement() {
       setEditingId(project.id);
       setEditingType('project');
       setProjectFormData({
-        brand_name: project.brand_name,
+        full_name: project.full_name,
+        short_name: project.short_name,
         season: project.season,
-        year: project.year,
+        group_id: project.group_id || '',
+        status: project.status || 'active',
       });
     } else {
       setEditingId(null);
       setEditingType('project');
-      setProjectFormData({ brand_name: '', season: 'SS26', year: 2026 });
+      setProjectFormData({ full_name: '', short_name: '', season: 'SS26', group_id: '', status: 'active' });
     }
     setShowProjectDialog(true);
   };
@@ -213,8 +215,14 @@ export default function SampleManagement() {
 
   const filteredProjects = projects.filter(p =>
     p.name?.toLowerCase().includes(projectSearchText.toLowerCase()) ||
-    p.brand_name?.toLowerCase().includes(projectSearchText.toLowerCase())
+    p.full_name?.toLowerCase().includes(projectSearchText.toLowerCase()) ||
+    p.short_name?.toLowerCase().includes(projectSearchText.toLowerCase())
   );
+
+  const getGroupName = (groupId) => {
+    const group = groups.find(g => g.id === groupId);
+    return group ? group.name : '-';
+  };
   
   const getTypeLabel = (type) => type === 'universal' ? '通用' : '品牌專用';
   const getTypeColor = (type) => type === 'universal' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
@@ -391,11 +399,12 @@ export default function SampleManagement() {
              <Table className="min-w-full">
                <TableHeader>
                  <TableRow className="bg-gray-50 border-b whitespace-nowrap">
-                   <TableHead className="w-[35%] md:w-[40%]">品牌名稱</TableHead>
-                   <TableHead className="w-[15%] md:w-[20%]">季節</TableHead>
-                   <TableHead className="w-[15%] md:w-[15%]">年份</TableHead>
-                   <TableHead className="w-[15%] md:w-[15%]">狀態</TableHead>
-                   <TableHead className="w-[20%] md:w-[10%] text-right">操作</TableHead>
+                   <TableHead className="w-[25%]">品牌縮寫</TableHead>
+                   <TableHead className="w-[20%]">品牌全名</TableHead>
+                   <TableHead className="w-[12%]">季節</TableHead>
+                   <TableHead className="w-[20%]">集團</TableHead>
+                   <TableHead className="w-[13%]">狀態</TableHead>
+                   <TableHead className="w-[10%] text-right">操作</TableHead>
                  </TableRow>
                </TableHeader>
                <TableBody>
@@ -408,9 +417,10 @@ export default function SampleManagement() {
                  ) : (
                    filteredProjects.map((project) => (
                      <TableRow key={project.id} className="hover:bg-gray-50 whitespace-nowrap">
-                       <TableCell className="font-medium text-sm md:text-base truncate">{project.brand_name}</TableCell>
+                       <TableCell className="font-medium text-sm md:text-base truncate">{project.short_name}</TableCell>
+                       <TableCell className="text-xs md:text-sm truncate">{project.full_name}</TableCell>
                        <TableCell className="text-xs md:text-sm">{project.season}</TableCell>
-                       <TableCell className="text-xs md:text-sm">{project.year}</TableCell>
+                       <TableCell className="text-xs md:text-sm">{getGroupName(project.group_id)}</TableCell>
                        <TableCell className="text-xs md:text-sm">
                          <span
                            className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium inline-block ${
@@ -610,47 +620,71 @@ export default function SampleManagement() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>品牌名稱</Label>
+              <Label>品牌全名</Label>
               <Input
-                value={projectFormData.brand_name}
-                onChange={(e) => setProjectFormData({ ...projectFormData, brand_name: e.target.value })}
-                placeholder="例：iPhone"
+                value={projectFormData.full_name}
+                onChange={(e) => setProjectFormData({ ...projectFormData, full_name: e.target.value })}
+                placeholder="例：Apple iPhone"
                 className="mt-1"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>季節</Label>
-                <Select
-                  value={projectFormData.season}
-                  onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {['SS25', 'FW25', 'SS26', 'FW26', 'SS27', 'FW27'].map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>年份</Label>
-                <Select
-                  value={projectFormData.year.toString()}
-                  onValueChange={(v) => setProjectFormData({ ...projectFormData, year: parseInt(v) })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[2025, 2026, 2027].map((y) => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label>品牌縮寫</Label>
+              <Input
+                value={projectFormData.short_name}
+                onChange={(e) => setProjectFormData({ ...projectFormData, short_name: e.target.value })}
+                placeholder="例：IP"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>季節</Label>
+              <Select
+                value={projectFormData.season}
+                onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {['SS25', 'FW25', 'SS26', 'FW26', 'SS27', 'FW27'].map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>集團</Label>
+              <Select
+                value={projectFormData.group_id}
+                onValueChange={(v) => setProjectFormData({ ...projectFormData, group_id: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="選擇集團（非必填）..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>未指定</SelectItem>
+                  {groups.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>狀態</Label>
+              <Select
+                value={projectFormData.status}
+                onValueChange={(v) => setProjectFormData({ ...projectFormData, status: v })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">進行中</SelectItem>
+                  <SelectItem value="completed">已完成</SelectItem>
+                  <SelectItem value="archived">已存檔</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
@@ -659,7 +693,7 @@ export default function SampleManagement() {
             </Button>
             <Button
               onClick={handleSaveProject}
-              disabled={!projectFormData.brand_name}
+              disabled={!projectFormData.full_name || !projectFormData.short_name}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {editingId && editingType === 'project' ? '更新' : '建立'}
