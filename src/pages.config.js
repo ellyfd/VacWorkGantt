@@ -59,6 +59,7 @@ import LeaveTypeManagement from './pages/LeaveTypeManagement';
 import Notifications from './pages/Notifications';
 import ProjectManagement from './pages/ProjectManagement';
 import ReportManagement from './pages/ReportManagement';
+import GanttChart from './pages/GanttChart';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +76,7 @@ export const PAGES = {
     "Notifications": Notifications,
     "ProjectManagement": ProjectManagement,
     "ReportManagement": ReportManagement,
+    "GanttChart": GanttChart,
 }
 
 export const pagesConfig = {

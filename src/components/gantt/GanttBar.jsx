@@ -1,75 +1,97 @@
 import React from 'react';
 
-export default function GanttBar({ item, days, startDate, endDate }) {
-  if (!item.time_type) return null;
+const STATUS_COLORS = {
+  pending: 'bg-gray-400',
+  progress: 'bg-blue-500',
+  done: 'bg-green-500',
+  delayed: 'bg-red-500',
+};
 
-  // 計算里程碑或區間的位置
-  let position = null;
-  let width = null;
-  let type = null;
+export default function GanttBar({ 
+  timeType, 
+  startDate, 
+  endDate, 
+  date, 
+  status = 'pending',
+  days, 
+  onClick,
+  label
+}) {
+  if (!days || days.length === 0) return null;
 
-  if (item.time_type === 'milestone' && item.date) {
-    const dayIndex = days.findIndex(d => d === item.date);
-    if (dayIndex >= 0) {
-      position = dayIndex * 30;
-      width = 16;
-      type = 'milestone';
+  const getBarPosition = () => {
+    const cellWidth = 28;
+    
+    if (timeType === 'milestone' && date) {
+      const dayIndex = days.findIndex(d => d.date === date);
+      if (dayIndex >= 0) {
+        return { left: dayIndex * cellWidth + 4, width: 20, type: 'milestone' };
+      }
     }
-  } else if (item.time_type === 'duration' && item.start_date && item.end_date) {
-    const startIdx = days.findIndex(d => d === item.start_date);
-    const endIdx = days.findIndex(d => d === item.end_date);
-    if (startIdx >= 0 && endIdx >= 0) {
-      position = startIdx * 30;
-      width = (endIdx - startIdx + 1) * 30;
-      type = 'duration';
+    
+    if ((timeType === 'duration' || timeType === 'rolling') && startDate) {
+      const startIdx = days.findIndex(d => d.date >= startDate);
+      const endIdx = endDate 
+        ? days.findIndex(d => d.date > endDate) - 1
+        : days.length - 1;
+      
+      const effectiveStartIdx = startIdx >= 0 ? startIdx : 0;
+      const effectiveEndIdx = endIdx >= 0 ? endIdx : days.length - 1;
+      
+      if (effectiveStartIdx <= effectiveEndIdx) {
+        return { 
+          left: effectiveStartIdx * cellWidth + 2, 
+          width: (effectiveEndIdx - effectiveStartIdx + 1) * cellWidth - 4,
+          type: timeType
+        };
+      }
     }
-  } else if (item.time_type === 'rolling' && item.start_date) {
-    const startIdx = days.findIndex(d => d === item.start_date);
-    const endIdx = days.length - 1;
-    if (startIdx >= 0) {
-      position = startIdx * 30;
-      width = (endIdx - startIdx + 1) * 30;
-      type = 'rolling';
-    }
+    
+    return null;
+  };
+
+  const barPosition = getBarPosition();
+  if (!barPosition) return null;
+
+  const baseColor = STATUS_COLORS[status] || STATUS_COLORS.pending;
+
+  if (barPosition.type === 'milestone') {
+    return (
+      <div
+        className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 ${baseColor} rotate-45 cursor-pointer hover:scale-110 transition-transform shadow-sm`}
+        style={{ left: barPosition.left }}
+        onClick={onClick}
+        title={label}
+      />
+    );
   }
 
-  if (position === null || width === null) return null;
+  if (barPosition.type === 'rolling') {
+    return (
+      <div
+        className="absolute top-1/2 -translate-y-1/2 h-5 rounded cursor-pointer hover:opacity-80 transition-opacity overflow-hidden"
+        style={{ 
+          left: barPosition.left, 
+          width: barPosition.width,
+          background: `repeating-linear-gradient(90deg, ${status === 'done' ? '#22c55e' : status === 'progress' ? '#3b82f6' : '#9ca3af'}, ${status === 'done' ? '#22c55e' : status === 'progress' ? '#3b82f6' : '#9ca3af'} 6px, ${status === 'done' ? '#16a34a' : status === 'progress' ? '#2563eb' : '#6b7280'} 6px, ${status === 'done' ? '#16a34a' : status === 'progress' ? '#2563eb' : '#6b7280'} 12px)`
+        }}
+        onClick={onClick}
+        title={label}
+      >
+        <span className="text-[10px] text-white px-1 truncate block leading-5">{label}</span>
+      </div>
+    );
+  }
 
+  // duration
   return (
-    <>
-      {type === 'milestone' && (
-        <div
-          className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2"
-          style={{ left: `${position + 15}px` }}
-        >
-          <div className="relative">
-            <div className="w-4 h-4 bg-red-500 transform rotate-45 rounded-sm shadow" />
-            <div className="absolute top-5 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-xs text-red-600 font-semibold">
-              {item.date}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {type === 'duration' && (
-        <div
-          className="absolute top-1/2 transform -translate-y-1/2 h-6 bg-blue-400 rounded shadow hover:bg-blue-500 transition-colors"
-          style={{ left: `${position}px`, width: `${width}px` }}
-          title={`${item.start_date} ~ ${item.end_date}`}
-        />
-      )}
-
-      {type === 'rolling' && (
-        <div
-          className="absolute top-1/2 transform -translate-y-1/2 h-6 rounded shadow"
-          style={{
-            left: `${position}px`,
-            width: `${width}px`,
-            background: 'repeating-linear-gradient(45deg, #f59e0b, #f59e0b 10px, #fbbf24 10px, #fbbf24 20px)',
-          }}
-          title={`From ${item.start_date}`}
-        />
-      )}
-    </>
+    <div
+      className={`absolute top-1/2 -translate-y-1/2 h-5 ${baseColor} rounded cursor-pointer hover:opacity-80 transition-opacity shadow-sm`}
+      style={{ left: barPosition.left, width: barPosition.width }}
+      onClick={onClick}
+      title={label}
+    >
+      <span className="text-[10px] text-white px-1 truncate block leading-5">{label}</span>
+    </div>
   );
 }
