@@ -60,6 +60,7 @@ import Notifications from './pages/Notifications';
 import ProjectManagement from './pages/ProjectManagement';
 import ReportManagement from './pages/ReportManagement';
 import GanttChart from './pages/GanttChart';
+import SampleManagement from './pages/SampleManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -77,6 +78,7 @@ export const PAGES = {
     "ProjectManagement": ProjectManagement,
     "ReportManagement": ReportManagement,
     "GanttChart": GanttChart,
+    "SampleManagement": SampleManagement,
 }
 
 export const pagesConfig = {
