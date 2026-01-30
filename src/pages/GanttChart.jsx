@@ -40,6 +40,9 @@ export default function GanttChart() {
   const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '' });
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
