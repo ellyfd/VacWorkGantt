@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -24,29 +25,34 @@ import { Loader2, Plus, Edit2, Trash2, Search } from 'lucide-react';
 
 export default function SampleManagement() {
   const queryClient = useQueryClient();
-  const [showDialog, setShowDialog] = useState(false);
+  const [showSampleDialog, setShowSampleDialog] = useState(false);
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', type: 'universal', project_id: '' });
+  const [editingType, setEditingType] = useState(null);
+  const [sampleFormData, setSampleFormData] = useState({ name: '', type: 'universal', project_id: '' });
+  const [projectFormData, setProjectFormData] = useState({ brand_name: '', season: 'SS26', year: 2026 });
   const [searchText, setSearchText] = useState('');
+  const [projectSearchText, setProjectSearchText] = useState('');
 
   // Queries
-  const { data: samples = [], isLoading } = useQuery({
+  const { data: samples = [], isLoading: loadingSamples } = useQuery({
     queryKey: ['samples'],
     queryFn: () => base44.entities.Sample.list('sort_order'),
   });
 
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [], isLoading: loadingProjects } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('name'),
+    queryFn: () => base44.entities.Project.list('sort_order'),
   });
 
   // Mutations
+  // Sample Mutations
   const createSample = useMutation({
     mutationFn: (data) => base44.entities.Sample.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['samples']);
-      setShowDialog(false);
-      setFormData({ name: '', type: 'universal', project_id: '' });
+      setShowSampleDialog(false);
+      setSampleFormData({ name: '', type: 'universal', project_id: '' });
     },
   });
 
@@ -54,8 +60,8 @@ export default function SampleManagement() {
     mutationFn: ({ id, data }) => base44.entities.Sample.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['samples']);
-      setShowDialog(false);
-      setFormData({ name: '', type: 'universal', project_id: '' });
+      setShowSampleDialog(false);
+      setSampleFormData({ name: '', type: 'universal', project_id: '' });
       setEditingId(null);
     },
   });
@@ -67,34 +73,96 @@ export default function SampleManagement() {
     },
   });
 
-  const handleOpenDialog = (sample = null) => {
+  // Project Mutations
+  const createProject = useMutation({
+    mutationFn: (data) => {
+      const name = `${data.brand_name} ${data.season}`;
+      return base44.entities.Project.create({ ...data, name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      setShowProjectDialog(false);
+      setProjectFormData({ brand_name: '', season: 'SS26', year: 2026 });
+    },
+  });
+
+  const updateProject = useMutation({
+    mutationFn: ({ id, data }) => {
+      const name = `${data.brand_name} ${data.season}`;
+      return base44.entities.Project.update(id, { ...data, name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+      setShowProjectDialog(false);
+      setProjectFormData({ brand_name: '', season: 'SS26', year: 2026 });
+      setEditingId(null);
+    },
+  });
+
+  const deleteProject = useMutation({
+    mutationFn: (id) => base44.entities.Project.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['projects']);
+    },
+  });
+
+  const handleOpenSampleDialog = (sample = null) => {
     if (sample) {
       setEditingId(sample.id);
-      setFormData({
+      setEditingType('sample');
+      setSampleFormData({
         name: sample.name,
         type: sample.type,
         project_id: sample.project_id || '',
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', type: 'universal', project_id: '' });
+      setEditingType('sample');
+      setSampleFormData({ name: '', type: 'universal', project_id: '' });
     }
-    setShowDialog(true);
+    setShowSampleDialog(true);
   };
 
-  const handleSave = () => {
-    if (!formData.name.trim()) return;
+  const handleSaveSample = () => {
+    if (!sampleFormData.name.trim()) return;
 
     const data = {
-      name: formData.name,
-      type: formData.type,
-      ...(formData.type === 'brand' && { project_id: formData.project_id }),
+      name: sampleFormData.name,
+      type: sampleFormData.type,
+      ...(sampleFormData.type === 'brand' && { project_id: sampleFormData.project_id }),
     };
 
     if (editingId) {
       updateSample.mutate({ id: editingId, data });
     } else {
       createSample.mutate(data);
+    }
+  };
+
+  const handleOpenProjectDialog = (project = null) => {
+    if (project) {
+      setEditingId(project.id);
+      setEditingType('project');
+      setProjectFormData({
+        brand_name: project.brand_name,
+        season: project.season,
+        year: project.year,
+      });
+    } else {
+      setEditingId(null);
+      setEditingType('project');
+      setProjectFormData({ brand_name: '', season: 'SS26', year: 2026 });
+    }
+    setShowProjectDialog(true);
+  };
+
+  const handleSaveProject = () => {
+    if (!projectFormData.brand_name.trim()) return;
+
+    if (editingId) {
+      updateProject.mutate({ id: editingId, data: projectFormData });
+    } else {
+      createProject.mutate(projectFormData);
     }
   };
 
@@ -107,9 +175,16 @@ export default function SampleManagement() {
     s.name?.toLowerCase().includes(searchText.toLowerCase()) ||
     getProjectName(s.project_id)?.toLowerCase().includes(searchText.toLowerCase())
   );
+
+  const filteredProjects = projects.filter(p =>
+    p.name?.toLowerCase().includes(projectSearchText.toLowerCase()) ||
+    p.brand_name?.toLowerCase().includes(projectSearchText.toLowerCase())
+  );
   
   const getTypeLabel = (type) => type === 'universal' ? '通用' : '品牌專用';
   const getTypeColor = (type) => type === 'universal' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+
+  const isLoading = loadingSamples || loadingProjects;
 
   if (isLoading) {
     return (
@@ -122,23 +197,35 @@ export default function SampleManagement() {
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">樣品種類管理</h1>
-        <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          新增樣品
-        </Button>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">樣品與品牌管理</h1>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative">
-        <Input
-          placeholder="搜尋樣品名稱或品牌..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="pl-10"
-        />
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-      </div>
+      <Tabs defaultValue="samples" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="samples">樣品管理</TabsTrigger>
+          <TabsTrigger value="projects">品牌管理</TabsTrigger>
+        </TabsList>
+
+        {/* Samples Tab */}
+        <TabsContent value="samples" className="space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">樣品列表</h2>
+            <Button onClick={() => handleOpenSampleDialog()} className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              新增樣品
+            </Button>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative">
+            <Input
+              placeholder="搜尋樣品名稱或品牌..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="pl-10"
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          </div>
 
       {/* Samples List */}
       <Card>
@@ -210,18 +297,18 @@ export default function SampleManagement() {
         </CardContent>
       </Card>
 
-      {/* Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+      {/* Sample Dialog */}
+      <Dialog open={showSampleDialog} onOpenChange={setShowSampleDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? '編輯樣品' : '新增樣品'}</DialogTitle>
+            <DialogTitle>{editingId && editingType === 'sample' ? '編輯樣品' : '新增樣品'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <Label>樣品名稱</Label>
               <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={sampleFormData.name}
+                onChange={(e) => setSampleFormData({ ...sampleFormData, name: e.target.value })}
                 placeholder="例：玻璃後蓋"
                 className="mt-1"
               />
@@ -229,8 +316,8 @@ export default function SampleManagement() {
             <div>
               <Label>類型</Label>
               <Select
-                value={formData.type}
-                onValueChange={(v) => setFormData({ ...formData, type: v })}
+                value={sampleFormData.type}
+                onValueChange={(v) => setSampleFormData({ ...sampleFormData, type: v })}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
@@ -241,12 +328,12 @@ export default function SampleManagement() {
                 </SelectContent>
               </Select>
             </div>
-            {formData.type === 'brand' && (
+            {sampleFormData.type === 'brand' && (
               <div>
                 <Label>品牌</Label>
                 <Select
-                  value={formData.project_id}
-                  onValueChange={(v) => setFormData({ ...formData, project_id: v })}
+                  value={sampleFormData.project_id}
+                  onValueChange={(v) => setSampleFormData({ ...sampleFormData, project_id: v })}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="選擇品牌..." />
@@ -263,15 +350,81 @@ export default function SampleManagement() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
+            <Button variant="outline" onClick={() => setShowSampleDialog(false)}>
               取消
             </Button>
             <Button
-              onClick={handleSave}
-              disabled={!formData.name || (formData.type === 'brand' && !formData.project_id)}
+              onClick={handleSaveSample}
+              disabled={!sampleFormData.name || (sampleFormData.type === 'brand' && !sampleFormData.project_id)}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {editingId ? '更新' : '建立'}
+              {editingId && editingType === 'sample' ? '更新' : '建立'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Project Dialog */}
+      <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingId && editingType === 'project' ? '編輯品牌' : '新增品牌'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>品牌名稱</Label>
+              <Input
+                value={projectFormData.brand_name}
+                onChange={(e) => setProjectFormData({ ...projectFormData, brand_name: e.target.value })}
+                placeholder="例：iPhone"
+                className="mt-1"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>季節</Label>
+                <Select
+                  value={projectFormData.season}
+                  onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['SS25', 'FW25', 'SS26', 'FW26', 'SS27', 'FW27'].map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>年份</Label>
+                <Select
+                  value={projectFormData.year.toString()}
+                  onValueChange={(v) => setProjectFormData({ ...projectFormData, year: parseInt(v) })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2025, 2026, 2027].map((y) => (
+                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowProjectDialog(false)}>
+              取消
+            </Button>
+            <Button
+              onClick={handleSaveProject}
+              disabled={!projectFormData.brand_name}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {editingId && editingType === 'project' ? '更新' : '建立'}
             </Button>
           </DialogFooter>
         </DialogContent>
