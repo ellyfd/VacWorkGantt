@@ -22,7 +22,10 @@ export default function ProjectManagement() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Project.create(data),
+    mutationFn: (data) => {
+      const name = `${data.brand_name} ${data.season}`;
+      return base44.entities.Project.create({ ...data, name });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setDialogOpen(false);
@@ -31,7 +34,10 @@ export default function ProjectManagement() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Project.update(id, data),
+    mutationFn: ({ id, data }) => {
+      const name = `${data.brand_name} ${data.season}`;
+      return base44.entities.Project.update(id, { ...data, name });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setDialogOpen(false);
@@ -148,11 +154,12 @@ export default function ProjectManagement() {
                   <Label htmlFor="name">專案名稱</Label>
                   <Input
                     id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.brand_name && formData.season ? `${formData.brand_name} ${formData.season}` : ''}
                     placeholder="例: iPhone SS26"
-                    required
+                    disabled
+                    className="bg-gray-100"
                   />
+                  <p className="text-xs text-gray-500 mt-1">自動由品牌和季度生成</p>
                 </div>
                 <div>
                   <Label htmlFor="brand_name">品牌名稱</Label>
