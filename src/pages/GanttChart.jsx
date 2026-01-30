@@ -13,6 +13,12 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -20,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Plus, ChevronDown, ChevronRight, Diamond, ArrowRight, Repeat, GripVertical, Upload } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Diamond, ArrowRight, Repeat, GripVertical, Upload, Edit2, Trash2, X } from 'lucide-react';
 import { addMonths, format, eachDayOfInterval, isToday } from 'date-fns';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
@@ -47,6 +53,20 @@ export default function GanttChart() {
   const [showDurationDialog, setShowDurationDialog] = useState(false);
   const [showRollingDialog, setShowRollingDialog] = useState(false);
   const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
+  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false);
+
+  // 拖曳畫區間狀態
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragTaskId, setDragTaskId] = useState(null);
+  const [dragStart, setDragStart] = useState(null);
+  const [dragEnd, setDragEnd] = useState(null);
+
+  // 編輯任務狀態
+  const [editingTask, setEditingTask] = useState(null);
+
+  // Scroll refs
+  const leftPanelRef = React.useRef(null);
+  const rightPanelRef = React.useRef(null);
 
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [creatingProjectId, setCreatingProjectId] = useState(null);
@@ -169,6 +189,13 @@ export default function GanttChart() {
     onSuccess: () => {
       queryClient.invalidateQueries(['ganttTasks']);
       clearSelection();
+    },
+  });
+
+  const deleteGanttTask = useMutation({
+    mutationFn: (id) => base44.entities.GanttTask.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttTasks']);
     },
   });
 
@@ -313,6 +340,25 @@ export default function GanttChart() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // 同步滾動
+  React.useEffect(() => {
+    const left = leftPanelRef.current;
+    const right = rightPanelRef.current;
+    if (!left || !right) return;
+
+    const syncScroll = (source, target) => () => {
+      target.scrollTop = source.scrollTop;
+    };
+
+    left.addEventListener('scroll', syncScroll(left, right));
+    right.addEventListener('scroll', syncScroll(right, left));
+
+    return () => {
+      left.removeEventListener('scroll', syncScroll(left, right));
+      right.removeEventListener('scroll', syncScroll(right, left));
+    };
+  }, []);
+
   // 確認設定里程碑
   const handleConfirmMilestone = () => {
     if (!firstDate || !selectedTaskId) return;
@@ -361,6 +407,36 @@ export default function GanttChart() {
       },
     });
     setShowRollingDialog(false);
+  };
+
+  // 右鍵選單 handlers
+  const handleSetMilestone = (taskId, date) => {
+    updateGanttTask.mutate({
+      id: taskId,
+      data: { time_type: 'milestone', start_date: format(date, 'yyyy-MM-dd'), end_date: null }
+    });
+  };
+
+  const handleSetRolling = (taskId, date) => {
+    updateGanttTask.mutate({
+      id: taskId,
+      data: { time_type: 'rolling', start_date: format(date, 'yyyy-MM-dd'), end_date: null }
+    });
+  };
+
+  const handleClearTime = (taskId) => {
+    updateGanttTask.mutate({
+      id: taskId,
+      data: { time_type: null, start_date: null, end_date: null }
+    });
+  };
+
+  // 拖曳畫區間的判斷
+  const isInDragRange = (task, dateStr) => {
+    if (!isDragging || dragTaskId !== task.id || !dragStart || !dragEnd) return false;
+    const s = format(dragStart < dragEnd ? dragStart : dragEnd, 'yyyy-MM-dd');
+    const e = format(dragStart < dragEnd ? dragEnd : dragStart, 'yyyy-MM-dd');
+    return dateStr >= s && dateStr <= e;
   };
 
   const toggleProject = (projectId) => {
