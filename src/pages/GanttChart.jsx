@@ -33,6 +33,7 @@ export default function GanttChart() {
   const [showSelectSamplesDialog, setShowSelectSamplesDialog] = useState(false);
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
+  const [creatingProjectId, setCreatingProjectId] = useState(null);
 
   const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '' });
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '' });
@@ -67,10 +68,11 @@ export default function GanttChart() {
   // Mutations
   const createGanttProject = useMutation({
     mutationFn: (data) => base44.entities.GanttProject.create(data),
-    onSuccess: () => {
+    onSuccess: (newProject) => {
       queryClient.invalidateQueries(['ganttProjects']);
+      setCreatingProjectId(newProject.id);
       setShowAddProjectDialog(false);
-      setProjectFormData({ brand_id: '', season: '' });
+      setShowSelectSamplesDialog(true);
     },
   });
 
@@ -78,8 +80,21 @@ export default function GanttChart() {
     mutationFn: (data) => base44.entities.GanttPhase.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['ganttPhases']);
+    },
+  });
+
+  const bulkCreatePhases = useMutation({
+    mutationFn: async (phases) => {
+      for (const phase of phases) {
+        await base44.entities.GanttPhase.create(phase);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttPhases']);
       setShowSelectSamplesDialog(false);
       setSelectedSamples({});
+      setCreatingProjectId(null);
+      setProjectFormData({ brand_id: '', season: '' });
     },
   });
 
@@ -149,17 +164,19 @@ export default function GanttChart() {
   };
 
   const handleSelectSamples = () => {
-    const projectId = Object.keys(projectFormData)[0]; // Temp store
+    if (!creatingProjectId) return;
     const selectedSampleIds = Object.keys(selectedSamples).filter(k => selectedSamples[k]);
 
-    selectedSampleIds.forEach((sampleId) => {
+    const phasesToCreate = selectedSampleIds.map((sampleId) => {
       const sample = samples.find(s => s.id === sampleId);
-      createGanttPhase.mutate({
-        gantt_project_id: projectId,
+      return {
+        gantt_project_id: creatingProjectId,
         sample_id: sampleId,
         name: sample.short_name,
-      });
+      };
     });
+
+    bulkCreatePhases.mutate(phasesToCreate);
   };
 
   const handleAddTask = () => {
@@ -544,18 +561,11 @@ export default function GanttChart() {
               取消
             </Button>
             <Button
-              onClick={() => {
-                setProjectFormData(prev => ({
-                  ...prev,
-                  _tempProjectId: prev.brand_id,
-                }));
-                setShowSelectSamplesDialog(true);
-                setShowAddProjectDialog(false);
-              }}
-              disabled={!projectFormData.brand_id || !projectFormData.season}
+              onClick={handleAddProject}
+              disabled={!projectFormData.brand_id || !projectFormData.season || createGanttProject.isPending}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              下一步
+              {createGanttProject.isPending ? '建立中...' : '下一步'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -602,20 +612,18 @@ export default function GanttChart() {
               variant="outline"
               onClick={() => {
                 setShowSelectSamplesDialog(false);
-                setShowAddProjectDialog(true);
+                setCreatingProjectId(null);
+                setProjectFormData({ brand_id: '', season: '' });
               }}
             >
-              上一步
+              取消
             </Button>
             <Button
-              onClick={() => {
-                handleAddProject();
-                handleSelectSamples();
-              }}
-              disabled={Object.values(selectedSamples).every(v => !v)}
+              onClick={handleSelectSamples}
+              disabled={Object.values(selectedSamples).every(v => !v) || bulkCreatePhases.isPending}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              建立專案
+              {bulkCreatePhases.isPending ? '建立中...' : '完成'}
             </Button>
           </DialogFooter>
         </DialogContent>
