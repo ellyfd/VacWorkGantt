@@ -899,7 +899,10 @@ export default function GanttChart() {
                   <div
                     className="overflow-y-auto"
                     style={{ maxHeight: 'calc(100vh - 400px)' }}
-                    ref={provided.innerRef}
+                    ref={(el) => {
+                      provided.innerRef(el);
+                      leftPanelRef.current = el;
+                    }}
                     {...provided.droppableProps}
                   >
                     {rows.filter(r => r.type === 'project').map((row, idx) => (
@@ -1020,7 +1023,17 @@ export default function GanttChart() {
                 </div>
               ))}
             </div>
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+            <div 
+              className="overflow-y-auto" 
+              ref={rightPanelRef}
+              style={{ maxHeight: 'calc(100vh - 400px)' }}
+              onMouseLeave={() => {
+                if (isDragging) {
+                  setIsDragging(false);
+                  setDragTaskId(null);
+                }
+              }}
+            >
               {rows.map((row) => (
                 <div key={row.id} className="flex border-b border-gray-200">
                   {days.map((day) => renderRightCell(row, day))}
@@ -1446,6 +1459,57 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Task Dialog */}
+      <Dialog open={showEditTaskDialog} onOpenChange={setShowEditTaskDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>編輯任務</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>任務名稱</Label>
+              <Input 
+                value={taskFormData.name} 
+                onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
+              />
+            </div>
+            <label className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                checked={taskFormData.is_important} 
+                onChange={(e) => setTaskFormData({ ...taskFormData, is_important: e.target.checked })}
+                className="w-4 h-4"
+              />
+              <span>標記為重要（黃色里程碑）</span>
+            </label>
+            <div>
+              <Label>備註</Label>
+              <Input 
+                value={taskFormData.note} 
+                onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
+                placeholder="選填"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditTaskDialog(false)}>
+              取消
+            </Button>
+            <Button onClick={() => {
+              if (editingTask) {
+                updateGanttTask.mutate({ 
+                  id: editingTask.id, 
+                  data: taskFormData
+                });
+              }
+              setShowEditTaskDialog(false);
+            }} className="bg-blue-600 hover:bg-blue-700">
+              儲存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Add Task Dialog */}
       <Dialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog}>
         <DialogContent>
@@ -1495,6 +1559,18 @@ export default function GanttChart() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
+
+      {/* 操作說明 */}
+      <details className="mt-4 text-sm text-gray-600">
+        <summary className="cursor-pointer font-medium">📖 操作說明</summary>
+        <ul className="mt-2 ml-4 space-y-1 list-disc">
+          <li>點擊任務名稱選取，再點時間格設定日期</li>
+          <li>拖曳格子可直接畫出時間區間</li>
+          <li>右鍵點格子可快速設定里程碑/Rolling/清除時間</li>
+          <li>雙擊任務名稱可編輯</li>
+          <li>滑鼠移到任務上可顯示編輯/刪除按鈕</li>
+        </ul>
+      </details>
+      </div>
+      );
+      }
