@@ -23,8 +23,6 @@ const settingsItems = [
   { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },
   { name: 'HolidayManagement', label: '假日管理', icon: CalendarClock },
   { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
-  { name: 'ClientGroupManagement', label: '客戶群組管理', icon: Users },
-  { name: 'BrandManagement', label: '品牌管理', icon: Building2 },
   { name: 'ProjectManagement', label: '專案管理', icon: BarChart3 },
 ];
 
