@@ -1227,11 +1227,33 @@ export default function GanttChart() {
                   </Button>
                   <Button
                     onClick={async () => {
-                      if (!scheduleFile) return;
+                      if (!scheduleFile || !currentPhaseId) return;
                       setIsAnalyzingSchedule(true);
-                      const file_url = await uploadScheduleFile.mutateAsync(scheduleFile);
-                      analyzeSchedule.mutate(file_url);
-                      setIsAnalyzingSchedule(false);
+                      try {
+                        const { file_url } = await uploadScheduleFile.mutateAsync(scheduleFile);
+                        const result = await analyzeSchedule.mutateAsync(file_url);
+
+                        if (result && result.tasks && result.tasks.length > 0) {
+                          let sortOrder = ganttTasks.filter(t => t.gantt_phase_id === currentPhaseId).length + 1;
+                          for (const task of result.tasks) {
+                            if (task.name.trim()) {
+                              await base44.entities.GanttTask.create({
+                                name: task.name.trim(),
+                                gantt_phase_id: currentPhaseId,
+                                sort_order: sortOrder++,
+                                time_type: 'milestone',
+                              });
+                            }
+                          }
+                          queryClient.invalidateQueries(['ganttTasks']);
+                          setShowAddTaskDialog(false);
+                          setScheduleFile(null);
+                          setTaskCreationMode('manual');
+                          setCurrentPhaseId(null);
+                        }
+                      } finally {
+                        setIsAnalyzingSchedule(false);
+                      }
                     }}
                     disabled={!scheduleFile || isAnalyzingSchedule}
                     className="bg-blue-600 hover:bg-blue-700"
