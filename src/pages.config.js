@@ -61,6 +61,9 @@ import Notifications from './pages/Notifications';
 import ProjectManagement from './pages/ProjectManagement';
 import ReportManagement from './pages/ReportManagement';
 import SampleManagement from './pages/SampleManagement';
+import ProjectSettings from './pages/ProjectSettings';
+import PeopleManagement from './pages/PeopleManagement';
+import LeaveSettings from './pages/LeaveSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +82,9 @@ export const PAGES = {
     "ProjectManagement": ProjectManagement,
     "ReportManagement": ReportManagement,
     "SampleManagement": SampleManagement,
+    "ProjectSettings": ProjectSettings,
+    "PeopleManagement": PeopleManagement,
+    "LeaveSettings": LeaveSettings,
 }
 
 export const pagesConfig = {

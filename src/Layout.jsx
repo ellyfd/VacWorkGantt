@@ -18,13 +18,10 @@ const navItems = [
 ];
 
 const settingsItems = [
-  { name: 'EmployeeManagement', label: '員工管理', icon: Users },
-  { name: 'DepartmentManagement', label: '部門管理', icon: Building2 },
-  { name: 'LeaveTypeManagement', label: '假別管理', icon: Tag },
-  { name: 'HolidayManagement', label: '假日管理', icon: CalendarClock },
+  { name: 'PeopleManagement', label: '人員管理', icon: Users },
+  { name: 'LeaveSettings', label: '休假設定', icon: CalendarClock },
+  { name: 'ProjectSettings', label: '專案設定', icon: BarChart3 },
   { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
-  { name: 'ProjectManagement', label: '專案管理', icon: BarChart3 },
-  { name: 'SampleManagement', label: '樣品管理', icon: Tag },
 ];
 
 export default function Layout({ children, currentPageName }) {
