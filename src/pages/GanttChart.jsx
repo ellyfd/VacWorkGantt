@@ -46,11 +46,10 @@ export default function GanttChart() {
   const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
   const [showDurationDialog, setShowDurationDialog] = useState(false);
   const [showRollingDialog, setShowRollingDialog] = useState(false);
-  const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
-
+  
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [creatingProjectId, setCreatingProjectId] = useState(null);
-  const [createdPhaseIds, setCreatedPhaseIds] = useState([]);
+  const [taskCreationMode, setTaskCreationMode] = useState('manual'); // 'manual' or 'import'
   const [scheduleFile, setScheduleFile] = useState(null);
   const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
 
@@ -98,19 +97,17 @@ export default function GanttChart() {
 
   const bulkCreatePhases = useMutation({
     mutationFn: async (phases) => {
-      const createdIds = [];
       for (const phase of phases) {
-        const created = await base44.entities.GanttPhase.create(phase);
-        createdIds.push(created.id);
+        await base44.entities.GanttPhase.create(phase);
       }
-      return createdIds;
     },
-    onSuccess: (createdIds) => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['ganttPhases']);
-      setCreatedPhaseIds(createdIds);
       setShowSelectSamplesDialog(false);
-      setShowImportScheduleDialog(true);
       setSelectedSamples({});
+      setProjectFormData({ brand_id: '', season: '' });
+      setTaskCreationMode('manual');
+      setScheduleFile(null);
     },
   });
 
