@@ -297,18 +297,16 @@ export default function GanttChart() {
     }
   };
 
-  // 雙擊清除時間
-  const handleDoubleClick = (taskId) => {
-    setSelectedTaskId(taskId);
-    updateGanttTask.mutate({
-      id: taskId,
-      data: {
-        time_type: null,
-        start_date: null,
-        end_date: null,
-      },
-    });
-  };
+  // Esc 鍵取消選擇
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        clearSelection();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // 確認設定里程碑
   const handleConfirmMilestone = () => {
