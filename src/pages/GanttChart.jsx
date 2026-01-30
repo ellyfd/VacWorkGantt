@@ -92,7 +92,11 @@ export default function GanttChart() {
       queryClient.invalidateQueries(['ganttProjects']);
       setCreatingProjectId(newProject.id);
       setShowAddProjectDialog(false);
-      setShowSelectSamplesDialog(true);
+      if (projectCreationMode === 'manual') {
+        setShowSelectSamplesDialog(true);
+      } else {
+        setShowImportScheduleDialog(true);
+      }
     },
   });
 
