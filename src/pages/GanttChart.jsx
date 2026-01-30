@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format, getDaysInMonth, getDay, addMonths, subMonths } from "date-fns";
-import { Loader2, Plus, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Loader2, Plus, ChevronLeft, ChevronRight, Search, ChevronDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,12 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-import {
-  GanttLeaveRow,
-  GanttProjectTree,
-  GanttTimeline,
-  GanttEditDialog,
-} from '@/components/gantt';
+import { GanttEditDialog } from '@/components/gantt';
+import GanttBar from '@/components/gantt/GanttBar';
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 const PHASE_TYPES = ['3D Proto', '3D LA', '3D JSS', '3D RS'];
@@ -46,7 +42,7 @@ export default function GanttChart() {
   const [editingType, setEditingType] = useState(null);
   const [selectedPhaseId, setSelectedPhaseId] = useState(null);
 
-  // New project form
+  // New forms
   const [newProject, setNewProject] = useState({ name: '', brand_name: '', season: 'SS26', year: 2026 });
   const [newTask, setNewTask] = useState({ name: '' });
 
@@ -108,6 +104,24 @@ export default function GanttChart() {
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays'],
     queryFn: () => base44.entities.Holiday.list(),
+  });
+
+  const { data: leaveRecords = [] } = useQuery({
+    queryKey: ['leaveRecords', format(currentDate, 'yyyy-MM')],
+    queryFn: async () => {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const startDate = format(new Date(year, month, 1), 'yyyy-MM-dd');
+      const endDate = format(new Date(year, month + 1, 0), 'yyyy-MM-dd');
+      return base44.entities.LeaveRecord.filter({
+        date: { $gte: startDate, $lte: endDate }
+      });
+    },
+  });
+
+  const { data: leaveTypes = [] } = useQuery({
+    queryKey: ['leaveTypes'],
+    queryFn: () => base44.entities.LeaveType.list('sort_order'),
   });
 
   // Mutations
@@ -184,11 +198,11 @@ export default function GanttChart() {
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
-  const handleToggleProject = (projectId) => {
+  const toggleProject = (projectId) => {
     setExpandedProjects(prev => ({ ...prev, [projectId]: !prev[projectId] }));
   };
 
-  const handleTogglePhase = (phaseId) => {
+  const togglePhase = (phaseId) => {
     setExpandedPhases(prev => ({ ...prev, [phaseId]: !prev[phaseId] }));
   };
 
@@ -198,12 +212,6 @@ export default function GanttChart() {
   };
 
   const handleRowClick = (item, type) => {
-    setEditingItem(item);
-    setEditingType(type);
-    setShowEditDialog(true);
-  };
-
-  const handleBarClick = (item, type) => {
     setEditingItem(item);
     setEditingType(type);
     setShowEditDialog(true);
@@ -241,6 +249,51 @@ export default function GanttChart() {
     }
   };
 
+  const getEmployeeName = (assigneeId) => {
+    const emp = employees.find(e => e.id === assigneeId);
+    return emp ? emp.name : '-';
+  };
+
+  const isHoliday = (date) => holidays?.some(h => h.date === date);
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  // 篩選專案
+  const filteredProjects = filterText
+    ? projects.filter(p => 
+        p.name?.toLowerCase().includes(filterText.toLowerCase()) ||
+        p.brand_name?.toLowerCase().includes(filterText.toLowerCase())
+      )
+    : projects;
+
+  // 建立扁平化的行列表（左側和右側共用）
+  const rows = useMemo(() => {
+    const result = [];
+    filteredProjects.forEach((project) => {
+      result.push({ type: 'project', data: project, level: 0 });
+      
+      if (expandedProjects[project.id]) {
+        const projectPhases = phases
+          .filter(p => p.project_id === project.id)
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        
+        projectPhases.forEach((phase) => {
+          result.push({ type: 'phase', data: phase, level: 1 });
+          
+          if (expandedPhases[phase.id]) {
+            const phaseTasks = tasks
+              .filter(t => t.phase_id === phase.id)
+              .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+            
+            phaseTasks.forEach((task) => {
+              result.push({ type: 'task', data: task, level: 2 });
+            });
+          }
+        });
+      }
+    });
+    return result;
+  }, [filteredProjects, phases, tasks, expandedProjects, expandedPhases]);
+
   const isLoading = loadingProjects || loadingPhases || loadingTasks;
 
   if (isLoading) {
@@ -252,12 +305,11 @@ export default function GanttChart() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800">專案甘特圖</h1>
         <div className="flex items-center gap-3">
-          {/* 搜尋 */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
@@ -267,7 +319,6 @@ export default function GanttChart() {
               className="pl-9 w-48"
             />
           </div>
-          {/* 月份切換 */}
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={handlePrevMonth}>
               <ChevronLeft className="w-4 h-4" />
@@ -302,7 +353,6 @@ export default function GanttChart() {
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-          {/* 新增專案 */}
           <Button onClick={() => setShowProjectDialog(true)}>
             <Plus className="w-4 h-4 mr-2" />
             新增專案
@@ -310,53 +360,150 @@ export default function GanttChart() {
         </div>
       </div>
 
-      {/* Gantt Chart */}
-      <div className="flex overflow-hidden" style={{ height: 'calc(100vh - 120px)' }}>
-        {/* Left: Project Tree */}
-        <GanttProjectTree
-          projects={projects}
-          phases={phases}
-          tasks={tasks}
-          employees={employees}
-          expandedProjects={expandedProjects}
-          expandedPhases={expandedPhases}
-          onToggleProject={handleToggleProject}
-          onTogglePhase={handleTogglePhase}
-          onAddTask={handleAddTask}
-          onRowClick={handleRowClick}
-          filterText={filterText}
-        />
+      {/* Gantt Chart Container */}
+      <div className="flex-1 overflow-auto">
+        <div className="flex min-w-max">
+          {/* Left Panel - Project Tree */}
+          <div className="sticky left-0 z-20 bg-white border-r border-gray-200 flex-shrink-0">
+            {/* Header */}
+            <div className="flex border-b border-gray-200 bg-gray-50 h-12">
+              <div className="w-[200px] px-3 flex items-center text-xs font-semibold text-gray-600">
+                名稱
+              </div>
+              <div className="w-[80px] px-2 flex items-center justify-center text-xs font-semibold text-gray-600 border-l border-gray-200">
+                負責人
+              </div>
+            </div>
 
-        {/* Right: Timeline */}
-        <div className="flex-1 overflow-auto">
-          {/* Leave Row */}
-          <GanttLeaveRow
-            employees={employees}
-            leaveRecords={leaveRecords}
-            leaveTypes={leaveTypes}
-            holidays={holidays}
-            days={days}
-          />
+            {/* Rows */}
+            {rows.map((row, idx) => (
+              <div 
+                key={`left-${row.type}-${row.data.id}`}
+                className={`flex border-b border-gray-100 h-10 hover:bg-gray-50 ${
+                  row.type === 'project' ? 'bg-blue-50/50' : ''
+                }`}
+              >
+                <div 
+                  className="w-[200px] px-3 flex items-center gap-1 cursor-pointer"
+                  style={{ paddingLeft: `${12 + row.level * 16}px` }}
+                  onClick={() => {
+                    if (row.type === 'project') toggleProject(row.data.id);
+                    else if (row.type === 'phase') togglePhase(row.data.id);
+                  }}
+                >
+                  {/* Expand Icon */}
+                  {row.type === 'project' && phases.some(p => p.project_id === row.data.id) && (
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
+                      expandedProjects[row.data.id] ? '' : '-rotate-90'
+                    }`} />
+                  )}
+                  {row.type === 'phase' && tasks.some(t => t.phase_id === row.data.id) && (
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
+                      expandedPhases[row.data.id] ? '' : '-rotate-90'
+                    }`} />
+                  )}
+                  {row.type === 'task' && <div className="w-4" />}
 
-          {/* Timeline */}
-          <GanttTimeline
-            days={days}
-            holidays={holidays}
-            projects={projects}
-            phases={phases}
-            tasks={tasks}
-            expandedProjects={expandedProjects}
-            expandedPhases={expandedPhases}
-            onBarClick={handleBarClick}
-            filterText={filterText}
-          />
+                  {/* Name */}
+                  <span className={`truncate ${
+                    row.type === 'project' ? 'font-semibold text-gray-800' :
+                    row.type === 'phase' ? 'text-sm text-gray-700' :
+                    'text-xs text-gray-600'
+                  }`}>
+                    {row.type === 'project' ? row.data.name : 
+                     row.type === 'phase' ? row.data.phase_type : 
+                     row.data.name}
+                  </span>
+
+                  {/* Add button for phase */}
+                  {row.type === 'phase' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-5 h-5 ml-auto opacity-0 hover:opacity-100"
+                      onClick={(e) => { e.stopPropagation(); handleAddTask(row.data.id); }}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
+                <div 
+                  className="w-[80px] px-2 flex items-center justify-center text-xs text-gray-500 border-l border-gray-200 cursor-pointer hover:bg-gray-100"
+                  onClick={() => row.type !== 'project' && handleRowClick(row.data, row.type)}
+                >
+                  {row.type !== 'project' ? getEmployeeName(row.data.assignee_id) : '-'}
+                </div>
+              </div>
+            ))}
+
+            {rows.length === 0 && (
+              <div className="p-8 text-center text-gray-400 text-sm">
+                沒有專案資料
+              </div>
+            )}
+          </div>
+
+          {/* Right Panel - Timeline */}
+          <div className="flex-1">
+            {/* Date Header */}
+            <div className="flex border-b border-gray-200 bg-gray-50 h-12">
+              {days.map((d, idx) => (
+                <div
+                  key={idx}
+                  className={`w-[32px] min-w-[32px] flex flex-col items-center justify-center text-xs border-r border-gray-200 ${
+                    d.isWeekend || isHoliday(d.date) ? 'bg-gray-200 text-red-500' : 
+                    d.date === today ? 'bg-blue-100 text-blue-600 font-bold' : 'text-gray-600'
+                  }`}
+                >
+                  <div>{d.day}</div>
+                  <div className="text-[10px]">{d.weekday}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Timeline Rows */}
+            {rows.map((row, idx) => (
+              <div 
+                key={`right-${row.type}-${row.data.id}`}
+                className={`flex border-b border-gray-100 h-10 relative ${
+                  row.type === 'project' ? 'bg-blue-50/30' : ''
+                }`}
+              >
+                {/* Day cells */}
+                {days.map((d, dayIdx) => (
+                  <div
+                    key={dayIdx}
+                    className={`w-[32px] min-w-[32px] h-10 border-r border-gray-100 ${
+                      d.isWeekend || isHoliday(d.date) ? 'bg-gray-100' : 
+                      d.date === today ? 'bg-blue-50' : ''
+                    }`}
+                  />
+                ))}
+
+                {/* Gantt Bar */}
+                {(row.type === 'phase' || row.type === 'task') && row.data.time_type && (
+                  <GanttBar
+                    timeType={row.data.time_type}
+                    startDate={row.data.start_date}
+                    endDate={row.data.end_date}
+                    date={row.data.date}
+                    status={row.data.status}
+                    days={days}
+                    cellWidth={32}
+                    label={row.type === 'task' ? row.data.name : row.data.phase_type}
+                    onClick={() => handleRowClick(row.data, row.type)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 flex items-center gap-6 text-xs text-gray-600">
+      <div className="bg-white border-t border-gray-200 px-4 py-2 flex items-center gap-6 text-xs text-gray-600">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-gray-400 rotate-45" />
+          <div className="w-4 h-4 bg-blue-500 rotate-45 rounded-sm" />
           <span>Milestone 里程碑</span>
         </div>
         <div className="flex items-center gap-2">
