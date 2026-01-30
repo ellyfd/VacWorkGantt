@@ -49,6 +49,9 @@ export default function GanttChart() {
   
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [creatingProjectId, setCreatingProjectId] = useState(null);
+  const [taskCreationMode, setTaskCreationMode] = useState('manual'); // 'manual' or 'import'
+  const [scheduleFile, setScheduleFile] = useState(null);
+  const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
 
   // 表單資料
   const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '' });
