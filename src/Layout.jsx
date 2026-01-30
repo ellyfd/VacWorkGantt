@@ -24,6 +24,7 @@ const settingsItems = [
   { name: 'HolidayManagement', label: '假日管理', icon: CalendarClock },
   { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
   { name: 'ProjectManagement', label: '專案管理', icon: BarChart3 },
+  { name: 'SampleManagement', label: '樣品管理', icon: Tag },
 ];
 
 export default function Layout({ children, currentPageName }) {
