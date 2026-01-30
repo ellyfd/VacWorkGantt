@@ -53,11 +53,11 @@ import GanttChart from './pages/GanttChart';
 import GanttManagement from './pages/GanttManagement';
 import Home from './pages/Home';
 import LeaveCalendar from './pages/LeaveCalendar';
-import Notifications from './pages/Notifications';
-import ReportManagement from './pages/ReportManagement';
-import ProjectSettings from './pages/ProjectSettings';
-import PeopleManagement from './pages/PeopleManagement';
 import LeaveSettings from './pages/LeaveSettings';
+import Notifications from './pages/Notifications';
+import PeopleManagement from './pages/PeopleManagement';
+import ProjectSettings from './pages/ProjectSettings';
+import ReportManagement from './pages/ReportManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -68,11 +68,11 @@ export const PAGES = {
     "GanttManagement": GanttManagement,
     "Home": Home,
     "LeaveCalendar": LeaveCalendar,
-    "Notifications": Notifications,
-    "ReportManagement": ReportManagement,
-    "ProjectSettings": ProjectSettings,
-    "PeopleManagement": PeopleManagement,
     "LeaveSettings": LeaveSettings,
+    "Notifications": Notifications,
+    "PeopleManagement": PeopleManagement,
+    "ProjectSettings": ProjectSettings,
+    "ReportManagement": ReportManagement,
 }
 
 export const pagesConfig = {

@@ -30,7 +30,7 @@ export default function ProjectSettings() {
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingType, setEditingType] = useState(null);
-  const [sampleFormData, setSampleFormData] = useState({ full_name: '', short_name: '', name: '', type: 'universal', project_id: '' });
+  const [sampleFormData, setSampleFormData] = useState({ full_name: '', short_name: '', name: '', project_id: '' });
   const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active' });
   const [groupFormData, setGroupFormData] = useState({ name: '', status: 'active' });
   const [searchText, setSearchText] = useState('');
@@ -149,26 +149,24 @@ export default function ProjectSettings() {
         full_name: sample.full_name || '',
         short_name: sample.short_name || '',
         name: sample.name,
-        type: sample.type,
         project_id: sample.project_id || '',
       });
     } else {
       setEditingId(null);
       setEditingType('sample');
-      setSampleFormData({ full_name: '', short_name: '', name: '', type: 'universal', project_id: '' });
+      setSampleFormData({ full_name: '', short_name: '', name: '', project_id: '' });
     }
     setShowSampleDialog(true);
   };
 
   const handleSaveSample = () => {
-    if (!sampleFormData.name.trim()) return;
+    if (!sampleFormData.name.trim() || !sampleFormData.project_id) return;
 
     const data = {
       name: sampleFormData.name,
       full_name: sampleFormData.full_name || sampleFormData.name,
       short_name: sampleFormData.short_name || sampleFormData.name,
-      type: sampleFormData.type,
-      ...(sampleFormData.type === 'brand' && { project_id: sampleFormData.project_id }),
+      project_id: sampleFormData.project_id,
     };
 
     if (editingId) {
@@ -227,8 +225,7 @@ export default function ProjectSettings() {
     return group ? group.name : '-';
   };
   
-  const getTypeLabel = (type) => type === 'universal' ? '通用' : '品牌專用';
-  const getTypeColor = (type) => type === 'universal' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+
 
   const handleOpenGroupDialog = (group = null) => {
     if (group) {
@@ -438,17 +435,16 @@ export default function ProjectSettings() {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="bg-gray-50 border-b whitespace-nowrap">
-                    <TableHead className="w-[25%] md:w-[30%]">樣品縮寫</TableHead>
-                    <TableHead className="w-[25%] md:w-[30%]">樣品全名</TableHead>
-                    <TableHead className="w-[20%]">類型</TableHead>
-                    <TableHead className="w-[20%] md:w-[15%]">品牌</TableHead>
-                    <TableHead className="w-[10%] text-right">操作</TableHead>
+                    <TableHead className="w-[30%]">樣品縮寫</TableHead>
+                    <TableHead className="w-[35%]">樣品全名</TableHead>
+                    <TableHead className="w-[20%]">品牌</TableHead>
+                    <TableHead className="w-[15%] text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredSamples.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                      <TableCell colSpan={4} className="text-center text-gray-500 py-8">
                         {searchText ? '未找到匹配的樣品' : '沒有樣品資料'}
                       </TableCell>
                     </TableRow>
@@ -457,13 +453,8 @@ export default function ProjectSettings() {
                       <TableRow key={sample.id} className="hover:bg-gray-50 whitespace-nowrap">
                         <TableCell className="font-medium text-sm md:text-base truncate">{sample.short_name || sample.name}</TableCell>
                         <TableCell className="text-xs md:text-sm truncate">{sample.full_name || sample.name}</TableCell>
-                        <TableCell className="text-xs md:text-sm">
-                          <span className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium ${getTypeColor(sample.type)}`}>
-                            {getTypeLabel(sample.type)}
-                          </span>
-                        </TableCell>
                         <TableCell className="text-xs md:text-sm text-gray-600 truncate">
-                          {sample.type === 'brand' ? getProjectName(sample.project_id) : '-'}
+                          {getProjectName(sample.project_id)}
                         </TableCell>
                         <TableCell className="flex gap-0.5 md:gap-2 justify-end flex-shrink-0">
                           <Button variant="ghost" size="icon" className="w-7 h-7 md:w-8 md:h-8" onClick={() => handleOpenSampleDialog(sample)}>
@@ -491,67 +482,50 @@ export default function ProjectSettings() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>樣品名稱</Label>
-              <Input
-                value={sampleFormData.name}
-                onChange={(e) => setSampleFormData({ ...sampleFormData, name: e.target.value })}
-                placeholder="例：玻璃後蓋"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>樣品全名</Label>
-              <Input
-                value={sampleFormData.full_name}
-                onChange={(e) => setSampleFormData({ ...sampleFormData, full_name: e.target.value })}
-                placeholder="例：3D Line Assortment Sample"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>樣品縮寫</Label>
-              <Input
-                value={sampleFormData.short_name}
-                onChange={(e) => setSampleFormData({ ...sampleFormData, short_name: e.target.value })}
-                placeholder="例：3D LA"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>類型</Label>
+              <Label>品牌 *</Label>
               <Select
-                value={sampleFormData.type}
-                onValueChange={(v) => setSampleFormData({ ...sampleFormData, type: v })}
+                value={sampleFormData.project_id}
+                onValueChange={(v) => setSampleFormData({ ...sampleFormData, project_id: v })}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue />
+                  <SelectValue placeholder="選擇品牌..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="universal">通用</SelectItem>
-                  <SelectItem value="brand">品牌專用</SelectItem>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            {sampleFormData.type === 'brand' && (
-              <div>
-                <Label>品牌</Label>
-                <Select
-                  value={sampleFormData.project_id}
-                  onValueChange={(v) => setSampleFormData({ ...sampleFormData, project_id: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="選擇品牌..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div>
+              <Label>樣品全名 *</Label>
+              <Input
+                value={sampleFormData.full_name}
+                onChange={(e) => setSampleFormData({ ...sampleFormData, full_name: e.target.value })}
+                placeholder="例：3D Reference Sample"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>樣品縮寫 *</Label>
+              <Input
+                value={sampleFormData.short_name}
+                onChange={(e) => setSampleFormData({ ...sampleFormData, short_name: e.target.value })}
+                placeholder="例：3DRS"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>樣品名稱 *</Label>
+              <Input
+                value={sampleFormData.name}
+                onChange={(e) => setSampleFormData({ ...sampleFormData, name: e.target.value })}
+                placeholder="例：3D Reference Sample"
+                className="mt-1"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSampleDialog(false)}>
@@ -559,7 +533,7 @@ export default function ProjectSettings() {
             </Button>
             <Button
               onClick={handleSaveSample}
-              disabled={!sampleFormData.name || (sampleFormData.type === 'brand' && !sampleFormData.project_id)}
+              disabled={!sampleFormData.name || !sampleFormData.project_id}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {editingId && editingType === 'sample' ? '更新' : '建立'}
