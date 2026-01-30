@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useQuery as useGroupQuery } from '@tanstack/react-query';
 
 export default function ProjectManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [formData, setFormData] = useState({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' });
+  const [formData, setFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active' });
   const queryClient = useQueryClient();
 
   const { data: projects = [], isLoading } = useQuery({
@@ -21,28 +22,33 @@ export default function ProjectManagement() {
     queryFn: () => base44.entities.Project.list('sort_order'),
   });
 
+  const { data: groups = [] } = useQuery({
+    queryKey: ['groups'],
+    queryFn: () => base44.entities.Group.list('sort_order'),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => {
-      const name = `${data.brand_name} ${data.season}`;
+      const name = data.short_name;
       return base44.entities.Project.create({ ...data, name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setDialogOpen(false);
-      setFormData({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' });
+      setFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => {
-      const name = `${data.brand_name} ${data.season}`;
+      const name = data.short_name;
       return base44.entities.Project.update(id, { ...data, name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setDialogOpen(false);
       setEditingProject(null);
-      setFormData({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' });
+      setFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
     },
   });
 
@@ -64,8 +70,13 @@ export default function ProjectManagement() {
 
   const handleEdit = (project) => {
     setEditingProject(project);
-    setFormData({ name: project.name, brand_name: project.brand_name, season: project.season, year: project.year, status: project.status || 'active' });
+    setFormData({ full_name: project.full_name, short_name: project.short_name, group_id: project.group_id || '', status: project.status || 'active' });
     setDialogOpen(true);
+  };
+
+  const getGroupName = (groupId) => {
+    const group = groups.find(g => g.id === groupId);
+    return group ? group.name : '-';
   };
 
   const handleDelete = (id) => {
@@ -88,26 +99,25 @@ export default function ProjectManagement() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <BarChart3 className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-800">專案管理</h1>
+            <h1 className="text-3xl font-bold text-gray-800">品牌管理</h1>
           </div>
-          <Button onClick={() => { setEditingProject(null); setFormData({ name: '', brand_name: '', season: '', year: new Date().getFullYear(), status: 'active' }); setDialogOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => { setEditingProject(null); setFormData({ full_name: '', short_name: '', group_id: '', status: 'active' }); setDialogOpen(true); }} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-5 h-5 mr-2" />
-            新增專案
+            新增品牌
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>專案列表</CardTitle>
+            <CardTitle>品牌列表</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>專案名稱</TableHead>
-                  <TableHead>品牌</TableHead>
-                  <TableHead>季度</TableHead>
-                  <TableHead>年份</TableHead>
+                  <TableHead>品牌縮寫</TableHead>
+                  <TableHead>品牌全名</TableHead>
+                  <TableHead>集團</TableHead>
                   <TableHead>狀態</TableHead>
                   <TableHead className="text-right">操作</TableHead>
                 </TableRow>
@@ -115,10 +125,9 @@ export default function ProjectManagement() {
               <TableBody>
                 {projects.map((project) => (
                   <TableRow key={project.id}>
-                    <TableCell className="font-medium">{project.name}</TableCell>
-                    <TableCell>{project.brand_name}</TableCell>
-                    <TableCell className="font-medium">{project.season}</TableCell>
-                    <TableCell>{project.year}</TableCell>
+                    <TableCell className="font-medium">{project.short_name}</TableCell>
+                    <TableCell>{project.full_name}</TableCell>
+                    <TableCell>{getGroupName(project.group_id)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded text-xs ${
                         project.status === 'active' ? 'bg-green-100 text-green-700' :
@@ -146,50 +155,43 @@ export default function ProjectManagement() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingProject ? '編輯專案' : '新增專案'}</DialogTitle>
+              <DialogTitle>{editingProject ? '編輯品牌' : '新增品牌'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4 py-4">
                 <div>
-                  <Label htmlFor="name">專案名稱</Label>
+                  <Label htmlFor="full_name">品牌全名</Label>
                   <Input
-                    id="name"
-                    value={formData.brand_name && formData.season ? `${formData.brand_name} ${formData.season}` : ''}
-                    placeholder="例: iPhone SS26"
-                    disabled
-                    className="bg-gray-100"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">自動由品牌和季度生成</p>
-                </div>
-                <div>
-                  <Label htmlFor="brand_name">品牌名稱</Label>
-                  <Input
-                    id="brand_name"
-                    value={formData.brand_name}
-                    onChange={(e) => setFormData({ ...formData, brand_name: e.target.value })}
-                    placeholder="例: iPhone"
+                    id="full_name"
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    placeholder="例：Apple iPhone"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="season">季度</Label>
+                  <Label htmlFor="short_name">品牌縮寫</Label>
                   <Input
-                    id="season"
-                    value={formData.season}
-                    onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-                    placeholder="例: SS26, FW26"
+                    id="short_name"
+                    value={formData.short_name}
+                    onChange={(e) => setFormData({ ...formData, short_name: e.target.value })}
+                    placeholder="例：IP"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="year">年份</Label>
-                  <Input
-                    id="year"
-                    type="number"
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
-                    required
-                  />
+                  <Label htmlFor="group_id">集團</Label>
+                  <Select value={formData.group_id} onValueChange={(value) => setFormData({ ...formData, group_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="選擇集團（非必填）..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>未指定</SelectItem>
+                      {groups.map((g) => (
+                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="status">狀態</Label>
