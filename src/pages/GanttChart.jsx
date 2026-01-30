@@ -381,17 +381,17 @@ export default function GanttChart() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Main Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-800">專案甘特圖</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={handlePrevMonth}>
-            <ChevronLeft className="w-4 h-4" />
+      <div className="bg-white border-b border-gray-200 px-2 md:px-4 py-2 md:py-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
+        <h1 className="text-lg md:text-xl font-bold text-gray-800">專案甘特圖</h1>
+        <div className="flex flex-wrap items-center gap-1 md:gap-2 w-full md:w-auto">
+          <Button variant="outline" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handlePrevMonth}>
+            <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />
           </Button>
           <Select
             value={currentDate.getFullYear().toString()}
             onValueChange={(v) => setCurrentDate(new Date(parseInt(v), currentDate.getMonth(), 1))}
           >
-            <SelectTrigger className="w-[90px]">
+            <SelectTrigger className="w-[70px] md:w-[90px] h-8 md:h-9 text-xs md:text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -404,7 +404,7 @@ export default function GanttChart() {
             value={currentDate.getMonth().toString()}
             onValueChange={(v) => setCurrentDate(new Date(currentDate.getFullYear(), parseInt(v), 1))}
           >
-            <SelectTrigger className="w-[80px]">
+            <SelectTrigger className="w-[60px] md:w-[80px] h-8 md:h-9 text-xs md:text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -413,32 +413,32 @@ export default function GanttChart() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={handleNextMonth}>
-            <ChevronRight className="w-4 h-4" />
+          <Button variant="outline" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleNextMonth}>
+            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
           </Button>
-          <div className="relative w-48 ml-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="relative flex-1 md:flex-none md:w-48 md:ml-4">
+            <Search className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-400" />
             <Input
-              placeholder="搜尋專案..."
+              placeholder="搜尋..."
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              className="pl-9"
+              className="pl-7 md:pl-9 h-8 md:h-9 text-xs md:text-sm"
             />
           </div>
-          <Button onClick={() => setShowProjectDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            新增專案
+          <Button onClick={() => setShowProjectDialog(true)} className="h-8 md:h-9 text-xs md:text-sm px-2 md:px-4">
+            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-0 md:mr-2" />
+            <span className="hidden md:inline">新增專案</span>
           </Button>
         </div>
       </div>
 
       {/* Edit Toolbar */}
       {selectedPhaseId && (
-        <div className="bg-blue-50 border-b border-blue-200 px-4 py-3 flex items-center gap-4">
-          <span className="text-sm font-medium text-blue-800">編輯模式：</span>
+        <div className="bg-blue-50 border-b border-blue-200 px-2 md:px-4 py-2 md:py-3 flex flex-wrap items-center gap-2 md:gap-4">
+          <span className="hidden md:inline text-sm font-medium text-blue-800">編輯模式：</span>
           
           <Select value={selectedProjectId || ''} onValueChange={setSelectedProjectId}>
-            <SelectTrigger className="w-[180px] h-8">
+            <SelectTrigger className="w-[140px] md:w-[180px] h-8 text-xs md:text-sm">
               <SelectValue placeholder="選擇專案..." />
             </SelectTrigger>
             <SelectContent>
@@ -449,7 +449,7 @@ export default function GanttChart() {
           </Select>
 
           <Select value={selectedPhaseId || ''} onValueChange={setSelectedPhaseId}>
-            <SelectTrigger className="w-[140px] h-8">
+            <SelectTrigger className="w-[110px] md:w-[140px] h-8 text-xs md:text-sm">
               <SelectValue placeholder="選擇階段..." />
             </SelectTrigger>
             <SelectContent>
@@ -461,7 +461,7 @@ export default function GanttChart() {
             </SelectContent>
           </Select>
 
-          <label className="flex items-center gap-2 cursor-pointer ml-2">
+          <label className="flex items-center gap-1 md:gap-2 cursor-pointer">
             <input
               type="checkbox"
               checked={isRollingMode}
@@ -469,14 +469,14 @@ export default function GanttChart() {
                 setIsRollingMode(e.target.checked);
                 setFirstClickDate(null);
               }}
-              className="w-4 h-4"
+              className="w-3 h-3 md:w-4 md:h-4"
             />
-            <span className="text-sm text-blue-800">Rolling 模式</span>
+            <span className="text-xs md:text-sm text-blue-800">Rolling</span>
           </label>
 
           {firstClickDate && (
-            <span className="text-sm text-blue-600 ml-2">
-              已選擇：{firstClickDate} {isRollingMode ? '（點另一格設定結束日期）' : '（再點一格設定區間，或點同一格設定里程碑）'}
+            <span className="text-xs md:text-sm text-blue-600 hidden lg:inline">
+              {firstClickDate} {isRollingMode ? '→結束' : '→區間/里程'}
             </span>
           )}
 
@@ -484,24 +484,24 @@ export default function GanttChart() {
             variant="ghost" 
             size="sm"
             onClick={clearSelection}
-            className="ml-auto"
+            className="ml-auto h-8 text-xs md:text-sm"
           >
-            清除選擇
+            清除
           </Button>
         </div>
       )}
 
       {/* Gantt Chart Container */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-x-auto overflow-y-auto">
         <div className="flex min-w-max">
           {/* Left Panel - Project Tree */}
           <div className="sticky left-0 z-20 bg-white border-r border-gray-200 flex-shrink-0">
             {/* Header */}
-            <div className="flex border-b border-gray-200 bg-gray-50 h-12">
-              <div className="w-[200px] px-3 flex items-center text-xs font-semibold text-gray-600">
+            <div className="flex border-b border-gray-200 bg-gray-50 h-10 md:h-12">
+              <div className="w-[120px] md:w-[200px] px-2 md:px-3 flex items-center text-[10px] md:text-xs font-semibold text-gray-600">
                 名稱
               </div>
-              <div className="w-[80px] px-2 flex items-center justify-center text-xs font-semibold text-gray-600 border-l border-gray-200">
+              <div className="w-[60px] md:w-[80px] px-1 md:px-2 flex items-center justify-center text-[10px] md:text-xs font-semibold text-gray-600 border-l border-gray-200">
                 負責人
               </div>
             </div>
@@ -510,13 +510,13 @@ export default function GanttChart() {
             {rows.map((row, idx) => (
               <div 
                 key={`left-${row.type}-${row.data.id}`}
-                className={`flex border-b border-gray-100 h-10 hover:bg-gray-50 ${
+                className={`flex border-b border-gray-100 h-8 md:h-10 hover:bg-gray-50 ${
                   row.type === 'project' ? 'bg-blue-50/50' : ''
                 }`}
               >
                 <div 
-                  className="w-[200px] px-3 flex items-center gap-1 cursor-pointer"
-                  style={{ paddingLeft: `${12 + row.level * 16}px` }}
+                  className="w-[120px] md:w-[200px] px-2 md:px-3 flex items-center gap-1 cursor-pointer min-w-0"
+                  style={{ paddingLeft: `${8 + row.level * 12}px` }}
                   onClick={() => {
                     if (row.type === 'project') toggleProject(row.data.id);
                     else if (row.type === 'phase') togglePhase(row.data.id);
@@ -524,22 +524,22 @@ export default function GanttChart() {
                 >
                   {/* Expand Icon */}
                   {row.type === 'project' && phases.some(p => p.project_id === row.data.id) && (
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
+                    <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 text-gray-400 transition-transform flex-shrink-0 ${
                       expandedProjects[row.data.id] ? '' : '-rotate-90'
                     }`} />
                   )}
                   {row.type === 'phase' && tasks.some(t => t.phase_id === row.data.id) && (
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
+                    <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 text-gray-400 transition-transform flex-shrink-0 ${
                       expandedPhases[row.data.id] ? '' : '-rotate-90'
                     }`} />
                   )}
-                  {row.type === 'task' && <div className="w-4" />}
+                  {row.type === 'task' && <div className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />}
 
                   {/* Name */}
-                  <span className={`truncate ${
+                  <span className={`truncate text-[11px] md:text-sm ${
                     row.type === 'project' ? 'font-semibold text-gray-800' :
-                    row.type === 'phase' ? 'text-sm text-gray-700' :
-                    'text-xs text-gray-600'
+                    row.type === 'phase' ? 'text-gray-700' :
+                    'text-gray-600'
                   }`}>
                     {row.type === 'project' ? row.data.name : 
                      row.type === 'phase' ? row.data.phase_type : 
@@ -551,15 +551,15 @@ export default function GanttChart() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="w-5 h-5 ml-auto opacity-0 hover:opacity-100"
+                      className="w-4 h-4 md:w-5 md:h-5 ml-auto opacity-0 hover:opacity-100 flex-shrink-0"
                       onClick={(e) => { e.stopPropagation(); handleAddTask(row.data.id); }}
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-2 h-2 md:w-3 md:h-3" />
                     </Button>
                   )}
                 </div>
                 <div 
-                  className="w-[80px] px-2 flex items-center justify-center text-xs text-gray-500 border-l border-gray-200 cursor-pointer hover:bg-gray-100"
+                  className="w-[60px] md:w-[80px] px-1 md:px-2 flex items-center justify-center text-[10px] md:text-xs text-gray-500 border-l border-gray-200 cursor-pointer hover:bg-gray-100"
                   onClick={() => row.type !== 'project' && handleRowClick(row.data, row.type)}
                 >
                   {row.type !== 'project' ? getEmployeeName(row.data.assignee_id) : '-'}
@@ -568,26 +568,26 @@ export default function GanttChart() {
             ))}
 
             {rows.length === 0 && (
-              <div className="p-8 text-center text-gray-400 text-sm">
+              <div className="p-4 md:p-8 text-center text-gray-400 text-xs md:text-sm">
                 沒有專案資料
               </div>
             )}
           </div>
 
           {/* Right Panel - Timeline */}
-          <div className="flex-1">
+          <div className="flex-1 bg-white">
             {/* Date Header */}
-            <div className="flex border-b border-gray-200 bg-gray-50 h-12">
+            <div className="flex border-b border-gray-200 bg-gray-50 h-10 md:h-12">
               {days.map((d, idx) => (
                 <div
                   key={idx}
-                  className={`w-[32px] min-w-[32px] flex flex-col items-center justify-center text-xs border-r border-gray-200 ${
+                  className={`w-[28px] md:w-[32px] min-w-[28px] md:min-w-[32px] flex flex-col items-center justify-center text-[9px] md:text-xs border-r border-gray-200 ${
                     d.isWeekend || isHoliday(d.date) ? 'bg-gray-200 text-red-500' : 
                     d.date === today ? 'bg-blue-100 text-blue-600 font-bold' : 'text-gray-600'
                   }`}
                 >
-                  <div>{d.day}</div>
-                  <div className="text-[10px]">{d.weekday}</div>
+                  <div className="leading-tight">{d.day}</div>
+                  <div className="text-[7px] md:text-[10px] leading-tight">{d.weekday}</div>
                 </div>
               ))}
             </div>
@@ -596,7 +596,7 @@ export default function GanttChart() {
             {rows.map((row, idx) => (
               <div 
                 key={`right-${row.type}-${row.data.id}`}
-                className={`flex border-b border-gray-100 h-10 relative ${
+                className={`flex border-b border-gray-100 h-8 md:h-10 relative ${
                   row.type === 'project' ? 'bg-blue-50/30' : ''
                 }`}
               >
@@ -604,7 +604,7 @@ export default function GanttChart() {
                 {days.map((d, dayIdx) => (
                   <div
                     key={dayIdx}
-                    className={`w-[32px] min-w-[32px] h-10 border-r border-gray-100 cursor-pointer hover:bg-yellow-100 transition-colors ${
+                    className={`w-[28px] md:w-[32px] min-w-[28px] md:min-w-[32px] h-8 md:h-10 border-r border-gray-100 cursor-pointer hover:bg-yellow-100 transition-colors ${
                       d.isWeekend || isHoliday(d.date) ? 'bg-gray-100' : 
                       d.date === today ? 'bg-blue-50' : ''
                     } ${firstClickDate === d.date ? 'ring-2 ring-orange-400 ring-inset' : ''}`}
@@ -622,7 +622,7 @@ export default function GanttChart() {
                       date={row.data.date}
                       status={row.data.status}
                       days={days}
-                      cellWidth={32}
+                      cellWidth={28}
                       label={row.type === 'task' ? row.data.name : row.data.phase_type}
                       onClick={() => !selectedPhaseId && handleRowClick(row.data, row.type)}
                     />
@@ -635,18 +635,18 @@ export default function GanttChart() {
       </div>
 
       {/* Legend */}
-      <div className="bg-white border-t border-gray-200 px-4 py-2 flex items-center gap-6 text-xs text-gray-600">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-500 rotate-45 rounded-sm" />
-          <span>Milestone 里程碑</span>
+      <div className="bg-white border-t border-gray-200 px-2 md:px-4 py-2 flex flex-wrap items-center gap-3 md:gap-6 text-[11px] md:text-xs text-gray-600">
+        <div className="flex items-center gap-1 md:gap-2">
+          <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rotate-45 rounded-sm flex-shrink-0" />
+          <span>Milestone</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-4 bg-blue-500 rounded" />
-          <span>Duration 時間區間</span>
+        <div className="flex items-center gap-1 md:gap-2">
+          <div className="w-6 md:w-8 h-3 md:h-4 bg-blue-500 rounded flex-shrink-0" />
+          <span>Duration</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-4 rounded" style={{ background: 'repeating-linear-gradient(90deg, #3b82f6, #3b82f6 4px, #2563eb 4px, #2563eb 8px)' }} />
-          <span>Rolling 持續進行</span>
+        <div className="flex items-center gap-1 md:gap-2">
+          <div className="w-6 md:w-8 h-3 md:h-4 rounded flex-shrink-0" style={{ background: 'repeating-linear-gradient(90deg, #3b82f6, #3b82f6 4px, #2563eb 4px, #2563eb 8px)' }} />
+          <span>Rolling</span>
         </div>
       </div>
 
