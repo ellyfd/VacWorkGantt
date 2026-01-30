@@ -377,13 +377,10 @@ export default function GanttChart() {
   // 確認設定里程碑
   const handleConfirmMilestone = () => {
     if (!firstDate || !selectedTaskId) return;
-    updateGanttTask.mutate({
-      id: selectedTaskId,
-      data: {
-        time_type: 'milestone',
-        start_date: format(firstDate, 'yyyy-MM-dd'),
-        end_date: null,
-      },
+    updateTaskWithOptimistic(selectedTaskId, {
+      time_type: 'milestone',
+      start_date: format(firstDate, 'yyyy-MM-dd'),
+      end_date: null,
     });
     setShowMilestoneDialog(false);
   };
@@ -399,13 +396,10 @@ export default function GanttChart() {
       [startDate, endDate] = [endDate, startDate];
     }
     
-    updateGanttTask.mutate({
-      id: selectedTaskId,
-      data: {
-        time_type: 'duration',
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: format(endDate, 'yyyy-MM-dd'),
-      },
+    updateTaskWithOptimistic(selectedTaskId, {
+      time_type: 'duration',
+      start_date: format(startDate, 'yyyy-MM-dd'),
+      end_date: format(endDate, 'yyyy-MM-dd'),
     });
     setShowDurationDialog(false);
   };
@@ -413,36 +407,36 @@ export default function GanttChart() {
   // 確認設定 Rolling
   const handleConfirmRolling = () => {
     if (!firstDate || !selectedTaskId) return;
-    updateGanttTask.mutate({
-      id: selectedTaskId,
-      data: {
-        time_type: 'rolling',
-        start_date: format(firstDate, 'yyyy-MM-dd'),
-        end_date: null,
-      },
+    updateTaskWithOptimistic(selectedTaskId, {
+      time_type: 'rolling',
+      start_date: format(firstDate, 'yyyy-MM-dd'),
+      end_date: null,
     });
     setShowRollingDialog(false);
   };
 
   // 右鍵選單 handlers
   const handleSetMilestone = (taskId, date) => {
-    updateGanttTask.mutate({
-      id: taskId,
-      data: { time_type: 'milestone', start_date: format(date, 'yyyy-MM-dd'), end_date: null }
+    updateTaskWithOptimistic(taskId, { 
+      time_type: 'milestone', 
+      start_date: format(date, 'yyyy-MM-dd'), 
+      end_date: null 
     });
   };
 
   const handleSetRolling = (taskId, date) => {
-    updateGanttTask.mutate({
-      id: taskId,
-      data: { time_type: 'rolling', start_date: format(date, 'yyyy-MM-dd'), end_date: null }
+    updateTaskWithOptimistic(taskId, { 
+      time_type: 'rolling', 
+      start_date: format(date, 'yyyy-MM-dd'), 
+      end_date: null 
     });
   };
 
   const handleClearTime = (taskId) => {
-    updateGanttTask.mutate({
-      id: taskId,
-      data: { time_type: null, start_date: null, end_date: null }
+    updateTaskWithOptimistic(taskId, { 
+      time_type: null, 
+      start_date: null, 
+      end_date: null 
     });
   };
 
@@ -728,14 +722,16 @@ export default function GanttChart() {
               let end = dragStart < dragEnd ? dragEnd : dragStart;
               
               if (format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')) {
-                updateGanttTask.mutate({
-                  id: dragTaskId,
-                  data: { time_type: 'milestone', start_date: format(start, 'yyyy-MM-dd'), end_date: null }
+                updateTaskWithOptimistic(dragTaskId, { 
+                  time_type: 'milestone', 
+                  start_date: format(start, 'yyyy-MM-dd'), 
+                  end_date: null 
                 });
               } else {
-                updateGanttTask.mutate({
-                  id: dragTaskId,
-                  data: { time_type: 'duration', start_date: format(start, 'yyyy-MM-dd'), end_date: format(end, 'yyyy-MM-dd') }
+                updateTaskWithOptimistic(dragTaskId, { 
+                  time_type: 'duration', 
+                  start_date: format(start, 'yyyy-MM-dd'), 
+                  end_date: format(end, 'yyyy-MM-dd') 
                 });
               }
               
