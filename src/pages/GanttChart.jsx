@@ -332,6 +332,68 @@ export default function GanttChart() {
     }));
   };
 
+  // 拖曳排序
+  const updateSortOrder = useMutation({
+    mutationFn: ({ id, entityType, sortOrder }) => {
+      if (entityType === 'project') {
+        return base44.entities.GanttProject.update(id, { sort_order: sortOrder });
+      } else if (entityType === 'phase') {
+        return base44.entities.GanttPhase.update(id, { sort_order: sortOrder });
+      } else if (entityType === 'task') {
+        return base44.entities.GanttTask.update(id, { sort_order: sortOrder });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttProjects']);
+      queryClient.invalidateQueries(['ganttPhases']);
+      queryClient.invalidateQueries(['ganttTasks']);
+    },
+  });
+
+  const handleDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.index === destination.index && source.droppableId === destination.droppableId) return;
+
+    // 解析 droppableId 格式: "droppable-{type}" 或 "droppable-{parentType}-{parentId}"
+    const [, destType, destParentId] = destination.droppableId.split('-');
+
+    // 需要同一層級拖曳
+    if (source.droppableId !== destination.droppableId) return;
+
+    const [, sourceType] = source.droppableId.split('-');
+    const [, rowType, rowId] = draggableId.split('-');
+
+    // 取得該層的所有項目
+    let items = [];
+    if (sourceType === 'project') {
+      items = ganttProjects;
+    } else if (sourceType === 'phase') {
+      items = ganttPhases.filter(p => p.gantt_project_id === destParentId);
+    } else if (sourceType === 'task') {
+      items = ganttTasks.filter(t => {
+        const phase = ganttPhases.find(ph => ph.id === destParentId);
+        return t.gantt_phase_id === destParentId;
+      });
+    }
+
+    // 新排序
+    const reorderedItems = Array.from(items);
+    const [movedItem] = reorderedItems.splice(source.index, 1);
+    reorderedItems.splice(destination.index, 0, movedItem);
+
+    // 批量更新
+    reorderedItems.forEach((item, idx) => {
+      if (item.sort_order !== idx) {
+        updateSortOrder.mutate({
+          id: item.id,
+          entityType: sourceType,
+          sortOrder: idx,
+        });
+      }
+    });
+  };
+
   // 渲染左側單元格
   const renderLeftCell = (row) => {
     if (row.type === 'project') {
