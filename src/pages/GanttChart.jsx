@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -19,30 +20,39 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Diamond, ArrowRight, Repeat } from 'lucide-react';
 import { addMonths, format, eachDayOfInterval, isToday } from 'date-fns';
 
-const ROW_HEIGHT = 40; // 統一行高
+const ROW_HEIGHT = 40;
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  // 選擇狀態
   const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [firstDate, setFirstDate] = useState(null);
+  const [secondDate, setSecondDate] = useState(null);
+  
+  // 展開狀態
   const [expandedProjects, setExpandedProjects] = useState({});
   const [expandedPhases, setExpandedPhases] = useState({});
+  
+  // Dialog 狀態
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showSelectSamplesDialog, setShowSelectSamplesDialog] = useState(false);
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
+  const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
+  const [showDurationDialog, setShowDurationDialog] = useState(false);
+  const [showRollingDialog, setShowRollingDialog] = useState(false);
+  
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [creatingProjectId, setCreatingProjectId] = useState(null);
 
+  // 表單資料
   const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '' });
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [importFile, setImportFile] = useState(null);
-  const [importLoading, setImportLoading] = useState(false);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -110,36 +120,39 @@ export default function GanttChart() {
     mutationFn: ({ id, data }) => base44.entities.GanttTask.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['ganttTasks']);
-      setSelectedDate(null);
-      setSelectedTaskId(null);
+      clearSelection();
     },
   });
+
+  // 清除選擇
+  const clearSelection = () => {
+    setSelectedTaskId(null);
+    setFirstDate(null);
+    setSecondDate(null);
+  };
 
   // Get month days
   const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
   const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // 建立統一的 rows 陣列（關鍵修正）
+  // 建立統一的 rows 陣列
   const rows = useMemo(() => {
     const result = [];
 
     ganttProjects.forEach((project) => {
-      // 專案列
       result.push({ type: 'project', data: project, id: `project-${project.id}` });
 
       if (expandedProjects[project.id]) {
         ganttPhases
           .filter((p) => p.gantt_project_id === project.id)
           .forEach((phase) => {
-            // 階段列
             result.push({ type: 'phase', data: phase, id: `phase-${phase.id}` });
 
             if (expandedPhases[phase.id]) {
               ganttTasks
                 .filter((t) => t.gantt_phase_id === phase.id)
                 .forEach((task) => {
-                  // 任務列
                   result.push({ type: 'task', data: task, id: `task-${task.id}` });
                 });
             }
@@ -150,20 +163,27 @@ export default function GanttChart() {
     return result;
   }, [ganttProjects, ganttPhases, ganttTasks, expandedProjects, expandedPhases]);
 
+  // Helper functions
   const getBrandName = (brandId) => {
     const project = projects.find((p) => p.id === brandId);
-    return project ? project.short_name : '-';
+    return project ? (project.short_name || project.name) : '-';
   };
 
   const getSamplesByBrand = (brandId) => {
     return samples.filter((s) => s.project_id === brandId);
   };
 
+  const getSelectedTaskName = () => {
+    const task = ganttTasks.find(t => t.id === selectedTaskId);
+    return task ? task.name : '';
+  };
+
+  // Handlers
   const handleAddProject = () => {
     if (!projectFormData.brand_id || !projectFormData.season) return;
 
     const brand = projects.find((p) => p.id === projectFormData.brand_id);
-    const name = `${brand.short_name} ${projectFormData.season}`;
+    const name = `${brand.short_name || brand.name} ${projectFormData.season}`;
 
     createGanttProject.mutate({
       ...projectFormData,
@@ -180,7 +200,7 @@ export default function GanttChart() {
       return {
         gantt_project_id: creatingProjectId,
         sample_id: sampleId,
-        name: sample.short_name,
+        name: sample.short_name || sample.name,
         sort_order: idx + 1,
       };
     });
@@ -199,62 +219,102 @@ export default function GanttChart() {
     });
   };
 
+  // 點擊任務
   const handleTaskClick = (taskId) => {
-    setSelectedTaskId(taskId);
-    setSelectedDate(null);
+    if (selectedTaskId === taskId) {
+      clearSelection();
+    } else {
+      setSelectedTaskId(taskId);
+      setFirstDate(null);
+      setSecondDate(null);
+    }
   };
 
+  // 點擊日期格子
   const handleDateClick = (date, taskId) => {
+    if (selectedTaskId !== taskId) {
+      setSelectedTaskId(taskId);
+      setFirstDate(date);
+      setSecondDate(null);
+      return;
+    }
+
+    if (!firstDate) {
+      setFirstDate(date);
+      setSecondDate(null);
+    } else if (!secondDate) {
+      if (format(date, 'yyyy-MM-dd') === format(firstDate, 'yyyy-MM-dd')) {
+        // 點擊同一天
+      } else {
+        setSecondDate(date);
+      }
+    } else {
+      setFirstDate(date);
+      setSecondDate(null);
+    }
+  };
+
+  // 雙擊清除時間
+  const handleDoubleClick = (taskId) => {
     setSelectedTaskId(taskId);
-    setSelectedDate(date);
-  };
-
-  const handleSetMilestone = () => {
-    if (!selectedDate || !selectedTaskId) return;
     updateGanttTask.mutate({
-      id: selectedTaskId,
-      data: {
-        time_type: 'milestone',
-        start_date: format(selectedDate, 'yyyy-MM-dd'),
-        end_date: null,
-      },
-    });
-  };
-
-  const handleSetDuration = () => {
-    if (!selectedDate || !selectedTaskId) return;
-    updateGanttTask.mutate({
-      id: selectedTaskId,
-      data: {
-        time_type: 'duration',
-        start_date: format(selectedDate, 'yyyy-MM-dd'),
-        end_date: format(selectedDate, 'yyyy-MM-dd'),
-      },
-    });
-  };
-
-  const handleSetRolling = () => {
-    if (!selectedDate || !selectedTaskId) return;
-    updateGanttTask.mutate({
-      id: selectedTaskId,
-      data: {
-        time_type: 'rolling',
-        start_date: format(selectedDate, 'yyyy-MM-dd'),
-        end_date: null,
-      },
-    });
-  };
-
-  const handleClearTime = () => {
-    if (!selectedTaskId) return;
-    updateGanttTask.mutate({
-      id: selectedTaskId,
+      id: taskId,
       data: {
         time_type: null,
         start_date: null,
         end_date: null,
       },
     });
+  };
+
+  // 確認設定里程碑
+  const handleConfirmMilestone = () => {
+    if (!firstDate || !selectedTaskId) return;
+    updateGanttTask.mutate({
+      id: selectedTaskId,
+      data: {
+        time_type: 'milestone',
+        start_date: format(firstDate, 'yyyy-MM-dd'),
+        end_date: null,
+      },
+    });
+    setShowMilestoneDialog(false);
+  };
+
+  // 確認設定區間
+  const handleConfirmDuration = () => {
+    if (!firstDate || !selectedTaskId) return;
+    
+    let startDate = firstDate;
+    let endDate = secondDate || firstDate;
+    
+    if (endDate < startDate) {
+      [startDate, endDate] = [endDate, startDate];
+    }
+    
+    updateGanttTask.mutate({
+      id: selectedTaskId,
+      data: {
+        time_type: 'duration',
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
+      },
+    });
+    setShowDurationDialog(false);
+  };
+
+  // 確認設定 Rolling
+  const handleConfirmRolling = () => {
+    if (!firstDate || !selectedTaskId) return;
+    updateGanttTask.mutate({
+      id: selectedTaskId,
+      data: {
+        time_type: 'rolling',
+        start_date: format(firstDate, 'yyyy-MM-dd'),
+        end_date: null,
+      },
+    });
+    setShowRollingDialog(false);
   };
 
   const toggleProject = (projectId) => {
@@ -334,15 +394,15 @@ export default function GanttChart() {
     }
   };
 
-  // 渲染右側單元格（時間軸）
+  // 渲染右側單元格
   const renderRightCell = (row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
-    const isSelected =
-      selectedTaskId === row.data?.id &&
-      selectedDate &&
-      format(selectedDate, 'yyyy-MM-dd') === dateStr;
+    
+    const isFirstSelected = selectedTaskId === row.data?.id && firstDate && format(firstDate, 'yyyy-MM-dd') === dateStr;
+    const isSecondSelected = selectedTaskId === row.data?.id && secondDate && format(secondDate, 'yyyy-MM-dd') === dateStr;
+    const isSelected = isFirstSelected || isSecondSelected;
 
-    // 專案和階段列不顯示甘特條，只顯示空格子
+    // 專案列
     if (row.type === 'project') {
       return (
         <div
@@ -353,6 +413,7 @@ export default function GanttChart() {
       );
     }
 
+    // 階段列
     if (row.type === 'phase') {
       return (
         <div
@@ -363,7 +424,7 @@ export default function GanttChart() {
       );
     }
 
-    // 任務列顯示甘特條
+    // 任務列
     const task = row.data;
     const taskStartDate = task.start_date;
     const taskEndDate = task.end_date;
@@ -381,51 +442,76 @@ export default function GanttChart() {
     return (
       <div
         key={dateStr}
-        className={`border-r border-gray-200 relative cursor-pointer ${
+        className={`border-r border-gray-200 relative cursor-pointer transition-colors ${
           selectedTaskId === task.id ? 'bg-blue-50' : 'bg-white'
-        } ${isSelected ? 'ring-2 ring-inset ring-blue-400' : ''} hover:bg-yellow-50`}
+        } ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100' : ''} hover:bg-yellow-50`}
         style={{ width: 40, height: ROW_HEIGHT }}
         onClick={() => handleDateClick(day, task.id)}
-        onDoubleClick={() => {
-          setSelectedTaskId(task.id);
-          handleClearTime();
-        }}
+        onDoubleClick={() => handleDoubleClick(task.id)}
       >
-        {/* 里程碑 */}
+        {/* 里程碑 ◆ */}
         {task.time_type === 'milestone' && isStart && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className={`w-3 h-3 transform rotate-45 ${
+              className={`w-4 h-4 transform rotate-45 ${
                 task.is_important ? 'bg-yellow-500' : 'bg-blue-500'
               }`}
             />
           </div>
         )}
 
-        {/* 區間 */}
+        {/* 區間 ████ */}
         {task.time_type === 'duration' && isInRange && (
           <div
-            className={`absolute top-1/2 h-2 bg-blue-400 transform -translate-y-1/2 ${
-              isStart ? 'left-1/2 right-0 rounded-l' : isEnd ? 'left-0 right-1/2 rounded-r' : 'left-0 right-0'
+            className={`absolute top-1/2 h-3 bg-blue-400 transform -translate-y-1/2 ${
+              isStart && isEnd ? 'left-2 right-2 rounded' :
+              isStart ? 'left-2 right-0 rounded-l' : 
+              isEnd ? 'left-0 right-2 rounded-r' : 
+              'left-0 right-0'
             }`}
           />
         )}
 
-        {/* Rolling */}
+        {/* Rolling ▓▓▓→ */}
         {task.time_type === 'rolling' && isRolling && (
           <div
-            className={`absolute top-1/2 h-2 transform -translate-y-1/2 ${
-              isStart ? 'left-1/2 right-0 bg-gradient-to-r from-blue-400 to-blue-200' : 'left-0 right-0 bg-blue-200'
+            className={`absolute top-1/2 h-3 transform -translate-y-1/2 ${
+              isStart 
+                ? 'left-2 right-0 bg-gradient-to-r from-purple-500 to-purple-300 rounded-l' 
+                : 'left-0 right-0 bg-purple-300'
             }`}
           />
         )}
 
         {/* 今天標記 */}
         {isToday(day) && (
-          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />
+          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500 z-10" />
+        )}
+        
+        {/* 選中標記數字 */}
+        {isFirstSelected && !isSecondSelected && (
+          <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold">
+            1
+          </div>
+        )}
+        {isSecondSelected && (
+          <div className="absolute top-0 right-0 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold">
+            2
+          </div>
         )}
       </div>
     );
+  };
+
+  // 取得排序後的日期
+  const getSortedDates = () => {
+    if (!firstDate) return { start: null, end: null };
+    if (!secondDate) return { start: firstDate, end: firstDate };
+    
+    if (secondDate < firstDate) {
+      return { start: secondDate, end: firstDate };
+    }
+    return { start: firstDate, end: secondDate };
   };
 
   return (
@@ -455,28 +541,67 @@ export default function GanttChart() {
 
       {/* Toolbar */}
       {selectedTaskId && (
-        <Card className="p-3 bg-blue-50 border-blue-200">
-          <div className="flex flex-wrap justify-between items-center gap-3">
-            <div className="text-sm text-gray-700">
-              已選任務 | 已選日期：{selectedDate ? format(selectedDate, 'MM/dd') : '未選'}
+        <Card className="p-4 bg-blue-50 border-blue-200">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-medium text-gray-700">選中任務：</span>
+              <span className="text-blue-700 font-semibold">{getSelectedTaskName()}</span>
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={handleSetMilestone} disabled={!selectedDate}>
+            
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-medium text-gray-700">已選日期：</span>
+              {firstDate ? (
+                <span className="bg-blue-100 px-2 py-1 rounded text-blue-800">
+                  {format(firstDate, 'MM/dd')}
+                </span>
+              ) : (
+                <span className="text-gray-400">點擊格子選擇第一個日期</span>
+              )}
+              {secondDate && (
+                <>
+                  <span className="text-gray-500">→</span>
+                  <span className="bg-green-100 px-2 py-1 rounded text-green-800">
+                    {format(secondDate, 'MM/dd')}
+                  </span>
+                </>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                onClick={() => setShowMilestoneDialog(true)}
+                disabled={!firstDate}
+              >
+                <Diamond className="w-3 h-3" />
                 里程碑
               </Button>
-              <Button size="sm" variant="outline" onClick={handleSetDuration} disabled={!selectedDate}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                onClick={() => setShowDurationDialog(true)}
+                disabled={!firstDate}
+              >
+                <ArrowRight className="w-3 h-3" />
                 區間
               </Button>
-              <Button size="sm" variant="outline" onClick={handleSetRolling} disabled={!selectedDate}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                onClick={() => setShowRollingDialog(true)}
+                disabled={!firstDate}
+              >
+                <Repeat className="w-3 h-3" />
                 Rolling
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => {
-                  setSelectedTaskId(null);
-                  setSelectedDate(null);
-                }}
+                onClick={clearSelection}
               >
                 取消
               </Button>
@@ -488,28 +613,30 @@ export default function GanttChart() {
       {/* Gantt Chart */}
       <Card className="overflow-hidden">
         <div className="flex">
-          {/* Left Panel - Names */}
+          {/* Left Panel */}
           <div className="w-64 flex-shrink-0 border-r border-gray-300">
-            {/* Header */}
             <div
               className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center"
               style={{ height: ROW_HEIGHT }}
             >
               專案名稱
             </div>
-            {/* Rows */}
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 350px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
               {rows.map((row) => (
                 <div key={row.id} className="border-b border-gray-200">
                   {renderLeftCell(row)}
                 </div>
               ))}
+              {rows.length === 0 && (
+                <div className="p-8 text-center text-gray-400">
+                  點擊「新增開發季」開始
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Panel - Timeline */}
+          {/* Right Panel */}
           <div className="flex-1 overflow-x-auto">
-            {/* Header - Days */}
             <div
               className="flex bg-gray-100 border-b border-gray-300"
               style={{ height: ROW_HEIGHT }}
@@ -526,8 +653,7 @@ export default function GanttChart() {
                 </div>
               ))}
             </div>
-            {/* Rows */}
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 350px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
               {rows.map((row) => (
                 <div key={row.id} className="flex border-b border-gray-200">
                   {days.map((day) => renderRightCell(row, day))}
@@ -538,11 +664,136 @@ export default function GanttChart() {
         </div>
       </Card>
 
+      {/* ===== Dialogs ===== */}
+
+      {/* 里程碑確認 Dialog */}
+      <Dialog open={showMilestoneDialog} onOpenChange={setShowMilestoneDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Diamond className="w-5 h-5 text-blue-500" />
+              設定里程碑
+            </DialogTitle>
+            <DialogDescription>
+              將此任務設為單一時間點的里程碑
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">任務名稱</span>
+              <span className="font-medium">{getSelectedTaskName()}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">日期</span>
+              <span className="font-medium text-blue-600">
+                {firstDate && format(firstDate, 'yyyy/MM/dd')}
+              </span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMilestoneDialog(false)}>
+              取消
+            </Button>
+            <Button onClick={handleConfirmMilestone} className="bg-blue-600 hover:bg-blue-700">
+              確認
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 區間確認 Dialog */}
+      <Dialog open={showDurationDialog} onOpenChange={setShowDurationDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRight className="w-5 h-5 text-blue-500" />
+              設定時間區間
+            </DialogTitle>
+            <DialogDescription>
+              設定任務的開始和結束日期
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">任務名稱</span>
+              <span className="font-medium">{getSelectedTaskName()}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">開始日期</span>
+              <span className="font-medium text-blue-600">
+                {firstDate && format(getSortedDates().start, 'yyyy/MM/dd')}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">結束日期</span>
+              <span className="font-medium text-green-600">
+                {secondDate 
+                  ? format(getSortedDates().end, 'yyyy/MM/dd')
+                  : firstDate && format(firstDate, 'yyyy/MM/dd') + ' (同一天)'
+                }
+              </span>
+            </div>
+            {!secondDate && (
+              <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                💡 提示：可以在甘特圖上點選第二個日期來設定區間範圍
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDurationDialog(false)}>
+              取消
+            </Button>
+            <Button onClick={handleConfirmDuration} className="bg-blue-600 hover:bg-blue-700">
+              確認
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rolling 確認 Dialog */}
+      <Dialog open={showRollingDialog} onOpenChange={setShowRollingDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Repeat className="w-5 h-5 text-purple-500" />
+              設定 Rolling
+            </DialogTitle>
+            <DialogDescription>
+              從指定日期開始持續進行的任務
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">任務名稱</span>
+              <span className="font-medium">{getSelectedTaskName()}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">開始日期</span>
+              <span className="font-medium text-purple-600">
+                {firstDate && format(firstDate, 'yyyy/MM/dd')}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">結束日期</span>
+              <span className="text-gray-400">持續進行 →</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRollingDialog(false)}>
+              取消
+            </Button>
+            <Button onClick={handleConfirmRolling} className="bg-purple-600 hover:bg-purple-700">
+              確認
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Add Project Dialog */}
       <Dialog open={showAddProjectDialog} onOpenChange={setShowAddProjectDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>新增專案</DialogTitle>
+            <DialogTitle>新增開發季</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -579,12 +830,14 @@ export default function GanttChart() {
                   <SelectItem value="SS26">SS26</SelectItem>
                   <SelectItem value="FW26">FW26</SelectItem>
                   <SelectItem value="HO26">HO26</SelectItem>
+                  <SelectItem value="SS27">SS27</SelectItem>
+                  <SelectItem value="FW27">FW27</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {projectFormData.brand_id && projectFormData.season && (
-              <div className="text-sm text-gray-600">
-                專案名稱：{getBrandName(projectFormData.brand_id)} {projectFormData.season}
+              <div className="text-sm text-gray-600 p-2 bg-gray-50 rounded">
+                專案名稱：<strong>{getBrandName(projectFormData.brand_id)} {projectFormData.season}</strong>
               </div>
             )}
           </div>
@@ -614,16 +867,23 @@ export default function GanttChart() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>選擇樣品類別</DialogTitle>
+            <DialogDescription>
+              選擇要建立的階段（樣品類別）
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-gray-600">
-              品牌：{getBrandName(projectFormData.brand_id)}
+              品牌：<strong>{getBrandName(projectFormData.brand_id)}</strong>
             </p>
             <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
               {getSamplesByBrand(projectFormData.brand_id).map((sample) => (
                 <label
                   key={sample.id}
-                  className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50 cursor-pointer"
+                  className={`flex items-center gap-2 p-2 border rounded cursor-pointer transition-colors ${
+                    selectedSamples[sample.id] 
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'hover:bg-gray-50'
+                  }`}
                 >
                   <input
                     type="checkbox"
@@ -640,6 +900,11 @@ export default function GanttChart() {
                 </label>
               ))}
             </div>
+            {getSamplesByBrand(projectFormData.brand_id).length === 0 && (
+              <p className="text-center text-gray-400 py-4">
+                此品牌沒有樣品類別，請先到「專案設定」新增
+              </p>
+            )}
             <div className="text-sm text-gray-500">
               已選擇 {Object.values(selectedSamples).filter(Boolean).length} 個
             </div>
@@ -659,7 +924,7 @@ export default function GanttChart() {
               disabled={!Object.values(selectedSamples).some(Boolean)}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              建立專案
+              建立
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -688,13 +953,14 @@ export default function GanttChart() {
                 onChange={(e) => setTaskFormData({ ...taskFormData, is_important: e.target.checked })}
                 className="w-4 h-4"
               />
-              <span className="text-sm">標記為重要（黃色）</span>
+              <span className="text-sm">標記為重要（黃色里程碑）</span>
             </label>
             <div>
               <Label>備註</Label>
               <Input
                 value={taskFormData.note}
                 onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
+                placeholder="選填"
                 className="mt-1"
               />
             </div>
