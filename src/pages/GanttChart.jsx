@@ -947,94 +947,25 @@ export default function GanttChart() {
                     }}
                     {...provided.droppableProps}
                   >
-                    {rows.filter(r => r.type === 'project').map((row, idx) => (
-                      <Draggable key={row.id} draggableId={row.id} index={idx} type="PROJECT">
-                        {(provided, snapshot) => (
-                          <div
-                            key={row.id}
-                            className="border-b border-gray-200"
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            {renderLeftCell(row, snapshot.isDragging)}
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {rows.filter(r => r.type === 'project').map((projectRow) => {
-                      const projectPhases = rows.filter(
-                        r => r.type === 'phase' && r.data.gantt_project_id === projectRow.data.id
-                      );
-                      return expandedProjects[projectRow.data.id] ? (
-                        <Droppable
-                          key={`phase-droppable-${projectRow.data.id}`}
-                          droppableId={`droppable-phase-${projectRow.data.id}`}
-                          type="PHASE"
-                        >
-                          {(provided) => (
-                            <div ref={provided.innerRef} {...provided.droppableProps}>
-                              {projectPhases.map((phaseRow, idx) => (
-                                <Draggable
-                                  key={phaseRow.id}
-                                  draggableId={phaseRow.id}
-                                  index={idx}
-                                  type="PHASE"
-                                >
-                                  {(provided, snapshot) => (
-                                    <div
-                                      className="border-b border-gray-200"
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                    >
-                                      {renderLeftCell(phaseRow, snapshot.isDragging)}
-                                      {expandedPhases[phaseRow.data.id] && (
-                                        <Droppable
-                                          droppableId={`droppable-task-${phaseRow.data.id}`}
-                                          type="TASK"
-                                        >
-                                          {(provided) => (
-                                            <div ref={provided.innerRef} {...provided.droppableProps}>
-                                              {rows
-                                                .filter(
-                                                  r =>
-                                                    r.type === 'task' &&
-                                                    r.data.gantt_phase_id === phaseRow.data.id
-                                                )
-                                                .map((taskRow, idx) => (
-                                                  <Draggable
-                                                    key={taskRow.id}
-                                                    draggableId={taskRow.id}
-                                                    index={idx}
-                                                    type="TASK"
-                                                  >
-                                                    {(provided, snapshot) => (
-                                                      <div
-                                                        className="border-b border-gray-200"
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        {...provided.dragHandleProps}
-                                                      >
-                                                        {renderLeftCell(taskRow, snapshot.isDragging)}
-                                                      </div>
-                                                    )}
-                                                  </Draggable>
-                                                ))}
-                                              {provided.placeholder}
-                                            </div>
-                                          )}
-                                        </Droppable>
-                                      )}
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
+                    {rows.map((row, idx) => {
+                      // 只在該項有效位置時才渲染 Draggable
+                      const parentId = row.type === 'phase' ? row.data.gantt_project_id : row.type === 'task' ? rows.find(r => r.id === `phase-${row.data.gantt_phase_id}`)?.data.gantt_project_id : null;
+                      const droppableId = row.type === 'project' ? 'droppable-project' : row.type === 'phase' ? `droppable-phase-${parentId}` : `droppable-task-${row.data.gantt_phase_id}`;
+
+                      return (
+                        <Draggable key={row.id} draggableId={row.id} index={idx} type={row.type.toUpperCase()}>
+                          {(provided, snapshot) => (
+                            <div
+                              className="border-b border-gray-200"
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              {renderLeftCell(row, snapshot.isDragging)}
                             </div>
                           )}
-                        </Droppable>
-                      ) : null;
+                        </Draggable>
+                      );
                     })}
                     {rows.length === 0 && (
                       <div className="p-8 text-center text-gray-400">
