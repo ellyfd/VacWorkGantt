@@ -106,24 +106,6 @@ export default function GanttChart() {
     queryFn: () => base44.entities.Holiday.list(),
   });
 
-  const { data: leaveRecords = [] } = useQuery({
-    queryKey: ['leaveRecords', format(currentDate, 'yyyy-MM')],
-    queryFn: async () => {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      const startDate = format(new Date(year, month, 1), 'yyyy-MM-dd');
-      const endDate = format(new Date(year, month + 1, 0), 'yyyy-MM-dd');
-      return base44.entities.LeaveRecord.filter({
-        date: { $gte: startDate, $lte: endDate }
-      });
-    },
-  });
-
-  const { data: leaveTypes = [] } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list('sort_order'),
-  });
-
   // Mutations
   const createProject = useMutation({
     mutationFn: async (data) => {
