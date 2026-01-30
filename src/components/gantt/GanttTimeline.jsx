@@ -3,7 +3,7 @@ import GanttBar from './GanttBar';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-export default function GanttTimeline({ currentDate, clientGroups, brands, projects, phases, tasks, employees }) {
+export default function GanttTimeline({ currentDate, projects, phases, tasks, employees }) {
   // 生成該月的日期陣列
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -63,15 +63,14 @@ export default function GanttTimeline({ currentDate, clientGroups, brands, proje
         <div className="bg-white border-r border-gray-200 flex-shrink-0" style={{ width: '300px' }}>
           <div className="max-h-96 overflow-y-auto">
             {phases.map((phase) => {
-              const phaseTasks = tasks.filter(t => t.phase_id === phase.id);
-              const project = projects.find(p => p.id === phase.project_id);
-              const brand = brands.find(b => b.id === project?.brand_id);
+                const phaseTasks = tasks.filter(t => t.phase_id === phase.id);
+                const project = projects.find(p => p.id === phase.project_id);
 
-              return (
-                <div key={phase.id}>
-                  <div className="px-4 py-2 bg-blue-50 border-b border-gray-200 text-sm font-semibold text-gray-800">
-                    {brand?.name} - {phase.phase_type}
-                  </div>
+                return (
+                  <div key={phase.id}>
+                    <div className="px-4 py-2 bg-blue-50 border-b border-gray-200 text-sm font-semibold text-gray-800">
+                      {project?.name} - {phase.phase_type}
+                    </div>
                   {phaseTasks.map((task) => (
                     <div key={task.id} className="px-4 py-2 border-b border-gray-200 text-xs text-gray-700 bg-white">
                       {task.name}
