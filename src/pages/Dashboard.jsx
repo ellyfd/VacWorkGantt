@@ -56,8 +56,12 @@ export default function Dashboard() {
 
   const { data: todayLeaves = [], isLoading: loadingLeaves } = useQuery({
     queryKey: ['todayLeaves', selectedDate],
-    queryFn: () => base44.entities.LeaveRecord.filter({ date: selectedDate }),
-    staleTime: 0, // 立即重新查詢
+    queryFn: async () => {
+      const records = await base44.entities.LeaveRecord.filter({ date: selectedDate });
+      console.log(`📅 ${selectedDate} 的請假記錄:`, records);
+      return records;
+    },
+    staleTime: 0,
     refetchOnMount: true,
   });
 
@@ -100,10 +104,23 @@ export default function Dashboard() {
     ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
     : employees;
 
+  // 調試：檢查是否有找不到員工的請假記錄
+  React.useEffect(() => {
+    const orphanLeaves = todayLeaves.filter(leave => {
+      const emp = employees.find(e => e.id === leave.employee_id);
+      return !emp;
+    });
+    if (orphanLeaves.length > 0) {
+      console.log('⚠️ 找不到員工的請假記錄:', orphanLeaves);
+    }
+  }, [todayLeaves, employees]);
+
   const filteredLeaves = todayLeaves.filter(leave => {
     const emp = employees.find(e => e.id === leave.employee_id);
-    if (!emp) return false;
-    // 不過濾 hidden 或 inactive 員工，只要有請假記錄就顯示
+    if (!emp) {
+      console.warn('找不到員工ID:', leave.employee_id, '的請假記錄:', leave);
+      return false;
+    }
     if (selectedDepartments.length === 0) return true;
     return emp.department_ids?.some(deptId => selectedDepartments.includes(deptId));
   });
