@@ -57,6 +57,8 @@ export default function Dashboard() {
   const { data: todayLeaves = [], isLoading: loadingLeaves } = useQuery({
     queryKey: ['todayLeaves', selectedDate],
     queryFn: () => base44.entities.LeaveRecord.filter({ date: selectedDate }),
+    staleTime: 0, // 立即重新查詢
+    refetchOnMount: true,
   });
 
   const { data: warningLeaves = [], isLoading: loadingWarnings } = useQuery({
@@ -101,6 +103,7 @@ export default function Dashboard() {
   const filteredLeaves = todayLeaves.filter(leave => {
     const emp = employees.find(e => e.id === leave.employee_id);
     if (!emp) return false;
+    // 不過濾 hidden 或 inactive 員工，只要有請假記錄就顯示
     if (selectedDepartments.length === 0) return true;
     return emp.department_ids?.some(deptId => selectedDepartments.includes(deptId));
   });
@@ -341,7 +344,6 @@ export default function Dashboard() {
                 onMonthChange={setCalendarMonth}
                 locale={zhTW}
                 weekStartsOn={0}
-                initialFocus
               />
             </PopoverContent>
           </Popover>
