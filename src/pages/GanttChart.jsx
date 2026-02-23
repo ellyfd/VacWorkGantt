@@ -933,6 +933,7 @@ export default function GanttChart() {
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="font-medium text-gray-700">選中任務：</span>
               <span className="text-blue-700 font-semibold">{getSelectedTaskName()}</span>
+              <button onClick={clearSelection} className="ml-1 text-gray-400 hover:text-gray-600 text-xs underline">取消選取</button>
             </div>
             
             <div className="flex flex-wrap items-center gap-2 text-sm">
