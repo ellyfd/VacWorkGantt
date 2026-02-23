@@ -175,26 +175,18 @@ export default function PeopleManagement() {
     }
   };
 
-  const getEmployeesForDisplay = () => {
+  const filteredEmployees = useMemo(() => {
     if (selectedDepartments.length === 0) return employees;
     const employeesByDept = new Map();
     selectedDepartments.forEach(deptId => {
       const deptEmployees = employees
         .filter(emp => emp.department_ids?.includes(deptId))
-        .map(emp => ({
-          ...emp,
-          currentDeptId: deptId,
-          displayOrder: emp.sort_order_by_dept?.[deptId] || 999999
-        }))
+        .map(emp => ({ ...emp, currentDeptId: deptId, displayOrder: emp.sort_order_by_dept?.[deptId] || 999999 }))
         .sort((a, b) => a.displayOrder - b.displayOrder);
-      deptEmployees.forEach(emp => {
-        if (!employeesByDept.has(emp.id)) employeesByDept.set(emp.id, emp);
-      });
+      deptEmployees.forEach(emp => { if (!employeesByDept.has(emp.id)) employeesByDept.set(emp.id, emp); });
     });
     return Array.from(employeesByDept.values());
-  };
-
-  const filteredEmployees = getEmployeesForDisplay();
+  }, [employees, selectedDepartments]);
 
   const handleDownloadTemplate = () => {
     const csvContent = "name,department_name\n張三,佈媽\n李四,TD-台北\n王五,3D team";
