@@ -433,22 +433,23 @@ export default function GanttChart() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // 同步滾動
+  const rightBodyRef = useRef(null);
+
+  // 同步垂直滾動：左側 panel ↔ 右側 body
   React.useEffect(() => {
     const left = leftPanelRef.current;
-    const right = rightPanelRef.current;
+    const right = rightBodyRef.current;
     if (!left || !right) return;
 
-    const syncScroll = (source, target) => () => {
-      target.scrollTop = source.scrollTop;
-    };
+    const onLeft = () => { right.scrollTop = left.scrollTop; };
+    const onRight = () => { left.scrollTop = right.scrollTop; };
 
-    left.addEventListener('scroll', syncScroll(left, right));
-    right.addEventListener('scroll', syncScroll(right, left));
+    left.addEventListener('scroll', onLeft);
+    right.addEventListener('scroll', onRight);
 
     return () => {
-      left.removeEventListener('scroll', syncScroll(left, right));
-      right.removeEventListener('scroll', syncScroll(right, left));
+      left.removeEventListener('scroll', onLeft);
+      right.removeEventListener('scroll', onRight);
     };
   }, []);
 
