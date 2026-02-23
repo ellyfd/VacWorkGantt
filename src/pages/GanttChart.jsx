@@ -1237,11 +1237,15 @@ export default function GanttChart() {
             <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}>
               {days.map((day) => {
                 const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+                const isHolidayHeader = holidays?.some(h => h.date === format(day, 'yyyy-MM-dd'));
+                const isDimmedHeader = isWeekend || isHolidayHeader;
                 return (
                   <div
                     key={day.toISOString()}
                     className={`flex-shrink-0 border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                      isToday(day) ? 'bg-red-100 text-red-700' : 'text-gray-700'
+                      isToday(day) ? 'bg-red-100 text-red-700' :
+                      isDimmedHeader ? 'bg-gray-300 text-gray-500' :
+                      'bg-gray-100 text-gray-700'
                     }`}
                     style={{ width: CELL_WIDTH }}
                   >
