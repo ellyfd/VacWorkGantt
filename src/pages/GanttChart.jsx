@@ -258,15 +258,17 @@ export default function GanttChart() {
   const days = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    if (viewMode === 'week') {
-      const start = startOfWeek(currentMonth, { weekStartsOn: 1 });
-      return eachDayOfInterval({ start, end: addDays(start, 6) });
-    } else if (viewMode === 'biweek') {
+    if (viewMode === 'biweek') {
       const start = startOfWeek(currentMonth, { weekStartsOn: 1 });
       return eachDayOfInterval({ start, end: addDays(start, 13) });
     } else if (viewMode === 'quarter') {
-      const start = startOfQuarter(currentMonth);
-      return eachDayOfInterval({ start, end: endOfQuarter(currentMonth) });
+      // 以週為單位，13週（約一季）
+      const start = startOfWeek(new Date(year, month, 1), { weekStartsOn: 1 });
+      const weeks = [];
+      for (let i = 0; i < 13; i++) {
+        weeks.push(addWeeks(start, i));
+      }
+      return weeks;
     } else {
       return eachDayOfInterval({
         start: new Date(year, month, 1),
