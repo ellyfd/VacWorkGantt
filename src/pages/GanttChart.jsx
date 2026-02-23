@@ -768,7 +768,7 @@ export default function GanttChart() {
             className={`border-r border-gray-200 relative cursor-pointer transition-colors ${
               selectedTaskId === task.id ? 'bg-blue-50' : 'bg-white'
             } ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100' : ''} ${isInDragRange(task, dateStr) ? 'bg-blue-200' : ''} hover:bg-yellow-50`}
-            style={{ width: 40, height: ROW_HEIGHT }}
+            style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
             onMouseDown={(e) => {
               if (e.button !== 0) return;
               setIsDragging(true);
