@@ -358,7 +358,7 @@ export default function LeaveCalendar() {
 
         const deptLimit = Math.floor(deptTotalMembers / 3);
 
-        if (deptLeaves.length > deptLimit) {
+        if (deptLeaves.length >= deptLimit) {
           warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（超過1/3人數 ${deptLimit}）`);
         }
         }
