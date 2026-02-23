@@ -1280,6 +1280,9 @@ export default function GanttChart() {
                   );
                 }
                 const dateStr = format(day, 'yyyy-MM-dd');
+                const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
+                const isHolidayLeave = holidays?.some(h => h.date === dateStr);
+                const isDimmedLeave = isWeekendLeave || isHolidayLeave;
                 const count = leaveCountByDate[dateStr] || 0;
                 const leaveStyle = getLeaveCountStyle(count);
                 const names = leaveNamesByDate[dateStr] || [];
@@ -1290,7 +1293,7 @@ export default function GanttChart() {
                     style={{
                       width: CELL_WIDTH,
                       height: 28,
-                      backgroundColor: leaveStyle?.bg || 'transparent',
+                      backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#d1d5db' : 'transparent'),
                       fontSize: 11,
                       fontWeight: leaveStyle?.bold ? 700 : 500,
                       color: leaveStyle?.text || '#d1d5db',
