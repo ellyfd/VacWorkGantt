@@ -579,15 +579,15 @@ export default function AllLeaveCalendar() {
     },
   });
 
-  const handleUpdateLeave = (employeeId, date, leaveTypeId) => {
+  const handleUpdateLeave = useCallback((employeeId, date, leaveTypeId) => {
     updateLeaveMutation.mutate({ employeeId, date, leaveTypeId });
-  };
+  }, [updateLeaveMutation]);
 
-  const handleDeleteLeave = (recordId) => {
+  const handleDeleteLeave = useCallback((recordId) => {
     deleteLeaveMutation.mutate(recordId);
-  };
+  }, [deleteLeaveMutation]);
 
-  const handleDeleteRangeLeave = (record) => {
+  const handleDeleteRangeLeave = useCallback((record) => {
     if (!record) return;
 
     const sameTypeRecords = leaveRecords.filter(r => 
