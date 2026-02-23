@@ -954,9 +954,9 @@ export default function GanttChart() {
         <ContextMenu key={dateStr}>
           <ContextMenuTrigger asChild>
             <div
-              className={`border-r border-gray-200 relative bg-gray-100 cursor-pointer hover:bg-yellow-50 transition-colors ${
-                selectedPhaseTask ? 'bg-blue-50' : ''
-              } ${isInDragRangePhase ? 'bg-blue-200' : ''}`}
+              className={`border-r border-b border-gray-200 relative cursor-pointer hover:bg-yellow-50 transition-colors ${
+                isInDragRangePhase ? 'bg-blue-200' : selectedPhaseTask ? 'bg-blue-50' : isDimmed ? 'bg-gray-100' : 'bg-white'
+              }`}
               style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
               onMouseDown={(e) => {
                 if (e.button !== 0) return;
