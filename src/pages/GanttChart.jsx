@@ -1086,7 +1086,14 @@ export default function GanttChart() {
 
   const projectForAddPhase = ganttProjects.find(p => p.id === creatingProjectId);
   const brandIdForAddPhase = projectForAddPhase?.brand_id;
-  const samplesForPhaseSelection = brandIdForAddPhase ? getSamplesByBrand(brandIdForAddPhase) : [];
+  const samplesForPhaseSelection = (() => {
+    if (!brandIdForAddPhase) return [];
+    const allSamples = getSamplesByBrand(brandIdForAddPhase);
+    // 排除已加入的樣品
+    const existingPhases = ganttPhases.filter(p => p.gantt_project_id === creatingProjectId);
+    const existingSampleIds = new Set(existingPhases.map(p => p.sample_id));
+    return allSamples.filter(s => !existingSampleIds.has(s.id));
+  })();
 
   return (
     <div className="p-4 md:p-6 space-y-4">
