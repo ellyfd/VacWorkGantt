@@ -85,39 +85,45 @@ export default function WeekCalendarTable({
   }, [rangeMode, onCellClickInRangeMode]);
 
   // 月份休假統計
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
-  const monthlyLeaveStats = [];
-  leaveRecords.forEach(record => {
-    const recordDate = new Date(record.date);
-    if (recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear) {
-      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-      if (leaveType) {
-        const existing = monthlyLeaveStats.find(stat => stat.leaveTypeId === leaveType.id);
-        if (existing) {
-          existing.count += 1;
-        } else {
-          monthlyLeaveStats.push({ leaveTypeId: leaveType.id, name: leaveType.name, color: leaveType.color, count: 1 });
+  const leaveTypeMap = useMemo(() => new Map(leaveTypes.map(lt => [lt.id, lt])), [leaveTypes]);
+
+  const monthlyLeaveStats = useMemo(() => {
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    const statsMap = new Map();
+    leaveRecords.forEach(record => {
+      const recordDate = new Date(record.date);
+      if (recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear) {
+        const leaveType = leaveTypeMap.get(record.leave_type_id);
+        if (leaveType) {
+          const existing = statsMap.get(leaveType.id);
+          if (existing) existing.count += 1;
+          else statsMap.set(leaveType.id, { leaveTypeId: leaveType.id, name: leaveType.name, color: leaveType.color, count: 1 });
         }
       }
-    }
-  });
+    });
+    return Array.from(statsMap.values());
+  }, [leaveRecords, leaveTypeMap, currentDate]);
 
   // 按周分組
-  const weeks = [];
-  const startDayOfWeek = getDay(allDays[0].fullDate);
-  let currentWeek = Array(startDayOfWeek).fill(null);
-  allDays.forEach((day) => {
-    currentWeek.push(day);
-    if (currentWeek.length === 7) {
-      weeks.push([...currentWeek]);
-      currentWeek = [];
+  const weeks = useMemo(() => {
+    if (allDays.length === 0) return [];
+    const result = [];
+    const startDayOfWeek = getDay(allDays[0].fullDate);
+    let currentWeek = Array(startDayOfWeek).fill(null);
+    allDays.forEach((day) => {
+      currentWeek.push(day);
+      if (currentWeek.length === 7) {
+        result.push([...currentWeek]);
+        currentWeek = [];
+      }
+    });
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) currentWeek.push(null);
+      result.push(currentWeek);
     }
-  });
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) currentWeek.push(null);
-    weeks.push(currentWeek);
-  }
+    return result;
+  }, [allDays]);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
