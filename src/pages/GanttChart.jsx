@@ -1078,6 +1078,9 @@ export default function GanttChart() {
           <div className="flex">
             {/* Left Panel */}
             <div className="w-64 flex-shrink-0 border-r border-gray-300">
+              {viewMode === 'month' && (
+                <div className="bg-gray-100 border-b border-gray-200" style={{ height: 20 }} />
+              )}
               <div
                 className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center"
                 style={{ height: ROW_HEIGHT }}
