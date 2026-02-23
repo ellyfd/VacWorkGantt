@@ -225,7 +225,7 @@ export default function LeaveCalendar() {
       ).length;
       const deptLimit = Math.floor(deptTotalMembers / 3);
       
-      if (deptLeaves.length > deptLimit) {
+      if (deptLeaves.length >= deptLimit) {
         warningTypes.push('department_over_limit');
         warningDetails.department_info = {
           total_members: deptTotalMembers,
