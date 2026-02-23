@@ -1080,6 +1080,7 @@ export default function GanttChart() {
                   style={{ width: CELL_WIDTH, minHeight: ROW_HEIGHT }}
                 >
                   {viewMode === 'quarter' ? format(day, 'M/d') : format(day, 'd')}
+                {viewMode === 'quarter' && <span className="text-[9px] text-gray-400 block leading-none">週</span>}
                 </div>
               ))}
             </div>
