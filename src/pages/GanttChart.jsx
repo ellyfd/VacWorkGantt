@@ -274,6 +274,23 @@ export default function GanttChart() {
     },
   });
 
+  const deleteGanttPhase = useMutation({
+    mutationFn: async (phaseId) => {
+      const phaseTasks = ganttTasks.filter(t => t.gantt_phase_id === phaseId);
+      await Promise.all(phaseTasks.map(t => base44.entities.GanttTask.delete(t.id)));
+      await base44.entities.GanttPhase.delete(phaseId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttPhases']);
+      queryClient.invalidateQueries(['ganttTasks']);
+    },
+  });
+
+  const updateGanttPhase = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.GanttPhase.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['ganttPhases']),
+  });
+
   // 清除選擇
   const clearSelection = () => {
     setSelectedTaskId(null);
