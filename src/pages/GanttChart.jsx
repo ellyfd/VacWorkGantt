@@ -1133,7 +1133,34 @@ export default function GanttChart() {
             </div>
 
           {/* Right Panel */}
-          <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }}>
+          <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
+            {/* 月份分組標籤列 */}
+            {viewMode === 'month' && (
+              <div className="flex bg-gray-50 border-b border-gray-200" style={{ minWidth: days.length * CELL_WIDTH }}>
+                {(() => {
+                  const groups = [];
+                  let current = null;
+                  days.forEach((day, idx) => {
+                    const monthKey = format(day, 'yyyy-MM');
+                    if (current?.key !== monthKey) {
+                      current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
+                      groups.push(current);
+                    } else {
+                      current.count++;
+                    }
+                  });
+                  return groups.map(g => (
+                    <div
+                      key={g.key}
+                      className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100"
+                      style={{ width: g.count * CELL_WIDTH, flexShrink: 0, height: 20 }}
+                    >
+                      {g.label}
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
             {/* 日期 header */}
             <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}>
               {days.map((day) => {
