@@ -28,7 +28,8 @@ import {
 import { Card } from '@/components/ui/card';
 import { Plus, Diamond, ArrowRight, Repeat, GripVertical, Upload, Edit2, Trash2, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { addMonths, addDays, addWeeks, format, eachDayOfInterval, isToday, startOfWeek, startOfQuarter, endOfQuarter } from 'date-fns';
+import { addMonths, addDays, addWeeks, format, eachDayOfInterval, isToday, startOfWeek, getDay } from 'date-fns';
+import { zhTW } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
