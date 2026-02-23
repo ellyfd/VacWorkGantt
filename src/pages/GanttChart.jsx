@@ -1087,6 +1087,16 @@ export default function GanttChart() {
             {/* 請假人數列 */}
             <div className="flex border-b border-gray-300 bg-white">
               {days.map((day) => {
+                // 季模式：空白格，不顯示請假人數
+                if (viewMode === 'quarter') {
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className="flex-shrink-0 border-r border-gray-200"
+                      style={{ width: CELL_WIDTH, height: 28 }}
+                    />
+                  );
+                }
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const count = leaveCountByDate[dateStr] || 0;
                 const leaveStyle = getLeaveCountStyle(count);
