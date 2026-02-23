@@ -56,6 +56,8 @@ export default function LeaveStatistics({ departments: allDepartments, employees
     return records;
   }, [allLeaveRecords, period, year, month, quarter]);
 
+  const employeeMap = useMemo(() => new Map(employees.map(e => [e.id, e])), [employees]);
+
   const departmentStats = useMemo(() => {
     const stats = {};
     departments.forEach(dept => {
@@ -63,14 +65,14 @@ export default function LeaveStatistics({ departments: allDepartments, employees
     });
     
     filteredRecords.forEach(record => {
-      const emp = employees.find(e => e.id === record.employee_id);
-      if (emp && stats[emp.department_id]) {
-        stats[emp.department_id].count++;
-      }
+      const emp = employeeMap.get(record.employee_id);
+      emp?.department_ids?.forEach(deptId => {
+        if (stats[deptId]) stats[deptId].count++;
+      });
     });
     
     return Object.values(stats).filter(s => s.count > 0);
-  }, [filteredRecords, departments, employees]);
+  }, [filteredRecords, departments, employeeMap]);
 
   const leaveTypeStats = useMemo(() => {
     const stats = {};
