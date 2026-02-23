@@ -981,16 +981,15 @@ export default function GanttChart() {
         </Button>
       </div>
 
-      {/* Month Navigation */}
+      {/* Navigation */}
       <div className="flex flex-wrap gap-3 items-center">
-        <Button variant="outline" size="sm" onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}>上月</Button>
-        <span className="font-semibold text-lg">{format(currentMonth, 'yyyy年MM月')}</span>
-        <Button variant="outline" size="sm" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>下月</Button>
+        <span className="font-semibold text-lg">{format(visibleMonth, 'yyyy年MM月')}</span>
+        <Button variant="outline" size="sm" onClick={scrollToToday}>今天</Button>
         <div className="flex rounded-md border border-gray-200 overflow-hidden ml-2">
           {Object.entries(VIEW_CONFIG).map(([mode, cfg]) => (
             <button
               key={mode}
-              onClick={() => setViewMode(mode)}
+              onClick={() => { setViewMode(mode); initialScrollDone.current = false; }}
               className={`px-3 py-1.5 text-xs font-medium border-r border-gray-200 last:border-0 transition-colors ${
                 viewMode === mode ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
