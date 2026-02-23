@@ -248,10 +248,28 @@ export default function GanttChart() {
     setSecondDate(null);
   };
 
-  // Get month days
-  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Get days based on viewMode
+  const days = useMemo(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    if (viewMode === 'week') {
+      const start = startOfWeek(currentMonth, { weekStartsOn: 1 });
+      return eachDayOfInterval({ start, end: addDays(start, 6) });
+    } else if (viewMode === 'biweek') {
+      const start = startOfWeek(currentMonth, { weekStartsOn: 1 });
+      return eachDayOfInterval({ start, end: addDays(start, 13) });
+    } else if (viewMode === 'quarter') {
+      const start = startOfQuarter(currentMonth);
+      return eachDayOfInterval({ start, end: endOfQuarter(currentMonth) });
+    } else {
+      return eachDayOfInterval({
+        start: new Date(year, month, 1),
+        end: new Date(year, month + 1, 0),
+      });
+    }
+  }, [currentMonth, viewMode]);
+
+  const CELL_WIDTH = VIEW_CONFIG[viewMode].cellWidth;
 
   // 建立統一的 rows 陣列
   const rows = useMemo(() => {
