@@ -631,17 +631,25 @@ export default function GanttChart() {
     if (row.type === 'project') {
       return (
         <div
-          className={`flex items-center gap-2 px-3 bg-gray-800 text-white ${isDragging ? 'bg-blue-700' : 'hover:bg-gray-900'} cursor-pointer font-bold text-sm`}
+          className={`group flex items-center gap-2 px-3 font-bold text-sm ${isDragging ? 'bg-blue-700 text-white' : 'bg-gray-800 text-white hover:bg-gray-900'}`}
           style={{ height: ROW_HEIGHT }}
-          onClick={() => toggleProject(row.data.id)}
         >
           <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
-          {expandedProjects[row.data.id] ? (
-            <ChevronDown className="w-4 h-4 flex-shrink-0" />
-          ) : (
-            <ChevronRight className="w-4 h-4 flex-shrink-0" />
-          )}
-          <span className="truncate">{row.data.name}</span>
+          <span className="truncate flex-1">{row.data.name}</span>
+          <div className="hidden group-hover:flex gap-1 flex-shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); setEditingProject(row.data); setShowEditProjectDialog(true); }}
+              className="p-1 hover:bg-gray-600 rounded"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); if (window.confirm(`確定要刪除「${row.data.name}」嗎？`)) deleteGanttProject.mutate(row.data.id); }}
+              className="p-1 hover:bg-red-700 rounded"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       );
     }
