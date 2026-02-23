@@ -703,161 +703,182 @@ export default function GanttChart() {
       );
     }
 
-    // 階段列
+    // 階段列：直接渲染該 phase 底下所有任務的 bar/milestone
     if (row.type === 'phase') {
+      const phaseTasks = ganttTasks.filter(t => t.gantt_phase_id === row.data.id);
+
+      const renderTaskBar = (task) => {
+        const taskStartDate = task.start_date;
+        const taskEndDate = task.end_date;
+        const isStart = viewMode === 'quarter'
+          ? taskStartDate && taskStartDate >= dateStr && taskStartDate <= weekEndStr
+          : taskStartDate === dateStr;
+        const isEnd = viewMode === 'quarter'
+          ? taskEndDate && taskEndDate >= dateStr && taskEndDate <= weekEndStr
+          : taskEndDate === dateStr;
+        const isInRange =
+          task.time_type === 'duration' && taskStartDate && taskEndDate &&
+          (viewMode === 'quarter'
+            ? dateStr <= taskEndDate && weekEndStr >= taskStartDate
+            : dateStr >= taskStartDate && dateStr <= taskEndDate);
+        const isRolling =
+          task.time_type === 'rolling' && taskStartDate &&
+          (viewMode === 'quarter' ? weekEndStr >= taskStartDate : dateStr >= taskStartDate);
+
+        const isSelectedTask = selectedTaskId === task.id;
+        const isFirstSel = isSelectedTask && firstDate && format(firstDate, 'yyyy-MM-dd') === dateStr;
+        const isSecondSel = isSelectedTask && secondDate && format(secondDate, 'yyyy-MM-dd') === dateStr;
+
+        let tooltipText = '';
+        if (task.time_type === 'milestone' && isStart) tooltipText = `◆ ${task.name}: ${taskStartDate}`;
+        else if (task.time_type === 'duration' && isInRange) tooltipText = `▬ ${task.name}: ${taskStartDate} → ${taskEndDate}`;
+        else if (task.time_type === 'rolling' && isRolling) tooltipText = `▶ ${task.name}: ${taskStartDate}~`;
+
+        const hasVisual = (task.time_type === 'milestone' && isStart) ||
+          (task.time_type === 'duration' && isInRange) ||
+          (task.time_type === 'rolling' && isRolling);
+
+        if (!hasVisual && !isFirstSel && !isSecondSel) return null;
+
+        return (
+          <TooltipProvider key={task.id} delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTaskId(task.id);
+                    if (hasVisual) {
+                      setShowMilestoneDialog(task.time_type === 'milestone');
+                      setShowDurationDialog(task.time_type === 'duration');
+                      setShowRollingDialog(task.time_type === 'rolling');
+                    } else {
+                      handleDateClick(day, task.id);
+                    }
+                  }}
+                  onContextMenu={(e) => e.stopPropagation()}
+                >
+                  {/* 里程碑 ◆ */}
+                  {task.time_type === 'milestone' && isStart && (
+                    <div className={`w-3.5 h-3.5 transform rotate-45 z-10 ${task.is_important ? 'bg-yellow-500' : isSelectedTask ? 'bg-blue-700' : 'bg-blue-500'}`} />
+                  )}
+                  {/* 區間 ████ */}
+                  {task.time_type === 'duration' && isInRange && (
+                    <div className={`absolute top-1/2 h-3 transform -translate-y-1/2 z-10 ${isSelectedTask ? 'bg-blue-600' : 'bg-blue-400'} ${
+                      isStart && isEnd ? 'left-2 right-2 rounded' :
+                      isStart ? 'left-2 right-0 rounded-l' :
+                      isEnd ? 'left-0 right-2 rounded-r' :
+                      'left-0 right-0'
+                    }`} />
+                  )}
+                  {/* Rolling */}
+                  {task.time_type === 'rolling' && isRolling && (
+                    <div className={`absolute top-1/2 h-3 transform -translate-y-1/2 z-10 ${
+                      isStart
+                        ? 'left-2 right-0 bg-gradient-to-r from-purple-500 to-purple-300 rounded-l'
+                        : 'left-0 right-0 bg-purple-300'
+                    }`} />
+                  )}
+                  {/* 選中標記 */}
+                  {isFirstSel && !isSecondSel && (
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold z-20">1</div>
+                  )}
+                  {isSecondSel && (
+                    <div className="absolute top-0 right-0 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold z-20">2</div>
+                  )}
+                </div>
+              </TooltipTrigger>
+              {tooltipText && (
+                <TooltipContent side="top" className="text-xs max-w-48">
+                  {tooltipText}
+                  {task.note && <div className="text-gray-400 mt-0.5">{task.note}</div>}
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        );
+      };
+
+      const hasDragOnPhase = isDragging && phaseTasks.some(t => t.id === dragTaskId);
+      const isInDragRangePhase = hasDragOnPhase && dragStart && dragEnd && (() => {
+        const s = format(dragStart < dragEnd ? dragStart : dragEnd, 'yyyy-MM-dd');
+        const e = format(dragStart < dragEnd ? dragEnd : dragStart, 'yyyy-MM-dd');
+        return dateStr >= s && dateStr <= e;
+      })();
+
+      const selectedPhaseTask = phaseTasks.find(t => t.id === selectedTaskId);
+
       return (
-        <div
-          key={dateStr}
-          className="border-r border-gray-200 bg-gray-100"
-          style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
-        />
+        <ContextMenu key={dateStr}>
+          <ContextMenuTrigger asChild>
+            <div
+              className={`border-r border-gray-200 relative bg-gray-100 cursor-pointer hover:bg-yellow-50 transition-colors ${
+                selectedPhaseTask ? 'bg-blue-50' : ''
+              } ${isInDragRangePhase ? 'bg-blue-200' : ''}`}
+              style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
+              onMouseDown={(e) => {
+                if (e.button !== 0) return;
+                // 拖曳畫區間：需要先有選中任務
+                if (selectedTaskId && phaseTasks.some(t => t.id === selectedTaskId)) {
+                  setIsDragging(true);
+                  setDragTaskId(selectedTaskId);
+                  setDragStart(day);
+                  setDragEnd(day);
+                }
+              }}
+              onMouseEnter={() => {
+                if (isDragging && phaseTasks.some(t => t.id === dragTaskId)) {
+                  setDragEnd(day);
+                }
+              }}
+              onMouseUp={() => {
+                if (!isDragging || !dragTaskId) return;
+                let start = dragStart < dragEnd ? dragStart : dragEnd;
+                let end = dragStart < dragEnd ? dragEnd : dragStart;
+                if (format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')) {
+                  updateTaskWithOptimistic(dragTaskId, { time_type: 'milestone', start_date: format(start, 'yyyy-MM-dd'), end_date: null });
+                } else {
+                  updateTaskWithOptimistic(dragTaskId, { time_type: 'duration', start_date: format(start, 'yyyy-MM-dd'), end_date: format(end, 'yyyy-MM-dd') });
+                }
+                setIsDragging(false);
+                setDragTaskId(null);
+              }}
+              onClick={() => {
+                if (isDragging) return;
+                if (selectedPhaseTask) {
+                  handleDateClick(day, selectedPhaseTask.id);
+                }
+              }}
+            >
+              {/* 今天標記 */}
+              {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500 z-20" />}
+              {/* 所有任務 bars */}
+              {phaseTasks.map(task => renderTaskBar(task))}
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            {phaseTasks.length === 0 && (
+              <ContextMenuItem disabled className="text-gray-400 text-xs">此 Phase 尚無任務</ContextMenuItem>
+            )}
+            {phaseTasks.map(task => (
+              <React.Fragment key={task.id}>
+                <ContextMenuItem className="font-medium text-xs text-gray-500 cursor-default" disabled>{task.name}</ContextMenuItem>
+                <ContextMenuItem onClick={() => handleSetMilestone(task.id, day)} className="pl-4">
+                  <Diamond className="w-3 h-3 mr-2" /> 設為里程碑
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => handleSetRolling(task.id, day)} className="pl-4">
+                  <Repeat className="w-3 h-3 mr-2" /> 設為 Rolling
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => handleClearTime(task.id)} className="pl-4">
+                  <X className="w-3 h-3 mr-2" /> 清除時間
+                </ContextMenuItem>
+              </React.Fragment>
+            ))}
+          </ContextMenuContent>
+        </ContextMenu>
       );
     }
-
-    // 任務列
-    const task = row.data;
-    const taskStartDate = task.start_date;
-    const taskEndDate = task.end_date;
-    // 季模式：用週範圍比較
-    const isStart = viewMode === 'quarter'
-      ? taskStartDate && taskStartDate >= dateStr && taskStartDate <= weekEndStr
-      : taskStartDate === dateStr;
-    const isEnd = viewMode === 'quarter'
-      ? taskEndDate && taskEndDate >= dateStr && taskEndDate <= weekEndStr
-      : taskEndDate === dateStr;
-    const isInRange =
-      task.time_type === 'duration' &&
-      taskStartDate &&
-      taskEndDate &&
-      (viewMode === 'quarter'
-        ? dateStr <= taskEndDate && weekEndStr >= taskStartDate
-        : dateStr >= taskStartDate && dateStr <= taskEndDate);
-    const isRolling =
-      task.time_type === 'rolling' && taskStartDate &&
-      (viewMode === 'quarter' ? weekEndStr >= taskStartDate : dateStr >= taskStartDate);
-
-    return (
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div
-            key={dateStr}
-            className={`border-r border-gray-200 relative cursor-pointer transition-colors ${
-              selectedTaskId === task.id ? 'bg-blue-50' : 'bg-white'
-            } ${isSelected ? 'ring-2 ring-inset ring-blue-500 bg-blue-100' : ''} ${isInDragRange(task, dateStr) ? 'bg-blue-200' : ''} hover:bg-yellow-50`}
-            style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
-            onMouseDown={(e) => {
-              if (e.button !== 0) return;
-              setIsDragging(true);
-              setDragTaskId(task.id);
-              setDragStart(day);
-              setDragEnd(day);
-              setSelectedTaskId(task.id);
-            }}
-            onMouseEnter={() => {
-              if (isDragging && dragTaskId === task.id) {
-                setDragEnd(day);
-              }
-            }}
-            onMouseUp={() => {
-              if (!isDragging || !dragTaskId) return;
-              
-              let start = dragStart < dragEnd ? dragStart : dragEnd;
-              let end = dragStart < dragEnd ? dragEnd : dragStart;
-              
-              if (format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')) {
-                updateTaskWithOptimistic(dragTaskId, { 
-                  time_type: 'milestone', 
-                  start_date: format(start, 'yyyy-MM-dd'), 
-                  end_date: null 
-                });
-              } else {
-                updateTaskWithOptimistic(dragTaskId, { 
-                  time_type: 'duration', 
-                  start_date: format(start, 'yyyy-MM-dd'), 
-                  end_date: format(end, 'yyyy-MM-dd') 
-                });
-              }
-              
-              setIsDragging(false);
-              setDragTaskId(null);
-            }}
-            onClick={() => {
-              if (isDragging) return;
-              if (task.start_date && (isStart || isInRange || isRolling)) {
-                setSelectedTaskId(task.id);
-                setShowMilestoneDialog(task.time_type === 'milestone');
-                setShowDurationDialog(task.time_type === 'duration');
-                setShowRollingDialog(task.time_type === 'rolling');
-              } else {
-                handleDateClick(day, task.id);
-              }
-            }}
-          >
-        {/* 里程碑 ◆ */}
-        {task.time_type === 'milestone' && isStart && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div
-              className={`w-4 h-4 transform rotate-45 ${
-                task.is_important ? 'bg-yellow-500' : 'bg-blue-500'
-              }`}
-            />
-          </div>
-        )}
-
-        {/* 區間 ████ */}
-        {task.time_type === 'duration' && isInRange && (
-          <div
-            className={`absolute top-1/2 h-3 bg-blue-400 transform -translate-y-1/2 ${
-              isStart && isEnd ? 'left-2 right-2 rounded' :
-              isStart ? 'left-2 right-0 rounded-l' : 
-              isEnd ? 'left-0 right-2 rounded-r' : 
-              'left-0 right-0'
-            }`}
-          />
-        )}
-
-        {/* Rolling ▓▓▓→ */}
-        {task.time_type === 'rolling' && isRolling && (
-          <div
-            className={`absolute top-1/2 h-3 transform -translate-y-1/2 ${
-              isStart 
-                ? 'left-2 right-0 bg-gradient-to-r from-purple-500 to-purple-300 rounded-l' 
-                : 'left-0 right-0 bg-purple-300'
-            }`}
-          />
-        )}
-
-        {/* 今天標記 */}
-        {isToday(day) && (
-          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500 z-10" />
-        )}
-        
-        {/* 選中標記數字 */}
-        {isFirstSelected && !isSecondSelected && (
-          <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold">
-            1
-          </div>
-        )}
-        {isSecondSelected && (
-          <div className="absolute top-0 right-0 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold">
-            2
-          </div>
-        )}
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onClick={() => handleSetMilestone(task.id, day)}>
-            <Diamond className="w-4 h-4 mr-2" /> 設為里程碑
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => handleSetRolling(task.id, day)}>
-            <Repeat className="w-4 h-4 mr-2" /> 設為 Rolling
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => handleClearTime(task.id)}>
-            <X className="w-4 h-4 mr-2" /> 清除時間
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
-    );
   };
 
   // 取得排序後的日期
