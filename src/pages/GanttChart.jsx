@@ -1444,10 +1444,9 @@ export default function GanttChart() {
           <DialogFooter>
             <Button variant="outline" onClick={() => {
               setShowImportScheduleDialog(false);
-              setShowSelectSamplesDialog(true);
               setScheduleFile(null);
             }}>
-              改用手動
+              取消
             </Button>
             <Button
               onClick={async () => {
