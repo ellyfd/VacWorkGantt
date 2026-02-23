@@ -786,6 +786,32 @@ export default function GanttChart() {
             >
               <Plus className="w-3 h-3" />
             </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingPhase(row.data);
+                setEditingPhaseName(row.data.name);
+                setEditingPhaseTasks(ganttTasks.filter(t => t.gantt_phase_id === row.data.id));
+                setNewTaskName('');
+                setShowEditPhaseDialog(true);
+              }}
+              className="p-1 hover:bg-gray-300 rounded"
+              title="編輯樣品"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`確定刪除「${row.data.name}」及其所有任務？`)) {
+                  deleteGanttPhase.mutate(row.data.id);
+                }
+              }}
+              className="p-1 hover:bg-red-200 rounded text-red-500"
+              title="刪除樣品"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
           </div>
         </div>
       );
