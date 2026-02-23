@@ -260,10 +260,6 @@ export default function ProjectSettings() {
     }
   };
 
-  const filteredGroups = groups.filter(g =>
-    g.name?.toLowerCase().includes(groupSearchText.toLowerCase())
-  );
-
   const isLoading = loadingSamples || loadingProjects || loadingGroups;
 
   if (isLoading) {
