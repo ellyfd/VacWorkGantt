@@ -51,7 +51,6 @@ import AllLeaveCalendar from './pages/AllLeaveCalendar';
 import Dashboard from './pages/Dashboard';
 import DataImport from './pages/DataImport';
 import GanttManagement from './pages/GanttManagement';
-import Home from './pages/Home';
 import LeaveCalendar from './pages/LeaveCalendar';
 import LeaveSettings from './pages/LeaveSettings';
 import Notifications from './pages/Notifications';
@@ -67,7 +66,6 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "DataImport": DataImport,
     "GanttManagement": GanttManagement,
-    "Home": Home,
     "LeaveCalendar": LeaveCalendar,
     "LeaveSettings": LeaveSettings,
     "Notifications": Notifications,
