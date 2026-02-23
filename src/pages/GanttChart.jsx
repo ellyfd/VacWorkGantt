@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -64,6 +65,10 @@ export default function GanttChart() {
   const [firstDate, setFirstDate] = useState(null);
   const [secondDate, setSecondDate] = useState(null);
   
+  // 畫日期模式
+  const [drawingMode, setDrawingMode] = useState(false);
+  const [pendingTask, setPendingTask] = useState(null);
+  
   // Dialog 狀態
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
@@ -101,6 +106,7 @@ export default function GanttChart() {
   const [editingPhaseName, setEditingPhaseName] = useState('');
   const [editingPhaseTasks, setEditingPhaseTasks] = useState([]);
   const [newTaskName, setNewTaskName] = useState('');
+  const [showAddPhaseDialog, setShowAddPhaseDialog] = useState(false);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -232,10 +238,16 @@ export default function GanttChart() {
 
   const createGanttTask = useMutation({
     mutationFn: (data) => base44.entities.GanttTask.create(data),
-    onSuccess: () => {
+    onSuccess: (newTask) => {
       queryClient.invalidateQueries(['ganttTasks']);
       setShowAddTaskDialog(false);
       setTaskFormData({ name: '', is_important: false, note: '' });
+      // 自動進入畫日期模式
+      setSelectedTaskId(newTask.id);
+      setDrawingMode(true);
+      setPendingTask(newTask);
+      setFirstDate(null);
+      setSecondDate(null);
       setCurrentPhaseId(null);
     },
   });
@@ -292,6 +304,8 @@ export default function GanttChart() {
     setSelectedTaskId(null);
     setFirstDate(null);
     setSecondDate(null);
+    setDrawingMode(false);
+    setPendingTask(null);
   };
 
   // Get days based on viewMode (infinite scroll: center ± buffer)
@@ -409,6 +423,31 @@ export default function GanttChart() {
     setProjectFormData({ brand_id: '', season: '' });
     setSelectedSamples({});
     setProjectCreationMode('manual');
+  };
+
+  const handleAddPhase = async () => {
+    if (!creatingProjectId) return;
+
+    const currentProjectPhases = ganttPhases.filter(p => p.gantt_project_id === creatingProjectId);
+    const maxSortOrder = currentProjectPhases.reduce((max, p) => Math.max(max, p.sort_order || 0), 0);
+
+    const selectedSampleIds = Object.keys(selectedSamples).filter((k) => selectedSamples[k]);
+    if (selectedSampleIds.length === 0) return; 
+
+    await bulkCreatePhases.mutateAsync(
+        selectedSampleIds.map((sampleId, idx) => {
+            const sample = samples.find((s) => s.id === sampleId);
+            return {
+                gantt_project_id: creatingProjectId,
+                sample_id: sampleId,
+                name: sample.short_name || sample.name,
+                sort_order: maxSortOrder + idx + 1,
+            };
+        })
+    );
+    setShowAddPhaseDialog(false);
+    setSelectedSamples({});
+    setCreatingProjectId(null);
   };
 
   const handleAddTask = () => {
@@ -618,12 +657,6 @@ export default function GanttChart() {
     });
   };
 
-
-
-
-
-
-
   // 拖曳排序 (with optimistic update)
   const updateSortOrder = useMutation({
     mutationFn: ({ id, entityType, sortOrder }) => {
@@ -727,6 +760,18 @@ export default function GanttChart() {
           <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
           <span className="truncate flex-1">{row.data.name}</span>
           <div className="hidden group-hover:flex gap-1 flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCreatingProjectId(row.data.id);
+                setSelectedSamples({}); // Clear previous sample selections
+                setShowAddPhaseDialog(true);
+              }}
+              className="p-1 hover:bg-gray-600 rounded"
+              title="新增樣品"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
             <button
               onClick={(e) => { e.stopPropagation(); setEditingProject(row.data); setShowEditProjectDialog(true); }}
               className="p-1 hover:bg-gray-600 rounded"
@@ -981,6 +1026,9 @@ export default function GanttChart() {
                 }
                 setIsDragging(false);
                 setDragTaskId(null);
+                // 退出畫日期模式
+                setDrawingMode(false);
+                setPendingTask(null);
               }}
               onClick={() => {
                 if (isDragging) return;
@@ -1030,6 +1078,10 @@ export default function GanttChart() {
     return { start: firstDate, end: secondDate };
   };
 
+  const projectForAddPhase = ganttProjects.find(p => p.id === creatingProjectId);
+  const brandIdForAddPhase = projectForAddPhase?.brand_id;
+  const samplesForPhaseSelection = brandIdForAddPhase ? getSamplesByBrand(brandIdForAddPhase) : [];
+
   return (
     <div className="p-4 md:p-6 space-y-4">
       {/* Header */}
@@ -1063,8 +1115,28 @@ export default function GanttChart() {
         </div>
       </div>
 
+      {/* 畫日期模式提示 */}
+      {drawingMode && pendingTask && (
+        <Card className="p-3 bg-green-50 border-green-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-green-600 font-semibold animate-pulse">●</span>
+              <span className="font-medium">畫日期模式：</span>
+              <span className="text-green-700 font-semibold">{pendingTask.name}</span>
+              <span className="text-gray-500 text-xs">— 在右側拖曳選擇日期區間</span>
+            </div>
+            <button 
+              onClick={() => { setDrawingMode(false); setPendingTask(null); clearSelection(); }}
+              className="text-xs text-gray-400 hover:text-gray-600 underline"
+            >
+              跳過
+            </button>
+          </div>
+        </Card>
+      )}
+
       {/* Toolbar */}
-      {selectedTaskId && (
+      {selectedTaskId && !drawingMode && (
         <Card className="p-4 bg-blue-50 border-blue-200">
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -1172,11 +1244,15 @@ export default function GanttChart() {
                   >
                     {rows.map((row, idx) => {
                       // 只在該項有效位置時才渲染 Draggable
-                      const parentId = row.type === 'phase' ? row.data.gantt_project_id : row.type === 'task' ? rows.find(r => r.id === `phase-${row.data.gantt_phase_id}`)?.data.gantt_project_id : null;
-                      const droppableId = row.type === 'project' ? 'droppable-project' : row.type === 'phase' ? `droppable-phase-${parentId}` : `droppable-task-${row.data.gantt_phase_id}`;
+                      // The draggableId for phase uses the phase.id, so we need to construct it here.
+                      // For project type, its droppableId is "droppable-project".
+                      // For phase type, its droppableId is "droppable-phase-{gantt_project_id}".
+                      // For task type (not directly supported in this DND setup but for consistency), it would be "droppable-task-{gantt_phase_id}".
+                      const droppableIdForPhase = row.type === 'phase' ? `droppable-phase-${row.data.gantt_project_id}` : undefined;
+                      const draggableType = row.type.toUpperCase();
 
                       return (
-                        <Draggable key={row.id} draggableId={row.id} index={idx} type={row.type.toUpperCase()}>
+                        <Draggable key={row.id} draggableId={row.id} index={idx} type={draggableType}>
                           {(provided, snapshot) => (
                             <div
                               className="border-b border-gray-200"
@@ -1208,7 +1284,7 @@ export default function GanttChart() {
                   {(() => {
                      const groups = [];
                      let current = null;
-                     days.forEach((day, idx) => {
+                     days.forEach((day) => {
                        const monthKey = format(day, 'yyyy-MM');
                        if (current?.key !== monthKey) {
                          current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
@@ -1739,6 +1815,57 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
+      {/* Add Phase Dialog */}
+      <Dialog open={showAddPhaseDialog} onOpenChange={(open) => {
+        if (!open) { setSelectedSamples({}); setCreatingProjectId(null); }
+        setShowAddPhaseDialog(open);
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>新增樣品階段</DialogTitle>
+            <DialogDescription>
+              將樣品作為階段加入此專案: <span className="font-semibold">{projectForAddPhase?.name}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {brandIdForAddPhase ? (
+              samplesForPhaseSelection.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-3">此品牌沒有樣品，請先到「專案設定」新增</p>
+              ) : (
+                <div>
+                  <Label className="mb-2 block">選擇樣品</Label>
+                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-lg p-2">
+                    {samplesForPhaseSelection.map((sample) => (
+                      <label key={sample.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${selectedSamples[sample.id] ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'}`}>
+                        <input
+                          type="checkbox"
+                          checked={selectedSamples[sample.id] || false}
+                          onChange={(e) => setSelectedSamples((prev) => ({ ...prev, [sample.id]: e.target.checked }))}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm">{sample.short_name || sample.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">已選 {Object.values(selectedSamples).filter(Boolean).length} 個</p>
+                </div>
+              )
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-3">請先選擇品牌來關聯樣品。</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddPhaseDialog(false)}>取消</Button>
+            <Button
+              onClick={handleAddPhase}
+              disabled={Object.values(selectedSamples).filter(Boolean).length === 0 || bulkCreatePhases.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {bulkCreatePhases.isPending ? '新增中...' : '新增樣品階段'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
 
       {/* Add Task Dialog */}
