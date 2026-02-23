@@ -119,6 +119,11 @@ export default function GanttChart() {
     queryFn: () => base44.entities.Sample.list('sort_order'),
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list('name'),
+  });
+
   // Mutations
   const createGanttProject = useMutation({
     mutationFn: (data) => base44.entities.GanttProject.create(data),
