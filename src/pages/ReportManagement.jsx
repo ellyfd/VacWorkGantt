@@ -49,8 +49,13 @@ export default function ReportManagement() {
     },
   });
 
+  // Lookup maps (memoized)
+  const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
+  const leaveTypeMap = useMemo(() => new Map(leaveTypes.map(lt => [lt.id, lt])), [leaveTypes]);
+  const employeeMap = useMemo(() => new Map(employees.map(e => [e.id, e])), [employees]);
+
   // 計算請假扣除時數
-  const calculateLeaveHours = (leaveTypeName) => {
+  const calculateLeaveHours = useCallback((leaveTypeName) => {
     if (leaveTypeName.includes('上午')) return 3;
     if (leaveTypeName.includes('下午')) return 4.5;
     return 7.5; // 全天休/病休/出差等
