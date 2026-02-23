@@ -272,10 +272,7 @@ export default function GanttChart() {
   const days = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    if (viewMode === 'biweek') {
-      const start = startOfWeek(currentMonth, { weekStartsOn: 1 });
-      return eachDayOfInterval({ start, end: addDays(start, 13) });
-    } else if (viewMode === 'quarter') {
+    if (viewMode === 'quarter') {
       // 以週為單位，13週（約一季）
       const start = startOfWeek(new Date(year, month, 1), { weekStartsOn: 1 });
       const weeks = [];
