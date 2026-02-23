@@ -730,7 +730,13 @@ export default function GanttChart() {
           <GripVertical className="w-4 h-4 flex-shrink-0 text-gray-400" />
           <span className="truncate flex-1">{row.data.name}</span>
           {phaseTasks.length > 0 && (
-            <span className="text-xs text-gray-400 font-normal flex-shrink-0">{phaseTasks.length}個任務</span>
+            <span
+              className="text-xs text-blue-500 font-normal flex-shrink-0 cursor-pointer hover:underline"
+              onClick={(e) => { e.stopPropagation(); handleJumpToTasks(row.data.id); }}
+              title="點擊跳轉到任務位置"
+            >
+              {phaseTasks.length}個任務
+            </span>
           )}
           <div className="hidden group-hover:flex gap-1 flex-shrink-0">
             <button
