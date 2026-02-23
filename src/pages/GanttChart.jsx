@@ -1001,13 +1001,13 @@ export default function GanttChart() {
                   handleDateClick(day, selectedPhaseTask.id);
                 }
               }}
-            >
+              >
               {/* 今天標記 */}
               {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500 z-20" />}
               {/* 所有任務 bars */}
               {phaseTasks.map(task => renderTaskBar(task))}
-            </div>
-          </ContextMenuTrigger>
+              </div>
+              </ContextMenuTrigger>
           <ContextMenuContent>
             {phaseTasks.length === 0 && (
               <ContextMenuItem disabled className="text-gray-400 text-xs">此 Phase 尚無任務</ContextMenuItem>
