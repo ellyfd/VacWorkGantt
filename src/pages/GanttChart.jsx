@@ -27,7 +27,8 @@ import {
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { Plus, ChevronDown, ChevronRight, Diamond, ArrowRight, Repeat, GripVertical, Upload, Edit2, Trash2, X } from 'lucide-react';
-import { addMonths, format, eachDayOfInterval, isToday } from 'date-fns';
+import { addMonths, addDays, format, eachDayOfInterval, isToday, startOfWeek, startOfQuarter, endOfQuarter } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const ROW_HEIGHT = 40;
