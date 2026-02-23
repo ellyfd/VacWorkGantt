@@ -838,8 +838,13 @@ export default function GanttChart() {
       return (
         <div
           key={dateStr}
-          className="border-r border-b border-gray-200"
-          style={{ width: CELL_WIDTH, height: ROW_HEIGHT, backgroundColor: isDimmed ? '#d1d5db' : '#e5e7eb' }}
+          className="border-r border-gray-200"
+          style={{ 
+            width: CELL_WIDTH, 
+            height: ROW_HEIGHT, 
+            backgroundColor: isDimmed ? '#d1d5db' : '#e5e7eb',
+            borderBottom: viewMode === 'month' ? '1px solid #d1d5db' : '1px solid #d1d5db'
+          }}
         />
       );
     }
