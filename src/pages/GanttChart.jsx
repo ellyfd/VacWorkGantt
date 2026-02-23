@@ -64,10 +64,6 @@ export default function GanttChart() {
   const [firstDate, setFirstDate] = useState(null);
   const [secondDate, setSecondDate] = useState(null);
   
-  // 畫日期模式
-  const [drawingMode, setDrawingMode] = useState(false);
-  const [pendingTask, setPendingTask] = useState(null);
-  
   // Dialog 狀態
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
@@ -236,16 +232,10 @@ export default function GanttChart() {
 
   const createGanttTask = useMutation({
     mutationFn: (data) => base44.entities.GanttTask.create(data),
-    onSuccess: (newTask) => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['ganttTasks']);
       setShowAddTaskDialog(false);
       setTaskFormData({ name: '', is_important: false, note: '' });
-      // 自動進入畫日期模式
-      setSelectedTaskId(newTask.id);
-      setDrawingMode(true);
-      setPendingTask(newTask);
-      setFirstDate(null);
-      setSecondDate(null);
       setCurrentPhaseId(null);
     },
   });
@@ -302,8 +292,6 @@ export default function GanttChart() {
     setSelectedTaskId(null);
     setFirstDate(null);
     setSecondDate(null);
-    setDrawingMode(false);
-    setPendingTask(null);
   };
 
   // Get days based on viewMode (infinite scroll: center ± buffer)
@@ -993,9 +981,6 @@ export default function GanttChart() {
                 }
                 setIsDragging(false);
                 setDragTaskId(null);
-                // 退出畫日期模式
-                setDrawingMode(false);
-                setPendingTask(null);
               }}
               onClick={() => {
                 if (isDragging) return;
@@ -1078,28 +1063,8 @@ export default function GanttChart() {
         </div>
       </div>
 
-      {/* 畫日期模式提示 */}
-      {drawingMode && pendingTask && (
-        <Card className="p-3 bg-green-50 border-green-300">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-green-600 font-semibold animate-pulse">●</span>
-              <span className="font-medium">畫日期模式：</span>
-              <span className="text-green-700 font-semibold">{pendingTask.name}</span>
-              <span className="text-gray-500 text-xs">— 在右側拖曳選擇日期區間</span>
-            </div>
-            <button 
-              onClick={() => { setDrawingMode(false); setPendingTask(null); clearSelection(); }}
-              className="text-xs text-gray-400 hover:text-gray-600 underline"
-            >
-              跳過
-            </button>
-          </div>
-        </Card>
-      )}
-
       {/* Toolbar */}
-      {selectedTaskId && !drawingMode && (
+      {selectedTaskId && (
         <Card className="p-4 bg-blue-50 border-blue-200">
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2 text-sm">
