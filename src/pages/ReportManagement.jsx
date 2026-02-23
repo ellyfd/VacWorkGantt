@@ -112,204 +112,126 @@ export default function ReportManagement() {
     };
   }, [filteredLeaveRecords, filteredEmployees, selectedYear, selectedMonth, holidaySet, leaveTypeMap, calculateLeaveHours]);
 
-  // 計算假別統計
-  const calculateLeaveTypeStats = (records) => {
+  const leaveTypeStats = useMemo(() => {
     const stats = {};
-    records.forEach(record => {
-      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+    filteredLeaveRecords.forEach(record => {
+      const leaveType = leaveTypeMap.get(record.leave_type_id);
       if (leaveType) {
-        if (!stats[leaveType.name]) {
-          stats[leaveType.name] = {
-            count: 0,
-            hours: 0,
-            color: leaveType.color
-          };
-        }
+        if (!stats[leaveType.name]) stats[leaveType.name] = { count: 0, hours: 0, color: leaveType.color };
         stats[leaveType.name].count++;
         stats[leaveType.name].hours += calculateLeaveHours(leaveType.name);
       }
     });
-    return Object.entries(stats).map(([name, data]) => ({
-      name,
-      count: data.count,
-      hours: data.hours,
-      color: data.color
-    })).sort((a, b) => b.count - a.count);
-  };
+    return Object.entries(stats).map(([name, data]) => ({ name, ...data })).sort((a, b) => b.count - a.count);
+  }, [filteredLeaveRecords, leaveTypeMap, calculateLeaveHours]);
 
-  // 計算部門統計
-  const calculateDepartmentStats = (records) => {
+  const departmentStats = useMemo(() => {
     const stats = {};
     departments.forEach(dept => {
-      stats[dept.id] = {
-        name: dept.name,
-        employeeCount: 0,
-        leaveCount: 0,
-        leaveHours: 0
-      };
+      stats[dept.id] = { name: dept.name, employeeCount: 0, leaveCount: 0, leaveHours: 0 };
     });
-
     employees.forEach(emp => {
       if (emp.status === 'active' && emp.department_ids) {
-        emp.department_ids.forEach(deptId => {
-          if (stats[deptId]) {
-            stats[deptId].employeeCount++;
-          }
-        });
+        emp.department_ids.forEach(deptId => { if (stats[deptId]) stats[deptId].employeeCount++; });
       }
     });
-
-    records.forEach(record => {
-      const emp = employees.find(e => e.id === record.employee_id);
-      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-      if (emp && emp.department_ids && leaveType) {
+    filteredLeaveRecords.forEach(record => {
+      const emp = employeeMap.get(record.employee_id);
+      const leaveType = leaveTypeMap.get(record.leave_type_id);
+      if (emp?.department_ids && leaveType) {
         const hours = calculateLeaveHours(leaveType.name);
         emp.department_ids.forEach(deptId => {
-          if (stats[deptId]) {
-            stats[deptId].leaveCount++;
-            stats[deptId].leaveHours += hours;
-          }
+          if (stats[deptId]) { stats[deptId].leaveCount++; stats[deptId].leaveHours += hours; }
         });
       }
     });
-
     return Object.values(stats).map(dept => ({
       ...dept,
       avgLeavePerPerson: dept.employeeCount > 0 ? (dept.leaveCount / dept.employeeCount).toFixed(1) : 0,
       avgHoursPerPerson: dept.employeeCount > 0 ? (dept.leaveHours / dept.employeeCount).toFixed(1) : 0
     })).sort((a, b) => b.leaveCount - a.leaveCount);
-  };
+  }, [filteredLeaveRecords, departments, employees, employeeMap, leaveTypeMap, calculateLeaveHours]);
 
-  // 計算員工排行（合併請假和出差）
-  const calculateEmployeeRanking = (records) => {
+  const employeeRanking = useMemo(() => {
     const stats = {};
-    employees.forEach(emp => {
-      if (emp.status === 'active') {
-        stats[emp.id] = {
-          name: emp.name,
-          leaveHours: 0,
-          tripHours: 0
-        };
-      }
+    filteredEmployees.forEach(emp => {
+      if (emp.status === 'active') stats[emp.id] = { name: emp.name, leaveHours: 0, tripHours: 0 };
     });
-
-    records.forEach(record => {
-      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
+    filteredLeaveRecords.forEach(record => {
+      const leaveType = leaveTypeMap.get(record.leave_type_id);
       if (stats[record.employee_id] && leaveType) {
         const hours = calculateLeaveHours(leaveType.name);
-        if (leaveType.name === '出差') {
-          stats[record.employee_id].tripHours += hours;
-        } else {
-          stats[record.employee_id].leaveHours += hours;
-        }
+        if (leaveType.name === '出差') stats[record.employee_id].tripHours += hours;
+        else stats[record.employee_id].leaveHours += hours;
       }
     });
-
     return Object.values(stats)
       .filter(emp => emp.leaveHours > 0 || emp.tripHours > 0)
       .sort((a, b) => b.leaveHours - a.leaveHours)
       .slice(0, 10);
-  };
+  }, [filteredLeaveRecords, filteredEmployees, leaveTypeMap, calculateLeaveHours]);
 
-  // 計算各部門每週人均工作時數
-  const calculateWeeklyDeptWorkHours = () => {
+  const filteredDepartments = useMemo(() =>
+    selectedDepartments.length > 0
+      ? departments.filter(d => selectedDepartments.includes(d.id))
+      : departments,
+    [departments, selectedDepartments]);
+
+  const weeklyDeptWorkHours = useMemo(() => {
     const year = parseInt(selectedYear);
     const month = parseInt(selectedMonth);
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    // 取得該月份的所有週
     const weeks = [];
     let currentWeek = { start: null, end: null, days: [] };
-
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dayOfWeek = date.getDay();
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-      if (dayOfWeek === 1 || day === 1) { // 週一或月初第一天
-        if (currentWeek.start) {
-          weeks.push({...currentWeek});
-        }
+      if (dayOfWeek === 1 || day === 1) {
+        if (currentWeek.start) weeks.push({...currentWeek});
         currentWeek = { start: dateStr, end: dateStr, days: [dateStr] };
       } else {
         currentWeek.end = dateStr;
         currentWeek.days.push(dateStr);
       }
-
-      if (day === daysInMonth) {
-        weeks.push(currentWeek);
-      }
+      if (day === daysInMonth) weeks.push(currentWeek);
     }
 
-    // 使用篩選後的部門
-    const deptsToCalculate = selectedDepartments.length > 0
-      ? departments.filter(d => selectedDepartments.includes(d.id))
-      : departments;
+    // Pre-index: dateStr -> Set of employee_ids in that dept
+    const weekDaySet = weeks.map(w => new Set(w.days));
 
-    // 計算每週每部門的人均工作時數
-    const weeklyStats = weeks.map((week, weekIdx) => {
+    return weeks.map((week, weekIdx) => {
       const deptStats = {};
+      const weekDays = weekDaySet[weekIdx];
 
-      deptsToCalculate.forEach(dept => {
-        const deptEmployees = filteredEmployees.filter(e => 
-          e.status === 'active' && e.department_ids?.includes(dept.id)
-        );
+      filteredDepartments.forEach(dept => {
+        const deptEmps = filteredEmployees.filter(e => e.status === 'active' && e.department_ids?.includes(dept.id));
+        if (deptEmps.length === 0) { deptStats[dept.name] = 0; return; }
 
-        if (deptEmployees.length === 0) {
-          deptStats[dept.name] = 0;
-          return;
-        }
-
-        // 計算該週工作日數
+        const deptEmpIds = new Set(deptEmps.map(e => e.id));
         let workDays = 0;
         week.days.forEach(dateStr => {
-          const date = new Date(dateStr + 'T00:00:00');
-          const dayOfWeek = date.getDay();
-          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-          const isHoliday = holidays.some(h => h.date === dateStr);
-          if (!isWeekend && !isHoliday) {
-            workDays++;
-          }
+          const d = new Date(dateStr + 'T00:00:00');
+          const dow = d.getDay();
+          if (dow !== 0 && dow !== 6 && !holidaySet.has(dateStr)) workDays++;
         });
 
-        const standardHours = workDays * deptEmployees.length * 7.5;
-
-        // 計算該週該部門的請假時數
+        const standardHours = workDays * deptEmps.length * 7.5;
         let leaveHours = 0;
         filteredLeaveRecords.forEach(record => {
-          if (week.days.includes(record.date)) {
-            const emp = deptEmployees.find(e => e.id === record.employee_id);
-            const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-            if (emp && leaveType) {
-              leaveHours += calculateLeaveHours(leaveType.name);
-            }
+          if (weekDays.has(record.date) && deptEmpIds.has(record.employee_id)) {
+            const lt = leaveTypeMap.get(record.leave_type_id);
+            if (lt) leaveHours += calculateLeaveHours(lt.name);
           }
         });
 
-        const actualHours = standardHours - leaveHours;
-        const avgHours = deptEmployees.length > 0 ? actualHours / deptEmployees.length : 0;
-        deptStats[dept.name] = avgHours;
+        deptStats[dept.name] = deptEmps.length > 0 ? (standardHours - leaveHours) / deptEmps.length : 0;
       });
 
-      return {
-        week: `W${weekIdx + 1}`,
-        ...deptStats
-      };
+      return { week: `W${weekIdx + 1}`, ...deptStats };
     });
-
-    return weeklyStats;
-  };
-
-  const filteredEmployees = selectedDepartments.length > 0
-    ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
-    : employees;
-
-  const filteredLeaveRecords = selectedDepartments.length > 0
-    ? leaveRecords.filter(record => {
-        const emp = employees.find(e => e.id === record.employee_id);
-        return emp?.department_ids?.some(deptId => selectedDepartments.includes(deptId));
-      })
-    : leaveRecords;
+  }, [filteredLeaveRecords, filteredEmployees, filteredDepartments, selectedYear, selectedMonth, holidaySet, leaveTypeMap, calculateLeaveHours]);
 
   const isLoading = loadingEmps || loadingDepts || loadingTypes || loadingRecords || loadingHolidays;
 
@@ -320,16 +242,6 @@ export default function ReportManagement() {
       </div>
     );
   }
-
-  const attendanceData = calculateAttendanceData(filteredLeaveRecords, filteredEmployees);
-  const leaveTypeStats = calculateLeaveTypeStats(filteredLeaveRecords);
-  const departmentStats = calculateDepartmentStats(filteredLeaveRecords);
-  const employeeRanking = calculateEmployeeRanking(filteredLeaveRecords);
-  const weeklyDeptWorkHours = calculateWeeklyDeptWorkHours();
-
-  const filteredDepartments = selectedDepartments.length > 0
-    ? departments.filter(d => selectedDepartments.includes(d.id))
-    : departments;
 
   const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
