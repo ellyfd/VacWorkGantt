@@ -204,26 +204,33 @@ export default function ProjectSettings() {
     }
   };
 
-  const getProjectName = (projectId) => {
-    const project = projects.find(p => p.id === projectId);
-    return project ? project.name : '-';
-  };
+  const projectMap = useMemo(() => new Map(projects.map(p => [p.id, p])), [projects]);
+  const groupMap = useMemo(() => new Map(groups.map(g => [g.id, g])), [groups]);
 
-  const filteredSamples = samples.filter(s =>
-    s.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-    (s.full_name?.toLowerCase().includes(searchText.toLowerCase())) ||
-    getProjectName(s.project_id)?.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const getProjectName = (projectId) => projectMap.get(projectId)?.name || '-';
+  const getGroupName = (groupId) => groupMap.get(groupId)?.name || '-';
 
-  const filteredProjects = projects.filter(p =>
-    p.full_name?.toLowerCase().includes(projectSearchText.toLowerCase()) ||
-    p.short_name?.toLowerCase().includes(projectSearchText.toLowerCase())
-  );
+  const filteredSamples = useMemo(() => {
+    const q = searchText.toLowerCase();
+    return samples.filter(s =>
+      s.name?.toLowerCase().includes(q) ||
+      s.full_name?.toLowerCase().includes(q) ||
+      (projectMap.get(s.project_id)?.name || '').toLowerCase().includes(q)
+    );
+  }, [samples, searchText, projectMap]);
 
-  const getGroupName = (groupId) => {
-    const group = groups.find(g => g.id === groupId);
-    return group ? group.name : '-';
-  };
+  const filteredProjects = useMemo(() => {
+    const q = projectSearchText.toLowerCase();
+    return projects.filter(p =>
+      p.full_name?.toLowerCase().includes(q) ||
+      p.short_name?.toLowerCase().includes(q)
+    );
+  }, [projects, projectSearchText]);
+
+  const filteredGroups = useMemo(() => {
+    const q = groupSearchText.toLowerCase();
+    return groups.filter(g => g.name?.toLowerCase().includes(q));
+  }, [groups, groupSearchText]);
   
 
 
