@@ -81,6 +81,11 @@ export default function GanttChart() {
   const [dragStart, setDragStart] = useState(null);
   const [dragEnd, setDragEnd] = useState(null);
 
+  // 新任務畫日期模式
+  const [drawingMode, setDrawingMode] = useState(false);
+  const [drawingPhaseId, setDrawingPhaseId] = useState(null);
+  const [pendingTask, setPendingTask] = useState(null);
+
   // 編輯任務狀態
   const [editingTask, setEditingTask] = useState(null);
 
