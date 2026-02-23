@@ -61,54 +61,56 @@ export default function ReportManagement() {
     return 7.5;
   }, []);
 
+  const filteredEmployees = useMemo(() => 
+    selectedDepartments.length > 0
+      ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
+      : employees,
+    [employees, selectedDepartments]);
+
+  const filteredLeaveRecords = useMemo(() => 
+    selectedDepartments.length > 0
+      ? leaveRecords.filter(record => {
+          const emp = employeeMap.get(record.employee_id);
+          return emp?.department_ids?.some(deptId => selectedDepartments.includes(deptId));
+        })
+      : leaveRecords,
+    [leaveRecords, selectedDepartments, employeeMap]);
+
   // 計算月度出席數據
-  const calculateAttendanceData = (records, emps) => {
+  const attendanceData = useMemo(() => {
     const year = parseInt(selectedYear);
     const month = parseInt(selectedMonth);
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    // 計算工作日數（排除週末和假日）
     let workDays = 0;
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dayOfWeek = date.getDay();
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      const isHoliday = holidays.some(h => h.date === dateStr);
-
-      if (!isWeekend && !isHoliday) {
-        workDays++;
-      }
+      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidaySet.has(dateStr)) workDays++;
     }
 
-    const activeEmployees = emps.filter(e => e.status === 'active');
+    const activeEmployees = filteredEmployees.filter(e => e.status === 'active');
     const totalEmployees = activeEmployees.length;
-    const standardHoursPerDay = 7.5;
-    const totalStandardHours = workDays * totalEmployees * standardHoursPerDay;
+    const totalStandardHours = workDays * totalEmployees * 7.5;
 
-    // 計算總請假時數
     let totalLeaveHours = 0;
-    records.forEach(record => {
-      const leaveType = leaveTypes.find(lt => lt.id === record.leave_type_id);
-      if (leaveType) {
-        totalLeaveHours += calculateLeaveHours(leaveType.name);
-      }
+    filteredLeaveRecords.forEach(record => {
+      const leaveType = leaveTypeMap.get(record.leave_type_id);
+      if (leaveType) totalLeaveHours += calculateLeaveHours(leaveType.name);
     });
 
     const actualWorkHours = totalStandardHours - totalLeaveHours;
-    const attendanceRate = totalStandardHours > 0 ? (actualWorkHours / totalStandardHours * 100) : 0;
-    const avgWorkHoursPerPerson = totalEmployees > 0 ? actualWorkHours / totalEmployees : 0;
-
     return {
       workDays,
       totalEmployees,
       totalStandardHours,
       totalLeaveHours,
       actualWorkHours,
-      attendanceRate,
-      avgWorkHoursPerPerson
+      attendanceRate: totalStandardHours > 0 ? (actualWorkHours / totalStandardHours * 100) : 0,
+      avgWorkHoursPerPerson: totalEmployees > 0 ? actualWorkHours / totalEmployees : 0
     };
-  };
+  }, [filteredLeaveRecords, filteredEmployees, selectedYear, selectedMonth, holidaySet, leaveTypeMap, calculateLeaveHours]);
 
   // 計算假別統計
   const calculateLeaveTypeStats = (records) => {
