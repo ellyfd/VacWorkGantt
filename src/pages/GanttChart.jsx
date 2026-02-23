@@ -729,7 +729,7 @@ export default function GanttChart() {
         <div
           key={dateStr}
           className="border-r border-gray-200 bg-gray-200"
-          style={{ width: 40, height: ROW_HEIGHT }}
+          style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
         />
       );
     }
@@ -740,7 +740,7 @@ export default function GanttChart() {
         <div
           key={dateStr}
           className="border-r border-gray-200 bg-gray-100"
-          style={{ width: 40, height: ROW_HEIGHT }}
+          style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
         />
       );
     }
