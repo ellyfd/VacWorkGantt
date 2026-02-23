@@ -1,9 +1,8 @@
 import React from 'react';
 
-export default function LeaveCell({ 
+export default React.memo(function LeaveCell({ 
         record, 
         leaveTypes,
-        selectedLeaveTypeId,
         onSelectLeave, 
         onClearLeave,
         onDoubleClickLeave,
