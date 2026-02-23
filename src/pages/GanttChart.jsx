@@ -278,29 +278,24 @@ export default function GanttChart() {
 
   const CELL_WIDTH = VIEW_CONFIG[viewMode].cellWidth;
 
-  // 建立統一的 rows 陣列
+  // 建立統一的 rows 陣列（永遠展開）
   const rows = useMemo(() => {
     const result = [];
-
     ganttProjects.forEach((project) => {
       result.push({ type: 'project', data: project, id: `project-${project.id}` });
-
-      if (expandedProjects[project.id]) {
-        ganttPhases
-          .filter((p) => p.gantt_project_id === project.id)
-          .forEach((phase) => {
-            result.push({ type: 'phase', data: phase, id: `phase-${phase.id}` });
-            ganttTasks
-              .filter((t) => t.gantt_phase_id === phase.id)
-              .forEach((task) => {
-                result.push({ type: 'task', data: task, id: `task-${task.id}` });
-              });
-          });
-      }
+      ganttPhases
+        .filter((p) => p.gantt_project_id === project.id)
+        .forEach((phase) => {
+          result.push({ type: 'phase', data: phase, id: `phase-${phase.id}` });
+          ganttTasks
+            .filter((t) => t.gantt_phase_id === phase.id)
+            .forEach((task) => {
+              result.push({ type: 'task', data: task, id: `task-${task.id}` });
+            });
+        });
     });
-
     return result;
-  }, [ganttProjects, ganttPhases, ganttTasks, expandedProjects]);
+  }, [ganttProjects, ganttPhases, ganttTasks]);
 
   const leaveCountByDate = useMemo(() => {
     const map = {};
