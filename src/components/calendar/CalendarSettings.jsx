@@ -12,21 +12,21 @@ import { Label } from "@/components/ui/label";
 import { Settings } from "lucide-react";
 
 export default function CalendarSettings({ departments, selectedDepartments, onDepartmentsChange }) {
-  const handleDepartmentToggle = (deptId) => {
-    onDepartmentsChange(prev => 
-      prev.includes(deptId) 
+  const handleDepartmentToggle = useCallback((deptId) => {
+    onDepartmentsChange(prev =>
+      prev.includes(deptId)
         ? prev.filter(id => id !== deptId)
         : [...prev, deptId]
     );
-  };
+  }, [onDepartmentsChange]);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     if (selectedDepartments.length === departments.length) {
       onDepartmentsChange([]);
     } else {
       onDepartmentsChange(departments.map(d => d.id));
     }
-  };
+  }, [selectedDepartments, departments, onDepartmentsChange]);
 
   return (
     <Sheet>
@@ -64,7 +64,8 @@ export default function CalendarSettings({ departments, selectedDepartments, onD
                 <input
                   type="checkbox"
                   checked={selectedDepartments.includes(dept.id)}
-                  onChange={() => handleDepartmentToggle(dept.id)}
+                  data-dept-id={dept.id}
+                  onChange={(e) => handleDepartmentToggle(e.currentTarget.dataset.deptId)}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700">{dept.name}</span>

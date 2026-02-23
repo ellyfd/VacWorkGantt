@@ -97,7 +97,7 @@ export default function RangeLeaveDialog({
                 <SelectValue placeholder="選擇假別" />
               </SelectTrigger>
               <SelectContent>
-                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                {[...(leaveTypes || [])].sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
                   <SelectItem key={lt.id} value={lt.id}>
                     <div className="flex items-center gap-2">
                       <div
