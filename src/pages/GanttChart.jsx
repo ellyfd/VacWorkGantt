@@ -241,9 +241,15 @@ export default function GanttChart() {
 
   const createGanttTask = useMutation({
     mutationFn: (data) => base44.entities.GanttTask.create(data),
-    onSuccess: () => {
+    onSuccess: (newTask) => {
       queryClient.invalidateQueries(['ganttTasks']);
       setShowAddTaskDialog(false);
+      setSelectedTaskId(newTask.id);
+      setDrawingMode(true);
+      setDrawingPhaseId(currentPhaseId);
+      setPendingTask(newTask);
+      setFirstDate(null);
+      setSecondDate(null);
       setTaskFormData({ name: '', is_important: false, note: '' });
       setCurrentPhaseId(null);
     },
