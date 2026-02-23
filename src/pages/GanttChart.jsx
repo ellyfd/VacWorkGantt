@@ -318,6 +318,16 @@ export default function GanttChart() {
     return result;
   }, [leaveRecords]);
 
+  const leaveNamesByDate = useMemo(() => {
+    const map = {};
+    leaveRecords.forEach(r => {
+      if (!map[r.date]) map[r.date] = [];
+      const emp = employees.find(e => e.id === r.employee_id);
+      if (emp && !map[r.date].includes(emp.name)) map[r.date].push(emp.name);
+    });
+    return map;
+  }, [leaveRecords, employees]);
+
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
     if (count <= 2) return { bg: '#fef9c3', text: '#854d0e', label: `${count}人` };
