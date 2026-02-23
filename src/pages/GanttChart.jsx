@@ -36,13 +36,12 @@ const ROW_HEIGHT = 40;
 export default function GanttChart() {
   const queryClient = useQueryClient();
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [viewMode, setViewMode] = useState('month'); // 'week' | 'biweek' | 'month' | 'quarter'
+  const [viewMode, setViewMode] = useState('month'); // 'biweek' | 'month' | 'quarter'
 
   const VIEW_CONFIG = {
-    week:    { cellWidth: 40, label: '週' },
-    biweek:  { cellWidth: 28, label: '雙週' },
+    biweek:  { cellWidth: 56, label: '雙週' },
     month:   { cellWidth: 40, label: '月' },
-    quarter: { cellWidth: 20, label: '季' },
+    quarter: { cellWidth: 40, label: '季', unit: 'week' },
   };
   
   // 選擇狀態
