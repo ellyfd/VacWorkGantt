@@ -32,6 +32,13 @@ import { addDays, addWeeks, subDays, format, eachDayOfInterval, isToday, startOf
 import { zhTW } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import AddProjectDialog from '@/components/gantt/AddProjectDialog';
+import EditProjectDialog from '@/components/gantt/EditProjectDialog';
+import AddPhaseDialog from '@/components/gantt/AddPhaseDialog';
+import AddTaskDialog from '@/components/gantt/AddTaskDialog';
+import EditPhaseDialog from '@/components/gantt/EditPhaseDialog';
+import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gantt/TimeDialogs';
+import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 
 const ROW_HEIGHT = 40;
 
