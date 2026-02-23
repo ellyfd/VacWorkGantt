@@ -343,33 +343,39 @@ export default function GanttChart() {
   };
 
   // Handlers
-  const handleAddProject = () => {
+  const handleAddProject = async () => {
     if (!projectFormData.brand_id || !projectFormData.season) return;
 
     const brand = projects.find((p) => p.id === projectFormData.brand_id);
     const name = `${brand.short_name || brand.name} ${projectFormData.season}`;
 
-    createGanttProject.mutate({
-      ...projectFormData,
-      name,
-    });
-  };
+    if (projectCreationMode === 'import') {
+      const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name });
+      setShowAddProjectDialog(false);
+      setShowImportScheduleDialog(true);
+      return;
+    }
 
-  const handleSelectSamples = () => {
-    if (!creatingProjectId) return;
+    // manual mode: create project then phases in one go
+    const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name });
     const selectedSampleIds = Object.keys(selectedSamples).filter((k) => selectedSamples[k]);
-
-    const phasesToCreate = selectedSampleIds.map((sampleId, idx) => {
-      const sample = samples.find((s) => s.id === sampleId);
-      return {
-        gantt_project_id: creatingProjectId,
-        sample_id: sampleId,
-        name: sample.short_name || sample.name,
-        sort_order: idx + 1,
-      };
-    });
-
-    bulkCreatePhases.mutate(phasesToCreate);
+    if (selectedSampleIds.length > 0) {
+      await bulkCreatePhases.mutateAsync(
+        selectedSampleIds.map((sampleId, idx) => {
+          const sample = samples.find((s) => s.id === sampleId);
+          return {
+            gantt_project_id: newProject.id,
+            sample_id: sampleId,
+            name: sample.short_name || sample.name,
+            sort_order: idx + 1,
+          };
+        })
+      );
+    }
+    setShowAddProjectDialog(false);
+    setProjectFormData({ brand_id: '', season: '' });
+    setSelectedSamples({});
+    setProjectCreationMode('manual');
   };
 
   const handleAddTask = () => {
