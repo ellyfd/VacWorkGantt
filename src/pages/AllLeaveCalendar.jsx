@@ -70,7 +70,7 @@ export default function AllLeaveCalendar() {
         });
       } else {
         const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-        const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+        const endDate = format(endOfMonth(new Date(year, month)), 'yyyy-MM-dd');
         return base44.entities.LeaveRecord.filter({
           date: { $gte: startDate, $lte: endDate }
         });
