@@ -1074,19 +1074,33 @@ export default function GanttChart() {
           {/* Right Panel */}
           <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }}>
             {/* 日期 header */}
-            <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: ROW_HEIGHT }}>
-              {days.map((day) => (
-                <div
-                  key={day.toISOString()}
-                  className={`flex-shrink-0 border-r border-gray-200 flex items-center justify-center text-xs font-semibold leading-none ${
-                    isToday(day) ? 'bg-red-100 text-red-700' : 'text-gray-700'
-                  }`}
-                  style={{ width: CELL_WIDTH, minHeight: ROW_HEIGHT }}
-                >
-                  {viewMode === 'quarter' ? format(day, 'M/d') : format(day, 'd')}
-                {viewMode === 'quarter' && <span className="text-[9px] text-gray-400 block leading-none">週</span>}
-                </div>
-              ))}
+            <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}>
+              {days.map((day) => {
+                const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={`flex-shrink-0 border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
+                      isToday(day) ? 'bg-red-100 text-red-700' : 'text-gray-700'
+                    }`}
+                    style={{ width: CELL_WIDTH }}
+                  >
+                    {viewMode === 'quarter' ? (
+                      <>
+                        <span className="text-xs font-semibold leading-none">{format(day, 'M/d')}</span>
+                        <span className="text-[9px] text-gray-400 leading-none">週</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xs font-semibold leading-none">{format(day, 'd')}</span>
+                        <span className={`text-[9px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
+                          {format(day, 'EEE', { locale: zhTW })}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             {/* 請假人數列 */}
             <div className="flex border-b border-gray-300 bg-white">
