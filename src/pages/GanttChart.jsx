@@ -1965,35 +1965,7 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
-      {/* 操作說明 */}
-      <details className="mt-4 text-sm text-gray-600">
-        <summary className="cursor-pointer font-medium">📖 操作說明</summary>
-        <ul className="mt-2 ml-4 space-y-1 list-disc">
-          <li>每個「樣品列」直接顯示所有任務的 bar 和里程碑</li>
-          <li>先從 Toolbar 選中任務，再拖曳格子畫出時間區間</li>
-          <li>右鍵點格子，可針對各任務快速設定里程碑/Rolling/清除時間</li>
-          <li>滑鼠移到樣品列名稱上可新增任務（＋按鈕）</li>
-          <li>Hover 在任務 bar 上可看到 tooltip 顯示任務名與日期</li>
-        </ul>
-        <div className="mt-3 ml-4">
-          <p className="font-medium text-gray-700 mb-1">請假人數色碼：</p>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-semibold bg-yellow-100 text-yellow-700">1人</span>
-              <span>1–2 人請假</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-semibold bg-orange-100 text-orange-700">3人</span>
-              <span>3–4 人請假</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-bold bg-red-100 text-red-700">5人</span>
-              <span>5 人以上請假，需特別注意</span>
-            </div>
-            <p className="text-gray-400 text-xs mt-1">點擊數字可查看各部門請假人員名單</p>
-          </div>
-        </div>
-      </details>
+
       </div>
       );
       }
