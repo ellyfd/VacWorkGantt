@@ -964,15 +964,14 @@ export default function GanttChart() {
          <ContextMenu key={dateStr}>
            <ContextMenuTrigger asChild>
              <div
-               className={`border-r border-gray-200 relative cursor-pointer hover:bg-yellow-50 transition-colors ${
-                 isInDragRangePhase ? 'bg-blue-200' : selectedPhaseTask ? 'bg-blue-50' : isDimmed ? 'bg-gray-100' : 'bg-white'
-               }`}
-               style={{
-                 width: CELL_WIDTH, 
-                 height: ROW_HEIGHT,
-                 borderBottom: '1px solid #d1d5db'
-               }}
-              style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
+                className={`border-r border-gray-200 relative cursor-pointer hover:bg-yellow-50 transition-colors ${
+                   isInDragRangePhase ? 'bg-blue-200' : selectedPhaseTask ? 'bg-blue-50' : isDimmed ? 'bg-gray-100' : 'bg-white'
+                 }`}
+                 style={{
+                   width: CELL_WIDTH, 
+                   height: ROW_HEIGHT,
+                   borderBottom: '1px solid #d1d5db'
+                 }}
               onMouseDown={(e) => {
                 if (e.button !== 0) return;
                 // 拖曳畫區間：需要先有選中任務
