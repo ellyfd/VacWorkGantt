@@ -105,12 +105,19 @@ export default function GanttChart() {
   });
 
   const { data: leaveRecords = [] } = useQuery({
-    queryKey: ['leaveRecords', currentMonth.getFullYear(), currentMonth.getMonth()],
+    queryKey: ['leaveRecords', currentMonth.getFullYear(), currentMonth.getMonth(), viewMode],
     queryFn: async () => {
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth();
-      const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-      const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+      let startDate, endDate;
+      if (viewMode === 'quarter') {
+        const q = Math.floor(month / 3);
+        startDate = `${year}-${String(q * 3 + 1).padStart(2, '0')}-01`;
+        endDate = `${year}-${String(Math.min(q * 3 + 3, 12)).padStart(2, '0')}-31`;
+      } else {
+        startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+      }
       return base44.entities.LeaveRecord.filter({
         date: { $gte: startDate, $lte: endDate }
       });
