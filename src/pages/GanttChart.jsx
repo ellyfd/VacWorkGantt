@@ -828,13 +828,18 @@ export default function GanttChart() {
     const isSecondSelected = selectedTaskId === row.data?.id && secondDate && format(secondDate, 'yyyy-MM-dd') === dateStr;
     const isSelected = isFirstSelected || isSecondSelected;
 
+    const dayOfWeek = getDay(day);
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isHoliday = holidays?.some(h => h.date === dateStr);
+    const isDimmed = isWeekend || isHoliday;
+
     // 專案列
     if (row.type === 'project') {
       return (
         <div
           key={dateStr}
-          className="border-r border-gray-200 bg-gray-200"
-          style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
+          className="border-r border-b border-gray-200"
+          style={{ width: CELL_WIDTH, height: ROW_HEIGHT, backgroundColor: isDimmed ? '#d1d5db' : '#e5e7eb' }}
         />
       );
     }
