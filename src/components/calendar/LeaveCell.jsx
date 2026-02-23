@@ -63,4 +63,4 @@ export default React.memo(function LeaveCell({
       {record && leaveType ? leaveType.short_name : ''}
     </div>
   );
-}
+});
