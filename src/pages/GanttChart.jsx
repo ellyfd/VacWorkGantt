@@ -1101,6 +1101,7 @@ export default function GanttChart() {
             {/* rows */}
             <div
               className="overflow-y-auto"
+              ref={rightBodyRef}
               style={{ maxHeight: 'calc(100vh - 440px)' }}
               onMouseLeave={() => {
                 if (isDragging) {
