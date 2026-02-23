@@ -264,25 +264,21 @@ export default function GanttChart() {
     setSecondDate(null);
   };
 
-  // Get days based on viewMode
+  // Get days based on viewMode (infinite scroll: center ± buffer)
   const days = useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
     if (viewMode === 'quarter') {
-      // 以週為單位，13週（約一季）
-      const start = startOfWeek(new Date(year, month, 1), { weekStartsOn: 1 });
+      const start = startOfWeek(subDays(centerDate, 45), { weekStartsOn: 1 });
       const weeks = [];
-      for (let i = 0; i < 13; i++) {
+      for (let i = 0; i < 26; i++) {
         weeks.push(addWeeks(start, i));
       }
       return weeks;
     } else {
-      return eachDayOfInterval({
-        start: new Date(year, month, 1),
-        end: new Date(year, month + 1, 0),
-      });
+      const start = subDays(centerDate, 90);
+      const end = addDays(centerDate, 180);
+      return eachDayOfInterval({ start, end });
     }
-  }, [currentMonth, viewMode]);
+  }, [centerDate, viewMode]);
 
   const CELL_WIDTH = useMemo(() => {
     if (viewMode === 'quarter') return Math.max(32, Math.floor(containerWidth / days.length));
