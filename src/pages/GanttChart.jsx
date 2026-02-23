@@ -145,6 +145,11 @@ export default function GanttChart() {
     queryFn: () => base44.entities.Employee.list('name'),
   });
 
+  const { data: departments = [] } = useQuery({
+    queryKey: ['departments'],
+    queryFn: () => base44.entities.Department.list('sort_order'),
+  });
+
   // Mutations
   const createGanttProject = useMutation({
     mutationFn: (data) => base44.entities.GanttProject.create(data),
