@@ -344,22 +344,31 @@ export default function PeopleManagement() {
     }
   };
 
-  const handleSortOrderChange = async (empId, deptId, newOrder) => {
-    const order = parseInt(newOrder);
-    if (isNaN(order)) return;
-    const emp = employees.find(e => e.id === empId);
-    const sortOrderByDept = emp.sort_order_by_dept || {};
-    sortOrderByDept[deptId] = order;
-    await base44.entities.Employee.update(empId, { sort_order_by_dept: sortOrderByDept });
-    queryClient.invalidateQueries(['employees']);
-  };
+  const sortDebounceRef = useRef({});
+  const deptSortDebounceRef = useRef({});
 
-  const handleDeptSortOrderChange = async (deptId, newOrder) => {
+  const handleSortOrderChange = useCallback((empId, deptId, newOrder) => {
     const order = parseInt(newOrder);
     if (isNaN(order)) return;
-    await base44.entities.Department.update(deptId, { sort_order: order });
-    queryClient.invalidateQueries(['departments']);
-  };
+    const key = `${empId}-${deptId}`;
+    clearTimeout(sortDebounceRef.current[key]);
+    sortDebounceRef.current[key] = setTimeout(async () => {
+      const emp = employees.find(e => e.id === empId);
+      const sortOrderByDept = { ...(emp?.sort_order_by_dept || {}), [deptId]: order };
+      await base44.entities.Employee.update(empId, { sort_order_by_dept: sortOrderByDept });
+      queryClient.invalidateQueries(['employees']);
+    }, 500);
+  }, [employees, queryClient]);
+
+  const handleDeptSortOrderChange = useCallback((deptId, newOrder) => {
+    const order = parseInt(newOrder);
+    if (isNaN(order)) return;
+    clearTimeout(deptSortDebounceRef.current[deptId]);
+    deptSortDebounceRef.current[deptId] = setTimeout(async () => {
+      await base44.entities.Department.update(deptId, { sort_order: order });
+      queryClient.invalidateQueries(['departments']);
+    }, 500);
+  }, [queryClient]);
 
   const isLoading = loadingDepts || loadingEmps;
 
