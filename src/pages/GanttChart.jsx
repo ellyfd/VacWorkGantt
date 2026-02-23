@@ -280,7 +280,7 @@ export default function GanttChart() {
 
   const CELL_WIDTH = VIEW_CONFIG[viewMode].cellWidth;
 
-  // 建立統一的 rows 陣列（永遠展開）
+  // 建立統一的 rows 陣列（兩層：project + phase，任務直接畫在 phase 列上）
   const rows = useMemo(() => {
     const result = [];
     ganttProjects.forEach((project) => {
@@ -289,15 +289,10 @@ export default function GanttChart() {
         .filter((p) => p.gantt_project_id === project.id)
         .forEach((phase) => {
           result.push({ type: 'phase', data: phase, id: `phase-${phase.id}` });
-          ganttTasks
-            .filter((t) => t.gantt_phase_id === phase.id)
-            .forEach((task) => {
-              result.push({ type: 'task', data: task, id: `task-${task.id}` });
-            });
         });
     });
     return result;
-  }, [ganttProjects, ganttPhases, ganttTasks]);
+  }, [ganttProjects, ganttPhases]);
 
   const leaveCountByDate = useMemo(() => {
     const map = {};
