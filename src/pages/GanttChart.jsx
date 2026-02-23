@@ -1004,6 +1004,10 @@ export default function GanttChart() {
                 }
                 setIsDragging(false);
                 setDragTaskId(null);
+                if (drawingMode) {
+                  setDrawingMode(false);
+                  setPendingTask(null);
+                }
               }}
               onClick={() => {
                 if (isDragging) return;
