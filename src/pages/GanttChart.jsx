@@ -1234,12 +1234,31 @@ export default function GanttChart() {
                   </div>
                 );
                 if (!count) return cell;
+                // 按部門分組
+                const leaveEntries = leaveNamesByDate[dateStr] || [];
+                const deptMap = {};
+                leaveEntries.forEach(({ employeeId }) => {
+                  const emp = employees.find(e => e.id === employeeId);
+                  if (!emp) return;
+                  (emp.department_ids || []).forEach(deptId => {
+                    const dept = departments.find(d => d.id === deptId);
+                    if (!dept) return;
+                    if (!deptMap[dept.name]) deptMap[dept.name] = [];
+                    if (!deptMap[dept.name].includes(emp.name)) deptMap[dept.name].push(emp.name);
+                  });
+                });
                 return (
                   <Popover key={day.toISOString()}>
                     <PopoverTrigger asChild>{cell}</PopoverTrigger>
-                    <PopoverContent className="w-40 p-2 text-xs" side="bottom" align="center">
-                      <div className="font-semibold mb-1 text-gray-700">{format(day, 'MM/dd')} 請假</div>
-                      {names.map((n, i) => <div key={i} className="text-gray-600">{n}</div>)}
+                    <PopoverContent className="min-w-[140px] p-2 text-xs" side="bottom" align="center">
+                      {Object.entries(deptMap).map(([deptName, names]) => (
+                        <div key={deptName} className="mb-2 last:mb-0">
+                          <p className="font-semibold text-gray-500 mb-1">{deptName}</p>
+                          {names.map(name => (
+                            <p key={name} className="text-gray-800 pl-2">{name}</p>
+                          ))}
+                        </div>
+                      ))}
                     </PopoverContent>
                   </Popover>
                 );
