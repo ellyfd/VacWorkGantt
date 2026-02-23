@@ -37,7 +37,6 @@ const ROW_HEIGHT = 40;
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [viewMode, setViewMode] = useState('month'); // 'month' | 'quarter'
 
   const VIEW_CONFIG = {
@@ -45,6 +44,8 @@ export default function GanttChart() {
     quarter: { label: '季', unit: 'week' },
   };
 
+  // 無限捲動：以 centerDate 為中心動態生成日期
+  const [centerDate, setCenterDate] = useState(new Date());
   // 季視圖動態格寬
   const rightPanelContainerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(800);
