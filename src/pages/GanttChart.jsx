@@ -651,16 +651,10 @@ export default function GanttChart() {
     if (row.type === 'phase') {
       return (
         <div
-          className={`flex items-center gap-2 px-3 pl-8 bg-gray-100 ${isDragging ? 'bg-blue-100' : 'hover:bg-gray-200'} cursor-pointer font-medium text-sm text-gray-800`}
+          className={`flex items-center gap-2 px-3 pl-8 bg-gray-100 ${isDragging ? 'bg-blue-100' : ''} font-medium text-sm text-gray-800`}
           style={{ height: ROW_HEIGHT }}
-          onClick={() => togglePhase(row.data.id)}
         >
           <GripVertical className="w-4 h-4 flex-shrink-0 text-gray-400" />
-          {expandedPhases[row.data.id] ? (
-            <ChevronDown className="w-4 h-4 flex-shrink-0" />
-          ) : (
-            <ChevronRight className="w-4 h-4 flex-shrink-0" />
-          )}
           <span className="truncate flex-1">{row.data.name}</span>
           <Button
             size="sm"
