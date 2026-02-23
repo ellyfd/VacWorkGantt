@@ -457,6 +457,70 @@ export default function GanttChart() {
     };
   }, []);
 
+  // 初始化時捲到今天
+  const initialScrollDone = useRef(false);
+  React.useEffect(() => {
+    if (initialScrollDone.current) return;
+    const el = rightPanelRef.current;
+    if (!el || days.length === 0) return;
+    const todayIndex = days.findIndex(d => isToday(d));
+    if (todayIndex >= 0) {
+      el.scrollLeft = todayIndex * CELL_WIDTH - el.clientWidth / 2;
+      initialScrollDone.current = true;
+    }
+  }, [days, CELL_WIDTH]);
+
+  // 顯示的月份（根據捲動位置計算）
+  const [visibleMonth, setVisibleMonth] = useState(new Date());
+
+  // 捲動時延伸 buffer + 更新 visibleMonth
+  const handleRightScroll = React.useCallback((e) => {
+    const el = e.currentTarget;
+    // 更新可見月份
+    const scrolledDays = Math.floor(el.scrollLeft / CELL_WIDTH);
+    if (days[scrolledDays]) setVisibleMonth(days[scrolledDays]);
+    // 靠近右端：往右延伸
+    if (el.scrollWidth - el.scrollLeft - el.clientWidth < CELL_WIDTH * 30) {
+      setCenterDate(d => addDays(d, 30));
+    }
+    // 靠近左端：往左延伸
+    if (el.scrollLeft < CELL_WIDTH * 30) {
+      const prevScrollLeft = el.scrollLeft;
+      setCenterDate(d => {
+        // 延伸後補償 scrollLeft
+        requestAnimationFrame(() => {
+          el.scrollLeft = prevScrollLeft + 30 * CELL_WIDTH;
+        });
+        return subDays(d, 30);
+      });
+    }
+  }, [days, CELL_WIDTH]);
+
+  // 跳轉到今天
+  const scrollToToday = () => {
+    setCenterDate(new Date());
+    initialScrollDone.current = false;
+  };
+
+  // 跳轉到任務最早日期
+  const handleJumpToTasks = (phaseId) => {
+    const phaseTasks = ganttTasks.filter(t => t.gantt_phase_id === phaseId && (t.start_date || t.date));
+    if (phaseTasks.length === 0) return;
+    const earliest = phaseTasks.reduce((min, t) => {
+      const d = t.start_date || t.date;
+      return d < min ? d : min;
+    }, phaseTasks[0].start_date || phaseTasks[0].date);
+    const targetDate = new Date(earliest);
+    setCenterDate(targetDate);
+    // scroll after re-render
+    setTimeout(() => {
+      const el = rightPanelRef.current;
+      if (!el) return;
+      const idx = days.findIndex(d => format(d, 'yyyy-MM-dd') >= earliest);
+      if (idx >= 0) el.scrollLeft = idx * CELL_WIDTH - el.clientWidth / 3;
+    }, 100);
+  };
+
   // 確認設定里程碑
   const handleConfirmMilestone = () => {
     if (!firstDate || !selectedTaskId) return;
