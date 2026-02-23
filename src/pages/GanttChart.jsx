@@ -1007,7 +1007,7 @@ export default function GanttChart() {
                 {(provided, snapshot) => (
                   <div
                     className="overflow-y-auto"
-                    style={{ maxHeight: 'calc(100vh - 400px)' }}
+                    style={{ maxHeight: 'calc(100vh - 440px)' }}
                     ref={(el) => {
                       provided.innerRef(el);
                       leftPanelRef.current = el;
