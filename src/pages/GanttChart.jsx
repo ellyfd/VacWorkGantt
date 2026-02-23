@@ -1636,11 +1636,11 @@ export default function GanttChart() {
       <details className="mt-4 text-sm text-gray-600">
         <summary className="cursor-pointer font-medium">📖 操作說明</summary>
         <ul className="mt-2 ml-4 space-y-1 list-disc">
-          <li>點擊任務名稱選取，再點時間格設定日期</li>
-          <li>拖曳格子可直接畫出時間區間</li>
-          <li>右鍵點格子可快速設定里程碑/Rolling/清除時間</li>
-          <li>雙擊任務名稱可編輯</li>
-          <li>滑鼠移到任務上可顯示編輯/刪除按鈕</li>
+          <li>每個「樣品列」直接顯示所有任務的 bar 和里程碑</li>
+          <li>先從 Toolbar 選中任務，再拖曳格子畫出時間區間</li>
+          <li>右鍵點格子，可針對各任務快速設定里程碑/Rolling/清除時間</li>
+          <li>滑鼠移到樣品列名稱上可新增任務（＋按鈕）</li>
+          <li>Hover 在任務 bar 上可看到 tooltip 顯示任務名與日期</li>
         </ul>
       </details>
       </div>
