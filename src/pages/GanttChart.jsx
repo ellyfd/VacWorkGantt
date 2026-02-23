@@ -529,12 +529,7 @@ export default function GanttChart() {
     return dateStr >= s && dateStr <= e;
   };
 
-  const toggleProject = (projectId) => {
-    setExpandedProjects((prev) => ({
-      ...prev,
-      [projectId]: !prev[projectId],
-    }));
-  };
+
 
 
 
