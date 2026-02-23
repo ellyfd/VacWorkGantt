@@ -283,14 +283,22 @@ export default function PeopleManagement() {
     }
   };
 
-  const getDepartmentNames = (deptIds) => {
-    if (!deptIds || deptIds.length === 0) return '-';
-    return deptIds.map(id => departments.find(d => d.id === id)?.name || '').filter(Boolean).join(', ');
-  };
+  const departmentMap = useMemo(() => new Map(departments.map(d => [d.id, d])), [departments]);
 
-  const getEmployeeCount = (deptId) => {
-    return employees.filter(e => e.department_ids?.includes(deptId)).length;
-  };
+  const deptEmployeeCount = useMemo(() => {
+    const counts = new Map();
+    employees.forEach(emp => {
+      emp.department_ids?.forEach(deptId => counts.set(deptId, (counts.get(deptId) || 0) + 1));
+    });
+    return counts;
+  }, [employees]);
+
+  const getDepartmentNames = useCallback((deptIds) => {
+    if (!deptIds || deptIds.length === 0) return '-';
+    return deptIds.map(id => departmentMap.get(id)?.name || '').filter(Boolean).join(', ');
+  }, [departmentMap]);
+
+  const getEmployeeCount = useCallback((deptId) => deptEmployeeCount.get(deptId) || 0, [deptEmployeeCount]);
 
   const handleDepartmentToggle = (deptId) => {
     setSelectedDepartments(prev => 
