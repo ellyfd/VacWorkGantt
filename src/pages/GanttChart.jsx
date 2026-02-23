@@ -533,12 +533,7 @@ export default function GanttChart() {
     }));
   };
 
-  const togglePhase = (phaseId) => {
-    setExpandedPhases((prev) => ({
-      ...prev,
-      [phaseId]: !prev[phaseId],
-    }));
-  };
+
 
   // 拖曳排序 (with optimistic update)
   const updateSortOrder = useMutation({
