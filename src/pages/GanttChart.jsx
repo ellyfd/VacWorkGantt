@@ -1046,20 +1046,18 @@ export default function GanttChart() {
             </div>
 
           {/* Right Panel */}
-          <div className="flex-1 overflow-x-auto">
-            <div
-              className="flex bg-gray-100 border-b border-gray-300"
-              style={{ height: ROW_HEIGHT }}
-            >
+          <div className="flex-1 overflow-x-auto" ref={rightPanelRef}>
+            {/* 日期 header */}
+            <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: ROW_HEIGHT }}>
               {days.map((day) => (
                 <div
                   key={day.toISOString()}
                   className={`flex-shrink-0 border-r border-gray-200 flex items-center justify-center text-xs font-semibold leading-none ${
                     isToday(day) ? 'bg-red-100 text-red-700' : 'text-gray-700'
                   }`}
-                  style={{ width: 40, minHeight: ROW_HEIGHT }}
+                  style={{ width: CELL_WIDTH, minHeight: ROW_HEIGHT }}
                 >
-                  {format(day, 'd')}
+                  {viewMode === 'quarter' ? format(day, 'M/d') : format(day, 'd')}
                 </div>
               ))}
             </div>
@@ -1068,30 +1066,41 @@ export default function GanttChart() {
               {days.map((day) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const count = leaveCountByDate[dateStr] || 0;
-                const style = getLeaveCountStyle(count);
-                return (
+                const leaveStyle = getLeaveCountStyle(count);
+                const names = leaveNamesByDate[dateStr] || [];
+                const cell = (
                   <div
                     key={day.toISOString()}
                     className="flex-shrink-0 border-r border-gray-200 flex items-center justify-center"
                     style={{
-                      width: 40,
-                      height: 20,
-                      backgroundColor: style?.bg || 'transparent',
-                      fontSize: 9,
-                      fontWeight: style?.bold ? 700 : 500,
-                      color: style?.text || '#d1d5db',
+                      width: CELL_WIDTH,
+                      height: 28,
+                      backgroundColor: leaveStyle?.bg || 'transparent',
+                      fontSize: 11,
+                      fontWeight: leaveStyle?.bold ? 700 : 500,
+                      color: leaveStyle?.text || '#d1d5db',
+                      cursor: count ? 'pointer' : 'default',
                     }}
-                    title={count ? `${dateStr}：${count} 人請假` : undefined}
                   >
-                    {style?.label || ''}
+                    {leaveStyle?.label || ''}
                   </div>
+                );
+                if (!count) return cell;
+                return (
+                  <Popover key={day.toISOString()}>
+                    <PopoverTrigger asChild>{cell}</PopoverTrigger>
+                    <PopoverContent className="w-40 p-2 text-xs" side="bottom" align="center">
+                      <div className="font-semibold mb-1 text-gray-700">{format(day, 'MM/dd')} 請假</div>
+                      {names.map((n, i) => <div key={i} className="text-gray-600">{n}</div>)}
+                    </PopoverContent>
+                  </Popover>
                 );
               })}
             </div>
-            <div 
-              className="overflow-y-auto" 
-              ref={rightPanelRef}
-              style={{ maxHeight: 'calc(100vh - 400px)' }}
+            {/* rows */}
+            <div
+              className="overflow-y-auto"
+              style={{ maxHeight: 'calc(100vh - 440px)' }}
               onMouseLeave={() => {
                 if (isDragging) {
                   setIsDragging(false);
