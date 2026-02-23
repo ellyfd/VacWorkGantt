@@ -99,6 +99,13 @@ export default function GanttChart() {
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
 
+  // Edit Phase Dialog state
+  const [showEditPhaseDialog, setShowEditPhaseDialog] = useState(false);
+  const [editingPhase, setEditingPhase] = useState(null);
+  const [editingPhaseName, setEditingPhaseName] = useState('');
+  const [editingPhaseTasks, setEditingPhaseTasks] = useState([]);
+  const [newTaskName, setNewTaskName] = useState('');
+
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
     queryKey: ['ganttProjects'],
