@@ -95,6 +95,19 @@ export default function GanttChart() {
     queryFn: () => base44.entities.GanttTask.list('sort_order'),
   });
 
+  const { data: leaveRecords = [] } = useQuery({
+    queryKey: ['leaveRecords', currentMonth.getFullYear(), currentMonth.getMonth()],
+    queryFn: async () => {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+      return base44.entities.LeaveRecord.filter({
+        date: { $gte: startDate, $lte: endDate }
+      });
+    },
+  });
+
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('sort_order'),
@@ -252,6 +265,26 @@ export default function GanttChart() {
 
     return result;
   }, [ganttProjects, ganttPhases, ganttTasks, expandedProjects, expandedPhases]);
+
+  const leaveCountByDate = useMemo(() => {
+    const map = {};
+    leaveRecords.forEach(r => {
+      if (!map[r.date]) map[r.date] = new Set();
+      map[r.date].add(r.employee_id);
+    });
+    const result = {};
+    Object.entries(map).forEach(([date, set]) => {
+      result[date] = set.size;
+    });
+    return result;
+  }, [leaveRecords]);
+
+  const getLeaveCountStyle = (count) => {
+    if (!count) return null;
+    if (count <= 2) return { bg: '#fef9c3', text: '#854d0e', label: `${count}人` };
+    if (count <= 4) return { bg: '#ffedd5', text: '#9a3412', label: `${count}人` };
+    return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
+  };
 
   // Helper functions
   const getBrandName = (brandId) => {
@@ -995,6 +1028,31 @@ export default function GanttChart() {
                   {format(day, 'd')}
                 </div>
               ))}
+            </div>
+            {/* 請假人數列 */}
+            <div className="flex border-b border-gray-300 bg-white">
+              {days.map((day) => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const count = leaveCountByDate[dateStr] || 0;
+                const style = getLeaveCountStyle(count);
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className="flex-shrink-0 border-r border-gray-200 flex items-center justify-center"
+                    style={{
+                      width: 40,
+                      height: 20,
+                      backgroundColor: style?.bg || 'transparent',
+                      fontSize: 9,
+                      fontWeight: style?.bold ? 700 : 500,
+                      color: style?.text || '#d1d5db',
+                    }}
+                    title={count ? `${dateStr}：${count} 人請假` : undefined}
+                  >
+                    {style?.label || ''}
+                  </div>
+                );
+              })}
             </div>
             <div 
               className="overflow-y-auto" 
