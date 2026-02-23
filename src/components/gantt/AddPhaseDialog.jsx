@@ -29,7 +29,7 @@ export default function AddPhaseDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           {samplesForSelection.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-3">此品牌沒有樣品，請先到「專案設定」新增</p>
+            <p className="text-sm text-gray-400 text-center py-3">此品牌所有樣品都已加入，或此品牌沒有樣品</p>
           ) : (
             <div>
               <Label className="mb-2 block">選擇樣品</Label>
