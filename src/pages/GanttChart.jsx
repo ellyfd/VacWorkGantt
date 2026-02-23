@@ -52,7 +52,6 @@ export default function GanttChart() {
   
   // 展開狀態
   const [expandedProjects, setExpandedProjects] = useState({});
-  const [expandedPhases, setExpandedPhases] = useState({});
   
   // Dialog 狀態
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
