@@ -271,64 +271,27 @@ export default function AllLeaveCalendar() {
       const recordsToDelete = leaveRecords.filter(r => recordIds.includes(r.id));
       await Promise.all(recordIds.map(id => base44.entities.LeaveRecord.delete(id)));
       
-      // 為每個日期發送通知
-      const dateSet = new Set(recordsToDelete.map(r => r.date));
-      for (const date of dateSet) {
-        const recordsOnDate = recordsToDelete.filter(r => r.date === date);
-        if (recordsOnDate.length === 0) continue;
-        
-        const record = recordsOnDate[0];
-        const emp = employees.find(e => e.id === record.employee_id);
-        const leaveTypeName = leaveTypes.find(lt => lt.id === record.leave_type_id)?.name || '未知假別';
-        
-        // 通知所有 admin
-        const adminEmps = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0);
-        for (const admin of adminEmps) {
-          for (const email of admin.user_emails) {
-            // 刪除該日期該收件人的舊通知
-            const oldNotifications = await base44.entities.Notification.filter({
-              recipient_email: email,
-              message: { $regex: date }
-            });
-            for (const oldNotif of oldNotifications) {
-              await base44.entities.Notification.delete(oldNotif.id);
-            }
-            
-            await base44.entities.Notification.create({
-              recipient_email: email,
-              type: 'leave_created',
-              message: `${emp?.name || '未知員工'} 取消了 ${date} 的 ${leaveTypeName}`,
-              related_entity_type: 'LeaveRecord'
-            });
-          }
-        }
+      // 合併通知：取消 N 天的假別
+      if (recordsToDelete.length > 0) {
+        const firstRecord = recordsToDelete[0];
+        const emp = employees.find(e => e.id === firstRecord.employee_id);
+        const leaveTypeName = leaveTypes.find(lt => lt.id === firstRecord.leave_type_id)?.name || '未知假別';
+        const dates = [...new Set(recordsToDelete.map(r => r.date))].sort();
+        const msgSuffix = dates.length === 1
+          ? `${dates[0]} 的 ${leaveTypeName}`
+          : `${dates[0]} 至 ${dates[dates.length - 1]} 共 ${dates.length} 天的 ${leaveTypeName}`;
 
-        // 通知職代
-        if (emp?.deputy_1 || emp?.deputy_2) {
-          const deputies = [emp.deputy_1, emp.deputy_2].filter(Boolean);
-          for (const deputyId of deputies) {
-            const deputy = employees.find(e => e.id === deputyId);
-            if (deputy?.user_emails?.length > 0) {
-              for (const email of deputy.user_emails) {
-                // 刪除該日期該收件人的舊通知
-                const oldNotifications = await base44.entities.Notification.filter({
-                  recipient_email: email,
-                  message: { $regex: date }
-                });
-                for (const oldNotif of oldNotifications) {
-                  await base44.entities.Notification.delete(oldNotif.id);
-                }
-                
-                await base44.entities.Notification.create({
-                  recipient_email: email,
-                  type: 'leave_created',
-                  message: `您的職務代理人 ${emp.name} 取消了 ${date} 的 ${leaveTypeName}`,
-                  related_entity_type: 'LeaveRecord'
-                });
-              }
-            }
-          }
-        }
+        const sendNotif = async (email, message) => {
+          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_created', message, related_entity_type: 'LeaveRecord' });
+        };
+        const adminEmails = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0).flatMap(e => e.user_emails);
+        const deputyEmails = (emp?.deputy_1 || emp?.deputy_2)
+          ? [emp.deputy_1, emp.deputy_2].filter(Boolean).flatMap(depId => employees.find(e => e.id === depId)?.user_emails || [])
+          : [];
+        await Promise.all([
+          ...adminEmails.map(email => sendNotif(email, `${emp?.name || '未知員工'} 取消了 ${msgSuffix}`)),
+          ...deputyEmails.map(email => sendNotif(email, `您的職務代理人 ${emp.name} 取消了 ${msgSuffix}`)),
+        ]);
       }
     },
     onSuccess: () => {
