@@ -652,65 +652,29 @@ export default function GanttChart() {
     }
 
     if (row.type === 'phase') {
+      const phaseTasks = ganttTasks.filter(t => t.gantt_phase_id === row.data.id);
       return (
         <div
-          className={`flex items-center gap-2 px-3 pl-8 bg-gray-100 ${isDragging ? 'bg-blue-100' : ''} font-medium text-sm text-gray-800`}
+          className={`group flex items-center gap-2 px-3 pl-8 bg-gray-100 ${isDragging ? 'bg-blue-100' : ''} font-medium text-sm text-gray-800`}
           style={{ height: ROW_HEIGHT }}
         >
           <GripVertical className="w-4 h-4 flex-shrink-0 text-gray-400" />
           <span className="truncate flex-1">{row.data.name}</span>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 w-6 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              setCurrentPhaseId(row.data.id);
-              setShowAddTaskDialog(true);
-            }}
-          >
-            <Plus className="w-3 h-3" />
-          </Button>
-        </div>
-      );
-    }
-
-    if (row.type === 'task') {
-      return (
-        <div
-          className={`group flex items-center px-3 pl-12 text-sm cursor-pointer ${
-            selectedTaskId === row.data.id ? 'bg-blue-100 font-medium' : isDragging && dragTaskId === row.data.id ? 'bg-blue-100' : 'bg-white hover:bg-blue-50'
-          }`}
-          style={{ height: ROW_HEIGHT }}
-          onClick={() => handleTaskClick(row.data.id)}
-          onDoubleClick={() => {
-            setEditingTask(row.data);
-            setTaskFormData({ name: row.data.name, is_important: row.data.is_important, note: row.data.note });
-            setShowEditTaskDialog(true);
-          }}
-        >
-          <GripVertical className="w-3 h-3 mr-2 flex-shrink-0 text-gray-400" />
-          <span className="truncate flex-1 text-gray-700">{row.data.name}</span>
-          <div className="hidden group-hover:flex gap-1">
-            <button 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                setEditingTask(row.data);
-                setTaskFormData({ name: row.data.name, is_important: row.data.is_important, note: row.data.note });
-                setShowEditTaskDialog(true);
-              }} 
-              className="p-1 hover:bg-gray-200 rounded"
+          {phaseTasks.length > 0 && (
+            <span className="text-xs text-gray-400 font-normal flex-shrink-0">{phaseTasks.length}個任務</span>
+          )}
+          <div className="hidden group-hover:flex gap-1 flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentPhaseId(row.data.id);
+                setTaskFormData({ name: '', is_important: false, note: '' });
+                setShowAddTaskDialog(true);
+              }}
+              className="p-1 hover:bg-gray-300 rounded"
+              title="新增任務"
             >
-              <Edit2 className="w-3 h-3" />
-            </button>
-            <button 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                deleteGanttTask.mutate(row.data.id);
-              }} 
-              className="p-1 hover:bg-red-100 rounded"
-            >
-              <Trash2 className="w-3 h-3 text-red-500" />
+              <Plus className="w-3 h-3" />
             </button>
           </div>
         </div>
