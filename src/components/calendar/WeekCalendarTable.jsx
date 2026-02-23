@@ -175,10 +175,11 @@ export default function WeekCalendarTable({
               }
               const record = getLeaveRecord(currentEmployee.id, day.date);
               const isToday = day.date === today;
+              const isDimmed = day.isWeekend || day.isHoliday;
               return (
                 <div
                   key={`${weekIdx}-${dayIdx}`}
-                  className={`h-12 border-r border-b border-gray-200 relative ${isToday ? 'bg-blue-50/50' : ''}`}
+                  className={`h-12 border-r border-b border-gray-200 relative ${isToday ? 'bg-blue-50/50' : isDimmed ? 'bg-gray-100' : 'bg-white'}`}
                 >
                   {isToday && <div className="absolute inset-0 border-2 border-blue-500 pointer-events-none z-10" />}
                   <div className={`absolute top-1.5 left-1 text-[10px] font-semibold leading-none z-20 ${
