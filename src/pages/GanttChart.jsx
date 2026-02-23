@@ -725,7 +725,9 @@ export default function GanttChart() {
   // 渲染右側單元格
   const renderRightCell = (row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
-    
+    // 季模式：這個 cell 代表一整週 (day = 週一)
+    const weekEndStr = viewMode === 'quarter' ? format(addDays(day, 6), 'yyyy-MM-dd') : dateStr;
+
     const isFirstSelected = selectedTaskId === row.data?.id && firstDate && format(firstDate, 'yyyy-MM-dd') === dateStr;
     const isSecondSelected = selectedTaskId === row.data?.id && secondDate && format(secondDate, 'yyyy-MM-dd') === dateStr;
     const isSelected = isFirstSelected || isSecondSelected;
@@ -756,16 +758,23 @@ export default function GanttChart() {
     const task = row.data;
     const taskStartDate = task.start_date;
     const taskEndDate = task.end_date;
-    const isStart = taskStartDate === dateStr;
-    const isEnd = taskEndDate === dateStr;
+    // 季模式：用週範圍比較
+    const isStart = viewMode === 'quarter'
+      ? taskStartDate && taskStartDate >= dateStr && taskStartDate <= weekEndStr
+      : taskStartDate === dateStr;
+    const isEnd = viewMode === 'quarter'
+      ? taskEndDate && taskEndDate >= dateStr && taskEndDate <= weekEndStr
+      : taskEndDate === dateStr;
     const isInRange =
       task.time_type === 'duration' &&
       taskStartDate &&
       taskEndDate &&
-      dateStr >= taskStartDate &&
-      dateStr <= taskEndDate;
+      (viewMode === 'quarter'
+        ? dateStr <= taskEndDate && weekEndStr >= taskStartDate
+        : dateStr >= taskStartDate && dateStr <= taskEndDate);
     const isRolling =
-      task.time_type === 'rolling' && taskStartDate && dateStr >= taskStartDate;
+      task.time_type === 'rolling' && taskStartDate &&
+      (viewMode === 'quarter' ? weekEndStr >= taskStartDate : dateStr >= taskStartDate);
 
     return (
       <ContextMenu>
