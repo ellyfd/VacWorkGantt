@@ -41,7 +41,7 @@ export default function GanttChart() {
 
   const VIEW_CONFIG = {
     month:   { cellWidth: 40, label: '月' },
-    quarter: { label: '季', unit: 'week' },
+    quarter: { label: '季' },
   };
 
   // 無限捲動：以 centerDate 為中心動態生成日期
@@ -826,7 +826,6 @@ export default function GanttChart() {
 
     const isFirstSelected = selectedTaskId === row.data?.id && firstDate && format(firstDate, 'yyyy-MM-dd') === dateStr;
     const isSecondSelected = selectedTaskId === row.data?.id && secondDate && format(secondDate, 'yyyy-MM-dd') === dateStr;
-    const isSelected = isFirstSelected || isSecondSelected;
 
     const dayOfWeek = getDay(day);
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
@@ -843,7 +842,7 @@ export default function GanttChart() {
             width: CELL_WIDTH, 
             height: ROW_HEIGHT, 
             backgroundColor: isDimmed ? '#d1d5db' : '#e5e7eb',
-            borderBottom: viewMode === 'month' ? '1px solid #d1d5db' : '1px solid #d1d5db'
+            borderBottom: '1px solid #d1d5db'
           }}
         />
       );
@@ -1216,32 +1215,32 @@ export default function GanttChart() {
 
           {/* Right Panel */}
           <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
-            {/* 月份分組標籤列 */}
-            {viewMode === 'month' && (
-              <div className="flex bg-gray-50 border-b border-gray-200" style={{ minWidth: days.length * CELL_WIDTH }}>
-                {(() => {
-                  const groups = [];
-                  let current = null;
-                  days.forEach((day, idx) => {
-                    const monthKey = format(day, 'yyyy-MM');
-                    if (current?.key !== monthKey) {
-                      current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
-                      groups.push(current);
-                    } else {
-                      current.count++;
-                    }
-                  });
-                  return groups.map(g => (
-                    <div
-                      key={g.key}
-                      className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100"
-                      style={{ width: g.count * CELL_WIDTH, flexShrink: 0, height: 20 }}
-                    >
-                      {g.label}
-                    </div>
-                  ));
-                })()}
-              </div>
+              {viewMode === 'month' && (
+                <div className="flex bg-gray-50 border-b border-gray-200" style={{ minWidth: days.length * CELL_WIDTH }}>
+                  {(() => {
+                     const groups = [];
+                     let current = null;
+                     days.forEach((day, idx) => {
+                       const monthKey = format(day, 'yyyy-MM');
+                       if (current?.key !== monthKey) {
+                         current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
+                         groups.push(current);
+                       } else {
+                         current.count++;
+                       }
+                     });
+                     return groups.map(g => (
+                       <div
+                         key={g.key}
+                         className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100"
+                         style={{ width: g.count * CELL_WIDTH, flexShrink: 0, height: 20 }}
+                       >
+                         {g.label}
+                       </div>
+                     ));
+                   })()}
+                 </div>
+              )}
             )}
             {/* 日期 header */}
             <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}>
@@ -1754,56 +1753,7 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Task Dialog */}
-      <Dialog open={showEditTaskDialog} onOpenChange={setShowEditTaskDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>編輯任務</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>任務名稱</Label>
-              <Input 
-                value={taskFormData.name} 
-                onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
-              />
-            </div>
-            <label className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={taskFormData.is_important} 
-                onChange={(e) => setTaskFormData({ ...taskFormData, is_important: e.target.checked })}
-                className="w-4 h-4"
-              />
-              <span>標記為重要（黃色里程碑）</span>
-            </label>
-            <div>
-              <Label>備註</Label>
-              <Input 
-                value={taskFormData.note} 
-                onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
-                placeholder="選填"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditTaskDialog(false)}>
-              取消
-            </Button>
-            <Button onClick={() => {
-              if (editingTask) {
-                updateGanttTask.mutate({ 
-                  id: editingTask.id, 
-                  data: taskFormData
-                });
-              }
-              setShowEditTaskDialog(false);
-            }} className="bg-blue-600 hover:bg-blue-700">
-              儲存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Add Task Dialog */}
       <Dialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog}>
