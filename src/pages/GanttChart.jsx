@@ -956,12 +956,17 @@ export default function GanttChart() {
       const selectedPhaseTask = phaseTasks.find(t => t.id === selectedTaskId);
 
       return (
-        <ContextMenu key={dateStr}>
-          <ContextMenuTrigger asChild>
-            <div
-              className={`border-r border-b border-gray-200 relative cursor-pointer hover:bg-yellow-50 transition-colors ${
-                isInDragRangePhase ? 'bg-blue-200' : selectedPhaseTask ? 'bg-blue-50' : isDimmed ? 'bg-gray-100' : 'bg-white'
-              }`}
+         <ContextMenu key={dateStr}>
+           <ContextMenuTrigger asChild>
+             <div
+               className={`border-r border-gray-200 relative cursor-pointer hover:bg-yellow-50 transition-colors ${
+                 isInDragRangePhase ? 'bg-blue-200' : selectedPhaseTask ? 'bg-blue-50' : isDimmed ? 'bg-gray-100' : 'bg-white'
+               }`}
+               style={{
+                 width: CELL_WIDTH, 
+                 height: ROW_HEIGHT,
+                 borderBottom: '1px solid #d1d5db'
+               }}
               style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
               onMouseDown={(e) => {
                 if (e.button !== 0) return;
