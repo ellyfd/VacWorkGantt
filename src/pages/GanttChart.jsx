@@ -142,13 +142,18 @@ export default function GanttChart() {
     onSuccess: (newProject) => {
       queryClient.invalidateQueries(['ganttProjects']);
       setCreatingProjectId(newProject.id);
-      setShowAddProjectDialog(false);
-      if (projectCreationMode === 'manual') {
-        setShowSelectSamplesDialog(true);
-      } else {
-        setShowImportScheduleDialog(true);
-      }
+      return newProject;
     },
+  });
+
+  const updateGanttProject = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.GanttProject.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries(['ganttProjects']),
+  });
+
+  const deleteGanttProject = useMutation({
+    mutationFn: (id) => base44.entities.GanttProject.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['ganttProjects']),
   });
 
   const bulkCreatePhases = useMutation({
@@ -159,10 +164,8 @@ export default function GanttChart() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['ganttPhases']);
-      setShowSelectSamplesDialog(false);
       setSelectedSamples({});
       setProjectFormData({ brand_id: '', season: '' });
-      setTaskCreationMode('manual');
       setScheduleFile(null);
     },
   });
