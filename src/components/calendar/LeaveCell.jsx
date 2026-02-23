@@ -34,8 +34,8 @@ export default React.memo(function LeaveCell({
   const handleClick = (e) => {
     if (rangeMode) {
       onRangeCellClick();
-    } else if (selectedLeaveTypeId) {
-      onSelectLeave(selectedLeaveTypeId);
+    } else {
+      onSelectLeave();
     }
   };
 
