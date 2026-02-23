@@ -321,11 +321,12 @@ export default function GanttChart() {
     const map = {};
     leaveRecords.forEach(r => {
       if (!map[r.date]) map[r.date] = [];
-      const emp = employees.find(e => e.id === r.employee_id);
-      if (emp && !map[r.date].includes(emp.name)) map[r.date].push(emp.name);
+      if (!map[r.date].find(e => e.employeeId === r.employee_id)) {
+        map[r.date].push({ employeeId: r.employee_id });
+      }
     });
     return map;
-  }, [leaveRecords, employees]);
+  }, [leaveRecords]);
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
