@@ -115,22 +115,17 @@ export default function GanttChart() {
     queryFn: () => base44.entities.GanttTask.list('sort_order'),
   });
 
+  // days 需要先算出來給 leaveRecords 用，但 days 依賴 centerDate
+  // 所以先計算 leaveRecords 的查詢範圍
+  const leaveQueryStart = format(subDays(centerDate, 90), 'yyyy-MM-dd');
+  const leaveQueryEnd = format(addDays(centerDate, 180), 'yyyy-MM-dd');
+
   const { data: leaveRecords = [] } = useQuery({
-    queryKey: ['leaveRecords', currentMonth.getFullYear(), currentMonth.getMonth(), viewMode],
+    queryKey: ['leaveRecords', leaveQueryStart, leaveQueryEnd, viewMode],
     queryFn: async () => {
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth();
-      let startDate, endDate;
-      if (viewMode === 'quarter') {
-        const q = Math.floor(month / 3);
-        startDate = `${year}-${String(q * 3 + 1).padStart(2, '0')}-01`;
-        endDate = `${year}-${String(Math.min(q * 3 + 3, 12)).padStart(2, '0')}-31`;
-      } else {
-        startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-        endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
-      }
+      if (viewMode === 'quarter') return [];
       return base44.entities.LeaveRecord.filter({
-        date: { $gte: startDate, $lte: endDate }
+        date: { $gte: leaveQueryStart, $lte: leaveQueryEnd }
       });
     },
   });
