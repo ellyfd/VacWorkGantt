@@ -1072,7 +1072,7 @@ export default function GanttChart() {
             </div>
 
           {/* Right Panel */}
-          <div className="flex-1 overflow-x-auto" ref={rightPanelRef}>
+          <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }}>
             {/* 日期 header */}
             <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: ROW_HEIGHT }}>
               {days.map((day) => (
