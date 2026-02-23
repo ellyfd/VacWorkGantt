@@ -642,7 +642,7 @@ export default function AllLeaveCalendar() {
     } else {
       deleteLeaveMutation.mutate(record.id);
     }
-  };
+  }, [leaveRecords, leaveTypes, deleteRangeMutation, deleteLeaveMutation]);
 
   const handleRangeSubmit = async () => {
     if (!dateRange?.from || !dateRange?.to || !selectedLeaveTypeId || !dateRange?.employeeId) return;
@@ -658,24 +658,23 @@ export default function AllLeaveCalendar() {
     setDateRange({ from: undefined, to: undefined, employeeId: undefined });
   };
 
-  const handleCellClickInRangeMode = (employeeId, date) => {
+  const handleCellClickInRangeMode = useCallback((employeeId, date) => {
     if (!rangeMode) return;
     
-    if (!dateRange.from) {
-      // 第一次點擊：選擇員工和起始日期
-      setDateRange({ from: date, to: undefined, employeeId });
-    } else if (!dateRange.to && employeeId === dateRange.employeeId) {
-      // 第二次點擊：同員工，選擇結束日期
-      if (date >= dateRange.from) {
-        setDateRange({ ...dateRange, to: date });
+    setDateRange(prev => {
+      if (!prev.from) {
+        return { from: date, to: undefined, employeeId };
+      } else if (!prev.to && employeeId === prev.employeeId) {
+        if (date >= prev.from) {
+          return { ...prev, to: date };
+        } else {
+          return { from: date, to: prev.from, employeeId };
+        }
       } else {
-        setDateRange({ from: date, to: dateRange.from, employeeId });
+        return { from: date, to: undefined, employeeId };
       }
-    } else {
-      // 重新選擇
-      setDateRange({ from: date, to: undefined, employeeId });
-    }
-  };
+    });
+  }, [rangeMode]);
 
   const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
     const deptEmployees = employees.filter(e => e.department_ids?.includes(departmentId));
