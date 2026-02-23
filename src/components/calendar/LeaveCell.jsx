@@ -1,20 +1,20 @@
 import React from 'react';
 
-export default React.memo(function LeaveCell({ 
-        record, 
-        leaveTypes,
-        onSelectLeave, 
-        onClearLeave,
-        onDoubleClickLeave,
-        isWeekend,
-        isHoliday,
-        isCurrentUser = false,
-        rangeMode = false,
-        dateRange = { from: undefined, to: undefined },
-        currentDate,
-        onRangeCellClick,
-        isHighlighted = false
-      }) {
+function LeaveCell({ 
+  record, 
+  leaveTypes,
+  onSelectLeave, 
+  onClearLeave,
+  onDoubleClickLeave,
+  isWeekend,
+  isHoliday,
+  isCurrentUser = false,
+  rangeMode = false,
+  dateRange = { from: undefined, to: undefined },
+  currentDate,
+  onRangeCellClick,
+  isHighlighted = false
+}) {
   const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
 
   const cellBgClass = (isHoliday || isWeekend) 
@@ -25,13 +25,12 @@ export default React.memo(function LeaveCell({
     ? "bg-yellow-100" 
     : "bg-white";
 
-  // 檢查是否在選中的區間內
   const isInRange = rangeMode && dateRange.from && dateRange.to && 
     currentDate >= dateRange.from && currentDate <= dateRange.to;
   const isRangeStart = rangeMode && currentDate === dateRange.from;
   const isRangeEnd = rangeMode && currentDate === dateRange.to;
 
-  const handleClick = (e) => {
+  const handleClick = () => {
     if (rangeMode) {
       onRangeCellClick();
     } else {
@@ -63,4 +62,6 @@ export default React.memo(function LeaveCell({
       {record && leaveType ? leaveType.short_name : ''}
     </div>
   );
-});
+}
+
+export default React.memo(LeaveCell);
