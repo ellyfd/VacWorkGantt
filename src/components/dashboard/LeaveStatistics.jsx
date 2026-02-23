@@ -43,13 +43,13 @@ export default function LeaveStatistics({ departments: allDepartments, employees
     
     if (period === 'month') {
       const startDate = `${year}-${month.padStart(2, '0')}-01`;
-      const endDate = `${year}-${month.padStart(2, '0')}-31`;
+      const endDate = format(endOfMonth(new Date(parseInt(year), parseInt(month) - 1)), 'yyyy-MM-dd');
       records = allLeaveRecords.filter(r => r.date >= startDate && r.date <= endDate);
     } else if (period === 'quarter') {
       const startMonth = (parseInt(quarter) - 1) * 3 + 1;
       const endMonth = parseInt(quarter) * 3;
       const startDate = `${year}-${String(startMonth).padStart(2, '0')}-01`;
-      const endDate = `${year}-${String(endMonth).padStart(2, '0')}-31`;
+      const endDate = format(endOfMonth(new Date(parseInt(year), endMonth - 1)), 'yyyy-MM-dd');
       records = allLeaveRecords.filter(r => r.date >= startDate && r.date <= endDate);
     }
     
