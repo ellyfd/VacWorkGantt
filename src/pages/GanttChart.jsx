@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -1430,599 +1429,171 @@ export default function GanttChart() {
 
       {/* ===== Dialogs ===== */}
 
-      {/* 里程碑確認 Dialog */}
-      <Dialog open={showMilestoneDialog} onOpenChange={setShowMilestoneDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Diamond className="w-5 h-5 text-blue-500" />
-              設定里程碑
-            </DialogTitle>
-            <DialogDescription>
-              將此任務設為單一時間點的里程碑
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">任務名稱</span>
-              <span className="font-medium">{getSelectedTaskName()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">日期</span>
-              <span className="font-medium text-blue-600">
-                {firstDate && format(firstDate, 'yyyy/MM/dd')}
-              </span>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="destructive" 
-              onClick={() => {
-                updateTaskWithOptimistic(selectedTaskId, { 
-                  time_type: null, 
-                  start_date: null, 
-                  end_date: null 
-                });
-                setShowMilestoneDialog(false);
-              }}
-            >
-              清除時間
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowMilestoneDialog(false)}>
-                取消
-              </Button>
-              <Button onClick={handleConfirmMilestone} className="bg-blue-600 hover:bg-blue-700">
-                確認
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <MilestoneDialog
+        open={showMilestoneDialog}
+        onOpenChange={setShowMilestoneDialog}
+        taskName={getSelectedTaskName()}
+        firstDate={firstDate}
+        onConfirm={handleConfirmMilestone}
+        onClearTime={() => {
+          updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null });
+          setShowMilestoneDialog(false);
+        }}
+      />
 
-      {/* 區間確認 Dialog */}
-      <Dialog open={showDurationDialog} onOpenChange={setShowDurationDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ArrowRight className="w-5 h-5 text-blue-500" />
-              設定時間區間
-            </DialogTitle>
-            <DialogDescription>
-              設定任務的開始和結束日期
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">任務名稱</span>
-              <span className="font-medium">{getSelectedTaskName()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">開始日期</span>
-              <span className="font-medium text-blue-600">
-                {firstDate && format(getSortedDates().start, 'yyyy/MM/dd')}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">結束日期</span>
-              <span className="font-medium text-green-600">
-                {secondDate 
-                  ? format(getSortedDates().end, 'yyyy/MM/dd')
-                  : firstDate && format(firstDate, 'yyyy/MM/dd') + ' (同一天)'
+      <DurationDialog
+        open={showDurationDialog}
+        onOpenChange={setShowDurationDialog}
+        taskName={getSelectedTaskName()}
+        firstDate={firstDate}
+        secondDate={secondDate}
+        getSortedDates={getSortedDates}
+        onConfirm={handleConfirmDuration}
+        onClearTime={() => {
+          updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null });
+          setShowDurationDialog(false);
+        }}
+      />
+
+      <RollingDialog
+        open={showRollingDialog}
+        onOpenChange={setShowRollingDialog}
+        taskName={getSelectedTaskName()}
+        firstDate={firstDate}
+        onConfirm={handleConfirmRolling}
+        onClearTime={() => {
+          updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null });
+          setShowRollingDialog(false);
+        }}
+      />
+
+      <AddProjectDialog
+        open={showAddProjectDialog}
+        onOpenChange={setShowAddProjectDialog}
+        projectFormData={projectFormData}
+        setProjectFormData={setProjectFormData}
+        projectCreationMode={projectCreationMode}
+        setProjectCreationMode={setProjectCreationMode}
+        selectedSamples={selectedSamples}
+        setSelectedSamples={setSelectedSamples}
+        projects={projects}
+        samples={samples}
+        getBrandName={getBrandName}
+        getSamplesByBrand={getSamplesByBrand}
+        onConfirm={handleAddProject}
+        isLoading={createGanttProject.isPending || bulkCreatePhases.isPending}
+      />
+
+      <ImportScheduleDialog
+        open={showImportScheduleDialog}
+        onOpenChange={setShowImportScheduleDialog}
+        scheduleFile={scheduleFile}
+        setScheduleFile={setScheduleFile}
+        onConfirm={async () => {
+          if (!scheduleFile || !creatingProjectId) return;
+          setIsAnalyzingSchedule(true);
+          try {
+            const { file_url } = await uploadScheduleFile.mutateAsync(scheduleFile);
+            const result = await analyzeSchedule.mutateAsync(file_url);
+            if (result && result.tasks && result.tasks.length > 0) {
+              let phaseIndex = 1;
+              for (const task of result.tasks) {
+                if (task.name.trim()) {
+                  const phase = await base44.entities.GanttPhase.create({
+                    gantt_project_id: creatingProjectId,
+                    name: task.name.trim(),
+                    sort_order: phaseIndex++,
+                  });
+                  await base44.entities.GanttTask.create({
+                    gantt_phase_id: phase.id,
+                    name: task.name.trim(),
+                    sort_order: 1,
+                    time_type: 'milestone',
+                  });
                 }
-              </span>
-            </div>
-            {!secondDate && (
-              <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                💡 提示：可以在甘特圖上點選第二個日期來設定區間範圍
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button 
-             variant="destructive" 
-             onClick={() => {
-               updateTaskWithOptimistic(selectedTaskId, { 
-                 time_type: null, 
-                 start_date: null, 
-                 end_date: null 
-               });
-               setShowDurationDialog(false);
-             }}
-            >
-              清除時間
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowDurationDialog(false)}>
-                取消
-              </Button>
-              <Button onClick={handleConfirmDuration} className="bg-blue-600 hover:bg-blue-700">
-                確認
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Rolling 確認 Dialog */}
-      <Dialog open={showRollingDialog} onOpenChange={setShowRollingDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Repeat className="w-5 h-5 text-purple-500" />
-              設定 Rolling
-            </DialogTitle>
-            <DialogDescription>
-              從指定日期開始持續進行的任務
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">任務名稱</span>
-              <span className="font-medium">{getSelectedTaskName()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">開始日期</span>
-              <span className="font-medium text-purple-600">
-                {firstDate && format(firstDate, 'yyyy/MM/dd')}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">結束日期</span>
-              <span className="text-gray-400">持續進行 →</span>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-             variant="destructive" 
-             onClick={() => {
-               updateTaskWithOptimistic(selectedTaskId, { 
-                 time_type: null, 
-                 start_date: null, 
-                 end_date: null 
-               });
-               setShowRollingDialog(false);
-             }}
-            >
-              清除時間
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowRollingDialog(false)}>
-                取消
-              </Button>
-              <Button onClick={handleConfirmRolling} className="bg-purple-600 hover:bg-purple-700">
-                確認
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Project Dialog (single-page form) */}
-      <Dialog open={showAddProjectDialog} onOpenChange={(open) => {
-        if (!open) { setProjectFormData({ brand_id: '', season: '' }); setSelectedSamples({}); setProjectCreationMode('manual'); }
-        setShowAddProjectDialog(open);
-      }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>新增開發季</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>品牌 *</Label>
-                <Select
-                  value={projectFormData.brand_id}
-                  onValueChange={(v) => { setProjectFormData({ ...projectFormData, brand_id: v }); setSelectedSamples({}); }}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="選擇品牌..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.short_name || p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>季節 *</Label>
-                <Select
-                  value={projectFormData.season}
-                  onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="選擇季節..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {['SS25','FW25','HO25','SS26','FW26','HO26','SS27','FW27'].map(s => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {projectFormData.brand_id && projectFormData.season && (
-              <div className="text-sm text-gray-600 px-3 py-2 bg-gray-50 rounded border">
-                專案名稱：<strong>{getBrandName(projectFormData.brand_id)} {projectFormData.season}</strong>
-              </div>
-            )}
-
-            <div className="border-t pt-4">
-              <Label className="mb-2 block">建立方式</Label>
-              <div className="flex gap-2">
-                <Button type="button" variant={projectCreationMode === 'manual' ? 'default' : 'outline'} className="flex-1" onClick={() => setProjectCreationMode('manual')}>
-                  📝 手動選擇樣品
-                </Button>
-                <Button type="button" variant={projectCreationMode === 'import' ? 'default' : 'outline'} className="flex-1" onClick={() => setProjectCreationMode('import')}>
-                  📎 上傳時程表
-                </Button>
-              </div>
-            </div>
-
-            {projectCreationMode === 'manual' && projectFormData.brand_id && (
-              <div>
-                <Label className="mb-2 block">選擇樣品階段</Label>
-                {getSamplesByBrand(projectFormData.brand_id).length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-3">此品牌沒有樣品，請先到「專案設定」新增</p>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-lg p-2">
-                      {getSamplesByBrand(projectFormData.brand_id).map((sample) => (
-                        <label key={sample.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${selectedSamples[sample.id] ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'}`}>
-                          <input
-                            type="checkbox"
-                            checked={selectedSamples[sample.id] || false}
-                            onChange={(e) => setSelectedSamples((prev) => ({ ...prev, [sample.id]: e.target.checked }))}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm">{sample.short_name || sample.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">已選 {Object.values(selectedSamples).filter(Boolean).length} 個（可以不選，之後再手動新增）</p>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddProjectDialog(false)}>取消</Button>
-            <Button
-              onClick={handleAddProject}
-              disabled={!projectFormData.brand_id || !projectFormData.season || createGanttProject.isPending || bulkCreatePhases.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {(createGanttProject.isPending || bulkCreatePhases.isPending) ? '建立中...' : '建立'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Import Schedule Dialog */}
-      <Dialog open={showImportScheduleDialog} onOpenChange={setShowImportScheduleDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>上傳時程表</DialogTitle>
-            <DialogDescription>
-              上傳時程表圖片或 PDF，AI 將自動辨識階段和任務
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => setScheduleFile(e.target.files?.[0] || null)}
-                className="hidden"
-                id="schedule-file-input"
-              />
-              <label htmlFor="schedule-file-input" className="cursor-pointer">
-                <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600">點擊或拖曳檔案到此處</p>
-                <p className="text-xs text-gray-400 mt-1">支援 PNG, JPG, PDF</p>
-              </label>
-              {scheduleFile && (
-                <p className="mt-3 text-sm text-green-600">✓ {scheduleFile.name}</p>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
+              }
+              queryClient.invalidateQueries(['ganttPhases']);
+              queryClient.invalidateQueries(['ganttTasks']);
               setShowImportScheduleDialog(false);
               setScheduleFile(null);
-            }}>
-              取消
-            </Button>
-            <Button
-              onClick={async () => {
-                if (!scheduleFile || !creatingProjectId) return;
-                setIsAnalyzingSchedule(true);
-                try {
-                  const { file_url } = await uploadScheduleFile.mutateAsync(scheduleFile);
-                  const result = await analyzeSchedule.mutateAsync(file_url);
+              setCreatingProjectId(null);
+              setProjectCreationMode('manual');
+            }
+          } finally {
+            setIsAnalyzingSchedule(false);
+          }
+        }}
+        isAnalyzing={isAnalyzingSchedule}
+      />
 
-                  if (result && result.tasks && result.tasks.length > 0) {
-                    // 建立階段和任務
-                    let phaseIndex = 1;
-                    for (const task of result.tasks) {
-                      if (task.name.trim()) {
-                        const phase = await base44.entities.GanttPhase.create({
-                          gantt_project_id: creatingProjectId,
-                          name: task.name.trim(),
-                          sort_order: phaseIndex++,
-                        });
+      <EditProjectDialog
+        open={showEditProjectDialog}
+        onOpenChange={setShowEditProjectDialog}
+        project={editingProject}
+        setProject={setEditingProject}
+        onSave={() => {
+          if (editingProject) {
+            updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name } });
+          }
+          setShowEditProjectDialog(false);
+        }}
+      />
 
-                        await base44.entities.GanttTask.create({
-                          gantt_phase_id: phase.id,
-                          name: task.name.trim(),
-                          sort_order: 1,
-                          time_type: 'milestone',
-                        });
-                      }
-                    }
-                    queryClient.invalidateQueries(['ganttPhases']);
-                    queryClient.invalidateQueries(['ganttTasks']);
-                    setShowImportScheduleDialog(false);
-                    setScheduleFile(null);
-                    setCreatingProjectId(null);
-                    setProjectCreationMode('manual');
-                  }
-                } finally {
-                  setIsAnalyzingSchedule(false);
-                }
-              }}
-              disabled={!scheduleFile || isAnalyzingSchedule}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isAnalyzingSchedule ? '分析中...' : '開始辨識'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddPhaseDialog
+        open={showAddPhaseDialog}
+        onOpenChange={setShowAddPhaseDialog}
+        projectName={projectForAddPhase?.name}
+        samplesForSelection={samplesForPhaseSelection}
+        selectedSamples={selectedSamples}
+        setSelectedSamples={setSelectedSamples}
+        onConfirm={handleAddPhase}
+        isLoading={bulkCreatePhases.isPending}
+      />
 
-      {/* Edit Project Dialog */}
-      <Dialog open={showEditProjectDialog} onOpenChange={setShowEditProjectDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>編輯開發季名稱</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>專案名稱</Label>
-              <Input
-                value={editingProject?.name || ''}
-                onChange={(e) => setEditingProject(prev => ({ ...prev, name: e.target.value }))}
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditProjectDialog(false)}>取消</Button>
-            <Button
-              onClick={() => {
-                if (editingProject) {
-                  updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name } });
-                }
-                setShowEditProjectDialog(false);
-              }}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              儲存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddTaskDialog
+        open={showAddTaskDialog}
+        onOpenChange={setShowAddTaskDialog}
+        taskFormData={taskFormData}
+        setTaskFormData={setTaskFormData}
+        onConfirm={handleAddTask}
+      />
 
-      {/* Add Phase Dialog */}
-      <Dialog open={showAddPhaseDialog} onOpenChange={(open) => {
-        if (!open) { setSelectedSamples({}); setCreatingProjectId(null); }
-        setShowAddPhaseDialog(open);
-      }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>新增樣品階段</DialogTitle>
-            <DialogDescription>
-              將樣品作為階段加入此專案: <span className="font-semibold">{projectForAddPhase?.name}</span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {brandIdForAddPhase ? (
-              samplesForPhaseSelection.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-3">此品牌沒有樣品，請先到「專案設定」新增</p>
-              ) : (
-                <div>
-                  <Label className="mb-2 block">選擇樣品</Label>
-                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-lg p-2">
-                    {samplesForPhaseSelection.map((sample) => (
-                      <label key={sample.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${selectedSamples[sample.id] ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'}`}>
-                        <input
-                          type="checkbox"
-                          checked={selectedSamples[sample.id] || false}
-                          onChange={(e) => setSelectedSamples((prev) => ({ ...prev, [sample.id]: e.target.checked }))}
-                          className="w-4 h-4"
-                        />
-                        <span className="text-sm">{sample.short_name || sample.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">已選 {Object.values(selectedSamples).filter(Boolean).length} 個</p>
-                </div>
-              )
-            ) : (
-              <p className="text-sm text-gray-400 text-center py-3">請先選擇品牌來關聯樣品。</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddPhaseDialog(false)}>取消</Button>
-            <Button
-              onClick={handleAddPhase}
-              disabled={Object.values(selectedSamples).filter(Boolean).length === 0 || bulkCreatePhases.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {bulkCreatePhases.isPending ? '新增中...' : '新增樣品階段'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-
-      {/* Add Task Dialog */}
-      <Dialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>新增任務</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>任務名稱 *</Label>
-              <Input
-                value={taskFormData.name}
-                onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
-                placeholder="例：SPR raised in Centric"
-                className="mt-1"
-              />
-            </div>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={taskFormData.is_important}
-                onChange={(e) => setTaskFormData({ ...taskFormData, is_important: e.target.checked })}
-                className="w-4 h-4"
-              />
-              <span className="text-sm">標記為重要（黃色里程碑）</span>
-            </label>
-            <div>
-              <Label>備註</Label>
-              <Input
-                value={taskFormData.note}
-                onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
-                placeholder="選填"
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddTaskDialog(false)}>
-              取消
-            </Button>
-            <Button
-              onClick={handleAddTask}
-              disabled={!taskFormData.name}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              新增
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Phase Dialog */}
-      <Dialog open={showEditPhaseDialog} onOpenChange={setShowEditPhaseDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>編輯樣品：{editingPhase?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>樣品名稱</Label>
-              <Input
-                value={editingPhaseName}
-                onChange={(e) => setEditingPhaseName(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label>任務列表</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    value={newTaskName}
-                    onChange={(e) => setNewTaskName(e.target.value)}
-                    placeholder="新任務名稱"
-                    className="h-7 text-xs w-36"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newTaskName.trim() && editingPhase) {
-                        createGanttTask.mutate({
-                          name: newTaskName.trim(),
-                          gantt_phase_id: editingPhase.id,
-                          sort_order: editingPhaseTasks.length + 1,
-                        }, {
-                          onSuccess: (newTask) => {
-                            setEditingPhaseTasks(prev => [...prev, newTask]);
-                            setNewTaskName('');
-                            queryClient.invalidateQueries(['ganttTasks']);
-                          }
-                        });
-                      }
-                    }}
-                  />
-                  <button
-                    className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    onClick={() => {
-                      if (!newTaskName.trim() || !editingPhase) return;
-                      createGanttTask.mutate({
-                        name: newTaskName.trim(),
-                        gantt_phase_id: editingPhase.id,
-                        sort_order: editingPhaseTasks.length + 1,
-                      }, {
-                        onSuccess: (newTask) => {
-                          setEditingPhaseTasks(prev => [...prev, newTask]);
-                          setNewTaskName('');
-                          queryClient.invalidateQueries(['ganttTasks']);
-                        }
-                      });
-                    }}
-                  >
-                    + 新增
-                  </button>
-                </div>
-              </div>
-              <div className="border rounded-lg divide-y max-h-52 overflow-y-auto">
-                {editingPhaseTasks.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-4">尚無任務</p>
-                )}
-                {editingPhaseTasks.map(task => (
-                  <div key={task.id} className="flex items-center gap-2 px-3 py-2">
-                    <span className="flex-1 text-sm truncate">{task.name}</span>
-                    <span className="text-xs text-gray-400 flex-shrink-0">
-                      {task.time_type === 'milestone' ? '里程碑' : task.time_type === 'duration' ? '區間' : task.time_type === 'rolling' ? 'Rolling' : '-'}
-                    </span>
-                    <span className="text-xs text-gray-400 flex-shrink-0 w-20 text-right">
-                      {task.start_date || task.date || ''}
-                    </span>
-                    <button
-                      className="text-red-400 hover:text-red-600 flex-shrink-0"
-                      onClick={() => {
-                        deleteGanttTask.mutate(task.id, {
-                          onSuccess: () => setEditingPhaseTasks(prev => prev.filter(t => t.id !== task.id))
-                        });
-                      }}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditPhaseDialog(false)}>取消</Button>
-            <Button
-              onClick={() => {
-                if (editingPhase && editingPhaseName.trim()) {
-                  updateGanttPhase.mutate({ id: editingPhase.id, data: { name: editingPhaseName.trim() } });
-                }
-                setShowEditPhaseDialog(false);
-              }}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              儲存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditPhaseDialog
+        open={showEditPhaseDialog}
+        onOpenChange={setShowEditPhaseDialog}
+        phase={editingPhase}
+        phaseName={editingPhaseName}
+        setPhaseName={setEditingPhaseName}
+        phaseTasks={editingPhaseTasks}
+        setPhaseTasks={setEditingPhaseTasks}
+        newTaskName={newTaskName}
+        setNewTaskName={setNewTaskName}
+        onSave={() => {
+          if (editingPhase && editingPhaseName.trim()) {
+            updateGanttPhase.mutate({ id: editingPhase.id, data: { name: editingPhaseName.trim() } });
+          }
+          setShowEditPhaseDialog(false);
+        }}
+        onCreateTask={() => {
+          if (!newTaskName.trim() || !editingPhase) return;
+          createGanttTask.mutate({
+            name: newTaskName.trim(),
+            gantt_phase_id: editingPhase.id,
+            sort_order: editingPhaseTasks.length + 1,
+          }, {
+            onSuccess: (newTask) => {
+              setEditingPhaseTasks(prev => [...prev, newTask]);
+              setNewTaskName('');
+              queryClient.invalidateQueries(['ganttTasks']);
+            }
+          });
+        }}
+        onDeleteTask={(taskId) => {
+          deleteGanttTask.mutate(taskId, {
+            onSuccess: () => setEditingPhaseTasks(prev => prev.filter(t => t.id !== taskId))
+          });
+        }}
+      />
 
       {/* 操作說明 */}
       <details className="mt-4 text-sm text-gray-600">
