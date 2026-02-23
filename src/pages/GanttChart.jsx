@@ -74,7 +74,7 @@ export default function GanttChart() {
 
   // Scroll refs
   const leftPanelRef = React.useRef(null);
-  const rightPanelRef = React.useRef(null);
+  const rightPanelRef = React.useRef(null); // outer overflow-x-auto
 
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [creatingProjectId, setCreatingProjectId] = useState(null);
