@@ -157,6 +157,11 @@ export default function GanttChart() {
     queryFn: () => base44.entities.Department.list('sort_order'),
   });
 
+  const { data: holidays = [] } = useQuery({
+    queryKey: ['holidays'],
+    queryFn: () => base44.entities.Holiday.list(),
+  });
+
   // Mutations
   const createGanttProject = useMutation({
     mutationFn: (data) => base44.entities.GanttProject.create(data),
