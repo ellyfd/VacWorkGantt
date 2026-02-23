@@ -50,12 +50,10 @@ export default function GanttChart() {
   const [firstDate, setFirstDate] = useState(null);
   const [secondDate, setSecondDate] = useState(null);
   
-  // 展開狀態
-  const [expandedProjects, setExpandedProjects] = useState({});
-  
   // Dialog 狀態
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
-  const [showSelectSamplesDialog, setShowSelectSamplesDialog] = useState(false);
+  const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
   const [showDurationDialog, setShowDurationDialog] = useState(false);
