@@ -221,17 +221,15 @@ export default function Dashboard() {
 
       let updatedCount = 0;
 
-      // 為每筆記錄檢查警示
-      for (const record of allRecords) {
+      // 計算所有記錄的警示，批次更新
+      const updates = allRecords.map(record => {
         const currentEmployee = allEmployees.find(e => e.id === record.employee_id);
-        if (!currentEmployee) continue;
+        if (!currentEmployee) return null;
 
-        const warningTypes = [];
-        const warningDetails = {};
-
-        // 檢查職代衝突（排除出差）
         const currentLeaveType = allLeaveTypes.find(lt => lt.id === record.leave_type_id);
         const isBusinessTrip = currentLeaveType?.name === '出差';
+        const warningTypes = [];
+        const warningDetails = {};
 
         if (!isBusinessTrip && (currentEmployee.deputy_1 || currentEmployee.deputy_2)) {
           const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
@@ -239,57 +237,39 @@ export default function Dashboard() {
             const rLeaveType = allLeaveTypes.find(lt => lt.id === r.leave_type_id);
             return deputies.includes(r.employee_id) && r.date === record.date && r.id !== record.id && rLeaveType?.name !== '出差';
           });
-
           if (deputyConflicts.length > 0) {
             warningTypes.push('deputy_conflict');
             warningDetails.deputy_conflicts = deputyConflicts.map(c => {
               const emp = allEmployees.find(e => e.id === c.employee_id);
               const lt = allLeaveTypes.find(l => l.id === c.leave_type_id);
-              return {
-                employee_id: c.employee_id,
-                employee_name: emp?.name || '未知',
-                leave_type: lt?.name || '未知'
-              };
+              return { employee_id: c.employee_id, employee_name: emp?.name || '未知', leave_type: lt?.name || '未知' };
             });
           }
         }
 
-        // 檢查部門超標（排除出差）
         if (!isBusinessTrip) {
-        const deptLeaves = allRecords.filter(r => {
-          if (r.employee_id === record.employee_id || r.id === record.id) return false;
-          const emp = allEmployees.find(e => e.id === r.employee_id);
-          const rLeaveType = allLeaveTypes.find(lt => lt.id === r.leave_type_id);
-          return emp?.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId)) && r.date === record.date && rLeaveType?.name !== '出差';
-        });
-
-        const deptTotalMembers = allEmployees.filter(e => 
-          e.status === 'active' && 
-          e.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId))
-        ).length;
-
-        const deptLimit = Math.floor(deptTotalMembers / 3);
-
-        if (deptLeaves.length >= deptLimit && deptTotalMembers > 0) {
-          warningTypes.push('department_over_limit');
-          warningDetails.department_info = {
-            total_members: deptTotalMembers,
-            leave_count: deptLeaves.length + 1,
-            limit: deptLimit,
-            percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
-          };
-        }
-        }
-
-        // 如果有警示且記錄尚未包含警示資訊，則更新
-        if (warningTypes.length > 0 && (!record.warning_type || record.warning_type.length === 0)) {
-          await base44.entities.LeaveRecord.update(record.id, {
-            warning_type: warningTypes,
-            warning_details: warningDetails
+          const deptLeaves = allRecords.filter(r => {
+            if (r.employee_id === record.employee_id || r.id === record.id) return false;
+            const emp = allEmployees.find(e => e.id === r.employee_id);
+            const rLeaveType = allLeaveTypes.find(lt => lt.id === r.leave_type_id);
+            return emp?.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId)) && r.date === record.date && rLeaveType?.name !== '出差';
           });
-          updatedCount++;
+          const deptTotalMembers = allEmployees.filter(e => e.status === 'active' && e.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId))).length;
+          const deptLimit = Math.floor(deptTotalMembers / 3);
+          if (deptLeaves.length >= deptLimit && deptTotalMembers > 0) {
+            warningTypes.push('department_over_limit');
+            warningDetails.department_info = { total_members: deptTotalMembers, leave_count: deptLeaves.length + 1, limit: deptLimit, percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100) };
+          }
         }
-      }
+
+        if (warningTypes.length > 0 && (!record.warning_type || record.warning_type.length === 0)) {
+          return { id: record.id, warning_type: warningTypes, warning_details: warningDetails };
+        }
+        return null;
+      }).filter(Boolean);
+
+      await Promise.all(updates.map(u => base44.entities.LeaveRecord.update(u.id, { warning_type: u.warning_type, warning_details: u.warning_details })));
+      updatedCount = updates.length;
 
       // 重新載入資料
       queryClient.invalidateQueries(['todayLeaves']);
