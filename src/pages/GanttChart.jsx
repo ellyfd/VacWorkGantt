@@ -1496,69 +1496,34 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
-      {/* Select Samples Dialog */}
-      <Dialog open={showSelectSamplesDialog} onOpenChange={setShowSelectSamplesDialog}>
-        <DialogContent>
+      {/* Edit Project Dialog */}
+      <Dialog open={showEditProjectDialog} onOpenChange={setShowEditProjectDialog}>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>選擇樣品類別</DialogTitle>
-            <DialogDescription>
-              選擇要建立的階段（樣品類別）
-            </DialogDescription>
+            <DialogTitle>編輯開發季名稱</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p className="text-sm text-gray-600">
-              品牌：<strong>{getBrandName(projectFormData.brand_id)}</strong>
-            </p>
-            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-              {getSamplesByBrand(projectFormData.brand_id).map((sample) => (
-                <label
-                  key={sample.id}
-                  className={`flex items-center gap-2 p-2 border rounded cursor-pointer transition-colors ${
-                    selectedSamples[sample.id] 
-                      ? 'bg-blue-50 border-blue-300' 
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedSamples[sample.id] || false}
-                    onChange={(e) =>
-                      setSelectedSamples((prev) => ({
-                        ...prev,
-                        [sample.id]: e.target.checked,
-                      }))
-                    }
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm">{sample.short_name || sample.name}</span>
-                </label>
-              ))}
-            </div>
-            {getSamplesByBrand(projectFormData.brand_id).length === 0 && (
-              <p className="text-center text-gray-400 py-4">
-                此品牌沒有樣品類別，請先到「專案設定」新增
-              </p>
-            )}
-            <div className="text-sm text-gray-500">
-              已選擇 {Object.values(selectedSamples).filter(Boolean).length} 個
+            <div>
+              <Label>專案名稱</Label>
+              <Input
+                value={editingProject?.name || ''}
+                onChange={(e) => setEditingProject(prev => ({ ...prev, name: e.target.value }))}
+                className="mt-1"
+              />
             </div>
           </div>
           <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditProjectDialog(false)}>取消</Button>
             <Button
-              variant="outline"
               onClick={() => {
-                setShowSelectSamplesDialog(false);
-                setSelectedSamples({});
+                if (editingProject) {
+                  updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name } });
+                }
+                setShowEditProjectDialog(false);
               }}
-            >
-              取消
-            </Button>
-            <Button
-              onClick={handleSelectSamples}
-              disabled={!Object.values(selectedSamples).some(Boolean)}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              建立
+              儲存
             </Button>
           </DialogFooter>
         </DialogContent>
