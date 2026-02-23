@@ -39,25 +39,32 @@ export default function WeekCalendarTable({
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  const allDays = month === -1
+  const holidaySet = useMemo(() => new Set(holidays?.map(h => h.date) || []), [holidays]);
+
+  const allDays = useMemo(() => month === -1
     ? Array.from({ length: 365 }, (_, i) => {
         const date = new Date(year, 0, i + 1);
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
-        const isHoliday = holidays?.some(h => h.date === dateStr);
-        return { day: date.getDate(), month: date.getMonth() + 1, date: dateStr, weekday: WEEKDAY_NAMES[dayOfWeek], isWeekend: dayOfWeek === 0 || dayOfWeek === 6, isHoliday, fullDate: date };
+        return { day: date.getDate(), month: date.getMonth() + 1, date: dateStr, weekday: WEEKDAY_NAMES[dayOfWeek], isWeekend: dayOfWeek === 0 || dayOfWeek === 6, isHoliday: holidaySet.has(dateStr), fullDate: date };
       })
     : Array.from({ length: new Date(year, month + 1, 0).getDate() }, (_, i) => {
         const date = new Date(year, month, i + 1);
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
-        const isHoliday = holidays?.some(h => h.date === dateStr);
-        return { day: i + 1, month: month + 1, date: dateStr, weekday: WEEKDAY_NAMES[dayOfWeek], isWeekend: dayOfWeek === 0 || dayOfWeek === 6, isHoliday, fullDate: date };
-      });
+        return { day: i + 1, month: month + 1, date: dateStr, weekday: WEEKDAY_NAMES[dayOfWeek], isWeekend: dayOfWeek === 0 || dayOfWeek === 6, isHoliday: holidaySet.has(dateStr), fullDate: date };
+      }),
+  [year, month, holidaySet]);
 
-  const getLeaveRecord = (employeeId, date) => {
-    return leaveRecords.find(r => r.employee_id === employeeId && r.date === date);
-  };
+  const leaveRecordMap = useMemo(() => {
+    const map = new Map();
+    leaveRecords.forEach(r => map.set(`${r.employee_id}_${r.date}`, r));
+    return map;
+  }, [leaveRecords]);
+
+  const getLeaveRecord = useCallback((employeeId, date) => {
+    return leaveRecordMap.get(`${employeeId}_${date}`);
+  }, [leaveRecordMap]);
 
   const handleSelectLeave = useCallback((date) => {
     if (selectedLeaveTypeIdRef.current) {
