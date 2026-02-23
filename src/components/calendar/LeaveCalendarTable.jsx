@@ -34,41 +34,63 @@ export default function LeaveCalendarTable({
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  
-  const days = month === -1 
+
+  const holidaySet = useMemo(() => new Set(holidays?.map(h => h.date) || []), [holidays]);
+
+  const days = useMemo(() => month === -1
     ? Array.from({ length: 365 }, (_, i) => {
         const date = new Date(year, 0, i + 1);
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
-        const isHoliday = holidays?.some(h => h.date === dateStr);
         return {
           day: date.getDate(),
           month: date.getMonth() + 1,
           date: dateStr,
           weekday: WEEKDAY_NAMES[dayOfWeek],
           isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday
+          isHoliday: holidaySet.has(dateStr)
         };
       })
     : Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => {
         const date = new Date(year, month, i + 1);
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
-        const isHoliday = holidays?.some(h => h.date === dateStr);
         return {
           day: i + 1,
           date: dateStr,
           weekday: WEEKDAY_NAMES[dayOfWeek],
           isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday
+          isHoliday: holidaySet.has(dateStr)
         };
-      });
+      }),
+  [year, month, currentDate, holidaySet]);
 
-  const getLeaveRecord = (employeeId, date) => {
-    return leaveRecords.find(
-      r => r.employee_id === employeeId && r.date === date
-    );
-  };
+  const leaveRecordMap = useMemo(() => {
+    const map = new Map();
+    leaveRecords.forEach(r => map.set(`${r.employee_id}_${r.date}`, r));
+    return map;
+  }, [leaveRecords]);
+
+  const getLeaveRecord = useCallback((employeeId, date) => {
+    return leaveRecordMap.get(`${employeeId}_${date}`);
+  }, [leaveRecordMap]);
+
+  const employeesToShow = useMemo(() => {
+    const result = [];
+    const seenIds = new Set();
+    departments.forEach((dept) => {
+      const deptEmployees = employees
+        .filter(e => e.department_ids?.includes(dept.id))
+        .sort((a, b) => (a.sort_order_by_dept?.[dept.id] || 999999) - (b.sort_order_by_dept?.[dept.id] || 999999));
+      deptEmployees.forEach(emp => {
+        if (!seenIds.has(emp.id)) {
+          seenIds.add(emp.id);
+          result.push(emp);
+        }
+      });
+    });
+    return result;
+  }, [departments, employees]);
 
   const handleSelectLeave = useCallback((employeeId, date) => {
     if (rangeMode && onCellClickInRangeMode) {
