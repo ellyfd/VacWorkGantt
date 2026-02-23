@@ -174,7 +174,7 @@ export default function LeaveCalendar() {
 
       const deptLimit = Math.floor(deptTotalMembers / 3);
 
-      if (deptLeaves.length > deptLimit) {
+      if (deptLeaves.length >= deptLimit) {
         const confirmed = window.confirm(
           `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假（超過部門1/3人數 ${deptLimit}），確定要繼續請假嗎？`
         );
