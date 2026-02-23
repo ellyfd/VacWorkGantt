@@ -182,8 +182,7 @@ export default function LeaveCalendarTable({
                   })}
                 </tr>
               );
-            });
-          })()}
+          )}
         </tbody>
         </table>
         </div>
