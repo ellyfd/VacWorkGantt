@@ -1,7 +1,6 @@
-import React from 'react';
-import { format, startOfWeek, addDays, getDay } from "date-fns";
+import React, { useRef, useEffect, useCallback } from 'react';
+import { format, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
 
 import LeaveCell from "./LeaveCell";
 import CalendarHeader from "./CalendarHeader";
@@ -9,21 +8,26 @@ import CalendarHeader from "./CalendarHeader";
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 export default function WeekCalendarTable({
-              currentDate,
-              onDateChange,
-              currentEmployee,
-              currentDepartments,
-              leaveRecords,
-              leaveTypes,
-              holidays,
-              selectedLeaveTypeId,
-              rangeMode = false,
-              dateRange = { from: undefined, to: undefined },
-              onUpdateLeave,
-              onDeleteLeave,
-              onDeleteRangeLeave,
-              onCellClickInRangeMode
-            }) {
+  currentDate,
+  onDateChange,
+  currentEmployee,
+  currentDepartments,
+  leaveRecords,
+  leaveTypes,
+  holidays,
+  selectedLeaveTypeId,
+  rangeMode = false,
+  dateRange = { from: undefined, to: undefined },
+  onUpdateLeave,
+  onDeleteLeave,
+  onDeleteRangeLeave,
+  onCellClickInRangeMode
+}) {
+  const selectedLeaveTypeIdRef = useRef(selectedLeaveTypeId);
+  useEffect(() => {
+    selectedLeaveTypeIdRef.current = selectedLeaveTypeId;
+  }, [selectedLeaveTypeId]);
+
   if (!currentEmployee || !currentDepartments || currentDepartments.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
@@ -31,93 +35,52 @@ export default function WeekCalendarTable({
       </div>
     );
   }
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  
-  // Generate all days in the selected period
-  const allDays = month === -1 
+
+  const allDays = month === -1
     ? Array.from({ length: 365 }, (_, i) => {
         const date = new Date(year, 0, i + 1);
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
         const isHoliday = holidays?.some(h => h.date === dateStr);
-        return {
-          day: date.getDate(),
-          month: date.getMonth() + 1,
-          date: dateStr,
-          weekday: WEEKDAY_NAMES[dayOfWeek],
-          isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday,
-          fullDate: date
-        };
+        return { day: date.getDate(), month: date.getMonth() + 1, date: dateStr, weekday: WEEKDAY_NAMES[dayOfWeek], isWeekend: dayOfWeek === 0 || dayOfWeek === 6, isHoliday, fullDate: date };
       })
     : Array.from({ length: new Date(year, month + 1, 0).getDate() }, (_, i) => {
         const date = new Date(year, month, i + 1);
         const dayOfWeek = getDay(date);
         const dateStr = format(date, 'yyyy-MM-dd');
         const isHoliday = holidays?.some(h => h.date === dateStr);
-        return {
-          day: i + 1,
-          month: month + 1,
-          date: dateStr,
-          weekday: WEEKDAY_NAMES[dayOfWeek],
-          isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-          isHoliday,
-          fullDate: date
-        };
+        return { day: i + 1, month: month + 1, date: dateStr, weekday: WEEKDAY_NAMES[dayOfWeek], isWeekend: dayOfWeek === 0 || dayOfWeek === 6, isHoliday, fullDate: date };
       });
 
-
-
   const getLeaveRecord = (employeeId, date) => {
-    return leaveRecords.find(
-      r => r.employee_id === employeeId && r.date === date
-    );
+    return leaveRecords.find(r => r.employee_id === employeeId && r.date === date);
   };
 
-  const handleSelectLeave = (employeeId, date, leaveTypeId) => {
-    onUpdateLeave(employeeId, date, leaveTypeId);
-  };
+  const handleSelectLeave = useCallback((date) => {
+    if (selectedLeaveTypeIdRef.current) {
+      onUpdateLeave(currentEmployee.id, date, selectedLeaveTypeIdRef.current);
+    }
+  }, [onUpdateLeave, currentEmployee.id]);
 
-  const handleClearLeave = (recordId) => {
+  const handleClearLeave = useCallback((recordId) => {
     onDeleteLeave(recordId);
-  };
+  }, [onDeleteLeave]);
 
-  const handleDoubleClickLeave = (record) => {
-    if (onDeleteRangeLeave) {
-      onDeleteRangeLeave(record);
-    }
-  };
+  const handleDoubleClickLeave = useCallback((record) => {
+    if (onDeleteRangeLeave) onDeleteRangeLeave(record);
+  }, [onDeleteRangeLeave]);
 
-  // 将日期按周分组，每周从周日开始
-  const weeks = [];
-  const firstDayOfMonth = allDays[0];
-  const startDayOfWeek = getDay(firstDayOfMonth.fullDate); // 0=周日, 1=周一, ...
-  
-  // 填充第一周前面的空格
-  let currentWeek = Array(startDayOfWeek).fill(null);
-  
-  allDays.forEach((day) => {
-    currentWeek.push(day);
-    if (currentWeek.length === 7) {
-      weeks.push([...currentWeek]);
-      currentWeek = [];
-    }
-  });
-  
-  // 填充最后一周后面的空格
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) {
-      currentWeek.push(null);
-    }
-    weeks.push(currentWeek);
-  }
+  const handleRangeCellClick = useCallback((date) => {
+    if (rangeMode && onCellClickInRangeMode) onCellClickInRangeMode(date);
+  }, [rangeMode, onCellClickInRangeMode]);
 
-  // 計算當月休假統計
+  // 月份休假統計
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   const monthlyLeaveStats = [];
-  
   leaveRecords.forEach(record => {
     const recordDate = new Date(record.date);
     if (recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear) {
@@ -127,16 +90,29 @@ export default function WeekCalendarTable({
         if (existing) {
           existing.count += 1;
         } else {
-          monthlyLeaveStats.push({
-            leaveTypeId: leaveType.id,
-            name: leaveType.name,
-            color: leaveType.color,
-            count: 1
-          });
+          monthlyLeaveStats.push({ leaveTypeId: leaveType.id, name: leaveType.name, color: leaveType.color, count: 1 });
         }
       }
     }
   });
+
+  // 按周分組
+  const weeks = [];
+  const startDayOfWeek = getDay(allDays[0].fullDate);
+  let currentWeek = Array(startDayOfWeek).fill(null);
+  allDays.forEach((day) => {
+    currentWeek.push(day);
+    if (currentWeek.length === 7) {
+      weeks.push([...currentWeek]);
+      currentWeek = [];
+    }
+  });
+  if (currentWeek.length > 0) {
+    while (currentWeek.length < 7) currentWeek.push(null);
+    weeks.push(currentWeek);
+  }
+
+  const today = format(new Date(), 'yyyy-MM-dd');
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -151,17 +127,9 @@ export default function WeekCalendarTable({
           <div className="flex flex-wrap gap-2">
             {monthlyLeaveStats.length > 0 ? (
               monthlyLeaveStats.map((stat) => (
-                <div 
-                  key={stat.leaveTypeId}
-                  className="flex items-center gap-1"
-                >
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: stat.color }}
-                  />
-                  <span className="text-xs text-gray-600">
-                    {stat.name} {stat.count}天
-                  </span>
+                <div key={stat.leaveTypeId} className="flex items-center gap-1">
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: stat.color }} />
+                  <span className="text-xs text-gray-600">{stat.name} {stat.count}天</span>
                 </div>
               ))
             ) : (
@@ -170,19 +138,15 @@ export default function WeekCalendarTable({
           </div>
         </div>
         <div className="hidden md:block">
-          <CalendarHeader 
-            currentDate={currentDate} 
-            onDateChange={onDateChange}
-          />
+          <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
         </div>
       </div>
-      
+
       <div className="p-4">
         <div className="grid grid-cols-7 gap-0 border border-gray-200 rounded-lg overflow-hidden">
-          {/* 星期標題 */}
           {WEEKDAY_NAMES.map((day, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className={`py-1 text-center text-sm font-semibold border-b border-gray-200 ${
                 idx === 0 || idx === 6 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-600'
               }`}
@@ -190,60 +154,45 @@ export default function WeekCalendarTable({
               {day}
             </div>
           ))}
-          
-          {/* 日期格子 */}
-          {weeks.map((week, weekIdx) => (
+
+          {weeks.map((week, weekIdx) =>
             week.map((day, dayIdx) => {
               if (!day) {
-                return (
-                 <div 
-                   key={`${weekIdx}-${dayIdx}`} 
-                   className="h-12 border-r border-b border-gray-200 bg-gray-50"
-                 />
-                );
-                }
-
-                const record = getLeaveRecord(currentEmployee.id, day.date);
-                const today = format(new Date(), 'yyyy-MM-dd');
-                const isToday = day.date === today;
-                return (
-                  <div 
-                    key={`${weekIdx}-${dayIdx}`} 
-                    className={`h-12 border-r border-b border-gray-200 relative ${
-                      isToday ? 'bg-blue-50/50' : ''
-                    }`}
-                  >
-                    {isToday && (
-                      <div className="absolute inset-0 border-2 border-blue-500 pointer-events-none z-10"></div>
-                    )}
-                    <div className={`absolute top-1.5 left-1 text-[10px] font-semibold leading-none z-20 ${
-                      isToday ? 'text-blue-600' : day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
-                    }`}>
-                      {day.day}
-                    </div>
-                    {isToday && (
-                      <div className="absolute top-1.5 right-1 text-[8px] font-bold text-blue-600 leading-none z-20">今</div>
-                    )}
-                    <div className="w-full h-full flex items-center justify-center">
-                      <LeaveCell
-                        record={record}
-                        leaveTypes={leaveTypes}
-                        selectedLeaveTypeId={selectedLeaveTypeId}
-                        isWeekend={day.isWeekend}
-                        isHoliday={day.isHoliday}
-                        rangeMode={rangeMode}
-                        dateRange={dateRange}
-                        currentDate={day.date}
-                        onSelectLeave={(leaveTypeId) => handleSelectLeave(currentEmployee.id, day.date, leaveTypeId)}
-                        onClearLeave={() => record && handleClearLeave(record.id)}
-                        onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
-                        onRangeCellClick={() => rangeMode && onCellClickInRangeMode(day.date)}
-                      />
-                    </div>
+                return <div key={`${weekIdx}-${dayIdx}`} className="h-12 border-r border-b border-gray-200 bg-gray-50" />;
+              }
+              const record = getLeaveRecord(currentEmployee.id, day.date);
+              const isToday = day.date === today;
+              return (
+                <div
+                  key={`${weekIdx}-${dayIdx}`}
+                  className={`h-12 border-r border-b border-gray-200 relative ${isToday ? 'bg-blue-50/50' : ''}`}
+                >
+                  {isToday && <div className="absolute inset-0 border-2 border-blue-500 pointer-events-none z-10" />}
+                  <div className={`absolute top-1.5 left-1 text-[10px] font-semibold leading-none z-20 ${
+                    isToday ? 'text-blue-600' : day.isHoliday || day.isWeekend ? 'text-red-600' : 'text-gray-700'
+                  }`}>
+                    {day.day}
                   </div>
-                );
+                  {isToday && <div className="absolute top-1.5 right-1 text-[8px] font-bold text-blue-600 leading-none z-20">今</div>}
+                  <div className="w-full h-full flex items-center justify-center">
+                    <LeaveCell
+                      record={record}
+                      leaveTypes={leaveTypes}
+                      isWeekend={day.isWeekend}
+                      isHoliday={day.isHoliday}
+                      rangeMode={rangeMode}
+                      dateRange={dateRange}
+                      currentDate={day.date}
+                      onSelectLeave={() => handleSelectLeave(day.date)}
+                      onClearLeave={() => record && handleClearLeave(record.id)}
+                      onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
+                      onRangeCellClick={() => handleRangeCellClick(day.date)}
+                    />
+                  </div>
+                </div>
+              );
             })
-          ))}
+          )}
         </div>
       </div>
     </div>
