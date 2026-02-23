@@ -28,7 +28,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Plus, Diamond, ArrowRight, Repeat, GripVertical, Upload, Edit2, Trash2, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { addMonths, addDays, addWeeks, subDays, format, eachDayOfInterval, isToday, startOfWeek, getDay, isSameMonth, startOfMonth } from 'date-fns';
+import { addDays, addWeeks, subDays, format, eachDayOfInterval, isToday, startOfWeek, getDay } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -73,16 +73,12 @@ export default function GanttChart() {
   const [showDurationDialog, setShowDurationDialog] = useState(false);
   const [showRollingDialog, setShowRollingDialog] = useState(false);
   const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
-  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false);
 
   // 拖曳畫區間狀態
   const [isDragging, setIsDragging] = useState(false);
   const [dragTaskId, setDragTaskId] = useState(null);
   const [dragStart, setDragStart] = useState(null);
   const [dragEnd, setDragEnd] = useState(null);
-
-  // 編輯任務狀態
-  const [editingTask, setEditingTask] = useState(null);
 
   // Scroll refs
   const leftPanelRef = React.useRef(null);
@@ -622,13 +618,7 @@ export default function GanttChart() {
     });
   };
 
-  // 拖曳畫區間的判斷
-  const isInDragRange = (task, dateStr) => {
-    if (!isDragging || dragTaskId !== task.id || !dragStart || !dragEnd) return false;
-    const s = format(dragStart < dragEnd ? dragStart : dragEnd, 'yyyy-MM-dd');
-    const e = format(dragStart < dragEnd ? dragEnd : dragStart, 'yyyy-MM-dd');
-    return dateStr >= s && dateStr <= e;
-  };
+
 
 
 
@@ -689,13 +679,12 @@ export default function GanttChart() {
     if (source.index === destination.index && source.droppableId === destination.droppableId) return;
 
     // 解析 droppableId 格式: "droppable-{type}" 或 "droppable-{parentType}-{parentId}"
-    const [, destType, destParentId] = destination.droppableId.split('-');
+    const [,, destParentId] = destination.droppableId.split('-');
 
     // 需要同一層級拖曳
     if (source.droppableId !== destination.droppableId) return;
 
     const [, sourceType] = source.droppableId.split('-');
-    const [, rowType, rowId] = draggableId.split('-');
 
     // 取得該層的所有項目
     let items = [];
@@ -966,7 +955,6 @@ export default function GanttChart() {
                  height: ROW_HEIGHT,
                  borderBottom: '1px solid #d1d5db'
                }}
-              style={{ width: CELL_WIDTH, height: ROW_HEIGHT }}
               onMouseDown={(e) => {
                 if (e.button !== 0) return;
                 // 拖曳畫區間：需要先有選中任務
@@ -1241,7 +1229,6 @@ export default function GanttChart() {
                    })()}
                  </div>
               )}
-            )}
             {/* 日期 header */}
             <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}>
               {days.map((day) => {
@@ -1294,7 +1281,6 @@ export default function GanttChart() {
                 const isDimmedLeave = isWeekendLeave || isHolidayLeave;
                 const count = leaveCountByDate[dateStr] || 0;
                 const leaveStyle = getLeaveCountStyle(count);
-                const names = leaveNamesByDate[dateStr] || [];
                 const cell = (
                   <div
                     key={day.toISOString()}
