@@ -26,7 +26,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Plus, ChevronDown, ChevronRight, Diamond, ArrowRight, Repeat, GripVertical, Upload, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Diamond, ArrowRight, Repeat, GripVertical, Upload, Edit2, Trash2, X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { addMonths, addDays, addWeeks, format, eachDayOfInterval, isToday, startOfWeek, startOfQuarter, endOfQuarter } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
