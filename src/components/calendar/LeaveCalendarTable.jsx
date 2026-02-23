@@ -138,28 +138,7 @@ export default function LeaveCalendarTable({
           </tr>
         </thead>
         <tbody>
-          {(() => {
-            // 收集所有應顯示的員工（來自被選中的部門）
-            const employeesToShow = [];
-            const seenEmployeeIds = new Set();
-
-            departments.forEach((dept) => {
-              const deptEmployees = employees
-                .filter(e => e.department_ids?.includes(dept.id))
-                .sort((a, b) => {
-                  const orderA = a.sort_order_by_dept?.[dept.id] || 999999;
-                  const orderB = b.sort_order_by_dept?.[dept.id] || 999999;
-                  return orderA - orderB;
-                });
-              deptEmployees.forEach(emp => {
-                if (!seenEmployeeIds.has(emp.id)) {
-                  seenEmployeeIds.add(emp.id);
-                  employeesToShow.push(emp);
-                }
-              });
-            });
-            
-            return employeesToShow.map((emp) => {
+          {employeesToShow.map((emp) => {
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
               return (
                 <tr key={emp.id} className={highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'}>
