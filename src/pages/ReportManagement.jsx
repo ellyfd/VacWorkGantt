@@ -58,8 +58,8 @@ export default function ReportManagement() {
   const calculateLeaveHours = useCallback((leaveTypeName) => {
     if (leaveTypeName.includes('上午')) return 3;
     if (leaveTypeName.includes('下午')) return 4.5;
-    return 7.5; // 全天休/病休/出差等
-  };
+    return 7.5;
+  }, []);
 
   // 計算月度出席數據
   const calculateAttendanceData = (records, emps) => {
