@@ -388,9 +388,19 @@ export default function GanttChart() {
     } else {
       const start = subDays(centerDate, 60);
       const end = addDays(centerDate, 120);
-      return eachDayOfInterval({ start, end });
+      const allDays = eachDayOfInterval({ start, end });
+      // 隱藏假日時過濾掉週末和假日
+      if (hideHolidays && viewMode === 'month') {
+        return allDays.filter(d => {
+          const dow = getDay(d);
+          const isWeekend = dow === 0 || dow === 6;
+          const isHoliday = holidaySet.has(format(d, 'yyyy-MM-dd'));
+          return !isWeekend && !isHoliday;
+        });
+      }
+      return allDays;
     }
-  }, [centerDate, viewMode]);
+  }, [centerDate, viewMode, hideHolidays, holidaySet]);
 
   const CELL_WIDTH = useMemo(() => {
     if (viewMode === 'quarter') return Math.max(32, Math.floor(containerWidth / days.length));

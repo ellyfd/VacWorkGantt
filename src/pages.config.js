@@ -50,14 +50,14 @@
 import AllLeaveCalendar from './pages/AllLeaveCalendar';
 import Dashboard from './pages/Dashboard';
 import DataImport from './pages/DataImport';
+import GanttChart from './pages/GanttChart';
 import GanttManagement from './pages/GanttManagement';
+import LeaveCalendar from './pages/LeaveCalendar';
 import LeaveSettings from './pages/LeaveSettings';
 import Notifications from './pages/Notifications';
 import PeopleManagement from './pages/PeopleManagement';
 import ProjectSettings from './pages/ProjectSettings';
 import ReportManagement from './pages/ReportManagement';
-import GanttChart from './pages/GanttChart';
-import LeaveCalendar from './pages/LeaveCalendar';
 import __Layout from './Layout.jsx';
 
 
@@ -65,14 +65,14 @@ export const PAGES = {
     "AllLeaveCalendar": AllLeaveCalendar,
     "Dashboard": Dashboard,
     "DataImport": DataImport,
+    "GanttChart": GanttChart,
     "GanttManagement": GanttManagement,
+    "LeaveCalendar": LeaveCalendar,
     "LeaveSettings": LeaveSettings,
     "Notifications": Notifications,
     "PeopleManagement": PeopleManagement,
     "ProjectSettings": ProjectSettings,
     "ReportManagement": ReportManagement,
-    "GanttChart": GanttChart,
-    "LeaveCalendar": LeaveCalendar,
 }
 
 export const pagesConfig = {
