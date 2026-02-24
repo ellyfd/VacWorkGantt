@@ -350,6 +350,10 @@ export default function GanttChart() {
     // 沒有集團 (group_id 為 null) → group_id !== makalotGroup?.id → 歸入 DPC
   }, [projects, makalotGroup]);
 
+  // ── More Lookup Maps（定義早：employeeMap 需要在 filteredLeaveRecords 前面）
+  const employeeMap = useMemo(() =>
+    Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
+
   const { filteredLeaveRecords, leaveCountByDate, leaveNamesByDate } = useMemo(() => {
     // 第一步：篩選請假記錄
     let filtered = leaveRecords;
