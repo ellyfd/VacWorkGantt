@@ -1173,6 +1173,7 @@ export default function GanttChart() {
       <FilterBar
         departments={departments}
         projects={projects}
+        groups={groups}
         selectedDeptId={selectedDeptId}
         onDeptChange={setSelectedDeptId}
         selectedBrandIds={selectedBrandIds}
