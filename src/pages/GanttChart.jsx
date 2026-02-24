@@ -481,6 +481,26 @@ export default function GanttChart() {
   const dayIndexMap = useMemo(() =>
     Object.fromEntries(days.map((d, i) => [format(d, 'yyyy-MM-dd'), i])),
     [days]);
+
+  // 建立日期單元格屬性快取（避免每次 render 重複計算）
+  const dayCellPropsMap = useMemo(() => {
+    const map = {};
+    days.forEach(day => {
+      const dateStr = format(day, 'yyyy-MM-dd');
+      const dow = getDay(day);
+      const isWeekend = dow === 0 || dow === 6;
+      const isHoliday = !hideHolidays && holidaySet.has(dateStr);
+      const isFirstOfMonth = format(day, 'd') === '1';
+      map[dateStr] = {
+        isWeekend,
+        isHoliday,
+        isFirstOfMonth,
+        isToday: isToday(day),
+        bgColor: (isWeekend || isHoliday) ? '#f3f4f6' : '#f9fafb',
+      };
+    });
+    return map;
+  }, [days, hideHolidays, holidaySet]);
   // ─────────────────────────────────────────────────────────────
 
   // Helper functions
