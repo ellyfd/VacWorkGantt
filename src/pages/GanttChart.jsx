@@ -498,8 +498,6 @@ export default function GanttChart() {
     const tasksInPhase = ganttTasks.filter((t) => t.gantt_phase_id === currentPhaseId);
     const taskData = {
       name: taskFormData.name,
-      is_important: taskFormData.is_important,
-      note: taskFormData.note,
       gantt_phase_id: currentPhaseId,
       sort_order: tasksInPhase.length + 1,
     };
