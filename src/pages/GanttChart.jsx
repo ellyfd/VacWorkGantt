@@ -1388,10 +1388,7 @@ export default function GanttChart() {
                         </div>
                       );
                       if (!count) return cellContent;
-                      const leaveEntries = leaveNamesByDate[dateStr] || [];
-                      const names = leaveEntries
-                        .map(({ employeeId }) => employeeMap[employeeId]?.name)
-                        .filter(Boolean);
+                      const names = leaveNamesByDate[dateStr] || [];
                       return (
                         <Popover key={day.toISOString()}>
                           <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
