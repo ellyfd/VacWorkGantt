@@ -573,6 +573,7 @@ export default function GanttChart() {
 
   // 撤銷堆疊（用於 Ctrl+Z）
   const undoStackRef = useRef([]);
+  const isUndoingRef = useRef(false);
   
   // 鍵盤快捷鍵：Ctrl+Z 撤銷
   React.useEffect(() => {
@@ -582,7 +583,9 @@ export default function GanttChart() {
        if (undoStackRef.current.length > 0) {
          const lastAction = undoStackRef.current.pop();
          if (lastAction.type === 'task_update') {
+           isUndoingRef.current = true;
            updateTaskWithOptimistic(lastAction.taskId, lastAction.previousData);
+           isUndoingRef.current = false;
          }
        }
      }
