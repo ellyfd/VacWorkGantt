@@ -1726,6 +1726,34 @@ export default function GanttChart() {
         }}
       />
 
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogTitle>確定要刪除？</AlertDialogTitle>
+          <AlertDialogDescription>
+            「{deleteConfirm?.name}」刪除後無法復原。
+          </AlertDialogDescription>
+          <div className="flex justify-end gap-3">
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                if (deleteConfirm?.type === 'project') {
+                  deleteGanttProject.mutate(deleteConfirm.id);
+                } else if (deleteConfirm?.type === 'task') {
+                  deleteGanttTask.mutate(deleteConfirm.id);
+                  setShowEditTaskDialog(false);
+                  setEditingTask(null);
+                }
+                setDeleteConfirm(null);
+              }}
+            >
+              確定刪除
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* 操作說明 */}
       <details className="mt-4 text-sm text-gray-600">
         <summary className="cursor-pointer font-medium">📖 操作說明</summary>
