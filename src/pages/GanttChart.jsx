@@ -1051,11 +1051,6 @@ export default function GanttChart() {
     const isHoliday = !hideHolidays && holidaySet.has(dateStr);
     const isFirstOfMonth = dateStr.endsWith('-01');
 
-    const cursorStyle = isDragging ? 'col-resize'
-      : (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId))
-        ? 'crosshair'
-        : 'default';
-
     return {
       isWeekend,
       isHoliday,
@@ -1063,9 +1058,8 @@ export default function GanttChart() {
       bgColor: isInDragRange ? '#bfdbfe'
         : (isWeekend || isHoliday) ? '#f3f4f6'
         : '#f9fafb',
-      cursorStyle,
     };
-  }, [hideHolidays, holidaySet, isDragging, selectedTaskId]);
+  }, [hideHolidays, holidaySet]);
 
   // 渲染右側單元格背景（只處理視覺，不渲染 Bar）（memoized）
   const renderCellBackground = useCallback((row, day) => {
