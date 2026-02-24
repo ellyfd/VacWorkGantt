@@ -674,8 +674,8 @@ export default function GanttChart() {
       return;
     }
 
-    const EDGE_ZONE = 40;
-    const SCROLL_SPEED = 8;
+    const EDGE_ZONE = 10;
+    const SCROLL_SPEED = 10;
 
     const handleMouseMove = (e) => {
       const el = rightPanelRef.current;
@@ -690,26 +690,20 @@ export default function GanttChart() {
         edgeScrollRafRef.current = null;
       }
 
-      // 靠近右邊緣
+      // 右邊緣：貼到才觸發，固定速度
       if (mouseX > rect.right - EDGE_ZONE) {
-        const intensity = 1 - (rect.right - mouseX) / EDGE_ZONE;
-        const step = SCROLL_SPEED * (1 + intensity * 2);
-
         const scroll = () => {
           if (!rightPanelRef.current || !isDragging) return;
-          rightPanelRef.current.scrollLeft += step;
+          rightPanelRef.current.scrollLeft += SCROLL_SPEED;
           edgeScrollRafRef.current = requestAnimationFrame(scroll);
         };
         edgeScrollRafRef.current = requestAnimationFrame(scroll);
       }
-      // 靠近左邊緣
+      // 左邊緣：貼到才觸發，固定速度
       else if (mouseX < rect.left + EDGE_ZONE) {
-        const intensity = 1 - (mouseX - rect.left) / EDGE_ZONE;
-        const step = SCROLL_SPEED * (1 + intensity * 2);
-
         const scroll = () => {
           if (!rightPanelRef.current || !isDragging) return;
-          rightPanelRef.current.scrollLeft -= step;
+          rightPanelRef.current.scrollLeft -= SCROLL_SPEED;
           edgeScrollRafRef.current = requestAnimationFrame(scroll);
         };
         edgeScrollRafRef.current = requestAnimationFrame(scroll);
