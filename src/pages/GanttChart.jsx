@@ -491,16 +491,6 @@ export default function GanttChart() {
     return samples.filter((s) => s.project_id === brandId);
   };
 
-  const makalotGroup = useMemo(() => {
-    return groups.find(g => g.name.toLowerCase() === 'makalot');
-  }, [groups]);
-
-  const getDept = (ganttProject) => {
-    const brand = projects.find(p => p.id === ganttProject.brand_id);
-    if (!brand) return 'other';
-    return brand.group_id === makalotGroup?.id ? 'makalot' : 'dpc';
-  };
-
   const getSelectedTaskName = () => {
     const task = ganttTasks.find(t => t.id === selectedTaskId);
     return task ? task.name : '';
