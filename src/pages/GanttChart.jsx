@@ -84,6 +84,10 @@ const getLightColor = (hexColor) => {
 export default function GanttChart() {
   const queryClient = useQueryClient();
   const CELL_WIDTH = 40; // Fixed cell width for month view
+  const ROW_HEIGHT = 40;
+  const MONTH_HEADER_HEIGHT = 26;
+  const DATE_HEADER_HEIGHT = ROW_HEIGHT + 20;
+  const LEAVE_HEADER_HEIGHT = 32;
 
   // 無限捲動：以 centerDate 為中心動態生成日期
   const [centerDate, setCenterDate] = useState(new Date());
@@ -1313,11 +1317,11 @@ export default function GanttChart() {
             <div className="w-64 flex-shrink-0 border-r border-gray-300">
               <div
                 className="bg-gray-100 border-b border-gray-200"
-                style={{ height: 20 }}
+                style={{ height: MONTH_HEADER_HEIGHT }}
               />
               <div
                 className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center gap-2"
-                style={{ height: ROW_HEIGHT + 20 }}
+                style={{ height: DATE_HEADER_HEIGHT }}
               >
                 開發季
                 <button
@@ -1330,7 +1334,7 @@ export default function GanttChart() {
               </div>
               <div
                 className="bg-white border-b border-gray-300 px-3 text-xs text-gray-500 flex items-center font-medium"
-                style={{ height: 32 }}
+                style={{ height: LEAVE_HEADER_HEIGHT }}
               >
                 請假人數
               </div>
@@ -1400,12 +1404,12 @@ export default function GanttChart() {
                               }
                             });
                             return (
-                              <div className="flex border-b border-gray-200" style={{ height: 26 }}>
-                                {monthGroups.map(g => (
-                                  <div
-                                    key={g.key}
-                                    className="border-r border-gray-300 text-sm font-bold text-gray-700 flex items-center justify-center bg-gray-100 flex-shrink-0"
-                                    style={{ width: g.count * CELL_WIDTH, height: 26 }}
+                              <div className="flex border-b border-gray-200" style={{ height: MONTH_HEADER_HEIGHT }}>
+                                 {monthGroups.map(g => (
+                                   <div
+                                     key={g.key}
+                                     className="border-r border-gray-300 text-sm font-bold text-gray-700 flex items-center justify-center bg-gray-100 flex-shrink-0"
+                                     style={{ width: g.count * CELL_WIDTH, height: MONTH_HEADER_HEIGHT }}
                                   >
                             {g.label}
                           </div>
@@ -1415,7 +1419,7 @@ export default function GanttChart() {
                   })()}
 
                   {/* 日期 header */}
-                  <div style={{ ...gridStyle, height: ROW_HEIGHT + 20, borderBottom: '1px solid #d1d5db' }}>
+                  <div style={{ ...gridStyle, height: DATE_HEADER_HEIGHT, borderBottom: '1px solid #d1d5db' }}>
                     {days.map((day) => {
                        const isWeekend = getDay(day) === 0 || getDay(day) === 6;
                        const isHolidayHeader = !hideHolidays && holidaySet.has(format(day, 'yyyy-MM-dd'));
@@ -1440,7 +1444,7 @@ export default function GanttChart() {
                   </div>
 
                   {/* 請假人數列 */}
-                  <div style={{ ...gridStyle, height: 32, borderBottom: '1px solid #d1d5db', backgroundColor: 'white' }}>
+                  <div style={{ ...gridStyle, height: LEAVE_HEADER_HEIGHT, borderBottom: '1px solid #d1d5db', backgroundColor: 'white' }}>
                     {days.map((day) => {
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
