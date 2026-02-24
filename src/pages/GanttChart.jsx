@@ -957,8 +957,8 @@ export default function GanttChart() {
     });
   };
 
-  // 渲染左側單元格
-  const renderLeftCell = (row, isDragging) => {
+  // 渲染左側單元格（memoized）
+  const renderLeftCell = useCallback((row, isDragging) => {
     if (row.type === 'project') {
       const projectTasks = tasksByProjectId[row.data.id] ?? [];
       return (
