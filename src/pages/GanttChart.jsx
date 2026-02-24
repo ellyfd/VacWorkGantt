@@ -347,17 +347,10 @@ export default function GanttChart() {
 
   // 建立統一的 rows 陣列（兩層：project + phase，任務直接畫在 phase 列上）
   const rows = useMemo(() => {
-    const result = [];
-    ganttProjects.forEach((project) => {
-      result.push({ type: 'project', data: project, id: `project-${project.id}` });
-      ganttPhases
-        .filter((p) => p.gantt_project_id === project.id)
-        .forEach((phase) => {
-          result.push({ type: 'phase', data: phase, id: `phase-${phase.id}` });
-        });
-    });
-    return result;
-  }, [ganttProjects, ganttPhases]);
+    return ganttProjects.map(project => ({
+      type: 'project', data: project, id: `project-${project.id}`
+    }));
+  }, [ganttProjects]);
 
   const filteredLeaveRecords = useMemo(() => {
     if (!selectedDeptId) return leaveRecords;
