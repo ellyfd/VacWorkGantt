@@ -1259,7 +1259,7 @@ export default function GanttChart() {
                 className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center"
                 style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}
               >
-                專案名稱
+                開發季
               </div>
               <div
                 className="bg-white border-b border-gray-300 px-3 text-xs text-gray-500 flex items-center font-medium"
