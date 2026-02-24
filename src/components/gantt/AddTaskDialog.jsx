@@ -56,9 +56,8 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
             <Label className="mb-2 block text-gray-600">
               時間設定 <span className="text-gray-400 font-normal">（選填）</span>
             </Label>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               {[
-                { value: '', label: '不設定' },
                 { value: 'milestone', label: '◆ 里程碑' },
                 { value: 'duration', label: '▬ 區間' },
                 { value: 'rolling', label: '▶ Rolling' },
@@ -66,8 +65,13 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setTaskFormData({ ...taskFormData, time_type: opt.value, start_date: '', end_date: '' })}
-                  className={`flex-1 text-xs px-2 py-1.5 rounded border transition-colors ${
+                  onClick={() => setTaskFormData({ 
+                    ...taskFormData, 
+                    time_type: taskFormData.time_type === opt.value ? '' : opt.value,
+                    start_date: '', 
+                    end_date: '' 
+                  })}
+                  className={`flex-1 text-xs px-1.5 py-1.5 rounded border transition-colors ${
                     taskFormData.time_type === opt.value
                       ? 'bg-blue-600 text-white border-blue-600'
                       : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
