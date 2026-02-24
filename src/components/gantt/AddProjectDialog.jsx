@@ -30,17 +30,17 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
         <div className="space-y-4 py-4">
 
           {/* 品牌 */}
-          <div>
-            <Label>品牌 *</Label>
-            <Select value={projectFormData.brand_id} onValueChange={(v) => {
-              const brand = projects.find(p => p.id === v);
-              setProjectFormData({
-                ...projectFormData,
-                brand_id: v,
-                season: '',
-                color: brand?.default_color || availableColors[0] || '#3b82f6',
-              });
-            }}>
+           <div>
+             <Label>品牌 *</Label>
+             <Select value={projectFormData.brand_id} onValueChange={(val) => {
+               const brand = projects.find(p => p.id === val);
+               setProjectFormData({
+                 ...projectFormData,
+                 brand_id: val,
+                 season: '',
+                 color: brand?.default_color || '#3b82f6',
+               });
+             }}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="選擇品牌..." /></SelectTrigger>
               <SelectContent>
                 {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.short_name || p.name}</SelectItem>)}
