@@ -62,25 +62,96 @@ export default function EditProjectDialog({
                   <p className="text-xs text-gray-400 py-2 text-center">尚無任務</p>
                 )}
                 {projectTasks.map(task => (
-                  <div key={task.id} className="flex items-center gap-2 group">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color || '#3b82f6' }} />
-                    <Input
-                      value={task.name}
-                      onChange={(e) => onUpdateTask(task.id, { ...task, name: e.target.value })}
-                      className="h-8 text-sm flex-1"
-                    />
-                    {task.time_type && (
-                      <span className="text-[10px] text-gray-400 flex-shrink-0 w-12 text-center">
-                        {task.time_type === 'milestone' ? '◆ 里程碑' :
-                         task.time_type === 'duration' ? '▬ 區間' : '▶ Rolling'}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => onDeleteTask(task.id)}
-                      className="p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                  <div key={task.id} className="space-y-2 p-3 border rounded-lg bg-gray-50">
+                    {/* 第一行：顏色點 + 名稱 + 刪除 */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color || '#3b82f6' }} />
+                      <Input
+                        value={task.name}
+                        onChange={(e) => onUpdateTask(task.id, { ...task, name: e.target.value })}
+                        placeholder="任務名稱"
+                        className="flex-1 h-8 text-sm"
+                      />
+                      <button
+                        onClick={() => onDeleteTask(task.id)}
+                        className="p-1 hover:bg-red-100 rounded text-red-500"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* 第二行：時間類型 + 日期 */}
+                    <div className="flex items-center gap-2 pl-4">
+                      <Select
+                        value={task.time_type || ''}
+                        onValueChange={(val) =>
+                          onUpdateTask(task.id, {
+                            ...task,
+                            time_type: val,
+                            start_date: '',
+                            end_date: '',
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-28 h-7 text-xs">
+                          <SelectValue placeholder="類型" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={null}>不設定</SelectItem>
+                          <SelectItem value="milestone">◆ 里程碑</SelectItem>
+                          <SelectItem value="duration">▬ 區間</SelectItem>
+                          <SelectItem value="rolling">▶ Rolling</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {/* 里程碑：單一日期 */}
+                      {task.time_type === 'milestone' && (
+                        <Input
+                          type="date"
+                          value={task.start_date || ''}
+                          onChange={(e) =>
+                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
+                          }
+                          className="h-7 text-xs w-36"
+                        />
+                      )}
+
+                      {/* 區間：開始 ~ 結束 */}
+                      {task.time_type === 'duration' && (
+                        <>
+                          <Input
+                            type="date"
+                            value={task.start_date || ''}
+                            onChange={(e) =>
+                              onUpdateTask(task.id, { ...task, start_date: e.target.value })
+                            }
+                            className="h-7 text-xs w-36"
+                          />
+                          <span className="text-gray-400 text-xs">～</span>
+                          <Input
+                            type="date"
+                            value={task.end_date || ''}
+                            min={task.start_date}
+                            onChange={(e) =>
+                              onUpdateTask(task.id, { ...task, end_date: e.target.value })
+                            }
+                            className="h-7 text-xs w-36"
+                          />
+                        </>
+                      )}
+
+                      {/* Rolling：開始日期 */}
+                      {task.time_type === 'rolling' && (
+                        <Input
+                          type="date"
+                          value={task.start_date || ''}
+                          onChange={(e) =>
+                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
+                          }
+                          className="h-7 text-xs w-36"
+                        />
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
