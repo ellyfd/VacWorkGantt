@@ -969,7 +969,7 @@ export default function GanttChart() {
     } else if (sourceType === 'phase') {
       items = ganttPhases.filter(p => p.gantt_project_id === destParentId);
     } else if (sourceType === 'task') {
-      items = ganttTasks.filter(t => t.gantt_phase_id === destParentId);
+      items = ganttTasks.filter(t => t.gantt_project_id === destParentId);
     }
 
     // 新排序
