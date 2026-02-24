@@ -47,8 +47,7 @@ export default function GanttChart() {
   const [viewMode, setViewMode] = useState('month'); // 'month' | 'quarter'
 
   const VIEW_CONFIG = {
-    month:   { cellWidth: 40, label: '月' },
-    quarter: { label: '季' },
+    month: { cellWidth: 40, label: '月' },
   };
 
   // 無限捲動：以 centerDate 為中心動態生成日期
