@@ -650,8 +650,6 @@ export default function GanttChart() {
       }
       setIsDragging(false);
       setDragTaskId(null);
-      setDrawingMode(false);
-      setPendingTask(null);
       // 停止邊緣捲動
       if (edgeScrollRafRef.current) {
         cancelAnimationFrame(edgeScrollRafRef.current);
