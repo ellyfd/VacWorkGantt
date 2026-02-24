@@ -330,10 +330,7 @@ export default function GanttChart() {
     return eachDayOfInterval({ start, end });
   }, [centerDate]);
 
-  const CELL_WIDTH = useMemo(() => {
-    if (viewMode === 'quarter') return Math.max(32, Math.floor(containerWidth / days.length));
-    return VIEW_CONFIG[viewMode].cellWidth;
-  }, [viewMode, containerWidth, days.length]);
+  const CELL_WIDTH = VIEW_CONFIG.month.cellWidth;
 
   // 建立統一的 rows 陣列（兩層：project + phase，任務直接畫在 phase 列上）
   const rows = useMemo(() => {
