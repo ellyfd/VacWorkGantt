@@ -34,6 +34,7 @@ export default function LeaveCalendar() {
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogData, setDeleteDialogData] = useState(null);
+  const [hideHolidays, setHideHolidays] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
