@@ -1249,6 +1249,13 @@ export default function GanttChart() {
     return project ? getSamplesByBrand(project.brand_id) : [];
   }, [creatingProjectId, ganttProjects, samples]);
 
+  const samplesForEditTask = useMemo(() => {
+    if (!editingTask) return [];
+    const task = ganttTasks.find(t => t.id === editingTask.id);
+    const project = ganttProjects.find(p => p.id === task?.gantt_project_id);
+    return project ? getSamplesByBrand(project.brand_id) : [];
+  }, [editingTask, ganttTasks, ganttProjects, samples]);
+
   const projectForAddPhase = ganttProjects.find(p => p.id === creatingProjectId);
   const brandIdForAddPhase = projectForAddPhase?.brand_id;
   const samplesForPhaseSelection = (() => {
@@ -1644,19 +1651,34 @@ export default function GanttChart() {
           {editingTask && (
             <div className="space-y-4 py-2">
               <div>
-                <Label>任務名稱 *</Label>
-                <Input
-                  value={editingTask.name}
-                  onChange={(e) => setEditingTask({ ...editingTask, name: e.target.value })}
-                  className="mt-1"
-                  autoFocus
-                />
+                <Label>樣品 *</Label>
+                <Select
+                  value={editingTask?.sample_id || ''}
+                  onValueChange={(val) => {
+                    const sample = samplesForEditTask.find(s => s.id === val);
+                    setEditingTask({ 
+                      ...editingTask, 
+                      sample_id: val,
+                      name: sample?.short_name || sample?.name || '',
+                    });
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="選擇樣品..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {samplesForEditTask.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.short_name || s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="border-t pt-4">
                 <Label className="mb-2 block text-gray-600">時間類型</Label>
                 <div className="flex gap-1.5">
                   {[
-                    { value: '', label: '不設定' },
                     { value: 'milestone', label: '◆ 里程碑' },
                     { value: 'duration', label: '▬ 區間' },
                     { value: 'rolling', label: '▶ Rolling' },
@@ -1664,9 +1686,14 @@ export default function GanttChart() {
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => setEditingTask({ ...editingTask, time_type: opt.value, start_date: '', end_date: '' })}
+                      onClick={() => setEditingTask({ 
+                        ...editingTask, 
+                        time_type: editingTask.time_type === opt.value ? '' : opt.value,
+                        start_date: '', 
+                        end_date: '' 
+                      })}
                       className={`flex-1 text-xs px-1.5 py-1.5 rounded border transition-colors ${
-                        (editingTask.time_type || '') === opt.value
+                        editingTask.time_type === opt.value
                           ? 'bg-blue-600 text-white border-blue-600'
                           : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                       }`}
