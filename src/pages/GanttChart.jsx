@@ -553,7 +553,14 @@ export default function GanttChart() {
 
   const handleAddTask = () => {
     const projectId = creatingProjectIdRef.current;
-    if (!taskFormData.name || !projectId) return;
+    console.log('=== handleAddTask ===');
+    console.log('projectId from ref:', projectId);
+    console.log('taskFormData:', taskFormData);
+    
+    if (!taskFormData.name || !projectId) {
+      console.log('BLOCKED - name:', taskFormData.name, 'projectId:', projectId);
+      return;
+    }
 
     const tasksInProject = ganttTasks.filter((t) => t.gantt_project_id === projectId);
     const taskData = {
@@ -1109,6 +1116,14 @@ export default function GanttChart() {
     const projectTasks = tasksByProjectId[row.data.id] ?? [];
     const projectColor = row.data.color || '#3b82f6';
     const textColor = getContrastColor(projectColor);
+
+    if (row.data.name.includes('TGT')) {
+      console.log('TGT tasks:', projectTasks);
+      projectTasks.forEach(t => {
+        const s = normalizeDate(t.start_date);
+        console.log(t.name, 'startDate:', s, 'inMap:', dayIndexMap[s]);
+      });
+    }
 
      return projectTasks.map(task => {
       if (!task.start_date) return null;
