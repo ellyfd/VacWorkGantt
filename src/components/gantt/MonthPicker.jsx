@@ -1,57 +1,38 @@
 import React from 'react';
+import { format, setMonth, setYear } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
 
-const MONTHS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+export default function MonthPicker({ currentDate, onSelectDate }) {
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  const months = [
+    '01月', '02月', '03月', '04月', '05月', '06月',
+    '07月', '08月', '09月', '10月', '11月', '12月',
+  ];
 
-export default function MonthPicker({ centerDate, onDateChange }) {
-  const [year, setYear] = React.useState(centerDate.getFullYear());
-
-  const handleMonthSelect = (monthIdx) => {
-    const newDate = new Date(year, monthIdx, 1);
-    onDateChange(newDate);
+  const handleMonthClick = (monthIndex) => {
+    const newDate = setMonth(setYear(currentDate, currentYear), monthIndex);
+    onSelectDate(newDate);
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="min-w-[140px] px-3 py-1.5 text-sm font-semibold text-gray-800 hover:bg-gray-100 rounded transition-colors">
-          {format(centerDate, 'yyyy年MM月')}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-4" align="start">
-        <div className="space-y-4">
-          {/* Year Selector */}
-          <div className="flex items-center justify-between">
-            <button onClick={() => setYear(y => y - 1)} className="p-1 hover:bg-gray-100 rounded">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-sm font-semibold">{year}年</span>
-            <button onClick={() => setYear(y => y + 1)} className="p-1 hover:bg-gray-100 rounded">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Month Grid */}
-          <div className="grid grid-cols-3 gap-2">
-            {MONTHS.map((monthLabel, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleMonthSelect(idx)}
-                className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                  centerDate.getFullYear() === year && centerDate.getMonth() === idx
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {monthLabel}
-              </button>
-            ))}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-56">
+      <h3 className="text-sm font-semibold text-gray-900 mb-3 text-center">{currentYear}年</h3>
+      <div className="grid grid-cols-3 gap-2">
+        {months.map((month, idx) => (
+          <Button
+            key={idx}
+            variant={idx === currentMonth ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleMonthClick(idx)}
+            className={`text-xs h-8 ${
+              idx === currentMonth ? 'bg-blue-600 text-white' : ''
+            }`}
+          >
+            {month}
+          </Button>
+        ))}
+      </div>
+    </div>
   );
 }
