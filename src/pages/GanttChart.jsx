@@ -893,12 +893,14 @@ export default function GanttChart() {
     const dayOfWeek = getDay(day);
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const isHoliday = holidaySet.has(dateStr);
-    const isDimmed = isWeekend || isHoliday;
+    const isFirstOfMonth = format(day, 'd') === '1';
 
     if (row.type === 'project') {
       const projectTasks = tasksByProjectId[row.data.id] ?? [];
 
       const projectColor = row.data.color || '#3b82f6';
+      const textColor = getContrastColor(projectColor);
+      const lightColor = getLightColor(projectColor);
 
       const renderTaskBar = (task) => {
         const taskStartDate = task.start_date;
