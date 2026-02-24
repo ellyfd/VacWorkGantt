@@ -1423,20 +1423,39 @@ export default function GanttChart() {
                     }}
                   >
                     {visibleRows.map((row) => (
-                      <div key={row.id} style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
-                        {/* 背景 + 格線層 */}
-                        <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
-                          {days.map((day) => renderRightCell(row, day))}
-                        </div>
-                        {/* Bar overlay 層 */}
-                        <div style={{ position: 'absolute', inset: 0, ...gridStyle, pointerEvents: 'none' }}>
-                          {days.map((day) => (
-                            <div key={day.toISOString()} style={{ position: 'relative', height: ROW_HEIGHT, pointerEvents: 'auto' }}>
-                              {renderTaskBarOverlay(row, day)}
+                      <ContextMenu key={row.id}>
+                        <ContextMenuTrigger asChild>
+                          <div style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
+                            {/* 底層：格子背景 + 格線 */}
+                            <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
+                              {days.map((day) => renderCellBackground(row, day))}
                             </div>
+                            {/* 上層：Bar，不用 grid，直接 pixel 定位 */}
+                            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                              {renderTaskBars(row)}
+                            </div>
+                          </div>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                          {contextMenuDate && (tasksByProjectId[row.data.id] ?? []).length === 0 && (
+                            <ContextMenuItem disabled className="text-gray-400 text-xs">此專案尚無任務</ContextMenuItem>
+                          )}
+                          {contextMenuDate && (tasksByProjectId[row.data.id] ?? []).map(task => (
+                            <React.Fragment key={task.id}>
+                              <ContextMenuItem className="font-medium text-xs text-gray-500 cursor-default" disabled>{task.name}</ContextMenuItem>
+                              <ContextMenuItem onClick={() => handleSetMilestone(task.id, contextMenuDate)} className="pl-4">
+                                <Diamond className="w-3 h-3 mr-2" /> 設為里程碑
+                              </ContextMenuItem>
+                              <ContextMenuItem onClick={() => handleSetRolling(task.id, contextMenuDate)} className="pl-4">
+                                <Repeat className="w-3 h-3 mr-2" /> 設為 Rolling
+                              </ContextMenuItem>
+                              <ContextMenuItem onClick={() => handleClearTime(task.id)} className="pl-4">
+                                <X className="w-3 h-3 mr-2" /> 清除時間
+                              </ContextMenuItem>
+                            </React.Fragment>
                           ))}
-                        </div>
-                      </div>
+                        </ContextMenuContent>
+                      </ContextMenu>
                     ))}
                   </div>
                 </div>
