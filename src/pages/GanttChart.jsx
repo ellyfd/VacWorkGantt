@@ -1308,7 +1308,7 @@ export default function GanttChart() {
 
               {/* 拖曳 handle */}
               <div
-                className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-400 active:bg-blue-500 z-20"
+                className="absolute top-0 right-0 w-1 h-full cursor-col-resize z-20"
                 style={{ touchAction: 'none' }}
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -1336,9 +1336,8 @@ export default function GanttChart() {
                   window.addEventListener('mousemove', onMouseMove);
                   window.addEventListener('mouseup', onMouseUp);
                 }}
-              >
-                <div className="absolute inset-y-0 left-0 w-px bg-gray-300 hover:bg-blue-400" />
-              </div>
+              />
+            
             </div>
 
           {/* Right Panel */}
