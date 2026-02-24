@@ -1611,9 +1611,8 @@ export default function GanttChart() {
                 </div>
               );
             })()}
-          </div>
-          </div>
-          </Card>
+            </div>
+            </Card>
 
       {/* ===== Dialogs ===== */}
 
