@@ -355,6 +355,23 @@ export default function GanttChart() {
     return result;
   }, [ganttProjects, ganttPhases]);
 
+  // 品牌+部門篩選後的 rows（不影響 DnD 的 ganttProjects/ganttPhases）
+  const visibleRows = useMemo(() => {
+    const visibleProjectIds = new Set(
+      ganttProjects
+        .filter(p => {
+          if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(p.brand_id)) return false;
+          return true;
+        })
+        .map(p => p.id)
+    );
+    return rows.filter(row => {
+      if (row.type === 'project') return visibleProjectIds.has(row.data.id);
+      if (row.type === 'phase') return visibleProjectIds.has(row.data.gantt_project_id);
+      return true;
+    });
+  }, [rows, ganttProjects, selectedBrandIds]);
+
   const filteredLeaveRecords = useMemo(() => {
     if (!selectedDeptId) return leaveRecords;
     const deptEmployeeIds = new Set(
