@@ -923,7 +923,7 @@ export default function GanttChart() {
               <Edit2 className="w-3 h-3" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); if (window.confirm(`確定要刪除「${row.data.name}」嗎？`)) deleteGanttProject.mutate(row.data.id); }}
+              onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: 'project', id: row.data.id, name: row.data.name }); }}
               className="p-1 hover:bg-red-700 rounded"
             >
               <Trash2 className="w-3 h-3" />
