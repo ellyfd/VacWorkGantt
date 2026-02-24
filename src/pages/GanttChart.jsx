@@ -998,7 +998,7 @@ export default function GanttChart() {
       const projectTasks = tasksByProjectId[row.data.id] ?? [];
       return (
         <div
-          className="group flex items-center gap-2 px-3 font-bold text-sm"
+          className="flex items-center gap-2 px-3 font-bold text-sm"
           style={{
             height: ROW_HEIGHT,
             backgroundColor: row.data.color || '#3b82f6',
@@ -1006,7 +1006,7 @@ export default function GanttChart() {
           }}
         >
           <span className="truncate flex-1">{row.data.name}</span>
-          <div className="hidden group-hover:flex gap-1 flex-shrink-0">
+          <div className="flex gap-1 flex-shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -1014,20 +1014,20 @@ export default function GanttChart() {
                 setTaskFormData({ name: '', sample_id: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
                 setShowAddTaskDialog(true);
               }}
-              className="p-1 hover:bg-gray-600 rounded"
+              className="p-1 hover:bg-black/20 rounded"
               title="新增任務"
             >
               <Plus className="w-3 h-3" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setEditingProject(row.data); setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === row.data.id)); setShowEditProjectDialog(true); }}
-              className="p-1 hover:bg-gray-600 rounded"
+              className="p-1 hover:bg-black/20 rounded"
             >
               <Edit2 className="w-3 h-3" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: 'project', id: row.data.id, name: row.data.name }); }}
-              className="p-1 hover:bg-red-700 rounded"
+              className="p-1 hover:bg-red-700/40 rounded"
             >
               <Trash2 className="w-3 h-3" />
             </button>
