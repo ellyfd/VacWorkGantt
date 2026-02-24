@@ -1106,74 +1106,7 @@ export default function GanttChart() {
     });
   };
 
-      const hasDragOnProject = isDragging && projectTasks.some(t => t.id === dragTaskId);
-      const isInDragRange = hasDragOnProject && dragStart && dragEnd && (() => {
-        const s = format(dragStart < dragEnd ? dragStart : dragEnd, 'yyyy-MM-dd');
-        const e = format(dragStart < dragEnd ? dragEnd : dragStart, 'yyyy-MM-dd');
-        return dateStr >= s && dateStr <= e;
-      })();
-      const selectedProjectTask = projectTasks.find(t => t.id === selectedTaskId);
 
-      return (
-        <ContextMenu key={dateStr}>
-          <ContextMenuTrigger asChild>
-            <div
-              className="relative cursor-pointer"
-              style={{
-                height: ROW_HEIGHT,
-                borderRight: '1px solid #d1d5db',
-                borderBottom: '1px solid #d1d5db',
-                borderLeft: isFirstOfMonth ? '2px solid #6b7280' : undefined,
-                backgroundColor: isInDragRange ? '#bfdbfe'
-                  : (dayOfWeek === 0 || dayOfWeek === 6 || isHoliday) ? '#f3f4f6'
-                  : selectedProjectTask ? '#eff6ff'
-                  : '#f9fafb',
-              }}
-              onMouseDown={(e) => {
-                if (e.button !== 0) return;
-                if (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId)) {
-                  setIsDragging(true);
-                  setDragTaskId(selectedTaskId);
-                  setDragStart(day);
-                  setDragEnd(day);
-                }
-              }}
-              onMouseEnter={() => {
-                if (isDragging && projectTasks.some(t => t.id === dragTaskId)) {
-                  setDragEnd(day);
-                }
-              }}
-              onClick={() => {
-                if (isDragging) return;
-                if (selectedProjectTask) handleDateClick(day, selectedProjectTask.id);
-              }}
-            >
-              {isToday(day) && <div className="absolute inset-0 bg-red-500/10 z-0 pointer-events-none" />}
-              {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500 z-20" />}
-              {projectTasks.map(task => renderTaskBar(task))}
-            </div>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            {projectTasks.length === 0 && (
-              <ContextMenuItem disabled className="text-gray-400 text-xs">此專案尚無任務</ContextMenuItem>
-            )}
-            {projectTasks.map(task => (
-              <React.Fragment key={task.id}>
-                <ContextMenuItem className="font-medium text-xs text-gray-500 cursor-default" disabled>{task.name}</ContextMenuItem>
-                <ContextMenuItem onClick={() => handleSetMilestone(task.id, day)} className="pl-4">
-                  <Diamond className="w-3 h-3 mr-2" /> 設為里程碑
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => handleSetRolling(task.id, day)} className="pl-4">
-                  <Repeat className="w-3 h-3 mr-2" /> 設為 Rolling
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => handleClearTime(task.id)} className="pl-4">
-                  <X className="w-3 h-3 mr-2" /> 清除時間
-                </ContextMenuItem>
-              </React.Fragment>
-            ))}
-          </ContextMenuContent>
-        </ContextMenu>
-      );
     }
   };
 
