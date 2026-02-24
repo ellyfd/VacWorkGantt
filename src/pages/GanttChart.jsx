@@ -1164,7 +1164,7 @@ export default function GanttChart() {
           {Object.entries(VIEW_CONFIG).map(([mode, cfg]) => (
             <button
               key={mode}
-              onClick={() => { setViewMode(mode); initialScrollDone.current = false; }}
+              onClick={() => { setViewMode(mode); setCenterDate(new Date()); initialScrollDone.current = false; }}
               className={`px-3 py-1.5 text-xs font-medium border-r border-gray-200 last:border-0 transition-colors ${
                 viewMode === mode ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
