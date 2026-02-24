@@ -20,12 +20,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+
 import {
   Select,
   SelectContent,
@@ -94,7 +89,7 @@ export default function GanttChart() {
   const rightPanelContainerRef = useRef(null);
   
   // 使用 custom hooks
-  const { contextMenuDate, setContextMenuDate, clearSelection } = useSelectionState();
+  const { clearSelection } = useSelectionState();
   const { isDragging, setIsDragging, dragTaskId, setDragTaskId, dragStart, setDragStart, dragEnd, setDragEnd } = useDragState();
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditPhaseDialog, setShowEditPhaseDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, editingPhase, setEditingPhase, editingPhaseName, setEditingPhaseName, editingPhaseTasks, setEditingPhaseTasks, newTaskName, setNewTaskName, deleteConfirm, setDeleteConfirm } = useDialogState();
   const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
@@ -1490,35 +1485,16 @@ export default function GanttChart() {
                     style={{ maxHeight: 'calc(100vh - 440px)' }}
                   >
                     {visibleRows.map((row) => (
-                      <ContextMenu key={row.id} onOpenChange={(open) => { 
-                        if (!open) setContextMenuDate(null); 
-                      }}>
-                        <ContextMenuTrigger asChild>
-                          <div style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
-                            {/* 底層：格子背景 + 格線 */}
-                            <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
-                              {days.map((day) => renderCellBackground(row, day))}
-                            </div>
-                            {/* 上層：Bar，不用 grid，直接 pixel 定位 */}
-                            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                              {renderTaskBars(row)}
-                            </div>
-                          </div>
-                        </ContextMenuTrigger>
-                        <ContextMenuContent>
-                           {contextMenuDate && (tasksByProjectId[row.data.id] ?? []).map(task => (
-                             <React.Fragment key={task.id}>
-                               <ContextMenuItem className="font-medium text-xs text-gray-500 cursor-default" disabled>{task.name}</ContextMenuItem>
-                               <ContextMenuItem onClick={() => { setEditingTask(task); setShowEditTaskDialog(true); }} className="pl-4">
-                                 <Edit2 className="w-3 h-3 mr-2" /> 編輯
-                               </ContextMenuItem>
-                               <ContextMenuItem onClick={() => setDeleteConfirm({ type: 'task', id: task.id, name: task.name })} className="pl-4 text-red-600">
-                                 <Trash2 className="w-3 h-3 mr-2" /> 刪除
-                               </ContextMenuItem>
-                             </React.Fragment>
-                           ))}
-                         </ContextMenuContent>
-                      </ContextMenu>
+                      <div key={row.id} style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
+                        {/* 底層：格子背景 + 格線 */}
+                        <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
+                          {days.map((day) => renderCellBackground(row, day))}
+                        </div>
+                        {/* 上層：Bar */}
+                        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                          {renderTaskBars(row)}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
