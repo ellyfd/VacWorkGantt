@@ -463,6 +463,10 @@ export default function GanttChart() {
 
   const employeeMap = useMemo(() =>
     Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
+
+  const dayIndexMap = useMemo(() =>
+    Object.fromEntries(days.map((d, i) => [format(d, 'yyyy-MM-dd'), i])),
+    [days]);
   // ─────────────────────────────────────────────────────────────
 
   // Helper functions
