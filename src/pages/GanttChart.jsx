@@ -389,7 +389,7 @@ export default function GanttChart() {
       leaveCountByDate: countResult,
       leaveNamesByDate: namesMap,
     };
-  }, [leaveRecords, selectedDeptId, employees]);
+  }, [leaveRecords, selectedDeptId, employees, employeeMap]);
 
   const filteredBrands = useMemo(() => {
     if (!selectedGroupSlug) return projects;
