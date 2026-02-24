@@ -404,6 +404,14 @@ export default function GanttChart() {
     };
   }, [leaveRecords, selectedDeptId, employees]);
 
+  const filteredBrands = useMemo(() => {
+    if (!selectedGroupSlug) return projects;
+    return projects.filter(p => {
+      const group = groups.find(g => g.id === p.group_id);
+      return group?.name.toLowerCase() === selectedGroupSlug;
+    });
+  }, [projects, groups, selectedGroupSlug]);
+
   const visibleRows = useMemo(() => {
     return rows.filter(row => {
       // 集團篩選（用 slug）
@@ -477,14 +485,25 @@ export default function GanttChart() {
     
     if (!deptId) {
       setSelectedGroupSlug(null);
+      setSelectedBrandIds([]);
       return;
     }
     
     const dept = departments.find(d => d.id === deptId);
     const group = groups.find(g => g.id === dept?.group_id);
-    setSelectedGroupSlug(
-      group?.name.toLowerCase() === 'makalot' ? 'makalot' : 'dpc'
+    const slug = group?.name.toLowerCase() === 'makalot' ? 'makalot' : 'dpc';
+    setSelectedGroupSlug(slug);
+    
+    // 清除不屬於新集團的已選品牌
+    const validBrandIds = new Set(
+      projects
+        .filter(p => {
+          const g = groups.find(g => g.id === p.group_id);
+          return g?.name.toLowerCase() === slug;
+        })
+        .map(p => p.id)
     );
+    setSelectedBrandIds(prev => prev.filter(id => validBrandIds.has(id)));
   };
 
   // Handlers
@@ -1227,28 +1246,18 @@ export default function GanttChart() {
       />
 
       {/* Filter Bar - Layer 2 */}
-      <div className="flex items-center justify-between">
-        <FilterBar
-          departments={departments}
-          projects={projects}
-          selectedDeptId={selectedDeptId}
-          onDeptChange={handleDeptChange}
-          selectedBrandIds={selectedBrandIds}
-          onBrandChange={setSelectedBrandIds}
-          hideHolidays={hideHolidays}
-          onHideHolidaysChange={setHideHolidays}
-          visibleRowCount={visibleRows.length}
-          totalRowCount={rows.length}
-        />
-        {(selectedDeptId || selectedBrandIds.length > 0 || hideHolidays) && (
-          <button
-            onClick={clearFilters}
-            className="text-xs text-red-500 hover:text-red-700 underline whitespace-nowrap"
-          >
-            清除篩選
-          </button>
-        )}
-      </div>
+      <FilterBar
+        departments={departments}
+        projects={filteredBrands}
+        selectedDeptId={selectedDeptId}
+        onDeptChange={handleDeptChange}
+        selectedBrandIds={selectedBrandIds}
+        onBrandChange={setSelectedBrandIds}
+        hideHolidays={hideHolidays}
+        onHideHolidaysChange={setHideHolidays}
+        visibleRowCount={visibleRows.length}
+        totalRowCount={rows.length}
+      />
 
       {/* 畫日期模式提示 */}
       {drawingMode && pendingTask && (
