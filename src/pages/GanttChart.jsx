@@ -1111,7 +1111,7 @@ export default function GanttChart() {
     const cursorStyle = isDragging ? 'col-resize'
       : (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId))
         ? 'crosshair'
-        : 'pointer';
+        : 'default';
 
     return {
       isWeekend,
