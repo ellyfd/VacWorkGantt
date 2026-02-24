@@ -1110,6 +1110,21 @@ export default function GanttChart() {
      const projectColor = row.data.color || '#3b82f6';
      const textColor = getContrastColor(projectColor);
 
+     // 找最近的可見日期（隱藏假日時用）
+     const findVisibleIdx = (dateStr, direction = 'forward') => {
+       if (dayIndexMap[dateStr] !== undefined) return dayIndexMap[dateStr];
+       // 假日被隱藏時，往前/後找最近的可見日
+       const date = new Date(dateStr);
+       for (let i = 1; i <= 7; i++) {
+         const tryStr = format(
+           direction === 'forward' ? addDays(date, i) : subDays(date, i),
+           'yyyy-MM-dd'
+         );
+         if (dayIndexMap[tryStr] !== undefined) return dayIndexMap[tryStr];
+       }
+       return -1;
+     };
+
       return projectTasks.map(task => {
        if (!task.start_date) return null;
 
@@ -1118,9 +1133,9 @@ export default function GanttChart() {
        const endDateStr = normalizeDate(task.end_date);
        if (!startDateStr) return null;
 
-       // 用 dayIndexMap（根據屏幕顯示的日期）定位
-       const startIdx = dayIndexMap[startDateStr] ?? -1;
-       if (startIdx < 0) return null; // 日期不在顯示範圍內，不繪製
+       // 開始日期：找當天或之後最近的可見日
+       const startIdx = findVisibleIdx(startDateStr, 'forward');
+       if (startIdx < 0) return null;
 
        let left, width, bgColor;
 
@@ -1130,7 +1145,7 @@ export default function GanttChart() {
          bgColor = 'transparent';
        } else if (task.time_type === 'duration') {
          if (!endDateStr) return null;
-         const endIdx = dayIndexMap[endDateStr] ?? -1;
+         const endIdx = findVisibleIdx(endDateStr, 'backward');
          if (endIdx < 0) return null;
          left = startIdx * CELL_WIDTH + 2;
          width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
