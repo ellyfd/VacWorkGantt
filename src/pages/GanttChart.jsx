@@ -88,6 +88,7 @@ export default function GanttChart() {
   const [contextMenuDate, setContextMenuDate] = useState(null);
   const [firstDate, setFirstDate] = useState(null);
   const [secondDate, setSecondDate] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   
   // 畫日期模式
   const [drawingMode, setDrawingMode] = useState(false);
