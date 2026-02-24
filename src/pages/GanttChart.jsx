@@ -786,6 +786,7 @@ export default function GanttChart() {
   // 渲染左側單元格
   const renderLeftCell = (row, isDragging) => {
     if (row.type === 'project') {
+      const projectTasks = ganttTasks.filter(t => t.gantt_project_id === row.data.id);
       return (
         <div
           className={`group flex items-center gap-2 px-3 font-bold text-sm ${isDragging ? 'bg-blue-700 text-white' : 'bg-gray-800 text-white hover:bg-gray-900'}`}
@@ -793,16 +794,19 @@ export default function GanttChart() {
         >
           <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
           <span className="truncate flex-1">{row.data.name}</span>
+          {projectTasks.length > 0 && (
+            <span className="text-xs text-gray-400 font-normal flex-shrink-0">{projectTasks.length}項</span>
+          )}
           <div className="hidden group-hover:flex gap-1 flex-shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setCreatingProjectId(row.data.id);
-                setSelectedSamples({}); // Clear previous sample selections
-                setShowAddPhaseDialog(true);
+                setTaskFormData({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
+                setShowAddTaskDialog(true);
               }}
               className="p-1 hover:bg-gray-600 rounded"
-              title="新增樣品"
+              title="新增任務"
             >
               <Plus className="w-3 h-3" />
             </button>
@@ -815,68 +819,6 @@ export default function GanttChart() {
             <button
               onClick={(e) => { e.stopPropagation(); if (window.confirm(`確定要刪除「${row.data.name}」嗎？`)) deleteGanttProject.mutate(row.data.id); }}
               className="p-1 hover:bg-red-700 rounded"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    if (row.type === 'phase') {
-      const phaseTasks = ganttTasks.filter(t => t.gantt_phase_id === row.data.id);
-      return (
-        <div
-          className={`group flex items-center gap-2 px-3 pl-8 bg-gray-100 ${isDragging ? 'bg-blue-100' : ''} font-medium text-sm text-gray-800`}
-          style={{ height: ROW_HEIGHT }}
-        >
-          <GripVertical className="w-4 h-4 flex-shrink-0 text-gray-400" />
-          <span className="truncate flex-1">{row.data.name}</span>
-          {phaseTasks.length > 0 && (
-            <span
-              className="text-xs text-blue-500 font-normal flex-shrink-0 cursor-pointer hover:underline"
-              onClick={(e) => { e.stopPropagation(); handleJumpToTasks(row.data.id); }}
-              title="點擊跳轉到任務位置"
-            >
-              {phaseTasks.length}個任務
-            </span>
-          )}
-          <div className="hidden group-hover:flex gap-1 flex-shrink-0">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentPhaseId(row.data.id);
-                setTaskFormData({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
-                setShowAddTaskDialog(true);
-              }}
-              className="p-1 hover:bg-gray-300 rounded"
-              title="新增任務"
-            >
-              <Plus className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingPhase(row.data);
-                setEditingPhaseName(row.data.name);
-                setEditingPhaseTasks(ganttTasks.filter(t => t.gantt_phase_id === row.data.id));
-                setNewTaskName('');
-                setShowEditPhaseDialog(true);
-              }}
-              className="p-1 hover:bg-gray-300 rounded"
-              title="編輯樣品"
-            >
-              <Edit2 className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm(`確定刪除「${row.data.name}」及其所有任務？`)) {
-                  deleteGanttPhase.mutate(row.data.id);
-                }
-              }}
-              className="p-1 hover:bg-red-200 rounded text-red-500"
-              title="刪除樣品"
             >
               <Trash2 className="w-3 h-3" />
             </button>
