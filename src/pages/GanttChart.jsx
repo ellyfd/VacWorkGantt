@@ -1241,10 +1241,17 @@ export default function GanttChart() {
                 />
               )}
               <div
-                className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center"
+                className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center gap-2"
                 style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}
               >
                 開發季
+                <button
+                  onClick={() => setShowAddProjectDialog(true)}
+                  className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded font-medium"
+                >
+                  <Plus className="w-3 h-3" />
+                  新增
+                </button>
               </div>
               <div
                 className="bg-white border-b border-gray-300 px-3 text-xs text-gray-500 flex items-center font-medium"
