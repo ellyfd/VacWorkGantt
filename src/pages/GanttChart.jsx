@@ -1674,11 +1674,7 @@ export default function GanttChart() {
               variant="destructive"
               size="sm"
               onClick={() => {
-                if (window.confirm(`確定刪除「${editingTask?.name}」？`)) {
-                  deleteGanttTask.mutate(editingTask.id);
-                  setShowEditTaskDialog(false);
-                  setEditingTask(null);
-                }
+                setDeleteConfirm({ type: 'task', id: editingTask?.id, name: editingTask?.name });
               }}
             >
               刪除
