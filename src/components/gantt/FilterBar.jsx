@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { X } from 'lucide-react';
 
 export default function FilterBar({
   departments,
@@ -15,169 +15,185 @@ export default function FilterBar({
   visibleRowCount,
   totalRowCount,
 }) {
-  const hasFilters = selectedDeptId || selectedBrandIds.length > 0 || hideHolidays;
-
-  // 篩選狀態持久化
-  useEffect(() => {
-    const filters = {
-      deptId: selectedDeptId,
-      brandIds: selectedBrandIds,
-      hideHolidays,
-    };
-    localStorage.setItem('gantt-filters', JSON.stringify(filters));
+  // 儲存篩選到 localStorage
+  React.useEffect(() => {
+    localStorage.setItem(
+      'gantt-filters',
+      JSON.stringify({
+        deptId: selectedDeptId,
+        brandIds: selectedBrandIds,
+        hideHolidays,
+      })
+    );
   }, [selectedDeptId, selectedBrandIds, hideHolidays]);
 
+  const getSelectedDeptName = () => {
+    const dept = departments.find(d => d.id === selectedDeptId);
+    return dept ? dept.name : '全部部門';
+  };
+
+  const getSelectedBrandNames = () => {
+    return selectedBrandIds
+      .map(id => {
+        const proj = projects.find(p => p.id === id);
+        return proj?.short_name || proj?.name || '';
+      })
+      .filter(Boolean);
+  };
+
+  const isFiltered = selectedDeptId || selectedBrandIds.length > 0;
+
   return (
-    <div className="space-y-3 pb-3 border-b border-gray-200">
-      {/* 篩選狀態提示 */}
-      {hasFilters && (
-        <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Filter className="w-3 h-3" />
-            <span>篩選中：顯示 <span className="font-semibold">{visibleRowCount}/{totalRowCount}</span> 個專案</span>
-          </div>
-          <button
-            onClick={() => {
-              onDeptChange(null);
-              onBrandChange([]);
-              onHideHolidaysChange(false);
-            }}
-            className="text-xs text-amber-600 hover:text-amber-700 underline"
-          >
-            清除全部
-          </button>
-        </div>
-      )}
-
-      {/* 篩選控制項 */}
-      <div className="flex flex-wrap items-center gap-4 text-sm">
-        {/* 部門篩選 */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-gray-600 w-10">部門</span>
-          <div className="flex gap-1 flex-wrap">
-            <button
-              onClick={() => onDeptChange(null)}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                !selectedDeptId
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              全部
-            </button>
-            {departments.map(dept => (
-              <button
-                key={dept.id}
-                onClick={() => onDeptChange(selectedDeptId === dept.id ? null : dept.id)}
-                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                  selectedDeptId === dept.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {dept.short_name || dept.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 品牌篩選 */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-gray-600 w-10">品牌</span>
-          <div className="flex items-center gap-1.5">
-            {selectedBrandIds.length === 0 ? (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="px-3 py-1.5 rounded text-xs font-medium bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
-                    全部
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-48 p-2" align="start">
-                  <div className="space-y-1">
-                    {projects.map(p => (
-                      <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-50">
-                        <input
-                          type="checkbox"
-                          checked={selectedBrandIds.includes(p.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              onBrandChange([...selectedBrandIds, p.id]);
-                            } else {
-                              onBrandChange(selectedBrandIds.filter(id => id !== p.id));
-                            }
-                          }}
-                          className="w-3.5 h-3.5"
-                        />
-                        <span className="text-sm">{p.short_name || p.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+    <div className="space-y-2">
+      {/* 篩選控制列 */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* 部門篩選（chip 群組）*/}
+        <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-md">
+          <span className="text-xs text-gray-600 font-medium">部門：</span>
+          <div className="flex items-center gap-1">
+            {!selectedDeptId ? (
+              <span className="text-xs text-gray-700 font-medium">全部</span>
             ) : (
-              <>
-                {selectedBrandIds.map(brandId => {
-                  const brand = projects.find(p => p.id === brandId);
-                  return (
-                    <div
-                      key={brandId}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium"
-                    >
-                      {brand?.short_name || brand?.name}
-                      <button
-                        onClick={() => onBrandChange(selectedBrandIds.filter(id => id !== brandId))}
-                        className="text-blue-600 hover:text-blue-800 ml-0.5"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  );
-                })}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="px-2.5 py-1 rounded-full text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">
-                      + 新增
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2" align="start">
-                    <div className="space-y-1">
-                      {projects.map(p => (
-                        <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-gray-50">
-                          <input
-                            type="checkbox"
-                            checked={selectedBrandIds.includes(p.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                onBrandChange([...selectedBrandIds, p.id]);
-                              } else {
-                                onBrandChange(selectedBrandIds.filter(id => id !== p.id));
-                              }
-                            }}
-                            className="w-3.5 h-3.5"
-                          />
-                          <span className="text-sm">{p.short_name || p.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </>
+              <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                <span className="text-xs font-medium">{getSelectedDeptName()}</span>
+                <button
+                  onClick={() => onDeptChange(null)}
+                  className="hover:text-blue-900"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
             )}
           </div>
+          {/* 部門下拉選單 */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-1">
+                切換
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2" align="start">
+              <button
+                onClick={() => onDeptChange(null)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm ${
+                  !selectedDeptId ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50'
+                }`}
+              >
+                全部部門
+              </button>
+              {departments.map(dept => (
+                <button
+                  key={dept.id}
+                  onClick={() => onDeptChange(dept.id)}
+                  className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm ${
+                    selectedDeptId === dept.id
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  {dept.name}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
         </div>
 
-        {/* 隱藏假日 */}
+        {/* 品牌篩選（tag）*/}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                selectedBrandIds.length > 0
+                  ? 'bg-violet-600 text-white border-violet-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              品牌
+              {selectedBrandIds.length > 0 && (
+                <span className="bg-white text-violet-700 rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">
+                  {selectedBrandIds.length}
+                </span>
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2" align="start">
+            <div className="flex justify-between items-center mb-2 px-1">
+              <span className="text-xs font-semibold text-gray-600">選擇品牌</span>
+              {selectedBrandIds.length > 0 && (
+                <button
+                  onClick={() => onBrandChange([])}
+                  className="text-xs text-gray-400 hover:text-gray-600 underline"
+                >
+                  清除
+                </button>
+              )}
+            </div>
+            <div className="space-y-1">
+              {projects.map(p => (
+                <label
+                  key={p.id}
+                  className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer ${
+                    selectedBrandIds.includes(p.id) ? 'bg-violet-50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedBrandIds.includes(p.id)}
+                    onChange={(e) =>
+                      onBrandChange(
+                        e.target.checked
+                          ? [...selectedBrandIds, p.id]
+                          : selectedBrandIds.filter(id => id !== p.id)
+                      )
+                    }
+                    className="w-3.5 h-3.5 accent-violet-600"
+                  />
+                  <span className="text-sm">{p.short_name || p.name}</span>
+                </label>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* 假日隱藏切換 */}
         <button
           onClick={() => onHideHolidaysChange(!hideHolidays)}
-          className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
             hideHolidays
-              ? 'bg-amber-100 text-amber-700 border border-amber-300'
-              : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              ? 'bg-amber-600 text-white border-amber-600'
+              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
           }`}
         >
           {hideHolidays ? '✓ 隱藏假日' : '顯示假日'}
         </button>
+
+        {/* 篩選提示 */}
+        {isFiltered && (
+          <div className="ml-auto text-xs text-gray-600">
+            顯示 <span className="font-semibold text-gray-900">{visibleRowCount}</span> / <span className="font-semibold text-gray-900">{totalRowCount}</span> 個專案
+          </div>
+        )}
       </div>
+
+      {/* 已選品牌 tags */}
+      {selectedBrandIds.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {getSelectedBrandNames().map((name, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center gap-1 bg-violet-100 text-violet-700 px-2 py-0.5 rounded text-xs"
+            >
+              {name}
+              <button
+                onClick={() => onBrandChange(selectedBrandIds.filter((_, i) => i !== idx))}
+                className="hover:text-violet-900"
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
