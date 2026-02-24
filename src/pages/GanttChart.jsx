@@ -363,20 +363,11 @@ export default function GanttChart() {
   }, [leaveRecords, selectedDeptId, employees]);
 
   const visibleRows = useMemo(() => {
-    const visibleProjectIds = new Set(
-      ganttProjects
-        .filter(project => {
-          if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(project.brand_id)) return false;
-          return true;
-        })
-        .map(p => p.id)
-    );
     return rows.filter(row => {
-      if (row.type === 'project') return visibleProjectIds.has(row.data.id);
-      if (row.type === 'phase') return visibleProjectIds.has(row.data.gantt_project_id);
+      if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(row.data.brand_id)) return false;
       return true;
     });
-  }, [rows, ganttProjects, selectedBrandIds]);
+  }, [rows, selectedBrandIds]);
 
   const leaveCountByDate = useMemo(() => {
     const map = {};
