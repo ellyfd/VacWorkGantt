@@ -1088,7 +1088,7 @@ export default function GanttChart() {
         {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />}
       </div>
     );
-  };
+  }, [selectedTaskId, tasksByProjectId, isDragging, dragTaskId, dragStart, dragEnd, dayCellPropsMap, contextMenuDate]);
 
   // Memoize renderTaskBars to avoid unnecessary re-renders
   const renderTaskBars = useCallback((row) => {
