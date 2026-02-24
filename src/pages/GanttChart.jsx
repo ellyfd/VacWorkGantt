@@ -870,9 +870,6 @@ export default function GanttChart() {
         >
           <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
           <span className="truncate flex-1">{row.data.name}</span>
-          {projectTasks.length > 0 && (
-            <span className="text-xs text-gray-400 font-normal flex-shrink-0">{projectTasks.length}項</span>
-          )}
           <div className="hidden group-hover:flex gap-1 flex-shrink-0">
             <button
               onClick={(e) => {
