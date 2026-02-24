@@ -355,9 +355,19 @@ export default function GanttChart() {
     return result;
   }, [ganttProjects, ganttPhases]);
 
+  const filteredLeaveRecords = useMemo(() => {
+    if (!selectedDeptId) return leaveRecords;
+    const deptEmployeeIds = new Set(
+      employees
+        .filter(emp => (emp.department_ids || []).includes(selectedDeptId))
+        .map(emp => emp.id)
+    );
+    return leaveRecords.filter(r => deptEmployeeIds.has(r.employee_id));
+  }, [leaveRecords, selectedDeptId, employees]);
+
   const leaveCountByDate = useMemo(() => {
     const map = {};
-    leaveRecords.forEach(r => {
+    filteredLeaveRecords.forEach(r => {
       if (!map[r.date]) map[r.date] = new Set();
       map[r.date].add(r.employee_id);
     });
@@ -366,18 +376,18 @@ export default function GanttChart() {
       result[date] = set.size;
     });
     return result;
-  }, [leaveRecords]);
+  }, [filteredLeaveRecords]);
 
   const leaveNamesByDate = useMemo(() => {
     const map = {};
-    leaveRecords.forEach(r => {
+    filteredLeaveRecords.forEach(r => {
       if (!map[r.date]) map[r.date] = [];
       if (!map[r.date].find(e => e.employeeId === r.employee_id)) {
         map[r.date].push({ employeeId: r.employee_id });
       }
     });
     return map;
-  }, [leaveRecords]);
+  }, [filteredLeaveRecords]);
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
