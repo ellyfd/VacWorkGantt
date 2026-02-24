@@ -40,7 +40,7 @@ import EditPhaseDialog from '@/components/gantt/EditPhaseDialog';
 import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gantt/TimeDialogs';
 import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 import TimeNavigation from '@/components/gantt/TimeNavigation';
-import FilterRow from '@/components/gantt/FilterRow';
+import FilterBar from '@/components/gantt/FilterBar';
 
 const ROW_HEIGHT = 40;
 
@@ -133,20 +133,22 @@ export default function GanttChart() {
 
   const [selectedDeptId, setSelectedDeptId] = useState(null);
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
+  const [hideHolidays, setHideHolidays] = useState(false);
 
-  // 篩選條件持久化
+  // 從 localStorage 恢復篩選狀態
   React.useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('gantt-filters') || '{}');
-    if (saved.deptId) setSelectedDeptId(saved.deptId);
-    if (saved.brandIds && Array.isArray(saved.brandIds)) setSelectedBrandIds(saved.brandIds);
+    const saved = localStorage.getItem('gantt-filters');
+    if (saved) {
+      try {
+        const filters = JSON.parse(saved);
+        if (filters.deptId) setSelectedDeptId(filters.deptId);
+        if (filters.brandIds?.length > 0) setSelectedBrandIds(filters.brandIds);
+        if (filters.hideHolidays) setHideHolidays(filters.hideHolidays);
+      } catch (e) {
+        // ignore
+      }
+    }
   }, []);
-
-  React.useEffect(() => {
-    localStorage.setItem('gantt-filters', JSON.stringify({
-      deptId: selectedDeptId,
-      brandIds: selectedBrandIds,
-    }));
-  }, [selectedDeptId, selectedBrandIds]);
 
   // Edit Phase Dialog state
   const [editingProjectTasks, setEditingProjectTasks] = useState([]);
@@ -1130,32 +1132,86 @@ export default function GanttChart() {
         <h1 className="text-2xl font-bold text-gray-900">專案甘特圖</h1>
       </div>
 
-      {/* 時間導航列 */}
-      <TimeNavigation
-        centerDate={centerDate}
-        onCenterDateChange={setCenterDate}
-        scrollToToday={scrollToToday}
-        viewMode={viewMode}
-        onViewModeChange={(mode) => {
-          setViewMode(mode);
-          setCenterDate(new Date());
-          initialScrollDone.current = false;
-        }}
-      />
+      {/* Navigation */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <span className="font-semibold text-lg">{format(visibleMonth, 'yyyy年MM月')}</span>
+        <Button variant="outline" size="sm" onClick={scrollToToday}>今天</Button>
+        <div className="flex rounded-md border border-gray-200 overflow-hidden ml-2">
+          {Object.entries(VIEW_CONFIG).map(([mode, cfg]) => (
+            <button
+              key={mode}
+              onClick={() => { setViewMode(mode); setCenterDate(new Date()); initialScrollDone.current = false; }}
+              className={`px-3 py-1.5 text-xs font-medium border-r border-gray-200 last:border-0 transition-colors ${
+                viewMode === mode ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {cfg.label}
+            </button>
+          ))}
+        </div>
 
-      {/* 篩選列 */}
-      <FilterRow
-        departments={departments}
-        selectedDeptId={selectedDeptId}
-        onSelectDept={setSelectedDeptId}
-        projects={projects}
-        selectedBrandIds={selectedBrandIds}
-        onSelectBrand={setSelectedBrandIds}
-        onClearAllFilters={() => {
-          setSelectedDeptId(null);
-          setSelectedBrandIds([]);
-        }}
-      />
+        {/* 部門切換（單選） */}
+        <div className="flex rounded-md border border-gray-200 overflow-hidden">
+          <button
+            onClick={() => setSelectedDeptId(null)}
+            className={`px-3 py-1.5 text-xs font-medium border-r border-gray-200 transition-colors ${
+              !selectedDeptId ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >全部</button>
+          {departments.map(dept => (
+            <button key={dept.id}
+              onClick={() => setSelectedDeptId(selectedDeptId === dept.id ? null : dept.id)}
+              className={`px-3 py-1.5 text-xs font-medium border-r border-gray-200 last:border-0 transition-colors ${
+                selectedDeptId === dept.id ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >{dept.short_name || dept.name}</button>
+          ))}
+        </div>
+
+        {/* 品牌篩選（多選） */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+              selectedBrandIds.length > 0
+                ? 'bg-violet-600 text-white border-violet-600'
+                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+            }`}>
+              品牌
+              {selectedBrandIds.length > 0 && (
+                <span className="bg-white text-violet-700 rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">
+                  {selectedBrandIds.length}
+                </span>
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2" align="start">
+            <div className="flex justify-between items-center mb-2 px-1">
+              <span className="text-xs font-semibold text-gray-600">選擇品牌</span>
+              {selectedBrandIds.length > 0 && (
+                <button onClick={() => setSelectedBrandIds([])}
+                  className="text-xs text-gray-400 hover:text-gray-600 underline">清除</button>
+              )}
+            </div>
+            <div className="space-y-1">
+              {projects.map(p => (
+                <label key={p.id} className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer ${
+                  selectedBrandIds.includes(p.id) ? 'bg-violet-50' : 'hover:bg-gray-50'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={selectedBrandIds.includes(p.id)}
+                    onChange={(e) => setSelectedBrandIds(prev =>
+                      e.target.checked ? [...prev, p.id] : prev.filter(id => id !== p.id)
+                    )}
+                    className="w-3.5 h-3.5 accent-violet-600"
+                  />
+                  <span className="text-sm">{p.short_name || p.name}</span>
+                </label>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {/* 畫日期模式提示 */}
       {drawingMode && pendingTask && (
