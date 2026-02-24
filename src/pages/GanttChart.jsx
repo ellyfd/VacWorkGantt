@@ -1554,10 +1554,32 @@ export default function GanttChart() {
         onOpenChange={setShowEditProjectDialog}
         project={editingProject}
         setProject={setEditingProject}
+        projectTasks={editingProjectTasks}
+        onUpdateTask={(taskId, updatedTask) => {
+          setEditingProjectTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+        }}
+        onDeleteTask={(taskId) => {
+          deleteGanttTask.mutate(taskId, {
+            onSuccess: () => setEditingProjectTasks(prev => prev.filter(t => t.id !== taskId))
+          });
+        }}
+        onCreateTask={(name) => {
+          createGanttTask.mutate({
+            name,
+            gantt_project_id: editingProject.id,
+            sort_order: editingProjectTasks.length + 1,
+          }, {
+            onSuccess: (newTask) => setEditingProjectTasks(prev => [...prev, newTask])
+          });
+        }}
         onSave={() => {
-          if (editingProject) {
-            updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name } });
-          }
+          updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name, color: editingProject.color } });
+          editingProjectTasks.forEach(task => {
+            const original = ganttTasks.find(t => t.id === task.id);
+            if (original && original.name !== task.name) {
+              updateGanttTask.mutate({ id: task.id, data: { name: task.name } });
+            }
+          });
           setShowEditProjectDialog(false);
         }}
       />
