@@ -421,7 +421,7 @@ export default function GanttChart() {
       if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(row.data.brand_id)) return false;
       return true;
     });
-  }, [rows, selectedDeptId, selectedBrandIds, projects, groups]);
+  }, [rows, selectedDeptId, selectedBrandIds, projects, makalotGroup]);
 
   const leaveCountByDate = useMemo(() => {
     const map = {};
