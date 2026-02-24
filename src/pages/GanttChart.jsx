@@ -49,6 +49,12 @@ import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gan
 import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 import TimeNavigation from '@/components/gantt/TimeNavigation';
 import FilterBar from '@/components/gantt/FilterBar';
+import { useSelectionState } from '@/components/hooks/useSelectionState';
+import { useDragState } from '@/components/hooks/useDragState';
+import { useDialogState } from '@/components/hooks/useDialogState';
+import { useFormData } from '@/components/hooks/useFormData';
+import { useFilterState } from '@/components/hooks/useFilterState';
+import { useProjectCreation } from '@/components/hooks/useProjectCreation';
 
 const ROW_HEIGHT = 40;
 
@@ -83,81 +89,20 @@ export default function GanttChart() {
   const [centerDate, setCenterDate] = useState(new Date());
   const rightPanelContainerRef = useRef(null);
   
-  // 選擇狀態
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [contextMenuDate, setContextMenuDate] = useState(null);
-  const [firstDate, setFirstDate] = useState(null);
-  const [secondDate, setSecondDate] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-  
-  // 畫日期模式
-  const [drawingMode, setDrawingMode] = useState(false);
-  const [pendingTask, setPendingTask] = useState(null);
-  
-  // Dialog 狀態
-  const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
-  const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
-  const [editingProject, setEditingProject] = useState(null);
-  const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
-  const [showMilestoneDialog, setShowMilestoneDialog] = useState(false);
-  const [showDurationDialog, setShowDurationDialog] = useState(false);
-  const [showRollingDialog, setShowRollingDialog] = useState(false);
-  const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
-
-  // 拖曳畫區間狀態
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragTaskId, setDragTaskId] = useState(null);
-  const [dragStart, setDragStart] = useState(null);
-  const [dragEnd, setDragEnd] = useState(null);
+  // 使用 custom hooks
+  const { selectedTaskId, setSelectedTaskId, contextMenuDate, setContextMenuDate, firstDate, setFirstDate, secondDate, setSecondDate, drawingMode, setDrawingMode, pendingTask, setPendingTask, clearSelection } = useSelectionState();
+  const { isDragging, setIsDragging, dragTaskId, setDragTaskId, dragStart, setDragStart, dragEnd, setDragEnd } = useDragState();
+  const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditPhaseDialog, setShowEditPhaseDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, editingPhase, setEditingPhase, editingPhaseName, setEditingPhaseName, editingPhaseTasks, setEditingPhaseTasks, newTaskName, setNewTaskName, deleteConfirm, setDeleteConfirm } = useDialogState();
+  const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
+  const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays, clearFilters } = useFilterState();
+  const { creatingProjectId, setCreatingProjectId, projectCreationMode, setProjectCreationMode, scheduleFile, setScheduleFile, isAnalyzingSchedule, setIsAnalyzingSchedule } = useProjectCreation();
 
   // Scroll refs
   const leftPanelRef = React.useRef(null);
   const rightPanelRef = React.useRef(null); // outer overflow-x-auto
 
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
-  const [creatingProjectId, setCreatingProjectId] = useState(null);
-  const [projectCreationMode, setProjectCreationMode] = useState('manual'); // 'manual' or 'import'
-  const [scheduleFile, setScheduleFile] = useState(null);
-  const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
-
-  // 表單資料
-  const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '', year: new Date().getFullYear(), color: '#3b82f6' });
-  const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
-  const [selectedSamples, setSelectedSamples] = useState({});
-
-  const [selectedDeptId, setSelectedDeptId] = useState(null); // 真實部門ID，篩請假
-  const [selectedGroupSlug, setSelectedGroupSlug] = useState(null); // 'makalot'/'dpc'，篩甘特圖列
-  const [selectedBrandIds, setSelectedBrandIds] = useState([]);
-  const [hideHolidays, setHideHolidays] = useState(false);
-
-  // 從 localStorage 恢復篩選狀態
-  React.useEffect(() => {
-    const saved = localStorage.getItem('gantt-filters');
-    if (saved) {
-      try {
-        const filters = JSON.parse(saved);
-        if (filters.deptId) setSelectedDeptId(filters.deptId);
-        if (filters.groupSlug) setSelectedGroupSlug(filters.groupSlug);
-        if (filters.brandIds?.length > 0) setSelectedBrandIds(filters.brandIds);
-        if (filters.hideHolidays) setHideHolidays(filters.hideHolidays);
-      } catch (e) {
-        // ignore
-      }
-    }
-  }, []);
-
-  // Edit Phase Dialog state
-  const [editingProjectTasks, setEditingProjectTasks] = useState([]);
-  const [showEditPhaseDialog, setShowEditPhaseDialog] = useState(false);
-  const [editingPhase, setEditingPhase] = useState(null);
-  const [editingPhaseName, setEditingPhaseName] = useState('');
-  const [editingPhaseTasks, setEditingPhaseTasks] = useState([]);
-  const [newTaskName, setNewTaskName] = useState('');
   const [showAddPhaseDialog, setShowAddPhaseDialog] = useState(false);
-
-  // Edit Task Dialog state
-  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -377,14 +322,7 @@ export default function GanttChart() {
     onSuccess: () => queryClient.invalidateQueries(['ganttPhases']),
   });
 
-  // 清除選擇
-  const clearSelection = () => {
-    setSelectedTaskId(null);
-    setFirstDate(null);
-    setSecondDate(null);
-    setDrawingMode(false);
-    setPendingTask(null);
-  };
+
 
   // ── Lookup Maps（需要先定義以供 days useMemo 使用）
   const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
@@ -1281,13 +1219,7 @@ export default function GanttChart() {
         />
         {(selectedDeptId || selectedBrandIds.length > 0 || hideHolidays) && (
           <button
-            onClick={() => {
-              setSelectedDeptId(null);
-              setSelectedGroupSlug(null);
-              setSelectedBrandIds([]);
-              setHideHolidays(false);
-              localStorage.removeItem('gantt-filters');
-            }}
+            onClick={clearFilters}
             className="text-xs text-red-500 hover:text-red-700 underline whitespace-nowrap"
           >
             清除篩選
