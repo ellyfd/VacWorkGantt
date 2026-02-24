@@ -106,10 +106,6 @@ export default function GanttChart() {
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
 
-  // 篩選狀態
-  const [selectedDeptId, setSelectedDeptId] = useState(null);
-  const [selectedBrandIds, setSelectedBrandIds] = useState([]);
-
   // Edit Phase Dialog state
   const [showEditPhaseDialog, setShowEditPhaseDialog] = useState(false);
   const [editingPhase, setEditingPhase] = useState(null);
@@ -355,36 +351,9 @@ export default function GanttChart() {
     return result;
   }, [ganttProjects, ganttPhases]);
 
-  // 品牌+部門篩選後的 rows（不影響 DnD 的 ganttProjects/ganttPhases）
-  const visibleRows = useMemo(() => {
-    const visibleProjectIds = new Set(
-      ganttProjects
-        .filter(p => {
-          if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(p.brand_id)) return false;
-          return true;
-        })
-        .map(p => p.id)
-    );
-    return rows.filter(row => {
-      if (row.type === 'project') return visibleProjectIds.has(row.data.id);
-      if (row.type === 'phase') return visibleProjectIds.has(row.data.gantt_project_id);
-      return true;
-    });
-  }, [rows, ganttProjects, selectedBrandIds]);
-
-  const filteredLeaveRecords = useMemo(() => {
-    if (!selectedDeptId) return leaveRecords;
-    const deptEmployeeIds = new Set(
-      employees
-        .filter(emp => (emp.department_ids || []).includes(selectedDeptId))
-        .map(emp => emp.id)
-    );
-    return leaveRecords.filter(r => deptEmployeeIds.has(r.employee_id));
-  }, [leaveRecords, selectedDeptId, employees]);
-
   const leaveCountByDate = useMemo(() => {
     const map = {};
-    filteredLeaveRecords.forEach(r => {
+    leaveRecords.forEach(r => {
       if (!map[r.date]) map[r.date] = new Set();
       map[r.date].add(r.employee_id);
     });
@@ -393,18 +362,18 @@ export default function GanttChart() {
       result[date] = set.size;
     });
     return result;
-  }, [filteredLeaveRecords]);
+  }, [leaveRecords]);
 
   const leaveNamesByDate = useMemo(() => {
     const map = {};
-    filteredLeaveRecords.forEach(r => {
+    leaveRecords.forEach(r => {
       if (!map[r.date]) map[r.date] = [];
       if (!map[r.date].find(e => e.employeeId === r.employee_id)) {
         map[r.date].push({ employeeId: r.employee_id });
       }
     });
     return map;
-  }, [filteredLeaveRecords]);
+  }, [leaveRecords]);
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
