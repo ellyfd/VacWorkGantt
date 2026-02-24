@@ -1215,76 +1215,30 @@ export default function GanttChart() {
         </Card>
       )}
 
-      {/* Toolbar */}
+      {/* Toolbar — floating bar fixed at bottom */}
       {selectedTaskId && !drawingMode && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-medium text-gray-700">選中任務：</span>
-              <span className="text-blue-700 font-semibold">{getSelectedTaskName()}</span>
-              <button onClick={clearSelection} className="ml-1 text-gray-400 hover:text-gray-600 text-xs underline">取消選取</button>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="font-medium text-gray-700">已選日期：</span>
-              {firstDate ? (
-                <span className="bg-blue-100 px-2 py-1 rounded text-blue-800">
-                  {format(firstDate, 'MM/dd')}
-                </span>
-              ) : (
-                <span className="text-gray-400">點擊格子選擇第一個日期</span>
-              )}
-              {secondDate && (
-                <>
-                  <span className="text-gray-500">→</span>
-                  <span className="bg-green-100 px-2 py-1 rounded text-green-800">
-                    {format(secondDate, 'MM/dd')}
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1"
-                onClick={() => setShowMilestoneDialog(true)}
-                disabled={!firstDate}
-              >
-                <Diamond className="w-3 h-3" />
-                里程碑
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1"
-                onClick={() => setShowDurationDialog(true)}
-                disabled={!firstDate}
-              >
-                <ArrowRight className="w-3 h-3" />
-                區間
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1"
-                onClick={() => setShowRollingDialog(true)}
-                disabled={!firstDate}
-              >
-                <Repeat className="w-3 h-3" />
-                Rolling
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={clearSelection}
-              >
-                取消
-              </Button>
-            </div>
-          </div>
-        </Card>
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white shadow-xl border border-gray-200 rounded-full px-4 py-2">
+          <span className="text-sm font-semibold text-gray-800 whitespace-nowrap max-w-[160px] truncate">{getSelectedTaskName()}</span>
+          {firstDate && (
+            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
+              {format(firstDate, 'MM/dd')}{secondDate ? ` → ${format(secondDate, 'MM/dd')}` : ''}
+            </span>
+          )}
+          <div className="w-px h-4 bg-gray-300" />
+          <Button size="sm" variant="ghost" className="gap-1 rounded-full px-3" onClick={() => setShowMilestoneDialog(true)} disabled={!firstDate}>
+            <Diamond className="w-3 h-3" />里程碑
+          </Button>
+          <Button size="sm" variant="ghost" className="gap-1 rounded-full px-3" onClick={() => setShowDurationDialog(true)} disabled={!firstDate}>
+            <ArrowRight className="w-3 h-3" />區間
+          </Button>
+          <Button size="sm" variant="ghost" className="gap-1 rounded-full px-3" onClick={() => setShowRollingDialog(true)} disabled={!firstDate}>
+            <Repeat className="w-3 h-3" />Rolling
+          </Button>
+          <div className="w-px h-4 bg-gray-300" />
+          <button onClick={clearSelection} className="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       )}
 
       {/* Gantt Chart */}
