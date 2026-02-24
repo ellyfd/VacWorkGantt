@@ -7,8 +7,6 @@ import MonthPicker from './MonthPicker';
 export default function TimeNavigation({
   centerDate,
   onCenterDateChange,
-  viewMode,
-  onViewModeChange,
   onScrollToToday,
 }) {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -78,22 +76,7 @@ export default function TimeNavigation({
         今天
       </Button>
 
-      {/* 視圖切換 */}
-      <div className="flex rounded-md border border-gray-200 overflow-hidden ml-auto">
-        {['month', 'quarter'].map((mode) => (
-          <button
-            key={mode}
-            onClick={() => onViewModeChange(mode)}
-            className={`px-3 py-1.5 text-xs font-medium border-r border-gray-200 last:border-0 transition-colors ${
-              viewMode === mode
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {mode === 'month' ? '月' : '季'}
-          </button>
-        ))}
-      </div>
+
     </div>
   );
 }

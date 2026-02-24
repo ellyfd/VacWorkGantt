@@ -69,27 +69,11 @@ const getLightColor = (hexColor) => {
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
-  const [viewMode, setViewMode] = useState('month'); // 'month' | 'quarter'
-
-  const VIEW_CONFIG = {
-    month:   { cellWidth: 40, label: '月' },
-    quarter: { label: '季' },
-  };
+  const CELL_WIDTH = 40; // Fixed cell width for month view
 
   // 無限捲動：以 centerDate 為中心動態生成日期
   const [centerDate, setCenterDate] = useState(new Date());
-  // 季視圖動態格寬
   const rightPanelContainerRef = useRef(null);
-  const [containerWidth, setContainerWidth] = useState(800);
-  React.useEffect(() => {
-    const el = rightPanelContainerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(entries => {
-      setContainerWidth(entries[0].contentRect.width);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
   
   // 選擇狀態
   const [selectedTaskId, setSelectedTaskId] = useState(null);
@@ -188,9 +172,8 @@ export default function GanttChart() {
   const leaveQueryEnd = format(addDays(centerDate, 180), 'yyyy-MM-dd');
 
   const { data: leaveRecords = [] } = useQuery({
-    queryKey: ['leaveRecords', leaveQueryStart, leaveQueryEnd, viewMode],
+    queryKey: ['leaveRecords', leaveQueryStart, leaveQueryEnd],
     queryFn: async () => {
-      if (viewMode === 'quarter') return [];
       return base44.entities.LeaveRecord.filter({
         date: { $gte: leaveQueryStart, $lte: leaveQueryEnd }
       });
@@ -381,36 +364,22 @@ export default function GanttChart() {
   // ── Lookup Maps（需要先定義以供 days useMemo 使用）
   const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
 
-  // Get days based on viewMode (infinite scroll: center ± buffer)
+  // Get days for month view (infinite scroll: center ± buffer)
   const days = useMemo(() => {
-    if (viewMode === 'quarter') {
-      const start = startOfWeek(subDays(centerDate, 45), { weekStartsOn: 1 });
-      const weeks = [];
-      for (let i = 0; i < 26; i++) {
-        weeks.push(addWeeks(start, i));
-      }
-      return weeks;
-    } else {
-      const start = subDays(centerDate, 60);
-      const end = addDays(centerDate, 120);
-      const allDays = eachDayOfInterval({ start, end });
-      // 隱藏假日時過濾掉週末和假日
-      if (hideHolidays && viewMode === 'month') {
-        return allDays.filter(d => {
-          const dow = getDay(d);
-          const isWeekend = dow === 0 || dow === 6;
-          const isHoliday = holidaySet.has(format(d, 'yyyy-MM-dd'));
-          return !isWeekend && !isHoliday;
-        });
-      }
-      return allDays;
+    const start = subDays(centerDate, 60);
+    const end = addDays(centerDate, 120);
+    const allDays = eachDayOfInterval({ start, end });
+    // 隱藏假日時過濾掉週末和假日
+    if (hideHolidays) {
+      return allDays.filter(d => {
+        const dow = getDay(d);
+        const isWeekend = dow === 0 || dow === 6;
+        const isHoliday = holidaySet.has(format(d, 'yyyy-MM-dd'));
+        return !isWeekend && !isHoliday;
+      });
     }
-  }, [centerDate, viewMode, hideHolidays, holidaySet]);
-
-  const CELL_WIDTH = useMemo(() => {
-    if (viewMode === 'quarter') return Math.max(32, Math.floor(containerWidth / days.length));
-    return VIEW_CONFIG[viewMode].cellWidth;
-  }, [viewMode, containerWidth, days.length]);
+    return allDays;
+  }, [centerDate, hideHolidays, holidaySet]);
 
   // 建立統一的 rows 陣列（兩層：project + phase，任務直接畫在 phase 列上）
   const rows = useMemo(() => {
@@ -1152,12 +1121,6 @@ export default function GanttChart() {
       <TimeNavigation
         centerDate={centerDate}
         onCenterDateChange={setCenterDate}
-        viewMode={viewMode}
-        onViewModeChange={(mode) => {
-          setViewMode(mode);
-          setCenterDate(new Date());
-          initialScrollDone.current = false;
-        }}
         onScrollToToday={scrollToToday}
       />
 
@@ -1230,15 +1193,13 @@ export default function GanttChart() {
           <div className="flex">
             {/* Left Panel */}
             <div className="w-64 flex-shrink-0 border-r border-gray-300">
-              {viewMode === 'month' && (
-                <div
-                  className="bg-gray-100 border-b border-gray-200"
-                  style={{ height: 20 }}
-                />
-              )}
+              <div
+                className="bg-gray-100 border-b border-gray-200"
+                style={{ height: 20 }}
+              />
               <div
                 className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center gap-2"
-                style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}
+                style={{ height: ROW_HEIGHT + 14 }}
               >
                 開發季
                 <button
@@ -1307,8 +1268,8 @@ export default function GanttChart() {
               const totalWidth = days.length * CELL_WIDTH;
               return (
                 <div style={{ width: totalWidth }}>
-                  {/* 月份 header（month only） */}
-                  {viewMode === 'month' && (() => {
+                  {/* 月份 header */}
+                  {(() => {
                     const groups = [];
                     let current = null;
                     days.forEach((day) => {
@@ -1336,45 +1297,33 @@ export default function GanttChart() {
                   })()}
 
                   {/* 日期 header */}
-                  <div style={{ ...gridStyle, height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT, borderBottom: '1px solid #d1d5db' }}>
+                  <div style={{ ...gridStyle, height: ROW_HEIGHT + 14, borderBottom: '1px solid #d1d5db' }}>
                     {days.map((day) => {
-                      const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-                      const isHolidayHeader = !hideHolidays && holidaySet.has(format(day, 'yyyy-MM-dd'));
-                      const isFirstDay = format(day, 'd') === '1';
-                      return (
-                       <div
-                         key={day.toISOString()}
-                         className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                           isToday(day) ? 'bg-red-100 text-red-700' :
-                           (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
-                           'bg-gray-100 text-gray-700'
-                         }`}
-                         style={{ borderLeft: isFirstDay ? '2px solid #6b7280' : undefined }}
-                        >
-                          {viewMode === 'quarter' ? (
-                            <>
-                              <span className="text-xs font-semibold leading-none">{format(day, 'M/d')}</span>
-                              <span className="text-[9px] text-gray-400 leading-none">週</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-xs font-semibold leading-none">{format(day, 'd')}</span>
-                              <span className={`text-[9px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
-                                {format(day, 'EEE', { locale: zhTW })}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
+                       const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+                       const isHolidayHeader = !hideHolidays && holidaySet.has(format(day, 'yyyy-MM-dd'));
+                       const isFirstDay = format(day, 'd') === '1';
+                       return (
+                        <div
+                          key={day.toISOString()}
+                          className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
+                            isToday(day) ? 'bg-red-100 text-red-700' :
+                            (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
+                            'bg-gray-100 text-gray-700'
+                          }`}
+                          style={{ borderLeft: isFirstDay ? '2px solid #6b7280' : undefined }}
+                         >
+                           <span className="text-xs font-semibold leading-none">{format(day, 'd')}</span>
+                           <span className={`text-[9px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
+                             {format(day, 'EEE', { locale: zhTW })}
+                           </span>
+                         </div>
+                       );
+                     })}
                   </div>
 
                   {/* 請假人數列 */}
                   <div style={{ ...gridStyle, height: 28, borderBottom: '1px solid #d1d5db', backgroundColor: 'white' }}>
                     {days.map((day) => {
-                      if (viewMode === 'quarter') {
-                        return <div key={day.toISOString()} className="border-r border-gray-200" />;
-                      }
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
                       const isHolidayLeave = holidays?.some(h => h.date === dateStr);
