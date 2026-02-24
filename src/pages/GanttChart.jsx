@@ -1516,8 +1516,11 @@ export default function GanttChart() {
                         <Popover key={day.toISOString()}>
                           <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
                           <PopoverContent className="min-w-[140px] p-2 text-xs" side="bottom" align="center">
-                            {names.map(name => (
-                              <p key={name} className="text-gray-800 py-0.5">{name}</p>
+                            {names.map((item, idx) => (
+                              <p key={idx} className="text-gray-800 py-0.5">
+                                {item.name}
+                                {item.range && <span className="text-gray-500"> ({item.range})</span>}
+                              </p>
                             ))}
                           </PopoverContent>
                         </Popover>
