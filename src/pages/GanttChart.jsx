@@ -1022,14 +1022,32 @@ export default function GanttChart() {
     return count;
   };
 
+  // 預先計算背景色和游標樣式（避免迴圈內重複計算）
+  const getCellProps = useCallback((dateStr, isInDragRange, projectTasks) => {
+    const dayOfWeek = getDay(new Date(dateStr));
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isHoliday = !hideHolidays && holidaySet.has(dateStr);
+    const isFirstOfMonth = dateStr.endsWith('-01');
+
+    const cursorStyle = isDragging ? 'col-resize'
+      : (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId))
+        ? 'crosshair'
+        : 'pointer';
+
+    return {
+      isWeekend,
+      isHoliday,
+      isFirstOfMonth,
+      bgColor: isInDragRange ? '#bfdbfe'
+        : (isWeekend || isHoliday) ? '#f3f4f6'
+        : '#f9fafb',
+      cursorStyle,
+    };
+  }, [hideHolidays, holidaySet, isDragging, selectedTaskId]);
+
   // 渲染右側單元格背景（只處理視覺，不渲染 Bar）（memoized）
   const renderCellBackground = useCallback((row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
-    const dayOfWeek = getDay(day);
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isHoliday = !hideHolidays && holidaySet.has(dateStr);
-    const isFirstOfMonth = format(day, 'd') === '1';
-
     const projectTasks = tasksByProjectId[row.data.id] ?? [];
     const hasDragOnProject = isDragging && projectTasks.some(t => t.id === dragTaskId);
     const isInDragRange = hasDragOnProject && dragStart && dragEnd && (() => {
@@ -1038,11 +1056,7 @@ export default function GanttChart() {
       return dateStr >= s && dateStr <= e;
     })();
 
-    // 游標提示：有選中任務時用 crosshair；拖曳中用 col-resize；否則 pointer
-    const cursorStyle = isDragging ? 'col-resize'
-      : (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId))
-        ? 'crosshair'
-        : 'pointer';
+    const { isFirstOfMonth, bgColor, cursorStyle } = getCellProps(dateStr, isInDragRange, projectTasks);
 
     return (
       <div
@@ -1053,9 +1067,7 @@ export default function GanttChart() {
           height: ROW_HEIGHT,
           borderRight: '1px solid #d1d5db',
           borderLeft: isFirstOfMonth ? '2px solid #6b7280' : undefined,
-          backgroundColor: isInDragRange ? '#bfdbfe'
-            : (isWeekend || isHoliday) ? '#f3f4f6'
-            : '#f9fafb',
+          backgroundColor: bgColor,
           position: 'relative',
         }}
         onMouseDown={(e) => {
@@ -1074,9 +1086,6 @@ export default function GanttChart() {
           }
         }}
         onContextMenu={() => setContextMenuDate(day)}
-                        onMouseLeave={() => {
-                          setContextMenuDate(null);
-                        }}
                         onClick={() => {
                           if (isDragging) return;
                           const projectTasks = tasksByProjectId[row.data.id] ?? [];
@@ -1184,21 +1193,18 @@ export default function GanttChart() {
                   </span>
                 )}
                 {task.time_type === 'rolling' && (
-                  <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }} className="hover:opacity-80 transition-opacity">
-                    <span style={{ fontSize: 12, color: textColor, fontWeight: 500 }}>
-                      {`${row.data.name} ${task.name}`}
-                    </span>
-                    <div style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: '40%',
-                      background: `linear-gradient(to right, ${getLightColor(projectColor)}00, ${projectColor}ff)`,
-                      pointerEvents: 'none',
-                    }} />
-                  </div>
-                )}
+                               <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }} className="hover:opacity-80 transition-opacity">
+                                 <div style={{
+                                   position: 'absolute',
+                                   inset: 0,
+                                   background: `linear-gradient(to right, ${getLightColor(projectColor)}, transparent)`,
+                                   pointerEvents: 'none',
+                                 }} />
+                                 <span style={{ fontSize: 12, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
+                                   {`${row.data.name} ${task.name}`}
+                                 </span>
+                               </div>
+                             )}
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs px-2 py-1.5">
@@ -1524,7 +1530,9 @@ export default function GanttChart() {
                     }}
                   >
                     {visibleRows.map((row) => (
-                      <ContextMenu key={row.id} onOpenChange={(open) => { if (!open) setContextMenuDate(null); }}>
+                      <ContextMenu key={row.id} onOpenChange={(open) => { 
+                        if (!open) setContextMenuDate(null); 
+                      }}>
                         <ContextMenuTrigger asChild>
                           <div style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
                             {/* 底層：格子背景 + 格線 */}
