@@ -1135,98 +1135,85 @@ export default function GanttChart() {
      const isSelected = selectedTaskId === task.id;
 
      return (
-       <Tooltip key={task.id}>
-         <TooltipTrigger asChild>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  transform: isSelected ? 'translateY(-50%) scale(1.05)' : 'translateY(-50%)',
-                  left,
-                  width: width === 'auto' ? undefined : width,
-                  height: 28,
-                  borderRadius: 4,
-                  backgroundColor: bgColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  pointerEvents: 'auto',
-                  opacity: 1,
-                  cursor: isSelected ? 'crosshair' : 'pointer',
-                  zIndex: isSelected ? 30 : 10,
-                  outline: isSelected ? `2px solid ${task.is_important ? '#eab308' : '#1f2937'}` : 'none',
-                  outlineOffset: isSelected ? '2px' : '0px',
-                  transition: 'outline 0.15s, transform 0.15s, z-index 0.15s',
-                }}
-                onClick={(e) => {
-                   e.stopPropagation();
-                   if (selectedTaskId === task.id) {
-                     // 已選中的情況下再點 → 開 dialog
-                     setEditingTask({ ...task });
-                     setShowEditTaskDialog(true);
-                   } else {
-                     // 第一次點 → 選取任務（進入可拖曳狀態）
-                     setSelectedTaskId(task.id);
-                     setFirstDate(null);
-                     setSecondDate(null);
-                   }
-                 }}
-                >
-                 {task.time_type === 'milestone' && (
-                  <div className="flex items-center gap-1 px-1">
-                    <div style={{
-                      width: 12, height: 12,
-                      transform: 'rotate(45deg)',
-                      backgroundColor: task.is_important ? '#eab308' : projectColor,
-                      flexShrink: 0,
-                      boxShadow: isSelected ? '0 0 8px rgba(31, 41, 55, 0.5)' : 'none',
-                      transition: 'box-shadow 0.15s',
-                    }} />
-                    <span style={{ fontSize: 14, color: '#1f2937', fontWeight: 500 }}>
-                      {`${row.data.name} ${task.name}`}
-                    </span>
-                  </div>
-                )}
-                {task.time_type === 'duration' && (
-                  <span style={{ fontSize: 14, color: textColor, fontWeight: 500 }}>
-                    {`${row.data.name} ${task.name}`}
-                    {workingDays > 0 && (
-                      <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 6 }}>
-                        ({workingDays}工作天)
-                      </span>
-                    )}
-                  </span>
-                )}
-                {task.time_type === 'rolling' && (
-                  <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: `linear-gradient(to right, ${getLightColor(projectColor)}, transparent)`,
-                      pointerEvents: 'none',
-                    }} />
-                    <span style={{ fontSize: 14, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
-                      {`${row.data.name} ${task.name}`}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs px-2 py-1.5">
-              {task.time_type === 'milestone' && <p>◆ {task.start_date}</p>}
-              {task.time_type === 'duration' && task.end_date && (
-                <p>{task.start_date} → {task.end_date.slice(5)}
-                  <span className="text-gray-400 ml-1.5">工作天 {workingDays} 天</span>
-                </p>
-              )}
-              {task.time_type === 'rolling' && <p>▶ {task.start_date}</p>}
-              {task.note && <div className="text-gray-400 mt-0.5">{task.note}</div>}
-            </TooltipContent>
-            </Tooltip>
-            );
-            });
+       <div
+         key={task.id}
+         style={{
+           position: 'absolute',
+           top: '50%',
+           transform: isSelected ? 'translateY(-50%) scale(1.05)' : 'translateY(-50%)',
+           left,
+           width: width === 'auto' ? undefined : width,
+           height: 28,
+           borderRadius: 4,
+           backgroundColor: bgColor,
+           display: 'flex',
+           alignItems: 'center',
+           justifyContent: 'center',
+           overflow: 'hidden',
+           whiteSpace: 'nowrap',
+           pointerEvents: 'auto',
+           opacity: 1,
+           cursor: isSelected ? 'crosshair' : 'pointer',
+           zIndex: isSelected ? 30 : 10,
+           outline: isSelected ? `2px solid ${task.is_important ? '#eab308' : '#1f2937'}` : 'none',
+           outlineOffset: isSelected ? '2px' : '0px',
+           transition: 'outline 0.15s, transform 0.15s, z-index 0.15s',
+         }}
+         onClick={(e) => {
+            e.stopPropagation();
+            if (selectedTaskId === task.id) {
+              // 已選中的情況下再點 → 開 dialog
+              setEditingTask({ ...task });
+              setShowEditTaskDialog(true);
+            } else {
+              // 第一次點 → 選取任務（進入可拖曳狀態）
+              setSelectedTaskId(task.id);
+              setFirstDate(null);
+              setSecondDate(null);
+            }
+          }}
+       >
+        {task.time_type === 'milestone' && (
+         <div className="flex items-center gap-1 px-1">
+           <div style={{
+             width: 12, height: 12,
+             transform: 'rotate(45deg)',
+             backgroundColor: task.is_important ? '#eab308' : projectColor,
+             flexShrink: 0,
+             boxShadow: isSelected ? '0 0 8px rgba(31, 41, 55, 0.5)' : 'none',
+             transition: 'box-shadow 0.15s',
+           }} />
+           <span style={{ fontSize: 14, color: '#1f2937', fontWeight: 500 }}>
+             {`${row.data.name} ${task.name}`}
+           </span>
+         </div>
+       )}
+       {task.time_type === 'duration' && (
+         <span style={{ fontSize: 14, color: textColor, fontWeight: 500 }}>
+           {`${row.data.name} ${task.name}`}
+           {workingDays > 0 && (
+             <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 6 }}>
+               ({workingDays}工作天)
+             </span>
+           )}
+         </span>
+       )}
+       {task.time_type === 'rolling' && (
+         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+           <div style={{
+             position: 'absolute',
+             inset: 0,
+             background: `linear-gradient(to right, ${getLightColor(projectColor)}, transparent)`,
+             pointerEvents: 'none',
+           }} />
+           <span style={{ fontSize: 14, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
+             {`${row.data.name} ${task.name}`}
+           </span>
+         </div>
+       )}
+       </div>
+      );
+      });
         }, [tasksByProjectId, dayIndexMap, CELL_WIDTH, days.length, selectedTaskId, isDragging, dragTaskId, dragStart, dragEnd]);
 
         // 取得排序後的日期
