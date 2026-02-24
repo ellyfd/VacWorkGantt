@@ -638,9 +638,8 @@ export default function ProjectSettings() {
                     />
                   ))}
                 </div>
-                {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16']
-                  .filter(c => !usedColors.has(c)).length === 0 && (
-                  <p className="text-xs text-gray-400">所有預設顏色已被使用，請用 Hex 輸入自訂顏色</p>
+                {usedColors.size === 10 && (
+                  <p className="text-xs text-gray-400">所有預設顏色已被使用</p>
                 )}
                 {/* Hex 輸入 */}
                 <div className="flex items-center gap-2">
