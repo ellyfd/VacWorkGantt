@@ -1323,7 +1323,7 @@ export default function GanttChart() {
                         </Draggable>
                       );
                     })}
-                    {rows.length === 0 && (
+                    {visibleRows.length === 0 && (
                       <div className="p-8 text-center text-gray-400">
                         點擊「新增開發季」開始
                       </div>
