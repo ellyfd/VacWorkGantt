@@ -21,7 +21,7 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
           {/* 品牌 */}
           <div>
             <Label>品牌 *</Label>
-            <Select value={projectFormData.brand_id} onValueChange={(v) => setProjectFormData({ ...projectFormData, brand_id: v })}>
+            <Select value={projectFormData.brand_id} onValueChange={(v) => setProjectFormData({ ...projectFormData, brand_id: v, season: '' })}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="選擇品牌..." /></SelectTrigger>
               <SelectContent>
                 {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.short_name || p.name}</SelectItem>)}
