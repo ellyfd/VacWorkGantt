@@ -256,7 +256,7 @@ export default function GanttChart() {
       queryClient.invalidateQueries(['ganttTasks']);
       setShowAddTaskDialog(false);
       setTaskFormData({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
-      setCreatingProjectId(null);
+      setCreatingProjectIdSync(null);
     },
   });
 
