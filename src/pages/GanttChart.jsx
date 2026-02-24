@@ -106,6 +106,10 @@ export default function GanttChart() {
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
 
+  // 篩選狀態
+  const [selectedDeptId, setSelectedDeptId] = useState(null);
+  const [selectedBrandIds, setSelectedBrandIds] = useState([]);
+
   // Edit Phase Dialog state
   const [showEditPhaseDialog, setShowEditPhaseDialog] = useState(false);
   const [editingPhase, setEditingPhase] = useState(null);
