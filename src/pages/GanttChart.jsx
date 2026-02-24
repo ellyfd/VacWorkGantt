@@ -107,6 +107,10 @@ export default function GanttChart() {
 
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [showAddPhaseDialog, setShowAddPhaseDialog] = useState(false);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(256); // w-64 = 256px
+  const isResizingRef = useRef(false);
+  const resizeStartXRef = useRef(0);
+  const resizeStartWidthRef = useRef(0);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
