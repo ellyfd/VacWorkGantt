@@ -1483,16 +1483,9 @@ export default function GanttChart() {
         onOpenChange={setShowAddProjectDialog}
         projectFormData={projectFormData}
         setProjectFormData={setProjectFormData}
-        projectCreationMode={projectCreationMode}
-        setProjectCreationMode={setProjectCreationMode}
-        selectedSamples={selectedSamples}
-        setSelectedSamples={setSelectedSamples}
         projects={projects}
-        samples={samples}
-        getBrandName={getBrandName}
-        getSamplesByBrand={getSamplesByBrand}
         onConfirm={handleAddProject}
-        isLoading={createGanttProject.isPending || bulkCreatePhases.isPending}
+        isLoading={createGanttProject.isPending}
       />
 
       <ImportScheduleDialog
