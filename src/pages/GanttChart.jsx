@@ -875,7 +875,10 @@ export default function GanttChart() {
                   {/* 里程碑 ◆ + 名稱 */}
                   {task.time_type === 'milestone' && isStart && (
                     <div className="relative flex items-center gap-1 z-10 cursor-pointer">
-                      <div className={`w-3 h-3 transform rotate-45 flex-shrink-0 ${task.is_important ? 'bg-yellow-500' : isSelectedTask ? 'bg-blue-700' : 'bg-blue-500'}`} />
+                      <div
+                        className="w-3 h-3 transform rotate-45 flex-shrink-0"
+                        style={{ backgroundColor: task.is_important ? '#eab308' : projectColor, opacity: isSelectedTask ? 0.7 : 1 }}
+                      />
                       <span className="text-[10px] text-gray-700 whitespace-nowrap font-medium leading-none select-none">
                         {task.name}
                       </span>
