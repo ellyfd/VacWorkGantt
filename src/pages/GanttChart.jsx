@@ -1034,7 +1034,7 @@ export default function GanttChart() {
           }
         }}
         onMouseEnter={() => {
-          if (isDragging && (tasksByProjectId[row.data.id] ?? []).some(t => t.id === dragTaskId)) {
+          if (isDragging && dragTaskId && (tasksByProjectId[row.data.id] ?? []).some(t => t.id === dragTaskId)) {
             setDragEnd(day);
           }
         }}
@@ -1113,7 +1113,7 @@ export default function GanttChart() {
                   whiteSpace: 'nowrap',
                   pointerEvents: 'auto',
                   opacity: 1,
-                  cursor: 'pointer',
+                  cursor: isSelected ? 'crosshair' : 'pointer',
                   zIndex: isSelected ? 30 : 10,
                   outline: isSelected ? `2px solid ${task.is_important ? '#eab308' : '#1f2937'}` : 'none',
                   outlineOffset: isSelected ? '2px' : '0px',
@@ -1121,8 +1121,16 @@ export default function GanttChart() {
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setEditingTask({ ...task });
-                  setShowEditTaskDialog(true);
+                  if (selectedTaskId === task.id) {
+                    // 已選中的情況下再點 → 開 dialog
+                    setEditingTask({ ...task });
+                    setShowEditTaskDialog(true);
+                  } else {
+                    // 第一次點 → 選取任務（進入可拖曳狀態）
+                    setSelectedTaskId(task.id);
+                    setFirstDate(null);
+                    setSecondDate(null);
+                  }
                 }}
               >
                 {task.time_type === 'milestone' && (
