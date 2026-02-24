@@ -733,10 +733,10 @@ export default function GanttChart() {
     }
     // 靠近左端：往左延伸
     if (el.scrollLeft < CELL_WIDTH * 30) {
-      pendingScrollCompensation.current = 30 * CELL_WIDTH;
+      pendingScrollCompensation.current = CELL_WIDTH * 30;
       setCenterDate(d => subDays(d, 30));
     }
-  }, [days, CELL_WIDTH]);
+  }, [CELL_WIDTH]);
 
   // 跳轉到今天
   const scrollToToday = () => {
