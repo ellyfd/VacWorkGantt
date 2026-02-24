@@ -93,6 +93,7 @@ export default function GanttChart() {
   
   // 選擇狀態
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [contextMenuDate, setContextMenuDate] = useState(null);
   const [firstDate, setFirstDate] = useState(null);
   const [secondDate, setSecondDate] = useState(null);
   
