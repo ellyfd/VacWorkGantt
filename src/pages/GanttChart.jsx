@@ -1068,7 +1068,6 @@ export default function GanttChart() {
             >
               {isToday(day) && <div className="absolute inset-0 bg-red-500/10 z-0 pointer-events-none" />}
               {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500 z-20" />}
-              {isHoliday && <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber-400 z-10 pointer-events-none" />}
               {projectTasks.map(task => renderTaskBar(task))}
             </div>
           </ContextMenuTrigger>
