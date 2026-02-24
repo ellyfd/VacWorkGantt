@@ -159,11 +159,11 @@ export default function FilterBar({
           onClick={() => onHideHolidaysChange(!hideHolidays)}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
             hideHolidays
-              ? 'bg-amber-600 text-white border-amber-600'
+              ? 'bg-blue-600 text-white border-blue-600'
               : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
           }`}
         >
-          {hideHolidays ? '✓ 隱藏假日' : '顯示假日'}
+          {hideHolidays ? '僅工作日 ✓' : '顯示假日'}
         </button>
 
         {/* 篩選提示 */}
