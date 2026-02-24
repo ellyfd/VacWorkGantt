@@ -687,6 +687,18 @@ export default function GanttChart() {
     });
   };
 
+  const handleEditTask = () => {
+    if (!editingTask) return;
+    updateTaskWithOptimistic(editingTask.id, {
+      name: editingTask.name,
+      time_type: editingTask.time_type || null,
+      start_date: editingTask.start_date || null,
+      end_date: editingTask.time_type === 'duration' ? (editingTask.end_date || null) : null,
+    });
+    setShowEditTaskDialog(false);
+    setEditingTask(null);
+  };
+
   const handleClearTime = (taskId) => {
     updateTaskWithOptimistic(taskId, { 
       time_type: null, 
