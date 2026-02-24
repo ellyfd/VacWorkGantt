@@ -415,10 +415,10 @@ export default function GanttChart() {
         namesMap[r.date] = [];
       }
       countMap[r.date].add(r.employee_id);
-      const name = employeeMap[r.employee_id]?.name;
-      if (name && !namesMap[r.date].find(item => item.name === name)) {
+      const name = employeeMap[r.employee_id]?.name || `未知員工(${r.employee_id.slice(0, 6)})`;
+      if (!namesMap[r.date].find(item => item.employeeId === r.employee_id)) {
         const range = getRange(r.employee_id, r.date);
-        namesMap[r.date].push({ name, range });
+        namesMap[r.date].push({ name, range, employeeId: r.employee_id });
       }
     });
 
