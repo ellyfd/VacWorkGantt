@@ -1114,44 +1114,44 @@ export default function GanttChart() {
   // Memoize renderTaskBars to avoid unnecessary re-renders
   const renderTaskBars = useCallback((row) => {
    if (row.type !== 'project') return null;
-    const projectTasks = tasksByProjectId[row.data.id] ?? [];
-    const projectColor = row.data.color || '#3b82f6';
-    const textColor = getContrastColor(projectColor);
+     const projectTasks = tasksByProjectId[row.data.id] ?? [];
+     const projectColor = row.data.color || '#3b82f6';
+     const textColor = getContrastColor(projectColor);
 
-     return projectTasks.map(task => {
-      if (!task.start_date) return null;
+      return projectTasks.map(task => {
+       if (!task.start_date) return null;
 
-      // 正規化日期（移除時間戳記）
-      const startDateStr = normalizeDate(task.start_date);
-      const endDateStr = normalizeDate(task.end_date);
-      if (!startDateStr) return null;
+       // 正規化日期（移除時間戳記）
+       const startDateStr = normalizeDate(task.start_date);
+       const endDateStr = normalizeDate(task.end_date);
+       if (!startDateStr) return null;
 
-      // 用 allDaysIndexMap（不受 hideHolidays 影響）
-      const startIdx = allDaysIndexMap[startDateStr] ?? -1;
-      if (startIdx < 0) return null;
+       // 用 dayIndexMap（根據屏幕顯示的日期）定位
+       const startIdx = dayIndexMap[startDateStr] ?? -1;
+       if (startIdx < 0) return null; // 日期不在顯示範圍內，不繪製
 
-      let left, width, bgColor;
+       let left, width, bgColor;
 
-      if (task.time_type === 'milestone') {
-        left = startIdx * CELL_WIDTH + CELL_WIDTH / 2 - 8;
-        width = 'auto';
-        bgColor = 'transparent';
-      } else if (task.time_type === 'duration') {
-        if (!endDateStr) return null;
-        const endIdx = allDaysIndexMap[endDateStr] ?? -1;
-        if (endIdx < 0) return null;
-        left = startIdx * CELL_WIDTH + 2;
-        width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
-        bgColor = projectColor;
-      } else if (task.time_type === 'rolling') {
-        left = startIdx * CELL_WIDTH + 2;
-        // rolling 用 allDaysIndexMap 的 total length
-        const allDaysLength = Object.keys(allDaysIndexMap).length;
-        width = (allDaysLength - startIdx) * CELL_WIDTH - 4;
-        bgColor = projectColor;
-      } else {
-        return null;
-      }
+       if (task.time_type === 'milestone') {
+         left = startIdx * CELL_WIDTH + CELL_WIDTH / 2 - 8;
+         width = 'auto';
+         bgColor = 'transparent';
+       } else if (task.time_type === 'duration') {
+         if (!endDateStr) return null;
+         const endIdx = dayIndexMap[endDateStr] ?? -1;
+         if (endIdx < 0) return null;
+         left = startIdx * CELL_WIDTH + 2;
+         width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
+         bgColor = projectColor;
+       } else if (task.time_type === 'rolling') {
+         left = startIdx * CELL_WIDTH + 2;
+         // rolling 用 days 的 total length
+         const daysLength = days.length;
+         width = (daysLength - startIdx) * CELL_WIDTH - 4;
+         bgColor = projectColor;
+       } else {
+         return null;
+       }
 
       const workingDays = task.time_type === 'duration' && startDateStr && endDateStr
         ? calculateWorkingDays(startDateStr, endDateStr)
