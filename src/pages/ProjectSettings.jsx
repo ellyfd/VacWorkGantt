@@ -372,9 +372,10 @@ export default function ProjectSettings() {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="bg-gray-50 border-b whitespace-nowrap">
-                    <TableHead className="w-[20%]">品牌縮寫</TableHead>
-                    <TableHead className="w-[30%]">品牌全名</TableHead>
-                    <TableHead className="w-[25%]">集團</TableHead>
+                    <TableHead className="w-[15%]">品牌縮寫</TableHead>
+                    <TableHead className="w-[25%]">品牌全名</TableHead>
+                    <TableHead className="w-[15%]">顏色</TableHead>
+                    <TableHead className="w-[20%]">集團</TableHead>
                     <TableHead className="w-[15%]">狀態</TableHead>
                     <TableHead className="w-[10%] text-right">操作</TableHead>
                   </TableRow>
@@ -388,11 +389,21 @@ export default function ProjectSettings() {
                     </TableRow>
                   ) : (
                     filteredProjects.map((project) => (
-                      <TableRow key={project.id} className="hover:bg-gray-50 whitespace-nowrap">
-                        <TableCell className="font-medium text-sm md:text-base truncate">{project.short_name}</TableCell>
-                        <TableCell className="text-xs md:text-sm truncate">{project.full_name}</TableCell>
-                        <TableCell className="text-xs md:text-sm">{getGroupName(project.group_id)}</TableCell>
-                        <TableCell className="text-xs md:text-sm">
+                       <TableRow key={project.id} className="hover:bg-gray-50 whitespace-nowrap">
+                         <TableCell className="font-medium text-sm md:text-base truncate">{project.short_name}</TableCell>
+                         <TableCell className="text-xs md:text-sm truncate">{project.full_name}</TableCell>
+                         <TableCell className="text-xs md:text-sm">
+                           <div className="flex items-center gap-2">
+                             <div
+                               className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
+                               style={{ backgroundColor: project.default_color || '#3b82f6' }}
+                               title={project.default_color || '#3b82f6'}
+                             />
+                             <span className="text-gray-500 font-mono text-[11px]">{project.default_color || '#3b82f6'}</span>
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-xs md:text-sm">{getGroupName(project.group_id)}</TableCell>
+                         <TableCell className="text-xs md:text-sm">
                           <span className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium inline-block ${project.status === 'active' ? 'bg-green-100 text-green-800' : project.status === 'completed' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
                             {project.status === 'active' ? '進行中' : project.status === 'completed' ? '已完成' : '已存檔'}
                           </span>
