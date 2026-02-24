@@ -247,14 +247,16 @@ export default function GanttChart() {
     onSuccess: (newTask) => {
       queryClient.invalidateQueries(['ganttTasks']);
       setShowAddTaskDialog(false);
-      setTaskFormData({ name: '', is_important: false, note: '' });
-      // 自動進入畫日期模式
-      setSelectedTaskId(newTask.id);
-      setDrawingMode(true);
-      setPendingTask(newTask);
-      setFirstDate(null);
-      setSecondDate(null);
+      setTaskFormData({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
       setCurrentPhaseId(null);
+      // 只有沒填時間才進入畫日期模式
+      if (!newTask.time_type) {
+        setSelectedTaskId(newTask.id);
+        setDrawingMode(true);
+        setPendingTask(newTask);
+        setFirstDate(null);
+        setSecondDate(null);
+      }
     },
   });
 
