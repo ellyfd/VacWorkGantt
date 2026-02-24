@@ -1469,12 +1469,6 @@ export default function GanttChart() {
                     className="overflow-y-auto"
                     ref={rightBodyRef}
                     style={{ maxHeight: 'calc(100vh - 440px)' }}
-                    onMouseLeave={() => {
-                      if (isDragging) {
-                        setIsDragging(false);
-                        setDragTaskId(null);
-                      }
-                    }}
                   >
                     {visibleRows.map((row) => (
                       <ContextMenu key={row.id} onOpenChange={(open) => { 
