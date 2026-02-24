@@ -96,17 +96,21 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
           <div>
             <Label className="mb-2 block">顏色</Label>
             <div className="flex gap-2 flex-wrap">
-              {COLORS.map(c => (
-                <button key={c} type="button"
-                  onClick={() => setProjectFormData({ ...projectFormData, color: c })}
-                  className="w-7 h-7 rounded-full transition-all"
-                  style={{
-                    backgroundColor: c,
-                    outline: projectFormData.color === c ? `3px solid ${c}` : '3px solid transparent',
-                    outlineOffset: 2,
-                  }}
-                />
-              ))}
+              {availableColors.length > 0 ? (
+                availableColors.map(c => (
+                  <button key={c} type="button"
+                    onClick={() => setProjectFormData({ ...projectFormData, color: c })}
+                    className="w-8 h-8 rounded-full transition-transform hover:scale-110"
+                    style={{
+                      backgroundColor: c,
+                      outline: projectFormData.color === c ? `3px solid ${c}` : 'none',
+                      outlineOffset: 2,
+                    }}
+                  />
+                ))
+              ) : (
+                <p className="text-xs text-gray-400">所有預設顏色已被使用</p>
+              )}
             </div>
           </div>
         </div>
