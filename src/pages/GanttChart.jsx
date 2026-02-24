@@ -1305,6 +1305,40 @@ export default function GanttChart() {
                   </div>
                 )}
               </div>
+
+              {/* 拖曳 handle */}
+              <div
+                className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-blue-400 active:bg-blue-500 z-20"
+                style={{ touchAction: 'none' }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  isResizingRef.current = true;
+                  resizeStartXRef.current = e.clientX;
+                  resizeStartWidthRef.current = leftPanelWidth;
+                  document.body.style.userSelect = 'none';
+                  document.body.style.cursor = 'col-resize';
+
+                  const onMouseMove = (e) => {
+                    if (!isResizingRef.current) return;
+                    const delta = e.clientX - resizeStartXRef.current;
+                    const newWidth = Math.max(160, Math.min(480, resizeStartWidthRef.current + delta));
+                    setLeftPanelWidth(newWidth);
+                  };
+
+                  const onMouseUp = () => {
+                    isResizingRef.current = false;
+                    document.body.style.userSelect = '';
+                    document.body.style.cursor = '';
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseup', onMouseUp);
+                  };
+
+                  window.addEventListener('mousemove', onMouseMove);
+                  window.addEventListener('mouseup', onMouseUp);
+                }}
+              >
+                <div className="absolute inset-y-0 left-0 w-px bg-gray-300 hover:bg-blue-400" />
+              </div>
             </div>
 
           {/* Right Panel */}
