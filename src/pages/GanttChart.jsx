@@ -481,8 +481,6 @@ export default function GanttChart() {
   };
 
   // ── Lookup Maps ──────────────────────────────────────────────
-  const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
-
   const tasksByProjectId = useMemo(() => {
     return ganttTasks.reduce((acc, task) => {
       (acc[task.gantt_project_id] ??= []).push(task);
