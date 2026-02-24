@@ -615,23 +615,21 @@ export default function GanttChart() {
   // 撤銷堆疊（用於 Ctrl+Z）
   const undoStackRef = useRef([]);
   
-  // 鍵盤快捷鍵：Esc 取消選擇、Ctrl+Z 撤銷
+  // 鍵盤快捷鍵：Ctrl+Z 撤銷
   React.useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        clearSelection();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        if (undoStackRef.current.length > 0) {
-          const lastAction = undoStackRef.current.pop();
-          if (lastAction.type === 'task_update') {
-            updateTaskWithOptimistic(lastAction.taskId, lastAction.previousData);
-          }
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+   const handleKeyDown = (e) => {
+     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+       e.preventDefault();
+       if (undoStackRef.current.length > 0) {
+         const lastAction = undoStackRef.current.pop();
+         if (lastAction.type === 'task_update') {
+           updateTaskWithOptimistic(lastAction.taskId, lastAction.previousData);
+         }
+       }
+     }
+   };
+   window.addEventListener('keydown', handleKeyDown);
+   return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // 邊緣自動捲動 RAF ref
