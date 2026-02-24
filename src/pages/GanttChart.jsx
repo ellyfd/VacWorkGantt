@@ -1059,26 +1059,10 @@ export default function GanttChart() {
     return count;
   };
 
-  // 預先計算背景色和游標樣式（避免迴圈內重複計算）
-  const getCellProps = useCallback((dateStr, isInDragRange, projectTasks) => {
-    const dayOfWeek = getDay(new Date(dateStr));
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isHoliday = !hideHolidays && holidaySet.has(dateStr);
-    const isFirstOfMonth = dateStr.endsWith('-01');
-
-    return {
-      isWeekend,
-      isHoliday,
-      isFirstOfMonth,
-      bgColor: isInDragRange ? '#bfdbfe'
-        : (isWeekend || isHoliday) ? '#f3f4f6'
-        : '#f9fafb',
-    };
-  }, [hideHolidays, holidaySet]);
-
   // 渲染右側單元格背景（只處理視覺，不渲染 Bar）（memoized）
   const renderCellBackground = useCallback((row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
+    const props = dayCellPropsMap[dateStr];
     const projectTasks = tasksByProjectId[row.data.id] ?? [];
     const hasDragOnProject = isDragging && projectTasks.some(t => t.id === dragTaskId);
     const isInDragRange = hasDragOnProject && dragStart && dragEnd && (() => {
@@ -1087,7 +1071,7 @@ export default function GanttChart() {
       return dateStr >= s && dateStr <= e;
     })();
 
-    const { isFirstOfMonth, bgColor } = getCellProps(dateStr, isInDragRange, projectTasks);
+    const bgColor = isInDragRange ? '#bfdbfe' : props.bgColor;
 
     return (
       <div
@@ -1095,16 +1079,16 @@ export default function GanttChart() {
         style={{
           height: ROW_HEIGHT,
           borderRight: '1px solid #d1d5db',
-          borderLeft: isFirstOfMonth ? '2px solid #6b7280' : undefined,
+          borderLeft: props.isFirstOfMonth ? '2px solid #6b7280' : undefined,
           backgroundColor: bgColor,
           position: 'relative',
         }}
       >
-        {isToday(day) && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
-        {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />}
+        {props.isToday && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
+        {props.isToday && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />}
       </div>
     );
-  });
+  }, [dayCellPropsMap, tasksByProjectId, isDragging, dragTaskId, dragStart, dragEnd]);
 
   // Memoize renderTaskBars to avoid unnecessary re-renders
   const renderTaskBars = useCallback((row) => {
