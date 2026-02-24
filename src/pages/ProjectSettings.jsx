@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -205,35 +205,29 @@ export default function ProjectSettings() {
     }
   };
 
-  const projectMap = useMemo(() => new Map(projects.map(p => [p.id, p])), [projects]);
-  const groupMap = useMemo(() => new Map(groups.map(g => [g.id, g])), [groups]);
+  const projectMap = new Map(projects.map(p => [p.id, p]));
+  const groupMap = new Map(groups.map(g => [g.id, g]));
 
   const getProjectName = (projectId) => projectMap.get(projectId)?.name || '-';
   const getGroupName = (groupId) => groupMap.get(groupId)?.name || '-';
 
-  const filteredSamples = useMemo(() => {
+  const filteredSamples = samples.filter(s => {
     const q = searchText.toLowerCase();
-    return samples.filter(s =>
-      s.name?.toLowerCase().includes(q) ||
+    return s.name?.toLowerCase().includes(q) ||
       s.full_name?.toLowerCase().includes(q) ||
-      (projectMap.get(s.project_id)?.name || '').toLowerCase().includes(q)
-    );
-  }, [samples, searchText, projectMap]);
+      (projectMap.get(s.project_id)?.name || '').toLowerCase().includes(q);
+  });
 
-  const filteredProjects = useMemo(() => {
+  const filteredProjects = projects.filter(p => {
     const q = projectSearchText.toLowerCase();
-    return projects.filter(p =>
-      p.full_name?.toLowerCase().includes(q) ||
-      p.short_name?.toLowerCase().includes(q)
-    );
-  }, [projects, projectSearchText]);
+    return p.full_name?.toLowerCase().includes(q) ||
+      p.short_name?.toLowerCase().includes(q);
+  });
 
-  const filteredGroups = useMemo(() => {
+  const filteredGroups = groups.filter(g => {
     const q = groupSearchText.toLowerCase();
-    return groups.filter(g => g.name?.toLowerCase().includes(q));
-  }, [groups, groupSearchText]);
-  
-
+    return g.name?.toLowerCase().includes(q);
+  });
 
   const handleOpenGroupDialog = (group = null) => {
     if (group) {
@@ -270,6 +264,13 @@ export default function ProjectSettings() {
       </div>
     );
   }
+
+  const usedColors = new Set(
+    projects
+      .filter(p => p.id !== editingId)
+      .map(p => p.default_color)
+      .filter(Boolean)
+  );
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -578,15 +579,6 @@ export default function ProjectSettings() {
           <DialogHeader>
             <DialogTitle>{editingId && editingType === 'project' ? '編輯品牌' : '新增品牌'}</DialogTitle>
           </DialogHeader>
-          {(() => {
-            const usedColors = new Set(
-              projects
-                .filter(p => p.id !== editingId)
-                .map(p => p.default_color)
-                .filter(Boolean)
-            );
-            return (
-            <>
           <div className="space-y-4 py-4">
             <div>
               <Label>品牌全名</Label>
@@ -701,11 +693,8 @@ export default function ProjectSettings() {
               {editingId && editingType === 'project' ? '更新' : '建立'}
             </Button>
           </DialogFooter>
-            </>
-            );
-          })()}
-          </DialogContent>
-          </Dialog>
+        </DialogContent>
+      </Dialog>
 
       {/* Group Dialog */}
       <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
