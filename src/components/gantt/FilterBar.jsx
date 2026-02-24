@@ -57,8 +57,6 @@ export default function FilterBar({
       .filter(Boolean);
   };
 
-  const isFiltered = selectedDeptId || selectedBrandIds.length > 0;
-
   const isFiltered = selectedGroupSlug || selectedDeptId || selectedBrandIds.length > 0;
 
   return (
