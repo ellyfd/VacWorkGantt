@@ -19,7 +19,7 @@ export default function EditProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>編輯開發季</DialogTitle>
         </DialogHeader>
