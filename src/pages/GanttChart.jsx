@@ -426,7 +426,7 @@ export default function GanttChart() {
     const name = `${brand.short_name || brand.name} ${projectFormData.season}`;
     await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
     setShowAddProjectDialog(false);
-    setProjectFormData({ brand_id: '', season: '' });
+    setProjectFormData({ brand_id: '', season: '', color: '#3b82f6' });
   };
 
   const handleAddPhase = async () => {
@@ -830,6 +830,8 @@ export default function GanttChart() {
 
     if (row.type === 'project') {
       const projectTasks = ganttTasks.filter(t => t.gantt_project_id === row.data.id);
+
+      const projectColor = row.data.color || '#3b82f6';
 
       const renderTaskBar = (task) => {
         const taskStartDate = task.start_date;
