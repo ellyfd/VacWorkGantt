@@ -904,9 +904,10 @@ export default function GanttChart() {
 
   const gridStyle = useMemo(() => ({
     display: 'grid',
-    gridTemplateColumns: `repeat(${days.length}, ${CELL_WIDTH}px)`,
+    gridAutoFlow: 'column',
+    gridAutoColumns: `${CELL_WIDTH}px`,
     width: days.length * CELL_WIDTH,
-  }), [days.length, CELL_WIDTH]);
+  }), [CELL_WIDTH, days.length]);
 
   // 渲染右側單元格
   const renderRightCell = (row, day) => {
