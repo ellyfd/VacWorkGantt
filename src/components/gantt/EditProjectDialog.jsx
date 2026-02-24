@@ -36,21 +36,22 @@ export default function EditProjectDialog({
               />
             </div>
 
-            {/* 顏色 */}
+            {/* 顏色 - 唯讀 */}
             <div>
-              <Label className="mb-2 block">顏色</Label>
-              <div className="flex gap-2 flex-wrap">
-                {COLORS.map(c => (
-                  <button key={c} type="button"
-                    onClick={() => setProject({ ...project, color: c })}
-                    className="w-7 h-7 rounded-full transition-all"
-                    style={{
-                      backgroundColor: c,
-                      outline: project.color === c ? `3px solid ${c}` : '3px solid transparent',
-                      outlineOffset: 2,
-                    }}
-                  />
-                ))}
+              <Label>顏色</Label>
+              <div className="mt-2 flex items-center gap-3">
+                <div
+                  className="w-8 h-8 rounded-full border-2 border-white shadow"
+                  style={{ backgroundColor: project?.color || '#3b82f6' }}
+                />
+                <span className="text-sm text-gray-400">顏色由品牌設定決定</span>
+                <button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  前往修改 →
+                </button>
               </div>
             </div>
 
