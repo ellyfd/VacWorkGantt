@@ -904,11 +904,12 @@ export default function GanttChart() {
                   )}
                   {/* Rolling bar + 名稱 */}
                   {task.time_type === 'rolling' && isRolling && (
-                    <div className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
-                      isStart
-                        ? 'left-1 right-0 bg-gradient-to-r from-purple-500 to-purple-300 rounded-l'
-                        : 'left-0 right-0 bg-purple-300'
-                    }`}>
+                    <div
+                      className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
+                        isStart ? 'left-1 right-0 rounded-l' : 'left-0 right-0'
+                      }`}
+                      style={{ backgroundColor: projectColor, opacity: isStart ? (isSelectedTask ? 0.7 : 1) : 0.4 }}
+                    >
                       {isStart && (
                         <span className="text-[10px] text-white font-medium px-1.5 whitespace-nowrap select-none">
                           {task.name}
