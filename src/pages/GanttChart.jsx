@@ -371,8 +371,10 @@ export default function GanttChart() {
         namesMap[r.date] = [];
       }
       countMap[r.date].add(r.employee_id);
-      if (!namesMap[r.date].find(e => e.employeeId === r.employee_id)) {
-        namesMap[r.date].push({ employeeId: r.employee_id });
+      // 直接存名字而不只是 ID
+      const name = employeeMap[r.employee_id]?.name;
+      if (name && !namesMap[r.date].includes(name)) {
+        namesMap[r.date].push(name);
       }
     });
 
