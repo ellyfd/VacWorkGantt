@@ -692,21 +692,25 @@ export default function GanttChart() {
 
       // 右邊緣：貼到才觸發，固定速度
       if (mouseX > rect.right - EDGE_ZONE) {
-        const scroll = () => {
-          if (!rightPanelRef.current || !isDragging) return;
-          rightPanelRef.current.scrollLeft += SCROLL_SPEED;
+        if (!edgeScrollRafRef.current) {
+          const scroll = () => {
+            if (!rightPanelRef.current || !isDragging) return;
+            rightPanelRef.current.scrollLeft += SCROLL_SPEED;
+            edgeScrollRafRef.current = requestAnimationFrame(scroll);
+          };
           edgeScrollRafRef.current = requestAnimationFrame(scroll);
-        };
-        edgeScrollRafRef.current = requestAnimationFrame(scroll);
+        }
       }
       // 左邊緣：貼到才觸發，固定速度
       else if (mouseX < rect.left + EDGE_ZONE) {
-        const scroll = () => {
-          if (!rightPanelRef.current || !isDragging) return;
-          rightPanelRef.current.scrollLeft -= SCROLL_SPEED;
+        if (!edgeScrollRafRef.current) {
+          const scroll = () => {
+            if (!rightPanelRef.current || !isDragging) return;
+            rightPanelRef.current.scrollLeft -= SCROLL_SPEED;
+            edgeScrollRafRef.current = requestAnimationFrame(scroll);
+          };
           edgeScrollRafRef.current = requestAnimationFrame(scroll);
-        };
-        edgeScrollRafRef.current = requestAnimationFrame(scroll);
+        }
       }
     };
 
