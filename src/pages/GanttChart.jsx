@@ -660,6 +660,15 @@ export default function GanttChart() {
   const rightBodyRef = useRef(null);
   const prevDaysLengthRef = useRef(0);
   const prevCenterDateRef = useRef(centerDate);
+  const pendingScrollCompensation = useRef(0);
+
+  // useLayoutEffect：在瀏覽器 paint 前修正滾動位置（防止跳躍）
+  React.useLayoutEffect(() => {
+    if (pendingScrollCompensation.current !== 0 && rightPanelRef.current) {
+      rightPanelRef.current.scrollLeft += pendingScrollCompensation.current;
+      pendingScrollCompensation.current = 0;
+    }
+  });
 
   // 修復無限滾動滾動跳轉：當 centerDate 改變導致新日期加入時，補償滾動位置
   React.useLayoutEffect(() => {
@@ -671,8 +680,7 @@ export default function GanttChart() {
     // 如果向左擴展（新增了左邊的日期），需要補償 scrollLeft
     if (prevDaysLength > 0 && days.length > prevDaysLength) {
       const addedDays = days.length - prevDaysLength;
-      const scrollLeftDelta = addedDays * CELL_WIDTH;
-      el.scrollLeft += scrollLeftDelta;
+      pendingScrollCompensation.current = addedDays * CELL_WIDTH;
     }
 
     prevDaysLengthRef.current = days.length;
