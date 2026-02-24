@@ -846,11 +846,11 @@ export default function GanttChart() {
     const weekEndStr = viewMode === 'quarter' ? format(addDays(day, 6), 'yyyy-MM-dd') : dateStr;
     const dayOfWeek = getDay(day);
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isHoliday = holidays?.some(h => h.date === dateStr);
+    const isHoliday = holidaySet.has(dateStr);
     const isDimmed = isWeekend || isHoliday;
 
     if (row.type === 'project') {
-      const projectTasks = ganttTasks.filter(t => t.gantt_project_id === row.data.id);
+      const projectTasks = tasksByProjectId[row.data.id] ?? [];
 
       const projectColor = row.data.color || '#3b82f6';
 
