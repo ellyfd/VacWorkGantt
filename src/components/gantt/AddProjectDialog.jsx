@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ const YEARS = Array.from({ length: 6 }, (_, i) => currentYear - 1 + i);
 const COLOR_OPTIONS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280'];
 
 export default function AddProjectDialog({ open, onOpenChange, projectFormData, setProjectFormData, projects, ganttProjects = [], onConfirm, isLoading }) {
+  const navigate = useNavigate();
   // 計算已使用的顏色
   const usedColors = new Set(ganttProjects.map(p => p.color).filter(Boolean));
   const availableColors = COLOR_OPTIONS.filter(c => !usedColors.has(c));
@@ -111,7 +113,10 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
               <span className="text-sm text-gray-500">由品牌設定帶入</span>
               <button
                 type="button"
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate('/project-settings?tab=projects');
+                }}
                 className="text-xs text-blue-600 hover:underline"
               >
                 前往品牌設定修改 →
