@@ -910,7 +910,7 @@ export default function GanttChart() {
     const weekEndStr = viewMode === 'quarter' ? format(addDays(day, 6), 'yyyy-MM-dd') : dateStr;
     const dayOfWeek = getDay(day);
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isHoliday = holidaySet.has(dateStr);
+    const isHoliday = !hideHolidays && holidaySet.has(dateStr);
     const isFirstOfMonth = format(day, 'd') === '1';
 
     if (row.type === 'project') {
