@@ -80,25 +80,17 @@ export default function FilterBar({
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="start">
-              <button
-                onClick={() => onDeptChange(null)}
-                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm ${
-                  !selectedDeptId ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50'
-                }`}
-              >
-                全部部門
-              </button>
-              {departments.map(dept => (
+              {DEPT_OPTIONS.map(option => (
                 <button
-                  key={dept.id}
-                  onClick={() => onDeptChange(dept.id)}
+                  key={option.value || 'all'}
+                  onClick={() => onDeptChange(option.value)}
                   className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm ${
-                    selectedDeptId === dept.id
+                    selectedDeptId === option.value
                       ? 'bg-blue-50 text-blue-700 font-medium'
                       : 'hover:bg-gray-50'
                   }`}
                 >
-                  {dept.name}
+                  {option.label}
                 </button>
               ))}
             </PopoverContent>
