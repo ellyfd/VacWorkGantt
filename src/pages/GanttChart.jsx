@@ -1568,7 +1568,10 @@ export default function GanttChart() {
 
       <AddTaskDialog
         open={showAddTaskDialog}
-        onOpenChange={setShowAddTaskDialog}
+        onOpenChange={(open) => {
+          setShowAddTaskDialog(open);
+          if (!open) setCreatingProjectId(null);
+        }}
         taskFormData={taskFormData}
         setTaskFormData={setTaskFormData}
         onConfirm={handleAddTask}
