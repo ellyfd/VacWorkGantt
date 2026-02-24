@@ -1010,7 +1010,7 @@ export default function GanttChart() {
       if (!task.start_date) return null;
 
       // 計算 Bar 的 left 和 width
-      const startIdx = days.findIndex(d => format(d, 'yyyy-MM-dd') === task.start_date);
+      const startIdx = dayIndexMap[task.start_date] ?? -1;
       if (startIdx < 0) return null;
 
       let left, width, bgColor;
@@ -1021,7 +1021,7 @@ export default function GanttChart() {
         bgColor = 'transparent';
       } else if (task.time_type === 'duration') {
         if (!task.end_date) return null;
-        const endIdx = days.findIndex(d => format(d, 'yyyy-MM-dd') === task.end_date);
+        const endIdx = dayIndexMap[task.end_date] ?? -1;
         if (endIdx < 0) return null;
         left = startIdx * CELL_WIDTH + 2;
         width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
