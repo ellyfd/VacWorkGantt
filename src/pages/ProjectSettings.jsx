@@ -627,59 +627,46 @@ export default function ProjectSettings() {
 
             {/* 顏色 */}
             <div>
-              <Label>甘特圖顏色（選擇顏色或留空）</Label>
-              <div className="mt-2 space-y-2">
-                {/* 清空按鈕 */}
-                {projectFormData.default_color && (
-                  <button
-                    type="button"
-                    onClick={() => setProjectFormData({ ...projectFormData, default_color: '' })}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
-                    清空顏色選擇
-                  </button>
-                )}
-                {/* 色票 */}
-                <div className="flex gap-2 flex-wrap">
-                  {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16']
-                    .filter(color => !usedColors.has(color) || projectFormData.default_color === color)
-                    .map(color => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setProjectFormData({ ...projectFormData, default_color: color })}
-                      className="w-7 h-7 rounded-full transition-transform hover:scale-110 flex-shrink-0"
-                      style={{
-                        backgroundColor: color,
-                        outline: projectFormData.default_color === color ? `3px solid ${color}` : 'none',
-                        outlineOffset: 2,
-                      }}
-                    />
-                  ))}
-                </div>
-                {/* Hex 輸入 */}
-                <p className="text-xs text-gray-500">或輸入自訂 Hex 顏色</p>
-                <div className="flex items-center gap-2">
-                  {projectFormData.default_color && /^#[0-9A-Fa-f]{6}$/.test(projectFormData.default_color) && (
-                    <div
-                      className="w-7 h-7 rounded-full flex-shrink-0 border border-gray-300"
-                      style={{ backgroundColor: projectFormData.default_color }}
-                    />
-                  )}
-                  <Input
-                    value={projectFormData.default_color}
-                    onChange={(e) => {
-                      const val = e.target.value.trim();
-                      if (val === '' || /^#[0-9A-Fa-f]{0,6}$/.test(val)) {
-                        setProjectFormData({ ...projectFormData, default_color: val });
-                      }
-                    }}
-                    placeholder="留空或輸入 #3b82f6"
-                    className="h-8 text-sm font-mono flex-1"
-                    maxLength={7}
-                  />
-                </div>
-              </div>
+             <Label>甘特圖顏色</Label>
+             <div className="mt-2 space-y-2">
+               {/* 色票 */}
+               <div className="flex gap-2 flex-wrap">
+                 {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16']
+                   .filter(color => !usedColors.has(color))
+                   .map(color => (
+                     <button
+                       key={color}
+                       type="button"
+                       onClick={() => setProjectFormData({ ...projectFormData, default_color: color })}
+                       className="w-7 h-7 rounded-full transition-transform hover:scale-110 flex-shrink-0"
+                       style={{
+                         backgroundColor: color,
+                         outline: projectFormData.default_color === color ? `3px solid ${color}` : 'none',
+                         outlineOffset: 2,
+                       }}
+                     />
+                   ))}
+               </div>
+               {usedColors.size >= 10 && (
+                 <p className="text-xs text-gray-400">所有預設顏色已被使用，請用 Hex 輸入</p>
+               )}
+               {/* Hex 輸入 */}
+               <div className="flex items-center gap-2">
+                 <div className="w-7 h-7 rounded-full border border-gray-200"
+                   style={{ backgroundColor: projectFormData.default_color }} />
+                 <Input
+                   value={projectFormData.default_color}
+                   onChange={(e) => {
+                     const val = e.target.value;
+                     if (/^#[0-9A-Fa-f]{0,6}$/.test(val))
+                       setProjectFormData({ ...projectFormData, default_color: val });
+                   }}
+                   placeholder="#3b82f6"
+                   className="h-8 text-sm font-mono w-32"
+                   maxLength={7}
+                 />
+               </div>
+             </div>
             </div>
 
             <div>
