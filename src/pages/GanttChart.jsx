@@ -1105,8 +1105,13 @@ export default function GanttChart() {
      return projectTasks.map(task => {
       if (!task.start_date) return null;
 
+      // 正規化日期（移除時間戳記）
+      const startDateStr = normalizeDate(task.start_date);
+      const endDateStr = normalizeDate(task.end_date);
+      if (!startDateStr) return null;
+
       // 計算 Bar 的 left 和 width
-      const startIdx = dayIndexMap[task.start_date] ?? -1;
+      const startIdx = dayIndexMap[startDateStr] ?? -1;
       if (startIdx < 0) return null;
 
       let left, width, bgColor;
@@ -1116,8 +1121,8 @@ export default function GanttChart() {
         width = 'auto';
         bgColor = 'transparent';
       } else if (task.time_type === 'duration') {
-        if (!task.end_date) return null;
-        const endIdx = dayIndexMap[task.end_date] ?? -1;
+        if (!endDateStr) return null;
+        const endIdx = dayIndexMap[endDateStr] ?? -1;
         if (endIdx < 0) return null;
         left = startIdx * CELL_WIDTH + 2;
         width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
@@ -1130,8 +1135,8 @@ export default function GanttChart() {
         return null;
       }
 
-      const workingDays = task.time_type === 'duration' && task.start_date && task.end_date
-        ? calculateWorkingDays(task.start_date, task.end_date)
+      const workingDays = task.time_type === 'duration' && startDateStr && endDateStr
+        ? calculateWorkingDays(startDateStr, endDateStr)
         : 0;
        return (
       <div
