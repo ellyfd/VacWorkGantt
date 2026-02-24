@@ -134,6 +134,20 @@ export default function GanttChart() {
   const [selectedDeptId, setSelectedDeptId] = useState(null);
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
 
+  // 篩選條件持久化
+  React.useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('gantt-filters') || '{}');
+    if (saved.deptId) setSelectedDeptId(saved.deptId);
+    if (saved.brandIds && Array.isArray(saved.brandIds)) setSelectedBrandIds(saved.brandIds);
+  }, []);
+
+  React.useEffect(() => {
+    localStorage.setItem('gantt-filters', JSON.stringify({
+      deptId: selectedDeptId,
+      brandIds: selectedBrandIds,
+    }));
+  }, [selectedDeptId, selectedBrandIds]);
+
   // Edit Phase Dialog state
   const [editingProjectTasks, setEditingProjectTasks] = useState([]);
   const [showEditPhaseDialog, setShowEditPhaseDialog] = useState(false);
