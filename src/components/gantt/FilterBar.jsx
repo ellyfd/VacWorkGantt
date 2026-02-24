@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 export default function FilterBar({
   departments,
   projects,
+  groups,
   selectedDeptId,
   onDeptChange,
   selectedBrandIds,
