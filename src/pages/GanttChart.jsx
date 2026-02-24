@@ -818,6 +818,9 @@ export default function GanttChart() {
     el.scrollLeft += step;
   }, [CELL_WIDTH]);
 
+  // 節流 ref
+  const scrollExtendThrottleRef = useRef(0);
+
   // 捲動時延伸 buffer + 更新 visibleMonth
   const handleRightScroll = React.useCallback((e) => {
     const el = e.currentTarget;
@@ -827,13 +830,19 @@ export default function GanttChart() {
     
     // 拖曳 bar 時不觸發無限滾動延伸，避免與 edge-scroll 互相干擾
     if (isDragging) return;
-    
+
+    // 節流：每 800ms 才能延伸一次，避免滾動條拖動觸發連鎖跳躍
+    const now = Date.now();
+    if (now - scrollExtendThrottleRef.current < 800) return;
+
     // 靠近右端：往右延伸
     if (el.scrollWidth - el.scrollLeft - el.clientWidth < CELL_WIDTH * 30) {
+      scrollExtendThrottleRef.current = now;
       setCenterDate(d => addDays(d, 30));
     }
     // 靠近左端：往左延伸
     if (el.scrollLeft < CELL_WIDTH * 30) {
+      scrollExtendThrottleRef.current = now;
       pendingScrollCompensation.current = CELL_WIDTH * 30;
       setCenterDate(d => subDays(d, 30));
     }
