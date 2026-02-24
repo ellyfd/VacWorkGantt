@@ -804,7 +804,7 @@ export default function GanttChart() {
               <Plus className="w-3 h-3" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); setEditingProject(row.data); setShowEditProjectDialog(true); }}
+              onClick={(e) => { e.stopPropagation(); setEditingProject(row.data); setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === row.data.id)); setShowEditProjectDialog(true); }}
               className="p-1 hover:bg-gray-600 rounded"
             >
               <Edit2 className="w-3 h-3" />
