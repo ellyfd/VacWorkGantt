@@ -269,7 +269,7 @@ export default function ProjectSettings() {
     projects
       .filter(p => p.id !== editingId)
       .map(p => p.default_color)
-      .filter(Boolean)
+      .filter(c => c && c.trim()) // 只計算真實有顏色的項目
   );
 
   return (
