@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,9 +9,20 @@ const SEASONS = ['SP', 'SU', 'FW', 'HO'];
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 6 }, (_, i) => currentYear - 1 + i);
 
-const COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280'];
+const COLOR_OPTIONS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280'];
 
-export default function AddProjectDialog({ open, onOpenChange, projectFormData, setProjectFormData, projects, onConfirm, isLoading }) {
+export default function AddProjectDialog({ open, onOpenChange, projectFormData, setProjectFormData, projects, ganttProjects = [], onConfirm, isLoading }) {
+  // 計算已使用的顏色
+  const usedColors = new Set(ganttProjects.map(p => p.color).filter(Boolean));
+  const availableColors = COLOR_OPTIONS.filter(c => !usedColors.has(c));
+
+  // Dialog 打開時，如果當前色已被使用，自動換成第一個可用色
+  useEffect(() => {
+    if (!open) return;
+    if (availableColors.length > 0 && usedColors.has(projectFormData.color)) {
+      setProjectFormData(prev => ({ ...prev, color: availableColors[0] }));
+    }
+  }, [open]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
