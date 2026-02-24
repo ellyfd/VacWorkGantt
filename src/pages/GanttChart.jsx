@@ -404,6 +404,18 @@ export default function GanttChart() {
     }));
   }, [ganttProjects]);
 
+  // 先計算 makalotGroup
+  const makalotGroup = useMemo(() => {
+    return groups.find(g => g.name.toLowerCase() === 'makalot');
+  }, [groups]);
+
+  // 再計算 getDept（它依賴 makalotGroup）
+  const getDept = (ganttProject) => {
+    const brand = projects.find(p => p.id === ganttProject.brand_id);
+    if (!brand) return 'other';
+    return brand.group_id === makalotGroup?.id ? 'makalot' : 'dpc';
+  };
+
   const filteredLeaveRecords = useMemo(() => {
     if (!selectedDeptId) return leaveRecords;
     const deptEmployeeIds = new Set(
@@ -422,7 +434,7 @@ export default function GanttChart() {
       if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(row.data.brand_id)) return false;
       return true;
     });
-  }, [rows, selectedDeptId, selectedBrandIds, projects, makalotGroup]);
+  }, [rows, selectedDeptId, selectedBrandIds, projects, makalotGroup, getDept]);
 
   const leaveCountByDate = useMemo(() => {
     const map = {};
