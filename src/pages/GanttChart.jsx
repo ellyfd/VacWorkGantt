@@ -1046,14 +1046,6 @@ export default function GanttChart() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold text-gray-900">專案甘特圖</h1>
-        <Button
-          onClick={() => setShowAddProjectDialog(true)}
-          size="sm"
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          新增
-        </Button>
       </div>
 
       {/* Navigation */}
