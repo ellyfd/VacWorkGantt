@@ -84,31 +84,6 @@ export default function TimeNavigation({
         </Button>
       </div>
 
-      {/* 週跳導航 */}
-      <div className="flex items-center gap-1 border-l border-gray-300 pl-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleJumpWeek(-1)}
-          title="前 7 天"
-          className="h-7 px-1.5"
-        >
-          <ChevronLeft className="w-3 h-3 mr-0.5" />
-          <span className="text-xs">週</span>
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleJumpWeek(1)}
-          title="後 7 天"
-          className="h-7 px-1.5"
-        >
-          <span className="text-xs">週</span>
-          <ChevronRight className="w-3 h-3 ml-0.5" />
-        </Button>
-      </div>
-
       {/* 今天按鈕 */}
       <Button
         variant="outline"
