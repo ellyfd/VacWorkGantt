@@ -366,6 +366,46 @@ export default function GanttChart() {
       filtered = leaveRecords.filter(r => deptEmployeeIds.has(r.employee_id));
     }
 
+    // 判斷兩個日期是否為「工作日連續」（跳過週末和假日）
+    const isConsecutiveWorkDays = (a, b) => {
+      let cur = new Date(a);
+      cur.setDate(cur.getDate() + 1);
+      const end = new Date(b);
+      while (cur < end) {
+        const dow = cur.getDay();
+        const dateStr = format(cur, 'yyyy-MM-dd');
+        if (dow !== 0 && dow !== 6 && !holidaySet.has(dateStr)) {
+          return false; // 中間有工作日 → 不連續
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+      return format(cur, 'yyyy-MM-dd') === b;
+    };
+
+    const formatShort = (dateStr) => {
+      const d = new Date(dateStr);
+      return `${d.getMonth() + 1}/${d.getDate()}`;
+    };
+
+    // 建立每位員工的所有請假日期（排序）
+    const empDatesMap = {};
+    filtered.forEach(r => {
+      (empDatesMap[r.employee_id] ??= []).push(r.date);
+    });
+    Object.values(empDatesMap).forEach(dates => dates.sort());
+
+    // 找連續區間
+    const getRange = (empId, date) => {
+      const dates = empDatesMap[empId] || [];
+      const idx = dates.indexOf(date);
+      if (idx < 0) return null;
+      let start = idx, end = idx;
+      while (start > 0 && isConsecutiveWorkDays(dates[start - 1], dates[start])) start--;
+      while (end < dates.length - 1 && isConsecutiveWorkDays(dates[end], dates[end + 1])) end++;
+      if (start === end) return null; // 單天，不顯示範圍
+      return `${formatShort(dates[start])}–${formatShort(dates[end])}`;
+    };
+
     // 第二步：統計每天請假人數和人員名單
     const countMap = {};
     const namesMap = {};
@@ -375,10 +415,10 @@ export default function GanttChart() {
         namesMap[r.date] = [];
       }
       countMap[r.date].add(r.employee_id);
-      // 直接存名字而不只是 ID
       const name = employeeMap[r.employee_id]?.name;
-      if (name && !namesMap[r.date].includes(name)) {
-        namesMap[r.date].push(name);
+      if (name && !namesMap[r.date].find(item => item.name === name)) {
+        const range = getRange(r.employee_id, r.date);
+        namesMap[r.date].push({ name, range });
       }
     });
 
@@ -393,7 +433,7 @@ export default function GanttChart() {
       leaveCountByDate: countResult,
       leaveNamesByDate: namesMap,
     };
-  }, [leaveRecords, selectedDeptId, employees, employeeMap]);
+  }, [leaveRecords, selectedDeptId, employees, employeeMap, holidaySet]);
 
   const filteredBrands = useMemo(() => {
     if (!selectedGroupSlug) return projects;
