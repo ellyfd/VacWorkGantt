@@ -1167,7 +1167,7 @@ export default function GanttChart() {
               transform: 'rotate(45deg)',
               backgroundColor: task.is_important ? '#eab308' : projectColor,
               flexShrink: 0,
-              boxShadow: isSelected ? '0 0 8px rgba(31, 41, 55, 0.5)' : 'none',
+              boxShadow: 'none',
               transition: 'box-shadow 0.15s',
             }} />
             <span style={{ fontSize: 14, color: textColor, fontWeight: 500 }}>
