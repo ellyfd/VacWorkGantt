@@ -1072,6 +1072,8 @@ export default function GanttChart() {
         ? calculateWorkingDays(task.start_date, task.end_date)
         : 0;
 
+      const isSelected = selectedTaskId === task.id;
+
       return (
         <TooltipProvider key={task.id} delayDuration={200}>
           <Tooltip>
@@ -1080,7 +1082,7 @@ export default function GanttChart() {
                 style={{
                   position: 'absolute',
                   top: '50%',
-                  transform: 'translateY(-50%)',
+                  transform: isSelected ? 'translateY(-50%) scale(1.05)' : 'translateY(-50%)',
                   left,
                   width: width === 'auto' ? undefined : width,
                   height: 24,
@@ -1092,9 +1094,12 @@ export default function GanttChart() {
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   pointerEvents: 'auto',
-                  opacity: selectedTaskId === task.id ? 0.7 : 1,
+                  opacity: 1,
                   cursor: 'pointer',
-                  zIndex: 10,
+                  zIndex: isSelected ? 30 : 10,
+                  outline: isSelected ? `2px solid ${task.is_important ? '#eab308' : '#1f2937'}` : 'none',
+                  outlineOffset: isSelected ? '2px' : '0px',
+                  transition: 'outline 0.15s, transform 0.15s, z-index 0.15s',
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
