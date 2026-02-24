@@ -578,6 +578,14 @@ export default function ProjectSettings() {
           <DialogHeader>
             <DialogTitle>{editingId && editingType === 'project' ? '編輯品牌' : '新增品牌'}</DialogTitle>
           </DialogHeader>
+          {(() => {
+            const usedColors = new Set(
+              projects
+                .filter(p => p.id !== editingId)
+                .map(p => p.default_color)
+                .filter(Boolean)
+            );
+            return (
           <div className="space-y-4 py-4">
             <div>
               <Label>品牌全名</Label>
@@ -621,7 +629,9 @@ export default function ProjectSettings() {
               <div className="mt-2 space-y-2">
                 {/* 色票 */}
                 <div className="flex gap-2 flex-wrap">
-                  {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16'].map(color => (
+                  {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16']
+                    .filter(color => !usedColors.has(color))
+                    .map(color => (
                     <button
                       key={color}
                       type="button"
@@ -635,6 +645,10 @@ export default function ProjectSettings() {
                     />
                   ))}
                 </div>
+                {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16']
+                  .filter(c => !usedColors.has(c)).length === 0 && (
+                  <p className="text-xs text-gray-400">所有預設顏色已被使用，請用 Hex 輸入自訂顏色</p>
+                )}
                 {/* Hex 輸入 */}
                 <div className="flex items-center gap-2">
                   <div
@@ -684,10 +698,12 @@ export default function ProjectSettings() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               {editingId && editingType === 'project' ? '更新' : '建立'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </Button>
+              </DialogFooter>
+              );
+              })()}
+              </DialogContent>
+              </Dialog>
 
       {/* Group Dialog */}
       <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
