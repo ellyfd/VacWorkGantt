@@ -376,6 +376,9 @@ export default function GanttChart() {
     setPendingTask(null);
   };
 
+  // ── Lookup Maps（需要先定義以供 days useMemo 使用）
+  const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
+
   // Get days based on viewMode (infinite scroll: center ± buffer)
   const days = useMemo(() => {
     if (viewMode === 'quarter') {
