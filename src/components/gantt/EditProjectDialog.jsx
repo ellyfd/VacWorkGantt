@@ -80,8 +80,8 @@ export default function EditProjectDialog({
                       </button>
                     </div>
 
-                    {/* 第二行：時間類型 + 日期 */}
-                    <div className="flex items-center gap-2 pl-4">
+                    {/* 第二行：時間類型（獨立一行） */}
+                    <div className="pl-4">
                       <Select
                         value={task.time_type || ''}
                         onValueChange={(val) =>
@@ -93,8 +93,8 @@ export default function EditProjectDialog({
                           })
                         }
                       >
-                        <SelectTrigger className="w-28 h-7 text-xs">
-                          <SelectValue placeholder="類型" />
+                        <SelectTrigger className="h-7 text-xs w-full">
+                          <SelectValue placeholder="不設定時間" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value={null}>不設定</SelectItem>
@@ -103,55 +103,57 @@ export default function EditProjectDialog({
                           <SelectItem value="rolling">▶ Rolling</SelectItem>
                         </SelectContent>
                       </Select>
-
-                      {/* 里程碑：單一日期 */}
-                      {task.time_type === 'milestone' && (
-                        <Input
-                          type="date"
-                          value={task.start_date || ''}
-                          onChange={(e) =>
-                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
-                          }
-                          className="h-7 text-xs w-36"
-                        />
-                      )}
-
-                      {/* 區間：開始 ~ 結束 */}
-                      {task.time_type === 'duration' && (
-                        <>
-                          <Input
-                            type="date"
-                            value={task.start_date || ''}
-                            onChange={(e) =>
-                              onUpdateTask(task.id, { ...task, start_date: e.target.value })
-                            }
-                            className="h-7 text-xs w-36"
-                          />
-                          <span className="text-gray-400 text-xs">～</span>
-                          <Input
-                            type="date"
-                            value={task.end_date || ''}
-                            min={task.start_date}
-                            onChange={(e) =>
-                              onUpdateTask(task.id, { ...task, end_date: e.target.value })
-                            }
-                            className="h-7 text-xs w-36"
-                          />
-                        </>
-                      )}
-
-                      {/* Rolling：開始日期 */}
-                      {task.time_type === 'rolling' && (
-                        <Input
-                          type="date"
-                          value={task.start_date || ''}
-                          onChange={(e) =>
-                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
-                          }
-                          className="h-7 text-xs w-36"
-                        />
-                      )}
                     </div>
+
+                    {/* 第三行：日期欄位（依類型顯示） */}
+                    {task.time_type === 'milestone' && (
+                      <div className="pl-4">
+                        <Input
+                          type="date"
+                          value={task.start_date || ''}
+                          onChange={(e) =>
+                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
+                          }
+                          className="h-7 text-xs w-full"
+                        />
+                      </div>
+                    )}
+
+                    {task.time_type === 'duration' && (
+                      <div className="pl-4 flex items-center gap-2">
+                        <Input
+                          type="date"
+                          value={task.start_date || ''}
+                          onChange={(e) =>
+                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
+                          }
+                          className="h-7 text-xs flex-1"
+                        />
+                        <span className="text-gray-400 text-xs flex-shrink-0">～</span>
+                        <Input
+                          type="date"
+                          value={task.end_date || ''}
+                          min={task.start_date}
+                          onChange={(e) =>
+                            onUpdateTask(task.id, { ...task, end_date: e.target.value })
+                          }
+                          className="h-7 text-xs flex-1"
+                        />
+                      </div>
+                    )}
+
+                    {task.time_type === 'rolling' && (
+                      <div className="pl-4">
+                        <Input
+                          type="date"
+                          value={task.start_date || ''}
+                          onChange={(e) =>
+                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
+                          }
+                          className="h-7 text-xs w-full"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
