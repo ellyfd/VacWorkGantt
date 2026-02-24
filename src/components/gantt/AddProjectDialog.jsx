@@ -4,6 +4,17 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+const COLORS = [
+  { value: '#3b82f6', label: '藍' },
+  { value: '#8b5cf6', label: '紫' },
+  { value: '#10b981', label: '綠' },
+  { value: '#f59e0b', label: '橘' },
+  { value: '#ef4444', label: '紅' },
+  { value: '#ec4899', label: '粉' },
+  { value: '#06b6d4', label: '青' },
+  { value: '#6b7280', label: '灰' },
+];
+
 export default function AddProjectDialog({ open, onOpenChange, projectFormData, setProjectFormData, projects, onConfirm, isLoading }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -38,6 +49,27 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* 顏色選擇 */}
+          <div>
+            <Label className="mb-2 block">顏色</Label>
+            <div className="flex gap-2 flex-wrap">
+              {COLORS.map(c => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setProjectFormData({ ...projectFormData, color: c.value })}
+                  className="w-7 h-7 rounded-full transition-all"
+                  style={{
+                    backgroundColor: c.value,
+                    outline: projectFormData.color === c.value ? `3px solid ${c.value}` : '3px solid transparent',
+                    outlineOffset: 2,
+                  }}
+                  title={c.label}
+                />
+              ))}
             </div>
           </div>
         </div>
