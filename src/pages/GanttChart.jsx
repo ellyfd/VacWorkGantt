@@ -94,7 +94,7 @@ export default function GanttChart() {
   const rightPanelContainerRef = useRef(null);
   
   // 使用 custom hooks
-  const { selectedTaskId, setSelectedTaskId, contextMenuDate, setContextMenuDate, firstDate, setFirstDate, secondDate, setSecondDate, drawingMode, setDrawingMode, pendingTask, setPendingTask, clearSelection } = useSelectionState();
+  const { contextMenuDate, setContextMenuDate, clearSelection } = useSelectionState();
   const { isDragging, setIsDragging, dragTaskId, setDragTaskId, dragStart, setDragStart, dragEnd, setDragEnd } = useDragState();
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditPhaseDialog, setShowEditPhaseDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, editingPhase, setEditingPhase, editingPhaseName, setEditingPhaseName, editingPhaseTasks, setEditingPhaseTasks, newTaskName, setNewTaskName, deleteConfirm, setDeleteConfirm } = useDialogState();
   const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
