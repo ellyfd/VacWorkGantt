@@ -480,7 +480,7 @@ export default function GanttChart() {
     return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
   };
 
-  // ── Lookup Maps ──────────────────────────────────────────────
+  // ── More Lookup Maps ──────────────────────────────────────────────
   const tasksByProjectId = useMemo(() => {
     return ganttTasks.reduce((acc, task) => {
       (acc[task.gantt_project_id] ??= []).push(task);
