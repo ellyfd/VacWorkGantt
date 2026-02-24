@@ -890,10 +890,8 @@ export default function GanttChart() {
                   className="absolute inset-0 flex items-center justify-center"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedTaskId(task.id);
-                    setShowMilestoneDialog(task.time_type === 'milestone');
-                    setShowDurationDialog(task.time_type === 'duration');
-                    setShowRollingDialog(task.time_type === 'rolling');
+                    setEditingTask({ ...task });
+                    setShowEditTaskDialog(true);
                   }}
                   onContextMenu={(e) => e.stopPropagation()}
                 >
