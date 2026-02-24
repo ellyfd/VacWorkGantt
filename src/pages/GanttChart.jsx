@@ -430,10 +430,7 @@ export default function GanttChart() {
     return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
   };
 
-  // ── More Lookup Maps ──────────────────────────────────────────────
-  const employeeMap = useMemo(() =>
-    Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
-
+  // ── More Lookup Maps（已在上面定義）──────────────────────────────────────────────
   const tasksByProjectId = useMemo(() => {
     return ganttTasks.reduce((acc, task) => {
       (acc[task.gantt_project_id] ??= []).push(task);
