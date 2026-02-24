@@ -1010,13 +1010,12 @@ export default function GanttChart() {
         <ContextMenu key={dateStr}>
           <ContextMenuTrigger asChild>
             <div
-              className={`border-r border-gray-200 relative cursor-pointer hover:bg-yellow-50 transition-colors ${
-                isInDragRangePhase ? 'bg-blue-200' : selectedPhaseTask ? 'bg-blue-50' : ''
-              }`}
+              className="relative cursor-pointer"
               style={{
                 width: CELL_WIDTH, 
                 height: ROW_HEIGHT,
-                borderBottom: '1px solid #d1d5db',
+                borderRight: '1px solid #e5e7eb',
+                borderBottom: '1px solid #e5e7eb',
                 backgroundColor: isInDragRangePhase ? '#bfdbfe'
                   : selectedPhaseTask ? '#eff6ff'
                   : isDimmed ? '#d1d5db'
