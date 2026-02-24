@@ -991,7 +991,7 @@ export default function GanttChart() {
     // 取得該層的所有項目
     let items = [];
     if (sourceType === 'project') {
-      items = ganttProjects;
+      items = visibleRows.map(r => r.data); // 用篩選後的順序，與 Draggable index 一致
     } else if (sourceType === 'phase') {
       items = ganttPhases.filter(p => p.gantt_project_id === destParentId);
     } else if (sourceType === 'task') {
