@@ -1408,7 +1408,6 @@ export default function GanttChart() {
 
       {/* Gantt Chart */}
       <Card className="overflow-hidden">
-        <DragDropContext onDragEnd={handleDragEnd}>
           <div className="flex">
             {/* Left Panel */}
             <div className="w-64 flex-shrink-0 border-r border-gray-300">
