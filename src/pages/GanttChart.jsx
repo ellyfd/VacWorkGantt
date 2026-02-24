@@ -1538,6 +1538,9 @@ export default function GanttChart() {
                               <ContextMenuItem onClick={() => handleClearTime(task.id)} className="pl-4">
                                 <X className="w-3 h-3 mr-2" /> 清除時間
                               </ContextMenuItem>
+                              <ContextMenuItem onClick={() => { setEditingTask(task); setShowEditTaskDialog(true); }} className="pl-4">
+                                <Edit2 className="w-3 h-3 mr-2" /> 編輯
+                              </ContextMenuItem>
                             </React.Fragment>
                           ))}
                         </ContextMenuContent>
