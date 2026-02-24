@@ -1019,14 +1019,24 @@ export default function GanttChart() {
     const [movedItem] = reorderedItems.splice(source.index, 1);
     reorderedItems.splice(destination.index, 0, movedItem);
 
-    // 批量更新所有项目的排序（不检查是否改变，直接更新）
-    reorderedItems.forEach((item, idx) => {
-      updateSortOrder.mutate({
-        id: item.id,
-        entityType: sourceType,
-        sortOrder: idx,
-      });
-    });
+    // 批量更新所有项目的排序（并发执行）
+    Promise.all(
+      reorderedItems.map((item, idx) =>
+        new Promise((resolve) => {
+          updateSortOrder.mutate(
+            {
+              id: item.id,
+              entityType: sourceType,
+              sortOrder: idx,
+            },
+            {
+              onSuccess: resolve,
+              onError: resolve, // 无论成功或失败都继续
+            }
+          );
+        })
+      )
+    );
   };
 
   // 渲染左側單元格（memoized）
