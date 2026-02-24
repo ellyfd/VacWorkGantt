@@ -1235,7 +1235,7 @@ export default function GanttChart() {
        </div>
        );
        });
-       }, [tasksByProjectId, dayIndexMap, CELL_WIDTH, days.length]);
+       }, [tasksByProjectId, dayIndexMap, CELL_WIDTH, days.length, addDays, subDays]);
 
         // 取得排序後的日期
   const getSortedDates = () => {
