@@ -1064,6 +1064,7 @@ export default function GanttChart() {
                   backgroundColor: bgColor,
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   pointerEvents: 'auto',
@@ -1086,13 +1087,13 @@ export default function GanttChart() {
                       flexShrink: 0,
                     }} />
                     <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>
-                      {task.name}
+                      {`${row.data.name} ${task.name}`}
                     </span>
                   </div>
                 )}
                 {(task.time_type === 'duration' || task.time_type === 'rolling') && (
-                  <span style={{ fontSize: 12, color: textColor, fontWeight: 500, paddingLeft: 8 }}>
-                    {task.name}
+                  <span style={{ fontSize: 12, color: textColor, fontWeight: 500 }}>
+                    {`${row.data.name} ${task.name}`}
                   </span>
                 )}
               </div>
