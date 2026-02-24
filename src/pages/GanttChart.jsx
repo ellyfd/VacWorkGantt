@@ -831,36 +831,14 @@ export default function GanttChart() {
   // 渲染右側單元格
   const renderRightCell = (row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
-    // 季模式：這個 cell 代表一整週 (day = 週一)
     const weekEndStr = viewMode === 'quarter' ? format(addDays(day, 6), 'yyyy-MM-dd') : dateStr;
-
-    const isFirstSelected = selectedTaskId === row.data?.id && firstDate && format(firstDate, 'yyyy-MM-dd') === dateStr;
-    const isSecondSelected = selectedTaskId === row.data?.id && secondDate && format(secondDate, 'yyyy-MM-dd') === dateStr;
-
     const dayOfWeek = getDay(day);
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const isHoliday = holidays?.some(h => h.date === dateStr);
     const isDimmed = isWeekend || isHoliday;
 
-    // 專案列
     if (row.type === 'project') {
-      return (
-        <div
-          key={dateStr}
-          className="border-r border-gray-200"
-          style={{ 
-            width: CELL_WIDTH, 
-            height: ROW_HEIGHT, 
-            backgroundColor: isDimmed ? '#d1d5db' : '#e5e7eb',
-            borderBottom: '1px solid #d1d5db'
-          }}
-        />
-      );
-    }
-
-    // 階段列：直接渲染該 phase 底下所有任務的 bar/milestone
-    if (row.type === 'phase') {
-      const phaseTasks = ganttTasks.filter(t => t.gantt_phase_id === row.data.id);
+      const projectTasks = ganttTasks.filter(t => t.gantt_project_id === row.data.id);
 
       const renderTaskBar = (task) => {
         const taskStartDate = task.start_date;
@@ -871,98 +849,94 @@ export default function GanttChart() {
         const isEnd = viewMode === 'quarter'
           ? taskEndDate && taskEndDate >= dateStr && taskEndDate <= weekEndStr
           : taskEndDate === dateStr;
-        const isInRange =
-          task.time_type === 'duration' && taskStartDate && taskEndDate &&
+        const isInRange = task.time_type === 'duration' && taskStartDate && taskEndDate &&
           (viewMode === 'quarter'
             ? dateStr <= taskEndDate && weekEndStr >= taskStartDate
             : dateStr >= taskStartDate && dateStr <= taskEndDate);
-        const isRolling =
-          task.time_type === 'rolling' && taskStartDate &&
+        const isRolling = task.time_type === 'rolling' && taskStartDate &&
           (viewMode === 'quarter' ? weekEndStr >= taskStartDate : dateStr >= taskStartDate);
 
         const isSelectedTask = selectedTaskId === task.id;
-        const isFirstSel = isSelectedTask && firstDate && format(firstDate, 'yyyy-MM-dd') === dateStr;
-        const isSecondSel = isSelectedTask && secondDate && format(secondDate, 'yyyy-MM-dd') === dateStr;
-
-        let tooltipText = '';
-        if (task.time_type === 'milestone' && isStart) tooltipText = `◆ ${task.name}: ${taskStartDate}`;
-        else if (task.time_type === 'duration' && isInRange) tooltipText = `▬ ${task.name}: ${taskStartDate} → ${taskEndDate}`;
-        else if (task.time_type === 'rolling' && isRolling) tooltipText = `▶ ${task.name}: ${taskStartDate}~`;
-
         const hasVisual = (task.time_type === 'milestone' && isStart) ||
           (task.time_type === 'duration' && isInRange) ||
           (task.time_type === 'rolling' && isRolling);
 
-        if (!hasVisual && !isFirstSel && !isSecondSel) return null;
+        if (!hasVisual) return null;
+
+        let tooltipContent = task.name;
+        if (task.start_date) tooltipContent += ` ${task.start_date}${task.end_date ? ` → ${task.end_date}` : ''}`;
 
         return (
-          <TooltipProvider key={task.id} delayDuration={300}>
+          <TooltipProvider key={task.id} delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  className="absolute inset-0 flex items-center justify-center"
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedTaskId(task.id);
-                    if (hasVisual) {
-                      setShowMilestoneDialog(task.time_type === 'milestone');
-                      setShowDurationDialog(task.time_type === 'duration');
-                      setShowRollingDialog(task.time_type === 'rolling');
-                    } else {
-                      handleDateClick(day, task.id);
-                    }
+                    setShowMilestoneDialog(task.time_type === 'milestone');
+                    setShowDurationDialog(task.time_type === 'duration');
+                    setShowRollingDialog(task.time_type === 'rolling');
                   }}
                   onContextMenu={(e) => e.stopPropagation()}
                 >
-                  {/* 里程碑 ◆ */}
+                  {/* 里程碑 ◆ + 名稱 */}
                   {task.time_type === 'milestone' && isStart && (
-                    <div className={`w-3.5 h-3.5 transform rotate-45 z-10 ${task.is_important ? 'bg-yellow-500' : isSelectedTask ? 'bg-blue-700' : 'bg-blue-500'}`} />
+                    <div className="relative flex items-center gap-1 z-10 cursor-pointer">
+                      <div className={`w-3 h-3 transform rotate-45 flex-shrink-0 ${task.is_important ? 'bg-yellow-500' : isSelectedTask ? 'bg-blue-700' : 'bg-blue-500'}`} />
+                      <span className="text-[10px] text-gray-700 whitespace-nowrap font-medium leading-none select-none">
+                        {task.name}
+                      </span>
+                    </div>
                   )}
-                  {/* 區間 ████ */}
+                  {/* 區間 bar + 名稱 */}
                   {task.time_type === 'duration' && isInRange && (
-                    <div className={`absolute top-1/2 h-3 transform -translate-y-1/2 z-10 ${isSelectedTask ? 'bg-blue-600' : 'bg-blue-400'} ${
-                      isStart && isEnd ? 'left-2 right-2 rounded' :
-                      isStart ? 'left-2 right-0 rounded-l' :
-                      isEnd ? 'left-0 right-2 rounded-r' :
+                    <div className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${isSelectedTask ? 'bg-blue-600' : 'bg-blue-400'} ${
+                      isStart && isEnd ? 'left-1 right-1 rounded' :
+                      isStart ? 'left-1 right-0 rounded-l' :
+                      isEnd ? 'left-0 right-1 rounded-r' :
                       'left-0 right-0'
-                    }`} />
+                    }`}>
+                      {isStart && (
+                        <span className="text-[10px] text-white font-medium px-1.5 whitespace-nowrap select-none">
+                          {task.name}
+                        </span>
+                      )}
+                    </div>
                   )}
-                  {/* Rolling */}
+                  {/* Rolling bar + 名稱 */}
                   {task.time_type === 'rolling' && isRolling && (
-                    <div className={`absolute top-1/2 h-3 transform -translate-y-1/2 z-10 ${
+                    <div className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
                       isStart
-                        ? 'left-2 right-0 bg-gradient-to-r from-purple-500 to-purple-300 rounded-l'
+                        ? 'left-1 right-0 bg-gradient-to-r from-purple-500 to-purple-300 rounded-l'
                         : 'left-0 right-0 bg-purple-300'
-                    }`} />
-                  )}
-                  {/* 選中標記 */}
-                  {isFirstSel && !isSecondSel && (
-                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold z-20">1</div>
-                  )}
-                  {isSecondSel && (
-                    <div className="absolute top-0 right-0 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-bl font-bold z-20">2</div>
+                    }`}>
+                      {isStart && (
+                        <span className="text-[10px] text-white font-medium px-1.5 whitespace-nowrap select-none">
+                          {task.name}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </TooltipTrigger>
-              {tooltipText && (
-                <TooltipContent side="top" className="text-xs max-w-48">
-                  {tooltipText}
-                  {task.note && <div className="text-gray-400 mt-0.5">{task.note}</div>}
-                </TooltipContent>
-              )}
+              <TooltipContent side="top" className="text-xs max-w-48">
+                {tooltipContent}
+                {task.note && <div className="text-gray-400 mt-0.5">{task.note}</div>}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         );
       };
 
-      const hasDragOnPhase = isDragging && phaseTasks.some(t => t.id === dragTaskId);
-      const isInDragRangePhase = hasDragOnPhase && dragStart && dragEnd && (() => {
+      const hasDragOnProject = isDragging && projectTasks.some(t => t.id === dragTaskId);
+      const isInDragRange = hasDragOnProject && dragStart && dragEnd && (() => {
         const s = format(dragStart < dragEnd ? dragStart : dragEnd, 'yyyy-MM-dd');
         const e = format(dragStart < dragEnd ? dragEnd : dragStart, 'yyyy-MM-dd');
         return dateStr >= s && dateStr <= e;
       })();
-
-      const selectedPhaseTask = phaseTasks.find(t => t.id === selectedTaskId);
+      const selectedProjectTask = projectTasks.find(t => t.id === selectedTaskId);
 
       return (
         <ContextMenu key={dateStr}>
@@ -970,19 +944,17 @@ export default function GanttChart() {
             <div
               className="relative cursor-pointer"
               style={{
-                width: CELL_WIDTH, 
                 height: ROW_HEIGHT,
                 borderRight: '1px solid #d1d5db',
                 borderBottom: '1px solid #d1d5db',
-                backgroundColor: isInDragRangePhase ? '#bfdbfe'
+                backgroundColor: isInDragRange ? '#bfdbfe'
                   : isDimmed ? '#d1d5db'
-                  : selectedPhaseTask ? '#eff6ff'
-                  : '#f9fafb'
+                  : selectedProjectTask ? '#eff6ff'
+                  : '#f9fafb',
               }}
               onMouseDown={(e) => {
                 if (e.button !== 0) return;
-                // 拖曳畫區間：需要先有選中任務
-                if (selectedTaskId && phaseTasks.some(t => t.id === selectedTaskId)) {
+                if (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId)) {
                   setIsDragging(true);
                   setDragTaskId(selectedTaskId);
                   setDragStart(day);
@@ -990,7 +962,7 @@ export default function GanttChart() {
                 }
               }}
               onMouseEnter={() => {
-                if (isDragging && phaseTasks.some(t => t.id === dragTaskId)) {
+                if (isDragging && projectTasks.some(t => t.id === dragTaskId)) {
                   setDragEnd(day);
                 }
               }}
@@ -1005,28 +977,23 @@ export default function GanttChart() {
                 }
                 setIsDragging(false);
                 setDragTaskId(null);
-                // 退出畫日期模式
                 setDrawingMode(false);
                 setPendingTask(null);
               }}
               onClick={() => {
                 if (isDragging) return;
-                if (selectedPhaseTask) {
-                  handleDateClick(day, selectedPhaseTask.id);
-                }
+                if (selectedProjectTask) handleDateClick(day, selectedProjectTask.id);
               }}
-              >
-              {/* 今天標記 */}
+            >
               {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500 z-20" />}
-              {/* 所有任務 bars */}
-              {phaseTasks.map(task => renderTaskBar(task))}
-              </div>
-              </ContextMenuTrigger>
+              {projectTasks.map(task => renderTaskBar(task))}
+            </div>
+          </ContextMenuTrigger>
           <ContextMenuContent>
-            {phaseTasks.length === 0 && (
-              <ContextMenuItem disabled className="text-gray-400 text-xs">此 Phase 尚無任務</ContextMenuItem>
+            {projectTasks.length === 0 && (
+              <ContextMenuItem disabled className="text-gray-400 text-xs">此專案尚無任務</ContextMenuItem>
             )}
-            {phaseTasks.map(task => (
+            {projectTasks.map(task => (
               <React.Fragment key={task.id}>
                 <ContextMenuItem className="font-medium text-xs text-gray-500 cursor-default" disabled>{task.name}</ContextMenuItem>
                 <ContextMenuItem onClick={() => handleSetMilestone(task.id, day)} className="pl-4">
