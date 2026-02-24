@@ -1591,6 +1591,102 @@ export default function GanttChart() {
         onConfirm={handleAddTask}
       />
 
+      {/* Edit Task Dialog */}
+      <Dialog open={showEditTaskDialog} onOpenChange={setShowEditTaskDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>編輯任務</DialogTitle>
+          </DialogHeader>
+          {editingTask && (
+            <div className="space-y-4 py-2">
+              <div>
+                <Label>任務名稱 *</Label>
+                <Input
+                  value={editingTask.name}
+                  onChange={(e) => setEditingTask({ ...editingTask, name: e.target.value })}
+                  className="mt-1"
+                  autoFocus
+                />
+              </div>
+              <div className="border-t pt-4">
+                <Label className="mb-2 block text-gray-600">時間類型</Label>
+                <div className="flex gap-1.5">
+                  {[
+                    { value: '', label: '不設定' },
+                    { value: 'milestone', label: '◆ 里程碑' },
+                    { value: 'duration', label: '▬ 區間' },
+                    { value: 'rolling', label: '▶ Rolling' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setEditingTask({ ...editingTask, time_type: opt.value, start_date: '', end_date: '' })}
+                      className={`flex-1 text-xs px-1.5 py-1.5 rounded border transition-colors ${
+                        (editingTask.time_type || '') === opt.value
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {editingTask.time_type === 'milestone' && (
+                  <div className="mt-3">
+                    <Label className="text-xs">日期</Label>
+                    <Input type="date" value={editingTask.start_date || ''} className="mt-1"
+                      onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
+                  </div>
+                )}
+                {editingTask.time_type === 'duration' && (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">開始</Label>
+                      <Input type="date" value={editingTask.start_date || ''} className="mt-1"
+                        onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">結束</Label>
+                      <Input type="date" value={editingTask.end_date || ''} className="mt-1"
+                        min={editingTask.start_date}
+                        onChange={(e) => setEditingTask({ ...editingTask, end_date: e.target.value })} />
+                    </div>
+                  </div>
+                )}
+                {editingTask.time_type === 'rolling' && (
+                  <div className="mt-3">
+                    <Label className="text-xs">開始日期</Label>
+                    <Input type="date" value={editingTask.start_date || ''} className="mt-1"
+                      onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex justify-between">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                if (window.confirm(`確定刪除「${editingTask?.name}」？`)) {
+                  deleteGanttTask.mutate(editingTask.id);
+                  setShowEditTaskDialog(false);
+                  setEditingTask(null);
+                }
+              }}
+            >
+              刪除
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowEditTaskDialog(false)}>取消</Button>
+              <Button size="sm" onClick={handleEditTask} disabled={!editingTask?.name} className="bg-blue-600 hover:bg-blue-700">
+                儲存
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <EditPhaseDialog
         open={showEditPhaseDialog}
         onOpenChange={setShowEditPhaseDialog}
