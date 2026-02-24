@@ -634,6 +634,9 @@ export default function GanttChart() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // 邊緣自動捲動 RAF ref
+  const edgeScrollRafRef = useRef(null);
+
   // 全域 mouseup：防止拖曳後在格子外放開滑鼠造成狀態卡住
   React.useEffect(() => {
     if (!isDragging) return;
@@ -651,10 +654,77 @@ export default function GanttChart() {
       setDragTaskId(null);
       setDrawingMode(false);
       setPendingTask(null);
+      // 停止邊緣捲動
+      if (edgeScrollRafRef.current) {
+        cancelAnimationFrame(edgeScrollRafRef.current);
+        edgeScrollRafRef.current = null;
+      }
     };
     window.addEventListener('mouseup', handleMouseUp);
     return () => window.removeEventListener('mouseup', handleMouseUp);
   }, [isDragging, dragStart, dragEnd, dragTaskId]);
+
+  // 拖曳時，靠近邊緣自動捲動
+  React.useEffect(() => {
+    if (!isDragging) {
+      if (edgeScrollRafRef.current) {
+        cancelAnimationFrame(edgeScrollRafRef.current);
+        edgeScrollRafRef.current = null;
+      }
+      return;
+    }
+
+    const EDGE_ZONE = 40;
+    const SCROLL_SPEED = 8;
+
+    const handleMouseMove = (e) => {
+      const el = rightPanelRef.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const mouseX = e.clientX;
+
+      // 停止舊的 edge-scroll
+      if (edgeScrollRafRef.current) {
+        cancelAnimationFrame(edgeScrollRafRef.current);
+        edgeScrollRafRef.current = null;
+      }
+
+      // 靠近右邊緣
+      if (mouseX > rect.right - EDGE_ZONE) {
+        const intensity = 1 - (rect.right - mouseX) / EDGE_ZONE;
+        const step = SCROLL_SPEED * (1 + intensity * 2);
+
+        const scroll = () => {
+          if (!rightPanelRef.current || !isDragging) return;
+          rightPanelRef.current.scrollLeft += step;
+          edgeScrollRafRef.current = requestAnimationFrame(scroll);
+        };
+        edgeScrollRafRef.current = requestAnimationFrame(scroll);
+      }
+      // 靠近左邊緣
+      else if (mouseX < rect.left + EDGE_ZONE) {
+        const intensity = 1 - (mouseX - rect.left) / EDGE_ZONE;
+        const step = SCROLL_SPEED * (1 + intensity * 2);
+
+        const scroll = () => {
+          if (!rightPanelRef.current || !isDragging) return;
+          rightPanelRef.current.scrollLeft -= step;
+          edgeScrollRafRef.current = requestAnimationFrame(scroll);
+        };
+        edgeScrollRafRef.current = requestAnimationFrame(scroll);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (edgeScrollRafRef.current) {
+        cancelAnimationFrame(edgeScrollRafRef.current);
+        edgeScrollRafRef.current = null;
+      }
+    };
+  }, [isDragging]);
 
   const rightBodyRef = useRef(null);
   const prevDaysLengthRef = useRef(0);
