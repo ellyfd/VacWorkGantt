@@ -411,14 +411,43 @@ export default function GanttChart() {
     return brand.group_id === makalotGroup?.id ? 'makalot' : 'dpc';
   }, [projects, makalotGroup]);
 
-  const filteredLeaveRecords = useMemo(() => {
-    if (!selectedDeptId) return leaveRecords;
-    const deptEmployeeIds = new Set(
-      employees
-        .filter(emp => (emp.department_ids || []).includes(selectedDeptId))
-        .map(emp => emp.id)
-    );
-    return leaveRecords.filter(r => deptEmployeeIds.has(r.employee_id));
+  const { filteredLeaveRecords, leaveCountByDate, leaveNamesByDate } = useMemo(() => {
+    // 第一步：篩選請假記錄
+    let filtered = leaveRecords;
+    if (selectedDeptId) {
+      const deptEmployeeIds = new Set(
+        employees
+          .filter(emp => (emp.department_ids || []).includes(selectedDeptId))
+          .map(emp => emp.id)
+      );
+      filtered = leaveRecords.filter(r => deptEmployeeIds.has(r.employee_id));
+    }
+
+    // 第二步：統計每天請假人數和人員名單
+    const countMap = {};
+    const namesMap = {};
+    filtered.forEach(r => {
+      if (!countMap[r.date]) {
+        countMap[r.date] = new Set();
+        namesMap[r.date] = [];
+      }
+      countMap[r.date].add(r.employee_id);
+      if (!namesMap[r.date].find(e => e.employeeId === r.employee_id)) {
+        namesMap[r.date].push({ employeeId: r.employee_id });
+      }
+    });
+
+    // 轉換 countMap 中的 Set 為數字
+    const countResult = {};
+    Object.entries(countMap).forEach(([date, set]) => {
+      countResult[date] = set.size;
+    });
+
+    return {
+      filteredLeaveRecords: filtered,
+      leaveCountByDate: countResult,
+      leaveNamesByDate: namesMap,
+    };
   }, [leaveRecords, selectedDeptId, employees]);
 
   const visibleRows = useMemo(() => {
@@ -430,30 +459,6 @@ export default function GanttChart() {
       return true;
     });
   }, [rows, selectedGroupSlug, selectedBrandIds, getDept]);
-
-  const leaveCountByDate = useMemo(() => {
-    const map = {};
-    filteredLeaveRecords.forEach(r => {
-      if (!map[r.date]) map[r.date] = new Set();
-      map[r.date].add(r.employee_id);
-    });
-    const result = {};
-    Object.entries(map).forEach(([date, set]) => {
-      result[date] = set.size;
-    });
-    return result;
-  }, [filteredLeaveRecords]);
-
-  const leaveNamesByDate = useMemo(() => {
-    const map = {};
-    filteredLeaveRecords.forEach(r => {
-      if (!map[r.date]) map[r.date] = [];
-      if (!map[r.date].find(e => e.employeeId === r.employee_id)) {
-        map[r.date].push({ employeeId: r.employee_id });
-      }
-    });
-    return map;
-  }, [filteredLeaveRecords]);
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
