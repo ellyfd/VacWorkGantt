@@ -1435,45 +1435,24 @@ export default function GanttChart() {
               >
                 請假人數
               </div>
-              <Droppable droppableId="droppable-project" type="PROJECT">
-                {(provided, snapshot) => (
-                  <div
-                    className="overflow-y-auto"
-                    style={{ maxHeight: 'calc(100vh - 440px)' }}
-                    ref={(el) => {
-                      provided.innerRef(el);
-                      leftPanelRef.current = el;
-                    }}
-                    {...provided.droppableProps}
-                  >
-                    {visibleRows.map((row, idx) => {
-                     const droppableIdForPhase = row.type === 'phase' ? `droppable-phase-${row.data.gantt_project_id}` : undefined;
-                     const draggableType = row.type.toUpperCase();
-
-                      return (
-                        <Draggable key={row.id} draggableId={row.id} index={idx} type={draggableType}>
-                          {(provided, snapshot) => (
-                            <div
-                              className="border-b border-gray-200"
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              {renderLeftCell(row, snapshot.isDragging)}
-                            </div>
-                          )}
-                        </Draggable>
-                      );
-                    })}
-                    {visibleRows.length === 0 && (
-                      <div className="p-8 text-center text-gray-400">
-                        點擊「新增開發季」開始
-                      </div>
-                    )}
-                    {provided.placeholder}
+              <div
+                className="overflow-y-auto"
+                style={{ maxHeight: 'calc(100vh - 440px)' }}
+                ref={(el) => {
+                  leftPanelRef.current = el;
+                }}
+              >
+                {visibleRows.map((row) => (
+                  <div key={row.id} className="border-b border-gray-200">
+                    {renderLeftCell(row)}
+                  </div>
+                ))}
+                {visibleRows.length === 0 && (
+                  <div className="p-8 text-center text-gray-400">
+                    點擊「新增開發季」開始
                   </div>
                 )}
-              </Droppable>
+              </div>
             </div>
 
           {/* Right Panel */}
