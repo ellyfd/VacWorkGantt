@@ -415,10 +415,13 @@ export default function GanttChart() {
 
   const visibleRows = useMemo(() => {
     return rows.filter(row => {
+      // 集團篩選
+      if (selectedDeptId && getDept(row.data) !== selectedDeptId) return false;
+      // 品牌篩選
       if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(row.data.brand_id)) return false;
       return true;
     });
-  }, [rows, selectedBrandIds]);
+  }, [rows, selectedDeptId, selectedBrandIds, projects, groups]);
 
   const leaveCountByDate = useMemo(() => {
     const map = {};
