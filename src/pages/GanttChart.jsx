@@ -478,6 +478,21 @@ export default function GanttChart() {
     return task ? task.name : '';
   };
 
+  const handleDeptChange = (deptId) => {
+    setSelectedDeptId(deptId);
+    
+    if (!deptId) {
+      setSelectedGroupSlug(null);
+      return;
+    }
+    
+    const dept = departments.find(d => d.id === deptId);
+    const group = groups.find(g => g.id === dept?.group_id);
+    setSelectedGroupSlug(
+      group?.name.toLowerCase() === 'makalot' ? 'makalot' : 'dpc'
+    );
+  };
+
   // Handlers
   const handleAddProject = async () => {
     if (!projectFormData.brand_id || !projectFormData.season || !projectFormData.year) return;
@@ -1129,11 +1144,8 @@ export default function GanttChart() {
       <FilterBar
         departments={departments}
         projects={projects}
-        groups={groups}
-        selectedGroupSlug={selectedGroupSlug}
-        onGroupChange={setSelectedGroupSlug}
         selectedDeptId={selectedDeptId}
-        onDeptChange={setSelectedDeptId}
+        onDeptChange={handleDeptChange}
         selectedBrandIds={selectedBrandIds}
         onBrandChange={setSelectedBrandIds}
         hideHolidays={hideHolidays}
