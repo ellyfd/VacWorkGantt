@@ -633,6 +633,26 @@ export default function GanttChart() {
   }, [isDragging, dragStart, dragEnd, dragTaskId]);
 
   const rightBodyRef = useRef(null);
+  const prevDaysLengthRef = useRef(0);
+  const prevCenterDateRef = useRef(centerDate);
+
+  // 修復無限滾動滾動跳轉：當 centerDate 改變導致新日期加入時，補償滾動位置
+  React.useLayoutEffect(() => {
+    const el = rightPanelRef.current;
+    if (!el || days.length === 0) return;
+
+    const prevDaysLength = prevDaysLengthRef.current;
+    
+    // 如果向左擴展（新增了左邊的日期），需要補償 scrollLeft
+    if (prevDaysLength > 0 && days.length > prevDaysLength) {
+      const addedDays = days.length - prevDaysLength;
+      const scrollLeftDelta = addedDays * CELL_WIDTH;
+      el.scrollLeft += scrollLeftDelta;
+    }
+
+    prevDaysLengthRef.current = days.length;
+    prevCenterDateRef.current = centerDate;
+  }, [days.length, CELL_WIDTH, centerDate]);
 
   // 同步垂直滾動：左側 panel ↔ 右側 body
   React.useEffect(() => {
