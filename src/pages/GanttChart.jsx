@@ -314,9 +314,24 @@ export default function GanttChart() {
     },
   });
 
-  // Update task (with optimistic update for time changes)
+  // Update task (with optimistic update for time changes + undo support)
   const updateTaskWithOptimistic = (id, data) => {
     const previousTasks = queryClient.getQueryData(['ganttTasks']);
+    const oldTask = previousTasks?.find(t => t.id === id);
+    
+    // 記錄撤銷堆疊（只記錄時間相關的變更）
+    if (data.time_type !== undefined || data.start_date !== undefined || data.end_date !== undefined) {
+      undoStackRef.current.push({
+        type: 'task_update',
+        taskId: id,
+        previousData: {
+          time_type: oldTask?.time_type,
+          start_date: oldTask?.start_date,
+          end_date: oldTask?.end_date,
+        }
+      });
+    }
+    
     const newTasks = previousTasks?.map(task => 
       task.id === id ? { ...task, ...data } : task
     );
@@ -325,6 +340,7 @@ export default function GanttChart() {
     updateGanttTask.mutate({ id, data }, {
       onError: () => {
         queryClient.setQueryData(['ganttTasks'], previousTasks);
+        undoStackRef.current.pop(); // 失敗時移除
       }
     });
   };
