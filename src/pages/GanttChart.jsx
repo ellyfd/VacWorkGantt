@@ -553,14 +553,7 @@ export default function GanttChart() {
 
   const handleAddTask = () => {
     const projectId = creatingProjectIdRef.current;
-    console.log('=== handleAddTask ===');
-    console.log('projectId from ref:', projectId);
-    console.log('taskFormData:', taskFormData);
-    
-    if (!taskFormData.name || !projectId) {
-      console.log('BLOCKED - name:', taskFormData.name, 'projectId:', projectId);
-      return;
-    }
+    if (!taskFormData.name || !projectId) return;
 
     const tasksInProject = ganttTasks.filter((t) => t.gantt_project_id === projectId);
     const taskData = {
@@ -1117,14 +1110,6 @@ export default function GanttChart() {
     const projectColor = row.data.color || '#3b82f6';
     const textColor = getContrastColor(projectColor);
 
-    if (row.data.name.includes('TGT')) {
-      console.log('TGT tasks:', projectTasks);
-      projectTasks.forEach(t => {
-        const s = normalizeDate(t.start_date);
-        console.log(t.name, 'startDate:', s, 'inMap:', dayIndexMap[s]);
-      });
-    }
-
      return projectTasks.map(task => {
       if (!task.start_date) return null;
 
@@ -1133,8 +1118,8 @@ export default function GanttChart() {
       const endDateStr = normalizeDate(task.end_date);
       if (!startDateStr) return null;
 
-      // 計算 Bar 的 left 和 width
-      const startIdx = dayIndexMap[startDateStr] ?? -1;
+      // 用 allDaysIndexMap（不受 hideHolidays 影響）
+      const startIdx = allDaysIndexMap[startDateStr] ?? -1;
       if (startIdx < 0) return null;
 
       let left, width, bgColor;
@@ -1145,14 +1130,16 @@ export default function GanttChart() {
         bgColor = 'transparent';
       } else if (task.time_type === 'duration') {
         if (!endDateStr) return null;
-        const endIdx = dayIndexMap[endDateStr] ?? -1;
+        const endIdx = allDaysIndexMap[endDateStr] ?? -1;
         if (endIdx < 0) return null;
         left = startIdx * CELL_WIDTH + 2;
         width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
         bgColor = projectColor;
       } else if (task.time_type === 'rolling') {
         left = startIdx * CELL_WIDTH + 2;
-        width = (days.length - startIdx) * CELL_WIDTH - 4;
+        // rolling 用 allDaysIndexMap 的 total length
+        const allDaysLength = Object.keys(allDaysIndexMap).length;
+        width = (allDaysLength - startIdx) * CELL_WIDTH - 4;
         bgColor = projectColor;
       } else {
         return null;
@@ -1233,7 +1220,7 @@ export default function GanttChart() {
        </div>
        );
        });
-       }, [tasksByProjectId, dayIndexMap, CELL_WIDTH, days.length, isDragging, dragTaskId, dragStart, dragEnd]);
+       }, [tasksByProjectId, allDaysIndexMap, CELL_WIDTH, isDragging, dragTaskId, dragStart, dragEnd]);
 
         // 取得排序後的日期
   const getSortedDates = () => {
