@@ -1220,7 +1220,7 @@ export default function GanttChart() {
          style={{
            position: 'absolute',
            top: '50%',
-           transform: isSelected ? 'translateY(-50%) scale(1.05)' : 'translateY(-50%)',
+           transform: 'translateY(-50%)',
            left,
            width: width === 'auto' ? undefined : width,
            height: 28,
@@ -1231,27 +1231,14 @@ export default function GanttChart() {
            justifyContent: 'center',
            overflow: 'hidden',
            whiteSpace: 'nowrap',
-           pointerEvents: 'auto',
+           pointerEvents: 'none',
            opacity: 1,
-           cursor: isSelected ? 'crosshair' : 'pointer',
-           zIndex: isSelected ? 30 : 10,
-           outline: isSelected ? `2px solid ${task.is_important ? '#eab308' : '#1f2937'}` : 'none',
-           outlineOffset: isSelected ? '2px' : '0px',
+           cursor: 'default',
+           zIndex: 10,
+           outline: 'none',
+           outlineOffset: '0px',
            transition: 'outline 0.15s, transform 0.15s, z-index 0.15s',
          }}
-         onClick={(e) => {
-            e.stopPropagation();
-            if (selectedTaskId === task.id) {
-              // 已選中的情況下再點 → 開 dialog
-              setEditingTask({ ...task });
-              setShowEditTaskDialog(true);
-            } else {
-              // 第一次點 → 選取任務（進入可拖曳狀態）
-              setSelectedTaskId(task.id);
-              setFirstDate(null);
-              setSecondDate(null);
-            }
-          }}
        >
         {task.time_type === 'milestone' && (
           <div className="flex items-center gap-1 px-1">
