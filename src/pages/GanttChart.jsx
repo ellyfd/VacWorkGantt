@@ -1094,43 +1094,41 @@ export default function GanttChart() {
   // Memoize renderTaskBars to avoid unnecessary re-renders
   const renderTaskBars = useCallback((row) => {
    if (row.type !== 'project') return null;
-   const projectTasks = tasksByProjectId[row.data.id] ?? [];
-   const projectColor = row.data.color || '#3b82f6';
-   const textColor = getContrastColor(projectColor);
+    const projectTasks = tasksByProjectId[row.data.id] ?? [];
+    const projectColor = row.data.color || '#3b82f6';
+    const textColor = getContrastColor(projectColor);
 
-    return projectTasks.map(task => {
-     if (!task.start_date) return null;
+     return projectTasks.map(task => {
+      if (!task.start_date) return null;
 
-     // 計算 Bar 的 left 和 width
-     const startIdx = dayIndexMap[task.start_date] ?? -1;
-     if (startIdx < 0) return null;
+      // 計算 Bar 的 left 和 width
+      const startIdx = dayIndexMap[task.start_date] ?? -1;
+      if (startIdx < 0) return null;
 
-     let left, width, bgColor;
+      let left, width, bgColor;
 
-     if (task.time_type === 'milestone') {
-       left = startIdx * CELL_WIDTH + CELL_WIDTH / 2 - 8;
-       width = 'auto';
-       bgColor = 'transparent';
-     } else if (task.time_type === 'duration') {
-       if (!task.end_date) return null;
-       const endIdx = dayIndexMap[task.end_date] ?? -1;
-       if (endIdx < 0) return null;
-       left = startIdx * CELL_WIDTH + 2;
-       width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
-       bgColor = projectColor;
-     } else if (task.time_type === 'rolling') {
-       left = startIdx * CELL_WIDTH + 2;
-       width = (days.length - startIdx) * CELL_WIDTH - 4;
-       bgColor = projectColor;
-     } else {
-       return null;
-     }
+      if (task.time_type === 'milestone') {
+        left = startIdx * CELL_WIDTH + CELL_WIDTH / 2 - 8;
+        width = 'auto';
+        bgColor = 'transparent';
+      } else if (task.time_type === 'duration') {
+        if (!task.end_date) return null;
+        const endIdx = dayIndexMap[task.end_date] ?? -1;
+        if (endIdx < 0) return null;
+        left = startIdx * CELL_WIDTH + 2;
+        width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
+        bgColor = projectColor;
+      } else if (task.time_type === 'rolling') {
+        left = startIdx * CELL_WIDTH + 2;
+        width = (days.length - startIdx) * CELL_WIDTH - 4;
+        bgColor = projectColor;
+      } else {
+        return null;
+      }
 
-     const workingDays = task.time_type === 'duration' && task.start_date && task.end_date
-       ? calculateWorkingDays(task.start_date, task.end_date)
-       : 0;
-
-     return (
+      const workingDays = task.time_type === 'duration' && task.start_date && task.end_date
+        ? calculateWorkingDays(task.start_date, task.end_date)
+        : 0;
        <div
          key={task.id}
          style={{
