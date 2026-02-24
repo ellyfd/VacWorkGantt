@@ -590,7 +590,7 @@ export default function ProjectSettings() {
               />
             </div>
             <div>
-              <Label>品牌縮寫</Label>
+              <Label>品牌縮寫 *</Label>
               <Input
                 value={projectFormData.short_name}
                 onChange={(e) => setProjectFormData({ ...projectFormData, short_name: e.target.value })}
