@@ -1129,7 +1129,8 @@ export default function GanttChart() {
       const workingDays = task.time_type === 'duration' && task.start_date && task.end_date
         ? calculateWorkingDays(task.start_date, task.end_date)
         : 0;
-       <div
+       return (
+      <div
          key={task.id}
          style={{
            position: 'absolute',
