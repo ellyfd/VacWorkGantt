@@ -394,14 +394,18 @@ export default function ProjectSettings() {
                          <TableCell className="font-medium text-sm md:text-base truncate">{project.short_name}</TableCell>
                          <TableCell className="text-xs md:text-sm truncate">{project.full_name}</TableCell>
                          <TableCell className="text-xs md:text-sm">
-                           <div className="flex items-center gap-2">
-                             <div
-                               className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
-                               style={{ backgroundColor: project.default_color || '#3b82f6' }}
-                               title={project.default_color || '#3b82f6'}
-                             />
-                             <span className="text-gray-500 font-mono text-[11px]">{project.default_color || '#3b82f6'}</span>
-                           </div>
+                            {project.default_color ? (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
+                                  style={{ backgroundColor: project.default_color }}
+                                  title={project.default_color}
+                                />
+                                <span className="text-gray-500 font-mono text-[11px]">{project.default_color}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
                          </TableCell>
                          <TableCell className="text-xs md:text-sm">{getGroupName(project.group_id)}</TableCell>
                          <TableCell className="text-xs md:text-sm">
