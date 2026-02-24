@@ -4,7 +4,7 @@ export function useFilterState() {
   const [selectedDeptId, setSelectedDeptId] = useState(null);
   const [selectedGroupSlug, setSelectedGroupSlug] = useState(null);
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
-  const [hideHolidays, setHideHolidays] = useState(false);
+  const [hideHolidays, setHideHolidays] = useState(true);
 
   // 从 localStorage 恢复筛选状态
   useEffect(() => {
@@ -15,7 +15,9 @@ export function useFilterState() {
         if (filters.deptId) setSelectedDeptId(filters.deptId);
         if (filters.groupSlug) setSelectedGroupSlug(filters.groupSlug);
         if (filters.brandIds?.length > 0) setSelectedBrandIds(filters.brandIds);
-        if (filters.hideHolidays) setHideHolidays(filters.hideHolidays);
+        if (filters.hideHolidays !== undefined) {
+          setHideHolidays(filters.hideHolidays);
+        }
       } catch (e) {
         // ignore
       }

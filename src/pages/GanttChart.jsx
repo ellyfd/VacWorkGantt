@@ -686,6 +686,21 @@ export default function GanttChart() {
   // 顯示的月份（根據捲動位置計算）
   const [visibleMonth, setVisibleMonth] = useState(new Date());
 
+  // 限速橫向滾動
+  const handleRightWheel = useCallback((e) => {
+    // 純垂直滾動就不攔截
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && e.deltaX === 0) return;
+    
+    e.preventDefault();
+    const el = rightPanelRef.current;
+    if (!el) return;
+    
+    const MAX_DELTA = CELL_WIDTH * 3;
+    const delta = Math.sign(e.deltaX || e.deltaY) * 
+                  Math.min(Math.abs(e.deltaX || e.deltaY), MAX_DELTA);
+    el.scrollLeft += delta;
+  }, [CELL_WIDTH]);
+
   // 捲動時延伸 buffer + 更新 visibleMonth
   const handleRightScroll = React.useCallback((e) => {
     const el = e.currentTarget;
@@ -1285,7 +1300,7 @@ export default function GanttChart() {
               />
               <div
                 className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-sm flex items-center gap-2"
-                style={{ height: ROW_HEIGHT + 14 }}
+                style={{ height: ROW_HEIGHT + 20 }}
               >
                 開發季
                 <button
@@ -1298,7 +1313,7 @@ export default function GanttChart() {
               </div>
               <div
                 className="bg-white border-b border-gray-300 px-3 text-xs text-gray-500 flex items-center font-medium"
-                style={{ height: 28 }}
+                style={{ height: 32 }}
               >
                 請假人數
               </div>
@@ -1344,7 +1359,7 @@ export default function GanttChart() {
             </div>
 
           {/* Right Panel */}
-          <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
+          <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll} onWheel={handleRightWheel}>
             {/* 所有列共用同一個 grid track，完全對齊 */}
             {(() => {
               const gridStyle = {
@@ -1355,26 +1370,26 @@ export default function GanttChart() {
               return (
                 <div style={{ width: totalWidth }}>
                   {/* 月份 header */}
-                  {(() => {
-                    const monthGroups = [];
-                    let current = null;
-                    days.forEach((day) => {
-                      const monthKey = format(day, 'yyyy-MM');
-                      if (current?.key !== monthKey) {
-                        current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
-                        monthGroups.push(current);
-                      } else {
-                        current.count++;
-                      }
-                    });
-                    return (
-                      <div className="flex border-b border-gray-200" style={{ height: 20 }}>
-                        {monthGroups.map(g => (
-                          <div
-                            key={g.key}
-                            className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100 flex-shrink-0"
-                            style={{ width: g.count * CELL_WIDTH, height: 20 }}
-                          >
+                          {(() => {
+                            const monthGroups = [];
+                            let current = null;
+                            days.forEach((day) => {
+                              const monthKey = format(day, 'yyyy-MM');
+                              if (current?.key !== monthKey) {
+                                current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
+                                monthGroups.push(current);
+                              } else {
+                                current.count++;
+                              }
+                            });
+                            return (
+                              <div className="flex border-b border-gray-200" style={{ height: 26 }}>
+                                {monthGroups.map(g => (
+                                  <div
+                                    key={g.key}
+                                    className="border-r border-gray-300 text-sm font-bold text-gray-700 flex items-center justify-center bg-gray-100 flex-shrink-0"
+                                    style={{ width: g.count * CELL_WIDTH, height: 26 }}
+                                  >
                             {g.label}
                           </div>
                         ))}
@@ -1383,7 +1398,7 @@ export default function GanttChart() {
                   })()}
 
                   {/* 日期 header */}
-                  <div style={{ ...gridStyle, height: ROW_HEIGHT + 14, borderBottom: '1px solid #d1d5db' }}>
+                  <div style={{ ...gridStyle, height: ROW_HEIGHT + 20, borderBottom: '1px solid #d1d5db' }}>
                     {days.map((day) => {
                        const isWeekend = getDay(day) === 0 || getDay(day) === 6;
                        const isHolidayHeader = !hideHolidays && holidaySet.has(format(day, 'yyyy-MM-dd'));
@@ -1398,8 +1413,8 @@ export default function GanttChart() {
                           }`}
                           style={{ borderLeft: isFirstDay ? '2px solid #6b7280' : undefined }}
                          >
-                           <span className="text-xs font-semibold leading-none">{format(day, 'd')}</span>
-                           <span className={`text-[9px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
+                           <span className="text-sm font-bold leading-none">{format(day, 'd')}</span>
+                           <span className={`text-[11px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
                              {format(day, 'EEE', { locale: zhTW })}
                            </span>
                          </div>
@@ -1408,7 +1423,7 @@ export default function GanttChart() {
                   </div>
 
                   {/* 請假人數列 */}
-                  <div style={{ ...gridStyle, height: 28, borderBottom: '1px solid #d1d5db', backgroundColor: 'white' }}>
+                  <div style={{ ...gridStyle, height: 32, borderBottom: '1px solid #d1d5db', backgroundColor: 'white' }}>
                     {days.map((day) => {
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
@@ -1422,7 +1437,7 @@ export default function GanttChart() {
                           className="border-r border-gray-200 flex items-center justify-center"
                           style={{
                             backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#d1d5db' : 'transparent'),
-                            fontSize: 11,
+                            fontSize: 13,
                             fontWeight: leaveStyle?.bold ? 700 : 500,
                             color: leaveStyle?.text || '#d1d5db',
                             cursor: count ? 'pointer' : 'default',
