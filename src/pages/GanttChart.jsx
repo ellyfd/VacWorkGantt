@@ -1592,7 +1592,7 @@ export default function GanttChart() {
                               {days.map((day) => renderCellBackground(row, day))}
                             </div>
                             {/* 上層：Bar，不用 grid，直接 pixel 定位 */}
-                            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}>
+                            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
                               {renderTaskBars(row)}
                             </div>
                           </div>
