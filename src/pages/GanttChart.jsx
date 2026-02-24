@@ -1165,12 +1165,14 @@ export default function GanttChart() {
                 }}
               >
                 {task.time_type === 'milestone' && (
-                  <div className="flex items-center gap-1 px-1">
+                  <div className="flex items-center gap-1 px-1 hover:opacity-80 transition-opacity">
                     <div style={{
                       width: 12, height: 12,
                       transform: 'rotate(45deg)',
                       backgroundColor: task.is_important ? '#eab308' : projectColor,
                       flexShrink: 0,
+                      boxShadow: isSelected ? '0 0 8px rgba(31, 41, 55, 0.5)' : 'none',
+                      transition: 'box-shadow 0.15s',
                     }} />
                     <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>
                       {`${row.data.name} ${task.name}`}
@@ -1178,12 +1180,12 @@ export default function GanttChart() {
                   </div>
                 )}
                 {task.time_type === 'duration' && (
-                  <span style={{ fontSize: 12, color: textColor, fontWeight: 500 }}>
+                  <span style={{ fontSize: 12, color: textColor, fontWeight: 500 }} className="hover:opacity-80 transition-opacity">
                     {`${row.data.name} ${task.name}`}
                   </span>
                 )}
                 {task.time_type === 'rolling' && (
-                  <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                  <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }} className="hover:opacity-80 transition-opacity">
                     <span style={{ fontSize: 12, color: textColor, fontWeight: 500 }}>
                       {`${row.data.name} ${task.name}`}
                     </span>
