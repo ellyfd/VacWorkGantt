@@ -1003,18 +1003,26 @@ export default function GanttChart() {
     const isHoliday = !hideHolidays && holidaySet.has(dateStr);
     const isFirstOfMonth = format(day, 'd') === '1';
 
-    const hasDragOnProject = isDragging && (tasksByProjectId[row.data.id] ?? []).some(t => t.id === dragTaskId);
+    const projectTasks = tasksByProjectId[row.data.id] ?? [];
+    const hasDragOnProject = isDragging && projectTasks.some(t => t.id === dragTaskId);
     const isInDragRange = hasDragOnProject && dragStart && dragEnd && (() => {
       const s = format(dragStart < dragEnd ? dragStart : dragEnd, 'yyyy-MM-dd');
       const e = format(dragStart < dragEnd ? dragEnd : dragStart, 'yyyy-MM-dd');
       return dateStr >= s && dateStr <= e;
     })();
 
+    // 游標提示：有選中任務時用 crosshair；拖曳中用 col-resize；否則 pointer
+    const cursorStyle = isDragging ? 'col-resize'
+      : (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId))
+        ? 'crosshair'
+        : 'pointer';
+
     return (
       <div
         key={dateStr}
         className="cursor-pointer"
         style={{
+          cursor: cursorStyle,
           height: ROW_HEIGHT,
           borderRight: '1px solid #d1d5db',
           borderLeft: isFirstOfMonth ? '2px solid #6b7280' : undefined,
