@@ -427,15 +427,15 @@ export default function GanttChart() {
   };
 
   // ── More Lookup Maps ──────────────────────────────────────────────
+  const employeeMap = useMemo(() =>
+    Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
+
   const tasksByProjectId = useMemo(() => {
     return ganttTasks.reduce((acc, task) => {
       (acc[task.gantt_project_id] ??= []).push(task);
       return acc;
     }, {});
   }, [ganttTasks]);
-
-  const employeeMap = useMemo(() =>
-    Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
 
   const dayIndexMap = useMemo(() =>
     Object.fromEntries(days.map((d, i) => [format(d, 'yyyy-MM-dd'), i])),
