@@ -581,7 +581,7 @@ export default function ProjectSettings() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>品牌全名</Label>
+              <Label>品牌全名 *</Label>
               <Input
                 value={projectFormData.full_name}
                 onChange={(e) => setProjectFormData({ ...projectFormData, full_name: e.target.value })}
