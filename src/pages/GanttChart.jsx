@@ -824,6 +824,10 @@ export default function GanttChart() {
     // 更新可見月份
     const scrolledDays = Math.floor(el.scrollLeft / CELL_WIDTH);
     if (days[scrolledDays]) setVisibleMonth(days[scrolledDays]);
+    
+    // 拖曳 bar 時不觸發無限滾動延伸，避免與 edge-scroll 互相干擾
+    if (isDragging) return;
+    
     // 靠近右端：往右延伸
     if (el.scrollWidth - el.scrollLeft - el.clientWidth < CELL_WIDTH * 30) {
       setCenterDate(d => addDays(d, 30));
@@ -833,7 +837,7 @@ export default function GanttChart() {
       pendingScrollCompensation.current = CELL_WIDTH * 30;
       setCenterDate(d => subDays(d, 30));
     }
-  }, [CELL_WIDTH]);
+  }, [CELL_WIDTH, isDragging]);
 
   // 跳轉到今天
   const scrollToToday = () => {
