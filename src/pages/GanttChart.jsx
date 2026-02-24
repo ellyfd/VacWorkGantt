@@ -994,39 +994,40 @@ export default function GanttChart() {
     );
   };
 
-  // 渲染 Task Bar（獨立層，不被格線裁切）
-  const renderTaskBarOverlay = (row, day) => {
+  // 渲染 Task Bars（pixel 絕對定位，不用 grid）
+  const renderTaskBars = (row) => {
     if (row.type !== 'project') return null;
     const projectTasks = tasksByProjectId[row.data.id] ?? [];
     const projectColor = row.data.color || '#3b82f6';
     const textColor = getContrastColor(projectColor);
-    const lightColor = getLightColor(projectColor);
 
     return projectTasks.map(task => {
-      const taskStartDate = task.start_date;
-      const taskEndDate = task.end_date;
-      const dateStr = format(day, 'yyyy-MM-dd');
-      const weekEndStr = viewMode === 'quarter' ? format(addDays(day, 6), 'yyyy-MM-dd') : dateStr;
+      if (!task.start_date) return null;
 
-      const isStart = viewMode === 'quarter'
-        ? taskStartDate && taskStartDate >= dateStr && taskStartDate <= weekEndStr
-        : taskStartDate === dateStr;
-      const isEnd = viewMode === 'quarter'
-        ? taskEndDate && taskEndDate >= dateStr && taskEndDate <= weekEndStr
-        : taskEndDate === dateStr;
-      const isInRange = task.time_type === 'duration' && taskStartDate && taskEndDate &&
-        (viewMode === 'quarter'
-          ? dateStr <= taskEndDate && weekEndStr >= taskStartDate
-          : dateStr >= taskStartDate && dateStr <= taskEndDate);
-      const isRolling = task.time_type === 'rolling' && taskStartDate &&
-        (viewMode === 'quarter' ? weekEndStr >= taskStartDate : dateStr >= taskStartDate);
+      // 計算 Bar 的 left 和 width
+      const startIdx = days.findIndex(d => format(d, 'yyyy-MM-dd') === task.start_date);
+      if (startIdx < 0) return null;
 
-      const isSelectedTask = selectedTaskId === task.id;
-      const hasVisual = (task.time_type === 'milestone' && isStart) ||
-        (task.time_type === 'duration' && isInRange) ||
-        (task.time_type === 'rolling' && isRolling);
+      let left, width, bgColor;
 
-      if (!hasVisual) return null;
+      if (task.time_type === 'milestone') {
+        left = startIdx * CELL_WIDTH + CELL_WIDTH / 2 - 8;
+        width = 'auto';
+        bgColor = 'transparent';
+      } else if (task.time_type === 'duration') {
+        if (!task.end_date) return null;
+        const endIdx = days.findIndex(d => format(d, 'yyyy-MM-dd') === task.end_date);
+        if (endIdx < 0) return null;
+        left = startIdx * CELL_WIDTH + 2;
+        width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
+        bgColor = projectColor;
+      } else if (task.time_type === 'rolling') {
+        left = startIdx * CELL_WIDTH + 2;
+        width = (days.length - startIdx) * CELL_WIDTH - 4;
+        bgColor = projectColor;
+      } else {
+        return null;
+      }
 
       const workingDays = task.time_type === 'duration' && task.start_date && task.end_date
         ? calculateWorkingDays(task.start_date, task.end_date)
@@ -1037,62 +1038,58 @@ export default function GanttChart() {
           <Tooltip>
             <TooltipTrigger asChild>
               <div
-                className="absolute top-1/2 -translate-y-1/2 h-6 flex items-center rounded cursor-pointer z-10"
                 style={{
-                  backgroundColor: task.time_type === 'rolling' && !isStart ? lightColor : projectColor,
-                  opacity: isSelectedTask ? 0.7 : 1,
+                  position: 'absolute',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  left,
+                  width: width === 'auto' ? undefined : width,
+                  height: 24,
+                  borderRadius: 4,
+                  backgroundColor: bgColor,
+                  display: 'flex',
+                  alignItems: 'center',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'auto',
+                  opacity: selectedTaskId === task.id ? 0.7 : 1,
+                  cursor: 'pointer',
+                  zIndex: 10,
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   setEditingTask({ ...task });
                   setShowEditTaskDialog(true);
                 }}
-                onContextMenu={(e) => e.stopPropagation()}
               >
-                {/* 里程碑 */}
-                {task.time_type === 'milestone' && isStart && (
-                  <div className="flex items-center gap-1 px-2 whitespace-nowrap">
-                    <div
-                      className="w-3 h-3 transform rotate-45 flex-shrink-0"
-                      style={{
-                        backgroundColor: task.is_important ? '#eab308' : projectColor,
-                        borderWidth: 1.5,
-                        borderStyle: 'solid',
-                        borderColor: task.is_important ? '#92400e' : 'transparent',
-                      }}
-                    />
-                    <span className="text-xs font-medium select-none" style={{ color: textColor }}>
+                {task.time_type === 'milestone' && (
+                  <div className="flex items-center gap-1 px-1">
+                    <div style={{
+                      width: 12, height: 12,
+                      transform: 'rotate(45deg)',
+                      backgroundColor: task.is_important ? '#eab308' : projectColor,
+                      flexShrink: 0,
+                    }} />
+                    <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>
                       {task.name}
                     </span>
                   </div>
                 )}
-                {/* 區間 */}
-                {task.time_type === 'duration' && isInRange && (
-                  <span className="text-xs font-medium px-2 whitespace-nowrap select-none" style={{ color: textColor }}>
-                    {task.name}
-                  </span>
-                )}
-                {/* Rolling */}
-                {task.time_type === 'rolling' && isRolling && (
-                  <span className="text-xs font-medium px-2 whitespace-nowrap select-none" style={{ color: textColor }}>
+                {(task.time_type === 'duration' || task.time_type === 'rolling') && (
+                  <span style={{ fontSize: 12, color: textColor, fontWeight: 500, paddingLeft: 8 }}>
                     {task.name}
                   </span>
                 )}
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs px-2 py-1.5">
-              {task.time_type === 'milestone' && (
-                <p>◆ {task.start_date}</p>
-              )}
-              {task.time_type === 'duration' && task.start_date && task.end_date && (
-                <p>
-                  {task.start_date} → {task.end_date.slice(5)}
+              {task.time_type === 'milestone' && <p>◆ {task.start_date}</p>}
+              {task.time_type === 'duration' && task.end_date && (
+                <p>{task.start_date} → {task.end_date.slice(5)}
                   <span className="text-gray-400 ml-1.5">工作天 {workingDays} 天</span>
                 </p>
               )}
-              {task.time_type === 'rolling' && (
-                <p>▶ {task.start_date}</p>
-              )}
+              {task.time_type === 'rolling' && <p>▶ {task.start_date}</p>}
               {task.note && <div className="text-gray-400 mt-0.5">{task.note}</div>}
             </TooltipContent>
           </Tooltip>
