@@ -1161,11 +1161,13 @@ export default function GanttChart() {
         }}
         onContextMenu={() => setContextMenuDate(day)}
                         onClick={() => {
-                          if (isDragging) return;
-                          const projectTasks = tasksByProjectId[row.data.id] ?? [];
-                          const selectedProjectTask = projectTasks.find(t => t.id === selectedTaskId);
-                          if (selectedProjectTask) handleDateClick(day, selectedProjectTask.id);
-                        }}
+                                           if (isDragging) return;
+                                           if (!selectedTaskId) return;
+                                           const projectTasks = tasksByProjectId[row.data.id] ?? [];
+                                           if (projectTasks.some(t => t.id === selectedTaskId)) {
+                                             handleDateClick(day, selectedTaskId);
+                                           }
+                                         }}
       >
         {isToday(day) && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
         {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />}
