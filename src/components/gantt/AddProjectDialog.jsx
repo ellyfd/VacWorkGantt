@@ -100,50 +100,22 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
             );
           })()}
 
-          {/* 顏色選擇 */}
+          {/* 顏色 - 唯讀，從品牌設定帶入 */}
           <div>
-            <Label className="mb-2 block">顏色</Label>
-            <div className="space-y-2">
-              {/* 色票列 */}
-              {availableColors.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                  {availableColors.map(c => (
-                    <button key={c} type="button"
-                      onClick={() => setProjectFormData({ ...projectFormData, color: c })}
-                      className="w-7 h-7 rounded-full transition-transform hover:scale-110 flex-shrink-0"
-                      style={{
-                        backgroundColor: c,
-                        outline: projectFormData.color === c ? `3px solid ${c}` : 'none',
-                        outlineOffset: 2,
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-              {availableColors.length === 0 && (
-                <p className="text-xs text-gray-400">所有預設顏色已被使用</p>
-              )}
-
-              {/* Hex 輸入 */}
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-7 h-7 rounded-full flex-shrink-0 border border-gray-200"
-                  style={{ backgroundColor: projectFormData.color || '#3b82f6' }}
-                />
-                <Input
-                  value={projectFormData.color || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (/^#[0-9A-Fa-f]{0,6}$/.test(val) || val === '') {
-                      setProjectFormData({ ...projectFormData, color: val });
-                    }
-                  }}
-                  placeholder="#3b82f6"
-                  className="h-8 text-sm font-mono w-32"
-                  maxLength={7}
-                />
-                <span className="text-xs text-gray-400 flex-shrink-0">Hex</span>
-              </div>
+            <Label>顏色</Label>
+            <div className="mt-2 flex items-center gap-3">
+              <div
+                className="w-7 h-7 rounded-full border border-gray-200 flex-shrink-0"
+                style={{ backgroundColor: projectFormData.color || '#3b82f6' }}
+              />
+              <span className="text-sm text-gray-500">由品牌設定帶入</span>
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                前往品牌設定修改 →
+              </button>
             </div>
           </div>
         </div>
