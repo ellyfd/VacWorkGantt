@@ -110,6 +110,7 @@ export default function GanttChart() {
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
 
   // Edit Phase Dialog state
+  const [editingProjectTasks, setEditingProjectTasks] = useState([]);
   const [showEditPhaseDialog, setShowEditPhaseDialog] = useState(false);
   const [editingPhase, setEditingPhase] = useState(null);
   const [editingPhaseName, setEditingPhaseName] = useState('');
