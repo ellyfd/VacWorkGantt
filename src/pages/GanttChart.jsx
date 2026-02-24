@@ -252,14 +252,6 @@ export default function GanttChart() {
       setShowAddTaskDialog(false);
       setTaskFormData({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
       setCreatingProjectId(null);
-      // 只有沒填時間才進入畫日期模式
-      if (!newTask.time_type) {
-        setSelectedTaskId(newTask.id);
-        setDrawingMode(true);
-        setPendingTask(newTask);
-        setFirstDate(null);
-        setSecondDate(null);
-      }
     },
   });
 
