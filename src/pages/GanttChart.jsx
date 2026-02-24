@@ -706,22 +706,63 @@ export default function GanttChart() {
     }
   }, [days, CELL_WIDTH]);
 
+  // 清理 RAF 動畫（防止 memory leak）
+  React.useEffect(() => {
+    return () => {
+      if (scrollRafRef.current) {
+        cancelAnimationFrame(scrollRafRef.current);
+      }
+    };
+  }, []);
+
   // 顯示的月份（根據捲動位置計算）
   const [visibleMonth, setVisibleMonth] = useState(new Date());
 
-  // 限速橫向滾動
+  // 動量滾動 Ref
+  const scrollVelocityRef = useRef(0);
+  const scrollRafRef = useRef(null);
+
+  // 限速橫向滾動（含動量衰減）
   const handleRightWheel = useCallback((e) => {
-    // 純垂直滾動就不攔截
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && e.deltaX === 0) return;
+    // 判斷是否為純垂直滾動
+    const absDeltaX = Math.abs(e.deltaX);
+    const absDeltaY = Math.abs(e.deltaY);
+    
+    // 垂直為主且 deltaX 很小 → 不攔截，讓瀏覽器自己處理垂直捲動
+    if (absDeltaY > absDeltaX * 2 && absDeltaX < 5) return;
     
     e.preventDefault();
     const el = rightPanelRef.current;
     if (!el) return;
-    
-    const MAX_DELTA = CELL_WIDTH * 3;
-    const delta = Math.sign(e.deltaX || e.deltaY) * 
-                  Math.min(Math.abs(e.deltaX || e.deltaY), MAX_DELTA);
-    el.scrollLeft += delta;
+
+    // 正規化 delta 值（處理不同 deltaMode）
+    let rawDelta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+    if (e.deltaMode === 1) rawDelta *= 16;   // line mode → pixel
+    if (e.deltaMode === 2) rawDelta *= 100;  // page mode → pixel
+
+    // 嚴格限速：單次最多 1 格（40px）
+    const MAX_SINGLE = CELL_WIDTH * 1;
+    const clampedDelta = Math.sign(rawDelta) * Math.min(Math.abs(rawDelta), MAX_SINGLE);
+
+    // 加入動量衰減（RAF 動畫）
+    scrollVelocityRef.current += clampedDelta * 0.4; // 吸收 40%，其餘衰減
+    scrollVelocityRef.current = Math.sign(scrollVelocityRef.current) *
+      Math.min(Math.abs(scrollVelocityRef.current), MAX_SINGLE * 2); // 最大速度上限
+
+    if (scrollRafRef.current) return; // 已有動畫在跑就不重開
+
+    const animate = () => {
+      if (!rightPanelRef.current || Math.abs(scrollVelocityRef.current) < 0.5) {
+        scrollRafRef.current = null;
+        scrollVelocityRef.current = 0;
+        return;
+      }
+      rightPanelRef.current.scrollLeft += scrollVelocityRef.current;
+      scrollVelocityRef.current *= 0.75; // 每幀衰減 25%，產生慣性感
+      scrollRafRef.current = requestAnimationFrame(animate);
+    };
+
+    scrollRafRef.current = requestAnimationFrame(animate);
   }, [CELL_WIDTH]);
 
   // 捲動時延伸 buffer + 更新 visibleMonth
