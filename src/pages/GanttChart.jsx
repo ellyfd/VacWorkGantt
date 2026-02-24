@@ -1048,12 +1048,12 @@ export default function GanttChart() {
               style={{
                 width: CELL_WIDTH, 
                 height: ROW_HEIGHT,
-                borderRight: '1px solid #e5e7eb',
-                borderBottom: '1px solid #e5e7eb',
+                borderRight: '1px solid #d1d5db',
+                borderBottom: '1px solid #d1d5db',
                 backgroundColor: isInDragRangePhase ? '#bfdbfe'
-                  : selectedPhaseTask ? '#eff6ff'
                   : isDimmed ? '#d1d5db'
-                  : '#ffffff'
+                  : selectedPhaseTask ? '#eff6ff'
+                  : '#f9fafb'
               }}
               onMouseDown={(e) => {
                 if (e.button !== 0) return;
