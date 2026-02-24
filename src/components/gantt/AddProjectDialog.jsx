@@ -32,7 +32,15 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
           {/* 品牌 */}
           <div>
             <Label>品牌 *</Label>
-            <Select value={projectFormData.brand_id} onValueChange={(v) => setProjectFormData({ ...projectFormData, brand_id: v, season: '' })}>
+            <Select value={projectFormData.brand_id} onValueChange={(v) => {
+              const brand = projects.find(p => p.id === v);
+              setProjectFormData({
+                ...projectFormData,
+                brand_id: v,
+                season: '',
+                color: brand?.default_color || availableColors[0] || '#3b82f6',
+              });
+            }}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="選擇品牌..." /></SelectTrigger>
               <SelectContent>
                 {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.short_name || p.name}</SelectItem>)}
@@ -95,22 +103,47 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
           {/* 顏色選擇 */}
           <div>
             <Label className="mb-2 block">顏色</Label>
-            <div className="flex gap-2 flex-wrap">
-              {availableColors.length > 0 ? (
-                availableColors.map(c => (
-                  <button key={c} type="button"
-                    onClick={() => setProjectFormData({ ...projectFormData, color: c })}
-                    className="w-8 h-8 rounded-full transition-transform hover:scale-110"
-                    style={{
-                      backgroundColor: c,
-                      outline: projectFormData.color === c ? `3px solid ${c}` : 'none',
-                      outlineOffset: 2,
-                    }}
-                  />
-                ))
-              ) : (
+            <div className="space-y-2">
+              {/* 色票列 */}
+              {availableColors.length > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  {availableColors.map(c => (
+                    <button key={c} type="button"
+                      onClick={() => setProjectFormData({ ...projectFormData, color: c })}
+                      className="w-7 h-7 rounded-full transition-transform hover:scale-110 flex-shrink-0"
+                      style={{
+                        backgroundColor: c,
+                        outline: projectFormData.color === c ? `3px solid ${c}` : 'none',
+                        outlineOffset: 2,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+              {availableColors.length === 0 && (
                 <p className="text-xs text-gray-400">所有預設顏色已被使用</p>
               )}
+
+              {/* Hex 輸入 */}
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-7 h-7 rounded-full flex-shrink-0 border border-gray-200"
+                  style={{ backgroundColor: projectFormData.color || '#3b82f6' }}
+                />
+                <Input
+                  value={projectFormData.color || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^#[0-9A-Fa-f]{0,6}$/.test(val) || val === '') {
+                      setProjectFormData({ ...projectFormData, color: val });
+                    }
+                  }}
+                  placeholder="#3b82f6"
+                  className="h-8 text-sm font-mono w-32"
+                  maxLength={7}
+                />
+                <span className="text-xs text-gray-400 flex-shrink-0">Hex</span>
+              </div>
             </div>
           </div>
         </div>
