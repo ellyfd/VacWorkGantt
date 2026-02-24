@@ -447,6 +447,14 @@ export default function GanttChart() {
     Object.fromEntries(days.map((d, i) => [format(d, 'yyyy-MM-dd'), i])),
     [days]);
 
+  // 不受 hideHolidays 影響的全日期 map（用於任務 bar 定位）
+  const allDaysIndexMap = useMemo(() => {
+    const start = subDays(centerDate, 60);
+    const end = addDays(centerDate, 120);
+    const allDays = eachDayOfInterval({ start, end });
+    return Object.fromEntries(allDays.map((d, i) => [format(d, 'yyyy-MM-dd'), i]));
+  }, [centerDate]);
+
   // 建立日期單元格屬性快取（避免每次 render 重複計算）
   const dayCellPropsMap = useMemo(() => {
     const map = {};
