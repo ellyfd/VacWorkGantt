@@ -390,7 +390,9 @@ export default function GanttChart() {
 
   // 先計算 makalotGroup
   const makalotGroup = useMemo(() => {
-    return groups.find(g => g.name.toLowerCase() === 'makalot');
+    const found = groups.find(g => g.name.toLowerCase() === 'makalot');
+    console.log('groups:', groups, 'makalotGroup:', found);
+    return found;
   }, [groups]);
 
   // 再計算 getDept（它依賴 makalotGroup，用 useCallback 避免重複定義）
