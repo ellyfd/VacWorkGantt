@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,7 @@ export default function EditProjectDialog({
   open, onOpenChange, project, setProject, onSave,
   projectTasks, onUpdateTask, onDeleteTask, onCreateTask
 }) {
+  const navigate = useNavigate();
   const [newTaskName, setNewTaskName] = React.useState('');
 
   return (
@@ -47,7 +49,10 @@ export default function EditProjectDialog({
                 <span className="text-sm text-gray-400">顏色由品牌設定決定</span>
                 <button
                   type="button"
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate('/project-settings?tab=projects');
+                  }}
                   className="text-xs text-blue-600 hover:underline"
                 >
                   前往修改 →
