@@ -717,15 +717,6 @@ export default function GanttChart() {
     }
   }, [days, CELL_WIDTH]);
 
-  // 清理 RAF 動畫（防止 memory leak）
-  React.useEffect(() => {
-    return () => {
-      if (scrollRafRef.current) {
-        cancelAnimationFrame(scrollRafRef.current);
-      }
-    };
-  }, []);
-
   // 顯示的月份（根據捲動位置計算）
   const [visibleMonth, setVisibleMonth] = useState(new Date());
 
