@@ -569,40 +569,7 @@ export default function GanttChart() {
     createGanttTask.mutate(taskData);
   };
 
-  // 點擊任務
-  const handleTaskClick = (taskId) => {
-    if (selectedTaskId === taskId) {
-      clearSelection();
-    } else {
-      setSelectedTaskId(taskId);
-      setFirstDate(null);
-      setSecondDate(null);
-    }
-  };
 
-  // 點擊日期格子
-  const handleDateClick = (date, taskId) => {
-    if (selectedTaskId !== taskId) {
-      setSelectedTaskId(taskId);
-      setFirstDate(date);
-      setSecondDate(null);
-      return;
-    }
-
-    if (!firstDate) {
-      setFirstDate(date);
-      setSecondDate(null);
-    } else if (!secondDate) {
-      if (format(date, 'yyyy-MM-dd') === format(firstDate, 'yyyy-MM-dd')) {
-        // 點擊同一天
-      } else {
-        setSecondDate(date);
-      }
-    } else {
-      setFirstDate(date);
-      setSecondDate(null);
-    }
-  };
 
   // 撤銷堆疊（用於 Ctrl+Z）
   const undoStackRef = useRef([]);
