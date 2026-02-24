@@ -1090,8 +1090,8 @@ export default function GanttChart() {
     );
   };
 
-  // 渲染 Task Bars（pixel 絕對定位，不用 grid）
-  const renderTaskBars = (row) => {
+  // Memoize renderTaskBars to avoid unnecessary re-renders
+  const renderTaskBars = useCallback((row) => {
     if (row.type !== 'project') return null;
     const projectTasks = tasksByProjectId[row.data.id] ?? [];
     const projectColor = row.data.color || '#3b82f6';
