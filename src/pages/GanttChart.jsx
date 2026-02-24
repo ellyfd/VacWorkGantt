@@ -365,8 +365,9 @@ export default function GanttChart() {
   // 再計算 getDept（它依賴 makalotGroup，用 useCallback 避免重複定義）
   const getDept = useCallback((ganttProject) => {
     const brand = projects.find(p => p.id === ganttProject.brand_id);
-    if (!brand) return 'other';
+    if (!brand) return 'dpc';  // 找不到品牌 → 視為 DPC
     return brand.group_id === makalotGroup?.id ? 'makalot' : 'dpc';
+    // 沒有集團 (group_id 為 null) → group_id !== makalotGroup?.id → 歸入 DPC
   }, [projects, makalotGroup]);
 
   const { filteredLeaveRecords, leaveCountByDate, leaveNamesByDate } = useMemo(() => {
