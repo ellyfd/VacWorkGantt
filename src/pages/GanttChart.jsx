@@ -1184,7 +1184,7 @@ export default function GanttChart() {
                       boxShadow: isSelected ? '0 0 8px rgba(31, 41, 55, 0.5)' : 'none',
                       transition: 'box-shadow 0.15s',
                     }} />
-                    <span style={{ fontSize: 14, color: '#374151', fontWeight: 500 }}>
+                    <span style={{ fontSize: 14, color: '#1f2937', fontWeight: 500 }}>
                       {`${row.data.name} ${task.name}`}
                     </span>
                   </div>
