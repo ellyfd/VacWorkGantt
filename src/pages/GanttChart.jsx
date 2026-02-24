@@ -405,6 +405,20 @@ export default function GanttChart() {
     return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
   };
 
+  // ── Lookup Maps ──────────────────────────────────────────────
+  const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
+
+  const tasksByProjectId = useMemo(() => {
+    return ganttTasks.reduce((acc, task) => {
+      (acc[task.gantt_project_id] ??= []).push(task);
+      return acc;
+    }, {});
+  }, [ganttTasks]);
+
+  const employeeMap = useMemo(() =>
+    Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
+  // ─────────────────────────────────────────────────────────────
+
   // Helper functions
   const getBrandName = (brandId) => {
     const project = projects.find((p) => p.id === brandId);
