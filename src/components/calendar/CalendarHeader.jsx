@@ -75,11 +75,12 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
         <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
           <SelectTrigger className="w-[60px] md:w-[75px] h-8 text-sm">
             <SelectValue>
-              <span className="md:hidden">{currentMonth + 1}</span>
-              <span className="hidden md:inline">{currentMonth + 1}月</span>
+              <span className="md:hidden">{currentMonth === -1 ? '全年' : currentMonth + 1}</span>
+              <span className="hidden md:inline">{currentMonth === -1 ? '全年' : `${currentMonth + 1}月`}</span>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="-1">全年</SelectItem>
             {months.map((month) => (
               <SelectItem key={month} value={month.toString()}>
                 <span className="md:hidden">{month + 1}</span>
