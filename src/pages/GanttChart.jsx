@@ -902,6 +902,12 @@ export default function GanttChart() {
     }
   };
 
+  const gridStyle = useMemo(() => ({
+    display: 'grid',
+    gridTemplateColumns: `repeat(${days.length}, ${CELL_WIDTH}px)`,
+    width: days.length * CELL_WIDTH,
+  }), [days.length, CELL_WIDTH]);
+
   // 渲染右側單元格
   const renderRightCell = (row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
