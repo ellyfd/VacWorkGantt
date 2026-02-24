@@ -260,8 +260,8 @@ export default function GanttChart() {
     const previousTasks = queryClient.getQueryData(['ganttTasks']);
     const oldTask = previousTasks?.find(t => t.id === id);
     
-    // 記錄撤銷堆疊（只記錄時間相關的變更）
-    if (data.time_type !== undefined || data.start_date !== undefined || data.end_date !== undefined) {
+    // 記錄撤銷堆疊（只記錄時間相關的變更，且不是 undo 操作本身）
+    if (!isUndoingRef.current && (data.time_type !== undefined || data.start_date !== undefined || data.end_date !== undefined)) {
       undoStackRef.current.push({
         type: 'task_update',
         taskId: id,
