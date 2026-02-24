@@ -924,13 +924,7 @@ export default function GanttChart() {
     setEditingTask(null);
   };
 
-  const handleClearTime = (taskId) => {
-    updateTaskWithOptimistic(taskId, { 
-      time_type: null, 
-      start_date: null, 
-      end_date: null 
-    });
-  };
+
 
   // 拖曳排序 (with optimistic update)
   const updateSortOrder = useMutation({
