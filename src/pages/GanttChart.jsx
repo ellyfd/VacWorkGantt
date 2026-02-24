@@ -430,7 +430,7 @@ export default function GanttChart() {
     return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
   };
 
-  // ── More Lookup Maps（已在上面定義）──────────────────────────────────────────────
+  // ── More Lookup Maps（employeeMap、tasksByProjectId 等）────────
   const tasksByProjectId = useMemo(() => {
     return ganttTasks.reduce((acc, task) => {
       (acc[task.gantt_project_id] ??= []).push(task);
