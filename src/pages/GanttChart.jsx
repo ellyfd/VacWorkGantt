@@ -1634,7 +1634,7 @@ export default function GanttChart() {
         open={showAddTaskDialog}
         onOpenChange={(open) => {
           setShowAddTaskDialog(open);
-          if (!open) setCreatingProjectId(null);
+          if (!open) setCreatingProjectIdSync(null);
         }}
         taskFormData={taskFormData}
         setTaskFormData={setTaskFormData}
