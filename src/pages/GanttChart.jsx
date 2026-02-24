@@ -1260,7 +1260,10 @@ export default function GanttChart() {
       <Card className="overflow-hidden">
           <div className="flex">
             {/* Left Panel */}
-            <div className="w-64 flex-shrink-0 border-r border-gray-300">
+            <div
+              className="flex-shrink-0 border-r border-gray-300 relative"
+              style={{ width: leftPanelWidth }}
+            >
               <div
                 className="bg-gray-100 border-b border-gray-200"
                 style={{ height: MONTH_HEADER_HEIGHT }}
