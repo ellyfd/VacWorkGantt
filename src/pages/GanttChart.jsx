@@ -1285,20 +1285,20 @@ export default function GanttChart() {
                 <div style={{ width: totalWidth }}>
                   {/* 月份 header */}
                   {(() => {
-                    const groups = [];
+                    const monthGroups = [];
                     let current = null;
                     days.forEach((day) => {
                       const monthKey = format(day, 'yyyy-MM');
                       if (current?.key !== monthKey) {
                         current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
-                        groups.push(current);
+                        monthGroups.push(current);
                       } else {
                         current.count++;
                       }
                     });
                     return (
                       <div className="flex border-b border-gray-200" style={{ height: 20 }}>
-                        {groups.map(g => (
+                        {monthGroups.map(g => (
                           <div
                             key={g.key}
                             className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100 flex-shrink-0"
