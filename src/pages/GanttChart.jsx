@@ -1415,8 +1415,8 @@ export default function GanttChart() {
                       const leaveEntries = leaveNamesByDate[dateStr] || [];
                       const deptMap = {};
                       leaveEntries.forEach(({ employeeId }) => {
-                        const emp = employees.find(e => e.id === employeeId);
-                        if (!emp) return;
+                       const emp = employeeMap[employeeId];
+                       if (!emp) return;
                         (emp.department_ids || []).forEach(deptId => {
                           const dept = departments.find(d => d.id === deptId);
                           if (!dept) return;
