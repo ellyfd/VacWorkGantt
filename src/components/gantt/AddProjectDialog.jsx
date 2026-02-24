@@ -33,12 +33,30 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>季節 *</Label>
-              <Select value={projectFormData.season} onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="選擇季節..." /></SelectTrigger>
-                <SelectContent>
-                  {SEASONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              {(() => {
+                const selectedBrand = projects.find(p => p.id === projectFormData.brand_id);
+                const isFreeInput = selectedBrand?.short_name === 'TGT' || selectedBrand?.name === 'TGT';
+                
+                if (isFreeInput) {
+                  return (
+                    <Input
+                      className="mt-1"
+                      placeholder="輸入季節，例如 Spring 2026"
+                      value={projectFormData.season || ''}
+                      onChange={(e) => setProjectFormData({ ...projectFormData, season: e.target.value })}
+                    />
+                  );
+                }
+                
+                return (
+                  <Select value={projectFormData.season} onValueChange={(v) => setProjectFormData({ ...projectFormData, season: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="選擇季節..." /></SelectTrigger>
+                    <SelectContent>
+                      {SEASONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
             </div>
             <div>
               <Label>年份 *</Label>
