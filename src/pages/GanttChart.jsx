@@ -102,7 +102,7 @@ export default function GanttChart() {
   const [isAnalyzingSchedule, setIsAnalyzingSchedule] = useState(false);
 
   // 表單資料
-  const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '', color: '#3b82f6' });
+  const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '', year: new Date().getFullYear(), color: '#3b82f6' });
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
 
