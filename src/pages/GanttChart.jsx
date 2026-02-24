@@ -910,22 +910,7 @@ export default function GanttChart() {
     setShowRollingDialog(false);
   };
 
-  // 右鍵選單 handlers
-  const handleSetMilestone = (taskId, date) => {
-    updateTaskWithOptimistic(taskId, { 
-      time_type: 'milestone', 
-      start_date: format(date, 'yyyy-MM-dd'), 
-      end_date: null 
-    });
-  };
 
-  const handleSetRolling = (taskId, date) => {
-    updateTaskWithOptimistic(taskId, { 
-      time_type: 'rolling', 
-      start_date: format(date, 'yyyy-MM-dd'), 
-      end_date: null 
-    });
-  };
 
   const handleEditTask = () => {
     if (!editingTask) return;
