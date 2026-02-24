@@ -1199,18 +1199,18 @@ export default function GanttChart() {
                   </span>
                 )}
                 {task.time_type === 'rolling' && (
-                               <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }} className="hover:opacity-80 transition-opacity">
-                                 <div style={{
-                                   position: 'absolute',
-                                   inset: 0,
-                                   background: `linear-gradient(to right, ${getLightColor(projectColor)}, transparent)`,
-                                   pointerEvents: 'none',
-                                 }} />
-                                 <span style={{ fontSize: 12, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
-                                   {`${row.data.name} ${task.name}`}
-                                 </span>
-                               </div>
-                             )}
+                  <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: `linear-gradient(to right, ${getLightColor(projectColor)}, transparent)`,
+                      pointerEvents: 'none',
+                    }} />
+                    <span style={{ fontSize: 14, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
+                      {`${row.data.name} ${task.name}`}
+                    </span>
+                  </div>
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs px-2 py-1.5">
