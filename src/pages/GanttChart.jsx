@@ -1404,7 +1404,7 @@ export default function GanttChart() {
           {/* Right Panel */}
           <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
               {viewMode === 'month' && (
-                <div style={{ ...gridStyle, borderBottom: '1px solid #d1d5db' }}>
+                <div style={{ ...gridStyle, height: 20, borderBottom: '1px solid #d1d5db' }}>
                   {days.map((day, i) => {
                     const monthKey = format(day, 'yyyy-MM');
                     const isFirst = i === 0 || format(days[i-1], 'yyyy-MM') !== monthKey;
