@@ -1420,7 +1420,7 @@ export default function GanttChart() {
             </div>
 
           {/* Right Panel */}
-          <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll} onWheel={handleRightWheel}>
+          <div className="flex-1 overflow-x-auto" data-gantt-scroll ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll} onWheel={handleRightWheel}>
             {/* 所有列共用同一個 grid track，完全對齊 */}
             {(() => {
               const gridStyle = {
