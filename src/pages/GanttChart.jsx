@@ -42,6 +42,29 @@ import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 
 const ROW_HEIGHT = 40;
 
+// 根據背景色決定文字要用深色或淺色
+const getContrastColor = (hexColor) => {
+  if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
+  const r = parseInt(hexColor.slice(1, 3), 16);
+  const g = parseInt(hexColor.slice(3, 5), 16);
+  const b = parseInt(hexColor.slice(5, 7), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55 ? '#1f2937' : '#ffffff';
+};
+
+// 產生同色系淺色（用於 Rolling 延伸段）
+const getLightColor = (hexColor) => {
+  if (!hexColor || !hexColor.startsWith('#')) return '#bfdbfe';
+  const r = parseInt(hexColor.slice(1, 3), 16);
+  const g = parseInt(hexColor.slice(3, 5), 16);
+  const b = parseInt(hexColor.slice(5, 7), 16);
+  // 混入 75% 白色
+  const lr = Math.round(r + (255 - r) * 0.72);
+  const lg = Math.round(g + (255 - g) * 0.72);
+  const lb = Math.round(b + (255 - b) * 0.72);
+  return `rgb(${lr},${lg},${lb})`;
+};
+
 export default function GanttChart() {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState('month'); // 'month' | 'quarter'
