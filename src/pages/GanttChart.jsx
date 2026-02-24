@@ -1361,51 +1361,7 @@ export default function GanttChart() {
         totalRowCount={rows.length}
       />
 
-      {/* 畫日期模式提示 */}
-      {drawingMode && pendingTask && (
-        <Card className="p-3 bg-green-50 border-green-300">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-green-600 font-semibold animate-pulse">●</span>
-              <span className="font-medium">畫日期模式：</span>
-              <span className="text-green-700 font-semibold">{pendingTask.name}</span>
-              <span className="text-gray-500 text-xs">— 在右側拖曳選擇日期區間</span>
-            </div>
-            <button 
-              onClick={() => { setDrawingMode(false); setPendingTask(null); clearSelection(); }}
-              className="text-xs text-gray-400 hover:text-gray-600 underline"
-            >
-              跳過
-            </button>
-          </div>
-        </Card>
-      )}
 
-      {/* Toolbar — floating bar fixed at bottom */}
-      {selectedTaskId && !drawingMode && (
-        <div className="fixed bottom-[max(20px,env(safe-area-inset-bottom))] md:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-white shadow-xl border border-gray-200 rounded-full px-4 py-2 max-w-[calc(100vw-32px)]">
-          <span className="text-sm font-semibold text-gray-800 whitespace-nowrap max-w-[160px] truncate">{getSelectedTaskName()}</span>
-          {firstDate && (
-            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
-              {format(firstDate, 'MM/dd')}{secondDate ? ` → ${format(secondDate, 'MM/dd')}` : ''}
-            </span>
-          )}
-          <div className="w-px h-4 bg-gray-300" />
-          <Button size="sm" variant="ghost" className="gap-1 rounded-full px-3" onClick={() => setShowMilestoneDialog(true)} disabled={!firstDate}>
-            <Diamond className="w-3 h-3" />里程碑
-          </Button>
-          <Button size="sm" variant="ghost" className="gap-1 rounded-full px-3" onClick={() => setShowDurationDialog(true)} disabled={!firstDate}>
-            <ArrowRight className="w-3 h-3" />區間
-          </Button>
-          <Button size="sm" variant="ghost" className="gap-1 rounded-full px-3" onClick={() => setShowRollingDialog(true)} disabled={!firstDate}>
-            <Repeat className="w-3 h-3" />Rolling
-          </Button>
-          <div className="w-px h-4 bg-gray-300" />
-          <button onClick={clearSelection} className="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
       {/* Gantt Chart */}
       <Card className="overflow-hidden">
