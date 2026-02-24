@@ -487,6 +487,7 @@ export default function GanttChart() {
     const taskData = {
       name: taskFormData.name,
       gantt_project_id: creatingProjectId,
+      sample_id: taskFormData.sample_id || null,
       sort_order: tasksInProject.length + 1,
     };
 
