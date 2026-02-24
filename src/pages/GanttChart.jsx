@@ -111,6 +111,7 @@ export default function GanttChart() {
   const isResizingRef = useRef(false);
   const resizeStartXRef = useRef(0);
   const resizeStartWidthRef = useRef(0);
+  const creatingProjectIdRef = useRef(null);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
