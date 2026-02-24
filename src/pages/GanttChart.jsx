@@ -552,12 +552,13 @@ export default function GanttChart() {
   };
 
   const handleAddTask = () => {
-    if (!taskFormData.name || !creatingProjectId) return;
+    const projectId = creatingProjectIdRef.current;
+    if (!taskFormData.name || !projectId) return;
 
-    const tasksInProject = ganttTasks.filter((t) => t.gantt_project_id === creatingProjectId);
+    const tasksInProject = ganttTasks.filter((t) => t.gantt_project_id === projectId);
     const taskData = {
       name: taskFormData.name,
-      gantt_project_id: creatingProjectId,
+      gantt_project_id: projectId,
       sample_id: taskFormData.sample_id || null,
       sort_order: tasksInProject.length + 1,
     };
