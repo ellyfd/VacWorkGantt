@@ -1414,7 +1414,6 @@ export default function GanttChart() {
                         key={day.toISOString()}
                         className="bg-gray-100 text-xs font-semibold text-gray-600 flex items-center overflow-hidden"
                         style={{
-                          height: 20,
                           borderRight: isLast ? '1px solid #d1d5db' : 'none',
                           paddingLeft: isFirst ? 4 : 0,
                         }}
