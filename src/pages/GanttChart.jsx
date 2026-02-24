@@ -902,13 +902,6 @@ export default function GanttChart() {
     }
   };
 
-  const gridStyle = useMemo(() => ({
-    display: 'grid',
-    gridAutoFlow: 'column',
-    gridAutoColumns: `${CELL_WIDTH}px`,
-    width: days.length * CELL_WIDTH,
-  }), [CELL_WIDTH, days.length]);
-
   // 渲染右側單元格
   const renderRightCell = (row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
@@ -1404,28 +1397,33 @@ export default function GanttChart() {
           {/* Right Panel */}
           <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
               {viewMode === 'month' && (
-                <div style={{ ...gridStyle, height: 20, borderBottom: '1px solid #d1d5db' }}>
-                  {days.map((day, i) => {
-                    const monthKey = format(day, 'yyyy-MM');
-                    const isFirst = i === 0 || format(days[i-1], 'yyyy-MM') !== monthKey;
-                    const isLast = i === days.length - 1 || format(days[i+1], 'yyyy-MM') !== monthKey;
-                    return (
-                      <div
-                        key={day.toISOString()}
-                        className="bg-gray-100 text-xs font-semibold text-gray-600 flex items-center overflow-hidden"
-                        style={{
-                          borderRight: isLast ? '1px solid #d1d5db' : 'none',
-                          paddingLeft: isFirst ? 4 : 0,
-                        }}
-                      >
-                        {isFirst ? format(day, 'yyyy年M月') : ''}
-                      </div>
-                    );
-                  })}
-                </div>
+                <div className="flex bg-gray-50 border-b border-gray-200" style={{ minWidth: days.length * CELL_WIDTH }}>
+                  {(() => {
+                     const groups = [];
+                     let current = null;
+                     days.forEach((day) => {
+                       const monthKey = format(day, 'yyyy-MM');
+                       if (current?.key !== monthKey) {
+                         current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
+                         groups.push(current);
+                       } else {
+                         current.count++;
+                       }
+                     });
+                     return groups.map(g => (
+                       <div
+                         key={g.key}
+                         className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100"
+                         style={{ width: g.count * CELL_WIDTH, flexShrink: 0, height: 20 }}
+                       >
+                         {g.label}
+                       </div>
+                     ));
+                   })()}
+                 </div>
               )}
             {/* 日期 header */}
-            <div style={{ ...gridStyle, height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT, borderBottom: '1px solid #d1d5db' }}>
+            <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}>
               {days.map((day) => {
                 const isWeekend = getDay(day) === 0 || getDay(day) === 6;
                 const isHolidayHeader = holidays?.some(h => h.date === format(day, 'yyyy-MM-dd'));
@@ -1433,11 +1431,12 @@ export default function GanttChart() {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
+                    className={`flex-shrink-0 border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
                       isToday(day) ? 'bg-red-100 text-red-700' :
                       isDimmedHeader ? 'bg-gray-300 text-gray-500' :
                       'bg-gray-100 text-gray-700'
                     }`}
+                    style={{ width: CELL_WIDTH }}
                   >
                     {viewMode === 'quarter' ? (
                       <>
@@ -1457,7 +1456,7 @@ export default function GanttChart() {
               })}
             </div>
             {/* 請假人數列 */}
-            <div style={{ ...gridStyle, borderBottom: '1px solid #d1d5db' }}>
+            <div className="flex border-b border-gray-300 bg-white">
               {days.map((day) => {
                 // 季模式：空白格，不顯示請假人數
                 if (viewMode === 'quarter') {
@@ -1536,7 +1535,7 @@ export default function GanttChart() {
               }}
             >
               {visibleRows.map((row) => (
-                <div key={row.id} style={{ ...gridStyle, borderBottom: '1px solid #e5e7eb' }}>
+                <div key={row.id} className="flex border-b border-gray-200">
                   {days.map((day) => renderRightCell(row, day))}
                 </div>
               ))}
