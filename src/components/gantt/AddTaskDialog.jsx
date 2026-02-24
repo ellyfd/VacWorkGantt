@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
-export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTaskFormData, onConfirm }) {
+export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTaskFormData, onConfirm, samplesForProject = [] }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
@@ -12,22 +12,49 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
           <DialogTitle>新增任務</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          {/* 任務名稱 */}
-          <div>
-            <Label>任務名稱 *</Label>
-            <Input
-              value={taskFormData.name}
-              onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
-              placeholder="例：SPR raised in Centric"
-              className="mt-1"
-              autoFocus
-            />
-          </div>
+
+          {/* 樣品選擇 → 自動帶入任務名稱 */}
+          {samplesForProject.length > 0 ? (
+            <div>
+              <Label>樣品 *</Label>
+              <select
+                value={taskFormData.sample_id || ''}
+                onChange={(e) => {
+                  const sample = samplesForProject.find(s => s.id === e.target.value);
+                  setTaskFormData({
+                    ...taskFormData,
+                    sample_id: e.target.value,
+                    name: sample ? (sample.short_name || sample.name) : '',
+                  });
+                }}
+                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">選擇樣品...</option>
+                {samplesForProject.map(s => (
+                  <option key={s.id} value={s.id}>{s.short_name || s.name}</option>
+                ))}
+              </select>
+              {taskFormData.name && (
+                <p className="mt-1 text-xs text-gray-400">任務名稱：{taskFormData.name}</p>
+              )}
+            </div>
+          ) : (
+            <div>
+              <Label>任務名稱 *</Label>
+              <Input
+                value={taskFormData.name}
+                onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
+                placeholder="例：SPR raised in Centric"
+                className="mt-1"
+                autoFocus
+              />
+            </div>
+          )}
 
           {/* 時間設定（選填） */}
           <div className="border-t pt-4">
             <Label className="mb-2 block text-gray-600">
-              時間設定 <span className="text-gray-400 font-normal">（選填，可之後在甘特圖上拖曳）</span>
+              時間設定 <span className="text-gray-400 font-normal">（選填）</span>
             </Label>
             <div className="flex gap-2">
               {[
@@ -54,35 +81,22 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
             {taskFormData.time_type === 'milestone' && (
               <div className="mt-3">
                 <Label className="text-xs">日期</Label>
-                <Input
-                  type="date"
-                  value={taskFormData.start_date}
-                  onChange={(e) => setTaskFormData({ ...taskFormData, start_date: e.target.value })}
-                  className="mt-1"
-                />
+                <Input type="date" value={taskFormData.start_date} className="mt-1"
+                  onChange={(e) => setTaskFormData({ ...taskFormData, start_date: e.target.value })} />
               </div>
             )}
 
             {taskFormData.time_type === 'duration' && (
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs">開始日期</Label>
-                  <Input
-                    type="date"
-                    value={taskFormData.start_date}
-                    onChange={(e) => setTaskFormData({ ...taskFormData, start_date: e.target.value })}
-                    className="mt-1"
-                  />
+                  <Label className="text-xs">開始</Label>
+                  <Input type="date" value={taskFormData.start_date} className="mt-1"
+                    onChange={(e) => setTaskFormData({ ...taskFormData, start_date: e.target.value })} />
                 </div>
                 <div>
-                  <Label className="text-xs">結束日期</Label>
-                  <Input
-                    type="date"
-                    value={taskFormData.end_date}
-                    min={taskFormData.start_date}
-                    onChange={(e) => setTaskFormData({ ...taskFormData, end_date: e.target.value })}
-                    className="mt-1"
-                  />
+                  <Label className="text-xs">結束</Label>
+                  <Input type="date" value={taskFormData.end_date} min={taskFormData.start_date} className="mt-1"
+                    onChange={(e) => setTaskFormData({ ...taskFormData, end_date: e.target.value })} />
                 </div>
               </div>
             )}
@@ -90,12 +104,8 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
             {taskFormData.time_type === 'rolling' && (
               <div className="mt-3">
                 <Label className="text-xs">開始日期</Label>
-                <Input
-                  type="date"
-                  value={taskFormData.start_date}
-                  onChange={(e) => setTaskFormData({ ...taskFormData, start_date: e.target.value })}
-                  className="mt-1"
-                />
+                <Input type="date" value={taskFormData.start_date} className="mt-1"
+                  onChange={(e) => setTaskFormData({ ...taskFormData, start_date: e.target.value })} />
               </div>
             )}
           </div>
