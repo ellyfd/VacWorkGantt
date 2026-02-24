@@ -1038,6 +1038,12 @@ export default function GanttChart() {
     return { start: firstDate, end: secondDate };
   };
 
+  const samplesForProject = useMemo(() => {
+    if (!creatingProjectId) return [];
+    const project = ganttProjects.find(p => p.id === creatingProjectId);
+    return project ? getSamplesByBrand(project.brand_id) : [];
+  }, [creatingProjectId, ganttProjects, samples]);
+
   const projectForAddPhase = ganttProjects.find(p => p.id === creatingProjectId);
   const brandIdForAddPhase = projectForAddPhase?.brand_id;
   const samplesForPhaseSelection = (() => {
