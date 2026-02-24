@@ -578,7 +578,7 @@ export default function ProjectSettings() {
           <DialogHeader>
             <DialogTitle>{editingId && editingType === 'project' ? '編輯品牌' : '新增品牌'}</DialogTitle>
           </DialogHeader>
-          {(() => {
+          {useMemo(() => {
             const usedColors = new Set(
               projects
                 .filter(p => p.id !== editingId)
@@ -586,6 +586,7 @@ export default function ProjectSettings() {
                 .filter(Boolean)
             );
             return (
+            <>
           <div className="space-y-4 py-4">
             <div>
               <Label>品牌全名</Label>
@@ -698,12 +699,13 @@ export default function ProjectSettings() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               {editingId && editingType === 'project' ? '更新' : '建立'}
-              </Button>
-              </DialogFooter>
-              );
-              })()}
-              </DialogContent>
-              </Dialog>
+            </Button>
+          </DialogFooter>
+            </>
+            );
+          }, [projects, editingId, projectFormData, editingType])}
+          </DialogContent>
+          </Dialog>
 
       {/* Group Dialog */}
       <Dialog open={showGroupDialog} onOpenChange={setShowGroupDialog}>
