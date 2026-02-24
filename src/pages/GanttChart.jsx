@@ -1396,150 +1396,155 @@ export default function GanttChart() {
 
           {/* Right Panel */}
           <div className="flex-1 overflow-x-auto" ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
-              {viewMode === 'month' && (
-                <div className="flex bg-gray-50 border-b border-gray-200" style={{ minWidth: days.length * CELL_WIDTH }}>
-                  {(() => {
-                     const groups = [];
-                     let current = null;
-                     days.forEach((day) => {
-                       const monthKey = format(day, 'yyyy-MM');
-                       if (current?.key !== monthKey) {
-                         current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
-                         groups.push(current);
-                       } else {
-                         current.count++;
-                       }
-                     });
-                     return groups.map(g => (
-                       <div
-                         key={g.key}
-                         className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100"
-                         style={{ width: g.count * CELL_WIDTH, flexShrink: 0, height: 20 }}
-                       >
-                         {g.label}
-                       </div>
-                     ));
-                   })()}
-                 </div>
-              )}
-            {/* 日期 header */}
-            <div className="flex bg-gray-100 border-b border-gray-300" style={{ height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT }}>
-              {days.map((day) => {
-                const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-                const isHolidayHeader = holidays?.some(h => h.date === format(day, 'yyyy-MM-dd'));
-                const isDimmedHeader = isWeekend || isHolidayHeader;
-                return (
-                  <div
-                    key={day.toISOString()}
-                    className={`flex-shrink-0 border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                      isToday(day) ? 'bg-red-100 text-red-700' :
-                      isDimmedHeader ? 'bg-gray-300 text-gray-500' :
-                      'bg-gray-100 text-gray-700'
-                    }`}
-                    style={{ width: CELL_WIDTH }}
-                  >
-                    {viewMode === 'quarter' ? (
-                      <>
-                        <span className="text-xs font-semibold leading-none">{format(day, 'M/d')}</span>
-                        <span className="text-[9px] text-gray-400 leading-none">週</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-xs font-semibold leading-none">{format(day, 'd')}</span>
-                        <span className={`text-[9px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
-                          {format(day, 'EEE', { locale: zhTW })}
-                        </span>
-                      </>
-                    )}
+            {/* 所有列共用同一個 grid track，完全對齊 */}
+            {(() => {
+              const gridStyle = {
+                display: 'grid',
+                gridTemplateColumns: `repeat(${days.length}, ${CELL_WIDTH}px)`,
+              };
+              const totalWidth = days.length * CELL_WIDTH;
+              return (
+                <div style={{ width: totalWidth }}>
+                  {/* 月份 header（month only） */}
+                  {viewMode === 'month' && (() => {
+                    const groups = [];
+                    let current = null;
+                    days.forEach((day) => {
+                      const monthKey = format(day, 'yyyy-MM');
+                      if (current?.key !== monthKey) {
+                        current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
+                        groups.push(current);
+                      } else {
+                        current.count++;
+                      }
+                    });
+                    return (
+                      <div className="flex border-b border-gray-200" style={{ height: 20 }}>
+                        {groups.map(g => (
+                          <div
+                            key={g.key}
+                            className="border-r border-gray-300 text-xs font-semibold text-gray-600 flex items-center justify-center bg-gray-100 flex-shrink-0"
+                            style={{ width: g.count * CELL_WIDTH, height: 20 }}
+                          >
+                            {g.label}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+
+                  {/* 日期 header */}
+                  <div style={{ ...gridStyle, height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT, borderBottom: '1px solid #d1d5db' }}>
+                    {days.map((day) => {
+                      const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+                      const isHolidayHeader = holidays?.some(h => h.date === format(day, 'yyyy-MM-dd'));
+                      const isDimmedHeader = isWeekend || isHolidayHeader;
+                      return (
+                        <div
+                          key={day.toISOString()}
+                          className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
+                            isToday(day) ? 'bg-red-100 text-red-700' :
+                            isDimmedHeader ? 'bg-gray-300 text-gray-500' :
+                            'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {viewMode === 'quarter' ? (
+                            <>
+                              <span className="text-xs font-semibold leading-none">{format(day, 'M/d')}</span>
+                              <span className="text-[9px] text-gray-400 leading-none">週</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-xs font-semibold leading-none">{format(day, 'd')}</span>
+                              <span className={`text-[9px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
+                                {format(day, 'EEE', { locale: zhTW })}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-            {/* 請假人數列 */}
-            <div className="flex border-b border-gray-300 bg-white">
-              {days.map((day) => {
-                // 季模式：空白格，不顯示請假人數
-                if (viewMode === 'quarter') {
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className="flex-shrink-0 border-r border-gray-200"
-                      style={{ width: CELL_WIDTH, height: 28 }}
-                    />
-                  );
-                }
-                const dateStr = format(day, 'yyyy-MM-dd');
-                const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
-                const isHolidayLeave = holidays?.some(h => h.date === dateStr);
-                const isDimmedLeave = isWeekendLeave || isHolidayLeave;
-                const count = leaveCountByDate[dateStr] || 0;
-                const leaveStyle = getLeaveCountStyle(count);
-                const cell = (
+
+                  {/* 請假人數列 */}
+                  <div style={{ ...gridStyle, height: 28, borderBottom: '1px solid #d1d5db', backgroundColor: 'white' }}>
+                    {days.map((day) => {
+                      if (viewMode === 'quarter') {
+                        return <div key={day.toISOString()} className="border-r border-gray-200" />;
+                      }
+                      const dateStr = format(day, 'yyyy-MM-dd');
+                      const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
+                      const isHolidayLeave = holidays?.some(h => h.date === dateStr);
+                      const isDimmedLeave = isWeekendLeave || isHolidayLeave;
+                      const count = leaveCountByDate[dateStr] || 0;
+                      const leaveStyle = getLeaveCountStyle(count);
+                      const cellContent = (
+                        <div
+                          key={day.toISOString()}
+                          className="border-r border-gray-200 flex items-center justify-center"
+                          style={{
+                            backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#d1d5db' : 'transparent'),
+                            fontSize: 11,
+                            fontWeight: leaveStyle?.bold ? 700 : 500,
+                            color: leaveStyle?.text || '#d1d5db',
+                            cursor: count ? 'pointer' : 'default',
+                          }}
+                        >
+                          {leaveStyle?.label || ''}
+                        </div>
+                      );
+                      if (!count) return cellContent;
+                      const leaveEntries = leaveNamesByDate[dateStr] || [];
+                      const deptMap = {};
+                      leaveEntries.forEach(({ employeeId }) => {
+                        const emp = employees.find(e => e.id === employeeId);
+                        if (!emp) return;
+                        (emp.department_ids || []).forEach(deptId => {
+                          const dept = departments.find(d => d.id === deptId);
+                          if (!dept) return;
+                          if (!deptMap[dept.name]) deptMap[dept.name] = [];
+                          if (!deptMap[dept.name].includes(emp.name)) deptMap[dept.name].push(emp.name);
+                        });
+                      });
+                      return (
+                        <Popover key={day.toISOString()}>
+                          <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
+                          <PopoverContent className="min-w-[140px] p-2 text-xs" side="bottom" align="center">
+                            {Object.entries(deptMap).map(([deptName, names]) => (
+                              <div key={deptName} className="mb-2 last:mb-0">
+                                <p className="font-semibold text-gray-500 mb-1">{deptName}</p>
+                                {names.map(name => (
+                                  <p key={name} className="text-gray-800 pl-2">{name}</p>
+                                ))}
+                              </div>
+                            ))}
+                          </PopoverContent>
+                        </Popover>
+                      );
+                    })}
+                  </div>
+
+                  {/* rows */}
                   <div
-                    key={day.toISOString()}
-                    className="flex-shrink-0 border-r border-gray-200 flex items-center justify-center"
-                    style={{
-                      width: CELL_WIDTH,
-                      height: 28,
-                      backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#d1d5db' : 'transparent'),
-                      fontSize: 11,
-                      fontWeight: leaveStyle?.bold ? 700 : 500,
-                      color: leaveStyle?.text || '#d1d5db',
-                      cursor: count ? 'pointer' : 'default',
+                    className="overflow-y-auto"
+                    ref={rightBodyRef}
+                    style={{ maxHeight: 'calc(100vh - 440px)' }}
+                    onMouseLeave={() => {
+                      if (isDragging) {
+                        setIsDragging(false);
+                        setDragTaskId(null);
+                      }
                     }}
                   >
-                    {leaveStyle?.label || ''}
+                    {visibleRows.map((row) => (
+                      <div key={row.id} style={{ ...gridStyle, borderBottom: '1px solid #e5e7eb' }}>
+                        {days.map((day) => renderRightCell(row, day))}
+                      </div>
+                    ))}
                   </div>
-                );
-                if (!count) return cell;
-                // 按部門分組
-                const leaveEntries = leaveNamesByDate[dateStr] || [];
-                const deptMap = {};
-                leaveEntries.forEach(({ employeeId }) => {
-                  const emp = employees.find(e => e.id === employeeId);
-                  if (!emp) return;
-                  (emp.department_ids || []).forEach(deptId => {
-                    const dept = departments.find(d => d.id === deptId);
-                    if (!dept) return;
-                    if (!deptMap[dept.name]) deptMap[dept.name] = [];
-                    if (!deptMap[dept.name].includes(emp.name)) deptMap[dept.name].push(emp.name);
-                  });
-                });
-                return (
-                  <Popover key={day.toISOString()}>
-                    <PopoverTrigger asChild>{cell}</PopoverTrigger>
-                    <PopoverContent className="min-w-[140px] p-2 text-xs" side="bottom" align="center">
-                      {Object.entries(deptMap).map(([deptName, names]) => (
-                        <div key={deptName} className="mb-2 last:mb-0">
-                          <p className="font-semibold text-gray-500 mb-1">{deptName}</p>
-                          {names.map(name => (
-                            <p key={name} className="text-gray-800 pl-2">{name}</p>
-                          ))}
-                        </div>
-                      ))}
-                    </PopoverContent>
-                  </Popover>
-                );
-              })}
-            </div>
-            {/* rows */}
-            <div
-              className="overflow-y-auto"
-              ref={rightBodyRef}
-              style={{ maxHeight: 'calc(100vh - 440px)' }}
-              onMouseLeave={() => {
-                if (isDragging) {
-                  setIsDragging(false);
-                  setDragTaskId(null);
-                }
-              }}
-            >
-              {visibleRows.map((row) => (
-                <div key={row.id} className="flex border-b border-gray-200">
-                  {days.map((day) => renderRightCell(row, day))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
           </div>
         </DragDropContext>
