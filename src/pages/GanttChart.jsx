@@ -1220,7 +1220,7 @@ export default function GanttChart() {
        </div>
        );
        });
-       }, [tasksByProjectId, allDaysIndexMap, CELL_WIDTH, isDragging, dragTaskId, dragStart, dragEnd]);
+       }, [tasksByProjectId, allDaysIndexMap, CELL_WIDTH]);
 
         // 取得排序後的日期
   const getSortedDates = () => {
