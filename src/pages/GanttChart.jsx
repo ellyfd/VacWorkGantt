@@ -674,7 +674,7 @@ export default function GanttChart() {
       return;
     }
 
-    const EDGE_ZONE = 10;
+    const EDGE_ZONE = 0;
     const SCROLL_SPEED = 10;
 
     const handleMouseMove = (e) => {
