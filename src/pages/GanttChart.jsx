@@ -793,7 +793,7 @@ export default function GanttChart() {
   // 渲染左側單元格
   const renderLeftCell = (row, isDragging) => {
     if (row.type === 'project') {
-      const projectTasks = ganttTasks.filter(t => t.gantt_project_id === row.data.id);
+      const projectTasks = tasksByProjectId[row.data.id] ?? [];
       return (
         <div
           className="group flex items-center gap-2 px-3 font-bold text-sm text-white"
