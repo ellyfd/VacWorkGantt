@@ -1003,7 +1003,7 @@ export default function GanttChart() {
         </div>
       );
     }
-  }, [ganttTasks, tasksByProjectId]);
+  });
 
   // 計算工作天數
   const calculateWorkingDays = (startDate, endDate) => {
@@ -1088,7 +1088,7 @@ export default function GanttChart() {
         {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />}
       </div>
     );
-  }, [selectedTaskId, tasksByProjectId, isDragging, dragTaskId, dragStart, dragEnd, dayCellPropsMap, contextMenuDate]);
+  });
 
   // Memoize renderTaskBars to avoid unnecessary re-renders
   const renderTaskBars = useCallback((row) => {
@@ -1218,7 +1218,7 @@ export default function GanttChart() {
         });
         }, [tasksByProjectId, dayIndexMap, CELL_WIDTH, days.length, selectedTaskId, isDragging, dragTaskId, dragStart, dragEnd]);
 
-  // 取得排序後的日期
+        // 取得排序後的日期
   const getSortedDates = () => {
     if (!firstDate) return { start: null, end: null };
     if (!secondDate) return { start: firstDate, end: firstDate };
