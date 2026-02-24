@@ -1072,36 +1072,18 @@ export default function GanttChart() {
       return dateStr >= s && dateStr <= e;
     })();
 
-    const { isFirstOfMonth, bgColor, cursorStyle } = getCellProps(dateStr, isInDragRange, projectTasks);
+    const { isFirstOfMonth, bgColor } = getCellProps(dateStr, isInDragRange, projectTasks);
 
     return (
       <div
         key={dateStr}
-        className="cursor-pointer"
         style={{
-          cursor: cursorStyle,
           height: ROW_HEIGHT,
           borderRight: '1px solid #d1d5db',
           borderLeft: isFirstOfMonth ? '2px solid #6b7280' : undefined,
           backgroundColor: bgColor,
           position: 'relative',
         }}
-        onMouseDown={(e) => {
-          if (e.button !== 0) return;
-          const projectTasks = tasksByProjectId[row.data.id] ?? [];
-          if (selectedTaskId && projectTasks.some(t => t.id === selectedTaskId)) {
-            setIsDragging(true);
-            setDragTaskId(selectedTaskId);
-            setDragStart(day);
-            setDragEnd(day);
-          }
-        }}
-        onMouseEnter={() => {
-          if (isDragging && dragTaskId && (tasksByProjectId[row.data.id] ?? []).some(t => t.id === dragTaskId)) {
-            setDragEnd(day);
-          }
-        }}
-        onContextMenu={() => setContextMenuDate(day)}
       >
         {isToday(day) && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
         {isToday(day) && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />}
