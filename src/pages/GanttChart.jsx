@@ -334,8 +334,8 @@ export default function GanttChart() {
       }
       return weeks;
     } else {
-      const start = subDays(centerDate, 90);
-      const end = addDays(centerDate, 180);
+      const start = subDays(centerDate, 60);
+      const end = addDays(centerDate, 120);
       return eachDayOfInterval({ start, end });
     }
   }, [centerDate, viewMode]);
