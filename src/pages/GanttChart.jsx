@@ -1474,7 +1474,7 @@ export default function GanttChart() {
                 }
               }}
             >
-              {rows.map((row) => (
+              {visibleRows.map((row) => (
                 <div key={row.id} className="flex border-b border-gray-200">
                   {days.map((day) => renderRightCell(row, day))}
                 </div>
