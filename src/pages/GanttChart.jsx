@@ -782,8 +782,13 @@ export default function GanttChart() {
       const projectTasks = ganttTasks.filter(t => t.gantt_project_id === row.data.id);
       return (
         <div
-          className={`group flex items-center gap-2 px-3 font-bold text-sm ${isDragging ? 'bg-blue-700 text-white' : 'bg-gray-800 text-white hover:bg-gray-900'}`}
-          style={{ height: ROW_HEIGHT }}
+          className="group flex items-center gap-2 px-3 font-bold text-sm text-white"
+          style={{
+            height: ROW_HEIGHT,
+            backgroundColor: isDragging
+              ? (row.data.color || '#3b82f6') + 'cc'
+              : row.data.color || '#3b82f6',
+          }}
         >
           <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
           <span className="truncate flex-1">{row.data.name}</span>
