@@ -578,7 +578,7 @@ export default function ProjectSettings() {
           <DialogHeader>
             <DialogTitle>{editingId && editingType === 'project' ? '編輯品牌' : '新增品牌'}</DialogTitle>
           </DialogHeader>
-          {useMemo(() => {
+          {(() => {
             const usedColors = new Set(
               projects
                 .filter(p => p.id !== editingId)
@@ -703,7 +703,7 @@ export default function ProjectSettings() {
           </DialogFooter>
             </>
             );
-          }, [projects, editingId, projectFormData, editingType])}
+          })()}
           </DialogContent>
           </Dialog>
 
