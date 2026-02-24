@@ -1734,14 +1734,11 @@ export default function GanttChart() {
       <details className="mt-4 text-sm text-gray-600">
         <summary className="cursor-pointer font-medium">📖 操作說明</summary>
         <ul className="mt-2 ml-4 space-y-1 list-disc">
-          <li><strong>選中任務</strong>：點擊任務 bar 一次選中（出現藍色框線），再點一次打開編輯對話框</li>
-          <li><strong>設定時間</strong>：選中任務後，在格子上拖曳畫出日期區間，Toolbar 會出現三種選項（里程碑 ◆、區間 ▬、Rolling ▶）</li>
-          <li><strong>快速設定</strong>：右鍵點格子，對各任務快速設定里程碑、Rolling 或清除時間</li>
-          <li><strong>新增任務</strong>：滑鼠移到專案/樣品列名稱上，點擊 ＋ 按鈕快速新增任務</li>
-          <li><strong>橫向捲動</strong>：滑鼠滾輪或 Trackpad 可平滑捲動，每次移動約 1 格，支援月份快速跳轉按鈕</li>
-          <li><strong>拖曳時保持穩定</strong>：拖曳 bar 時自動禁用邊界自動延伸，避免時間軸跳躍干擾</li>
-          <li><strong>編輯任務</strong>：選中任務後右鍵點選「編輯」，或在 Toolbar 中再點一次任務 bar</li>
-        </ul>
+             <li><strong>新增任務</strong>：滑鼠移到專案列名稱上，點擊 ＋ 按鈕新增任務</li>
+             <li><strong>編輯/刪除任務</strong>：點擊任務 bar 直接開啟編輯對話框，或右鍵選單選擇編輯/刪除</li>
+             <li><strong>設定日期</strong>：在編輯對話框中選擇時間類型（里程碑 ◆、區間 ▬、Rolling ▶）並填寫日期</li>
+             <li><strong>橫向捲動</strong>：滑鼠滾輪或 Trackpad 可平滑捲動，每次移動約 1 格，支援月份快速跳轉按鈕</li>
+           </ul>
         <div className="mt-3 ml-4">
           <p className="font-medium text-gray-700 mb-1">請假人數色碼：</p>
           <div className="flex flex-col gap-1">
