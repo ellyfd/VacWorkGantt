@@ -1106,10 +1106,6 @@ export default function GanttChart() {
     });
   };
 
-
-    }
-  };
-
   // 取得排序後的日期
   const getSortedDates = () => {
     if (!firstDate) return { start: null, end: null };
