@@ -536,6 +536,28 @@ export default function GanttChart() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // 全域 mouseup：防止拖曳後在格子外放開滑鼠造成狀態卡住
+  React.useEffect(() => {
+    if (!isDragging) return;
+    const handleMouseUp = () => {
+      if (dragStart && dragEnd && dragTaskId) {
+        let start = dragStart < dragEnd ? dragStart : dragEnd;
+        let end = dragStart < dragEnd ? dragEnd : dragStart;
+        if (format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')) {
+          updateTaskWithOptimistic(dragTaskId, { time_type: 'milestone', start_date: format(start, 'yyyy-MM-dd'), end_date: null });
+        } else {
+          updateTaskWithOptimistic(dragTaskId, { time_type: 'duration', start_date: format(start, 'yyyy-MM-dd'), end_date: format(end, 'yyyy-MM-dd') });
+        }
+      }
+      setIsDragging(false);
+      setDragTaskId(null);
+      setDrawingMode(false);
+      setPendingTask(null);
+    };
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, [isDragging, dragStart, dragEnd, dragTaskId]);
+
   const rightBodyRef = useRef(null);
 
   // 同步垂直滾動：左側 panel ↔ 右側 body
