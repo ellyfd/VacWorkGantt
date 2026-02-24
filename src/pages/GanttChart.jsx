@@ -1189,8 +1189,13 @@ export default function GanttChart() {
                   </div>
                 )}
                 {task.time_type === 'duration' && (
-                  <span style={{ fontSize: 12, color: textColor, fontWeight: 500 }} className="hover:opacity-80 transition-opacity">
+                  <span style={{ fontSize: 14, color: textColor, fontWeight: 500 }}>
                     {`${row.data.name} ${task.name}`}
+                    {workingDays > 0 && (
+                      <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 6 }}>
+                        ({workingDays}工作天)
+                      </span>
+                    )}
                   </span>
                 )}
                 {task.time_type === 'rolling' && (
