@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,8 @@ import { Loader2, Plus, Edit2, Trash2, Search } from 'lucide-react';
 
 export default function ProjectSettings() {
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'groups';
   const [showSampleDialog, setShowSampleDialog] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
@@ -265,12 +268,14 @@ export default function ProjectSettings() {
     );
   }
 
-  const usedColors = new Set(
-    projects
-      .filter(p => p.id !== editingId)
-      .map(p => p.default_color)
-      .filter(c => c && c.trim()) // 只計算真實有顏色的項目
-  );
+  const usedColors = useMemo(() => {
+    return new Set(
+      projects
+        .filter(p => p.id !== editingId)
+        .map(p => p.default_color)
+        .filter(Boolean)
+    );
+  }, [projects, editingId]);
 
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -278,7 +283,7 @@ export default function ProjectSettings() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">專案設定</h1>
       </div>
 
-      <Tabs defaultValue="groups" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="groups">集團管理</TabsTrigger>
           <TabsTrigger value="projects">品牌管理</TabsTrigger>
