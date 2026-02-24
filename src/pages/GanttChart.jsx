@@ -39,6 +39,8 @@ import AddTaskDialog from '@/components/gantt/AddTaskDialog';
 import EditPhaseDialog from '@/components/gantt/EditPhaseDialog';
 import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gantt/TimeDialogs';
 import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
+import TimeNavigation from '@/components/gantt/TimeNavigation';
+import FilterRow from '@/components/gantt/FilterRow';
 
 const ROW_HEIGHT = 40;
 
