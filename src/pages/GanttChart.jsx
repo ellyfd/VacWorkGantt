@@ -460,11 +460,21 @@ export default function GanttChart() {
     if (!taskFormData.name || !currentPhaseId) return;
 
     const tasksInPhase = ganttTasks.filter((t) => t.gantt_phase_id === currentPhaseId);
-    createGanttTask.mutate({
-      ...taskFormData,
+    const taskData = {
+      name: taskFormData.name,
+      is_important: taskFormData.is_important,
+      note: taskFormData.note,
       gantt_phase_id: currentPhaseId,
       sort_order: tasksInPhase.length + 1,
-    });
+    };
+
+    if (taskFormData.time_type) {
+      taskData.time_type = taskFormData.time_type;
+      taskData.start_date = taskFormData.start_date || null;
+      taskData.end_date = taskFormData.time_type === 'duration' ? (taskFormData.end_date || null) : null;
+    }
+
+    createGanttTask.mutate(taskData);
   };
 
   // 點擊任務
