@@ -928,6 +928,7 @@ export default function GanttChart() {
     if (!editingTask) return;
     updateTaskWithOptimistic(editingTask.id, {
       name: editingTask.name,
+      sample_id: editingTask.sample_id || null,
       time_type: editingTask.time_type || null,
       start_date: editingTask.start_date || null,
       end_date: editingTask.time_type === 'duration' ? (editingTask.end_date || null) : null,
