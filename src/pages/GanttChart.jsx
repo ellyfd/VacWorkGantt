@@ -948,9 +948,8 @@ export default function GanttChart() {
                 borderRight: '1px solid #d1d5db',
                 borderBottom: '1px solid #d1d5db',
                 backgroundColor: isInDragRange ? '#bfdbfe'
-                  : isDimmed ? '#d1d5db'
-                  : selectedProjectTask ? '#eff6ff'
-                  : '#f9fafb',
+                  : isDimmed ? '#c5c5c5'
+                  : `${projectColor}22`,
               }}
               onMouseDown={(e) => {
                 if (e.button !== 0) return;
