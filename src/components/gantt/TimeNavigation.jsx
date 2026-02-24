@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { format, addMonths, subMonths } from 'date-fns';
+import { format, addMonths, subMonths, addDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import MonthPicker from './MonthPicker';
+
+const CELL_WIDTH = 40;
 
 export default function TimeNavigation({
   centerDate,
@@ -24,6 +26,20 @@ export default function TimeNavigation({
     setShowMonthPicker(false);
   };
 
+  // 週跳：前後各 7 天，同時補償 scrollLeft
+  const handleJumpWeek = (direction) => {
+    const newDate = addDays(centerDate, direction * 7);
+    onCenterDateChange(newDate);
+    
+    // 補償水平捲動位置，讓畫面跟著跳
+    setTimeout(() => {
+      const el = document.querySelector('[data-gantt-scroll]');
+      if (el) {
+        el.scrollLeft += direction * 7 * CELL_WIDTH;
+      }
+    }, 50);
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-3 py-2">
       {/* 月份導航 */}
@@ -32,6 +48,7 @@ export default function TimeNavigation({
           variant="outline"
           size="sm"
           onClick={handlePrevMonth}
+          title="上個月"
           className="h-8 w-8 p-0"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -60,9 +77,35 @@ export default function TimeNavigation({
           variant="outline"
           size="sm"
           onClick={handleNextMonth}
+          title="下個月"
           className="h-8 w-8 p-0"
         >
           <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* 週跳導航 */}
+      <div className="flex items-center gap-1 border-l border-gray-300 pl-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleJumpWeek(-1)}
+          title="前 7 天"
+          className="h-7 px-1.5"
+        >
+          <ChevronLeft className="w-3 h-3 mr-0.5" />
+          <span className="text-xs">週</span>
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleJumpWeek(1)}
+          title="後 7 天"
+          className="h-7 px-1.5"
+        >
+          <span className="text-xs">週</span>
+          <ChevronRight className="w-3 h-3 ml-0.5" />
         </Button>
       </div>
 
@@ -71,12 +114,11 @@ export default function TimeNavigation({
         variant="outline"
         size="sm"
         onClick={onScrollToToday}
+        title="回到今天"
         className="text-xs"
       >
         今天
       </Button>
-
-
     </div>
   );
 }
