@@ -1040,7 +1040,7 @@ export default function GanttChart() {
   };
 
   // 渲染左側單元格（memoized）
-  const renderLeftCell = useCallback((row, isDragging) => {
+  const renderLeftCell = useCallback((row) => {
     if (row.type === 'project') {
       const projectTasks = tasksByProjectId[row.data.id] ?? [];
       return (
@@ -1048,13 +1048,10 @@ export default function GanttChart() {
           className="group flex items-center gap-2 px-3 font-bold text-sm"
           style={{
             height: ROW_HEIGHT,
-            backgroundColor: isDragging
-              ? (row.data.color || '#3b82f6') + 'cc'
-              : row.data.color || '#3b82f6',
+            backgroundColor: row.data.color || '#3b82f6',
             color: getContrastColor(row.data.color || '#3b82f6'),
           }}
         >
-          <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
           <span className="truncate flex-1">{row.data.name}</span>
           <div className="hidden group-hover:flex gap-1 flex-shrink-0">
             <button
