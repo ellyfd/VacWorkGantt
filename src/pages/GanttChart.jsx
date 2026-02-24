@@ -788,6 +788,9 @@ export default function GanttChart() {
   // 顯示的月份（根據捲動位置計算）
   const [visibleMonth, setVisibleMonth] = useState(new Date());
 
+  // 節流 ref
+  const wheelThrottleRef = useRef(0);
+
   // 精確橫向滾動：每個 tick 固定移動 1 格（無動量）
   const handleRightWheel = useCallback((e) => {
     const absDeltaX = Math.abs(e.deltaX);
@@ -799,6 +802,11 @@ export default function GanttChart() {
     e.preventDefault();
     const el = rightPanelRef.current;
     if (!el) return;
+
+    // 節流：每 120ms 最多處理一次
+    const now = Date.now();
+    if (now - wheelThrottleRef.current < 120) return;
+    wheelThrottleRef.current = now;
 
     // 正規化 delta 值（處理不同 deltaMode）
     let rawDelta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
