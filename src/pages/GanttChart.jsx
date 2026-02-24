@@ -409,12 +409,12 @@ export default function GanttChart() {
     return groups.find(g => g.name.toLowerCase() === 'makalot');
   }, [groups]);
 
-  // 再計算 getDept（它依賴 makalotGroup）
-  const getDept = (ganttProject) => {
+  // 再計算 getDept（它依賴 makalotGroup，用 useCallback 避免重複定義）
+  const getDept = useCallback((ganttProject) => {
     const brand = projects.find(p => p.id === ganttProject.brand_id);
     if (!brand) return 'other';
     return brand.group_id === makalotGroup?.id ? 'makalot' : 'dpc';
-  };
+  }, [projects, makalotGroup]);
 
   const filteredLeaveRecords = useMemo(() => {
     if (!selectedDeptId) return leaveRecords;
