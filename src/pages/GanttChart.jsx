@@ -1530,27 +1530,18 @@ export default function GanttChart() {
                           </div>
                         </ContextMenuTrigger>
                         <ContextMenuContent>
-                          {contextMenuDate && (tasksByProjectId[row.data.id] ?? []).length === 0 && (
-                            <ContextMenuItem disabled className="text-gray-400 text-xs">此專案尚無任務</ContextMenuItem>
-                          )}
-                          {contextMenuDate && (tasksByProjectId[row.data.id] ?? []).map(task => (
-                            <React.Fragment key={task.id}>
-                              <ContextMenuItem className="font-medium text-xs text-gray-500 cursor-default" disabled>{task.name}</ContextMenuItem>
-                              <ContextMenuItem onClick={() => handleSetMilestone(task.id, contextMenuDate)} className="pl-4">
-                                <Diamond className="w-3 h-3 mr-2" /> 設為里程碑
-                              </ContextMenuItem>
-                              <ContextMenuItem onClick={() => handleSetRolling(task.id, contextMenuDate)} className="pl-4">
-                                <Repeat className="w-3 h-3 mr-2" /> 設為 Rolling
-                              </ContextMenuItem>
-                              <ContextMenuItem onClick={() => handleClearTime(task.id)} className="pl-4">
-                                <X className="w-3 h-3 mr-2" /> 清除時間
-                              </ContextMenuItem>
-                              <ContextMenuItem onClick={() => { setEditingTask(task); setShowEditTaskDialog(true); }} className="pl-4">
-                                <Edit2 className="w-3 h-3 mr-2" /> 編輯
-                              </ContextMenuItem>
-                            </React.Fragment>
-                          ))}
-                        </ContextMenuContent>
+                           {contextMenuDate && (tasksByProjectId[row.data.id] ?? []).map(task => (
+                             <React.Fragment key={task.id}>
+                               <ContextMenuItem className="font-medium text-xs text-gray-500 cursor-default" disabled>{task.name}</ContextMenuItem>
+                               <ContextMenuItem onClick={() => { setEditingTask(task); setShowEditTaskDialog(true); }} className="pl-4">
+                                 <Edit2 className="w-3 h-3 mr-2" /> 編輯
+                               </ContextMenuItem>
+                               <ContextMenuItem onClick={() => setDeleteConfirm({ type: 'task', id: task.id, name: task.name })} className="pl-4 text-red-600">
+                                 <Trash2 className="w-3 h-3 mr-2" /> 刪除
+                               </ContextMenuItem>
+                             </React.Fragment>
+                           ))}
+                         </ContextMenuContent>
                       </ContextMenu>
                     ))}
                   </div>
