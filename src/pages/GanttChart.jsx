@@ -173,6 +173,11 @@ export default function GanttChart() {
     queryFn: () => base44.entities.Holiday.list(),
   });
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
   // Mutations
   const createGanttProject = useMutation({
     mutationFn: (data) => base44.entities.GanttProject.create(data),
