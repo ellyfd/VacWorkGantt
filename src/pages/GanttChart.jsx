@@ -1155,6 +1155,28 @@ export default function GanttChart() {
                     setSecondDate(null);
                   }
                 }}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  transform: isSelected ? 'translateY(-50%) scale(1.05)' : 'translateY(-50%)',
+                  left,
+                  width: width === 'auto' ? undefined : width,
+                  height: 24,
+                  borderRadius: 4,
+                  backgroundColor: bgColor,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'auto',
+                  opacity: 1,
+                  cursor: isSelected ? 'crosshair' : 'pointer',
+                  zIndex: isSelected ? 30 : 10,
+                  outline: isSelected ? `2px solid ${task.is_important ? '#eab308' : '#1f2937'}` : 'none',
+                  outlineOffset: isSelected ? '2px' : '0px',
+                  transition: 'outline 0.15s, transform 0.15s, z-index 0.15s, cursor 0.15s',
+                }}
               >
                 {task.time_type === 'milestone' && (
                   <div className="flex items-center gap-1 px-1 hover:opacity-80 transition-opacity">
