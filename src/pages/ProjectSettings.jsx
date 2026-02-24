@@ -31,7 +31,7 @@ export default function ProjectSettings() {
   const [editingId, setEditingId] = useState(null);
   const [editingType, setEditingType] = useState(null);
   const [sampleFormData, setSampleFormData] = useState({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
-  const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active' });
+  const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
   const [groupFormData, setGroupFormData] = useState({ name: '', status: 'active' });
   const [searchText, setSearchText] = useState('');
   const [projectSearchText, setProjectSearchText] = useState('');
@@ -90,7 +90,7 @@ export default function ProjectSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setShowProjectDialog(false);
-      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
+      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
     },
   });
 
@@ -102,7 +102,7 @@ export default function ProjectSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries(['projects']);
       setShowProjectDialog(false);
-      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
+      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
       setEditingId(null);
     },
   });
@@ -185,11 +185,12 @@ export default function ProjectSettings() {
         short_name: project.short_name,
         group_id: project.group_id || '',
         status: project.status || 'active',
+        default_color: project.default_color || '#3b82f6',
       });
     } else {
       setEditingId(null);
       setEditingType('project');
-      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active' });
+      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
     }
     setShowProjectDialog(true);
   };
@@ -602,6 +603,49 @@ export default function ProjectSettings() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* 顏色 */}
+            <div>
+              <Label>甘特圖顏色</Label>
+              <div className="mt-2 space-y-2">
+                {/* 色票 */}
+                <div className="flex gap-2 flex-wrap">
+                  {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16'].map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setProjectFormData({ ...projectFormData, default_color: color })}
+                      className="w-7 h-7 rounded-full transition-transform hover:scale-110 flex-shrink-0"
+                      style={{
+                        backgroundColor: color,
+                        outline: projectFormData.default_color === color ? `3px solid ${color}` : 'none',
+                        outlineOffset: 2,
+                      }}
+                    />
+                  ))}
+                </div>
+                {/* Hex 輸入 */}
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-7 h-7 rounded-full flex-shrink-0 border border-gray-200"
+                    style={{ backgroundColor: projectFormData.default_color }}
+                  />
+                  <Input
+                    value={projectFormData.default_color}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
+                        setProjectFormData({ ...projectFormData, default_color: val });
+                      }
+                    }}
+                    placeholder="#3b82f6"
+                    className="h-8 text-sm font-mono w-32"
+                    maxLength={7}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
               <Label>狀態</Label>
               <Select
