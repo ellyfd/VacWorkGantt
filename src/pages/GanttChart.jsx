@@ -1612,8 +1612,7 @@ export default function GanttChart() {
             })()}
           </div>
           </div>
-        </DragDropContext>
-      </Card>
+          </Card>
 
       {/* ===== Dialogs ===== */}
 
