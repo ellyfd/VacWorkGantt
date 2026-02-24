@@ -1161,19 +1161,20 @@ export default function GanttChart() {
                   transition: 'outline 0.15s, transform 0.15s, z-index 0.15s',
                 }}
                 onClick={(e) => {
-                  e.stopPropagation();
-                  if (selectedTaskId === task.id) {
-                    // 已選中的情況下再點 → 開 dialog
-                    setEditingTask({ ...task });
-                    setShowEditTaskDialog(true);
-                  } else {
-                    // 第一次點 → 選取任務（進入可拖曳狀態）
-                    setSelectedTaskId(task.id);
-                    setFirstDate(null);
-                    setSecondDate(null);
-                  }
-                }}
-                {task.time_type === 'milestone' && (
+                   e.stopPropagation();
+                   if (selectedTaskId === task.id) {
+                     // 已選中的情況下再點 → 開 dialog
+                     setEditingTask({ ...task });
+                     setShowEditTaskDialog(true);
+                   } else {
+                     // 第一次點 → 選取任務（進入可拖曳狀態）
+                     setSelectedTaskId(task.id);
+                     setFirstDate(null);
+                     setSecondDate(null);
+                   }
+                 }}
+                >
+                 {task.time_type === 'milestone' && (
                   <div className="flex items-center gap-1 px-1">
                     <div style={{
                       width: 12, height: 12,
