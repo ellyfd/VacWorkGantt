@@ -733,14 +733,8 @@ export default function GanttChart() {
     }
     // 靠近左端：往左延伸
     if (el.scrollLeft < CELL_WIDTH * 30) {
-      const prevScrollLeft = el.scrollLeft;
-      setCenterDate(d => {
-        // 延伸後補償 scrollLeft
-        requestAnimationFrame(() => {
-          el.scrollLeft = prevScrollLeft + 30 * CELL_WIDTH;
-        });
-        return subDays(d, 30);
-      });
+      pendingScrollCompensation.current = 30 * CELL_WIDTH;
+      setCenterDate(d => subDays(d, 30));
     }
   }, [days, CELL_WIDTH]);
 
