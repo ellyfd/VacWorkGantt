@@ -1022,8 +1022,8 @@ export default function GanttChart() {
     return count;
   };
 
-  // 渲染右側單元格背景（只處理視覺，不渲染 Bar）
-  const renderCellBackground = (row, day) => {
+  // 渲染右側單元格背景（只處理視覺，不渲染 Bar）（memoized）
+  const renderCellBackground = useCallback((row, day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
     const dayOfWeek = getDay(day);
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
