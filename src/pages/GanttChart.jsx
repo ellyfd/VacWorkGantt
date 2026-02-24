@@ -1530,8 +1530,24 @@ export default function GanttChart() {
           updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name, color: editingProject.color } });
           editingProjectTasks.forEach(task => {
             const original = ganttTasks.find(t => t.id === task.id);
-            if (original && original.name !== task.name) {
-              updateGanttTask.mutate({ id: task.id, data: { name: task.name } });
+            if (!original) return;
+
+            const nameChanged = original.name !== task.name;
+            const timeChanged =
+              original.time_type !== task.time_type ||
+              original.start_date !== task.start_date ||
+              original.end_date !== task.end_date;
+
+            if (nameChanged || timeChanged) {
+              updateGanttTask.mutate({
+                id: task.id,
+                data: {
+                  name: task.name,
+                  time_type: task.time_type || null,
+                  start_date: task.start_date || null,
+                  end_date: task.time_type === 'duration' ? (task.end_date || null) : null,
+                }
+              });
             }
           });
           setShowEditProjectDialog(false);
