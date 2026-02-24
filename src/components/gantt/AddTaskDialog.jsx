@@ -24,28 +24,6 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
             />
           </div>
 
-          {/* 標記為重要 */}
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={taskFormData.is_important}
-              onChange={(e) => setTaskFormData({ ...taskFormData, is_important: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <span className="text-sm">標記為重要（黃色里程碑）</span>
-          </label>
-
-          {/* 備註 */}
-          <div>
-            <Label>備註</Label>
-            <Input
-              value={taskFormData.note}
-              onChange={(e) => setTaskFormData({ ...taskFormData, note: e.target.value })}
-              placeholder="選填"
-              className="mt-1"
-            />
-          </div>
-
           {/* 時間設定（選填） */}
           <div className="border-t pt-4">
             <Label className="mb-2 block text-gray-600">
