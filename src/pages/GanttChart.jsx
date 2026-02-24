@@ -325,19 +325,10 @@ export default function GanttChart() {
 
   // Get days based on viewMode (infinite scroll: center ± buffer)
   const days = useMemo(() => {
-    if (viewMode === 'quarter') {
-      const start = startOfWeek(subDays(centerDate, 45), { weekStartsOn: 1 });
-      const weeks = [];
-      for (let i = 0; i < 26; i++) {
-        weeks.push(addWeeks(start, i));
-      }
-      return weeks;
-    } else {
-      const start = subDays(centerDate, 90);
-      const end = addDays(centerDate, 180);
-      return eachDayOfInterval({ start, end });
-    }
-  }, [centerDate, viewMode]);
+    const start = subDays(centerDate, 90);
+    const end = addDays(centerDate, 180);
+    return eachDayOfInterval({ start, end });
+  }, [centerDate]);
 
   const CELL_WIDTH = useMemo(() => {
     if (viewMode === 'quarter') return Math.max(32, Math.floor(containerWidth / days.length));
