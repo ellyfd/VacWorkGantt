@@ -214,6 +214,11 @@ export default function GanttChart() {
     queryFn: () => base44.entities.Department.list('sort_order'),
   });
 
+  const { data: groups = [] } = useQuery({
+    queryKey: ['groups'],
+    queryFn: () => base44.entities.Group.list(),
+  });
+
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays'],
     queryFn: () => base44.entities.Holiday.list(),
