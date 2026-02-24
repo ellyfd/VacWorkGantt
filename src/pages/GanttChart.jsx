@@ -1019,15 +1019,13 @@ export default function GanttChart() {
     const [movedItem] = reorderedItems.splice(source.index, 1);
     reorderedItems.splice(destination.index, 0, movedItem);
 
-    // 批量更新
+    // 批量更新所有项目的排序（不检查是否改变，直接更新）
     reorderedItems.forEach((item, idx) => {
-      if (item.sort_order !== idx) {
-        updateSortOrder.mutate({
-          id: item.id,
-          entityType: sourceType,
-          sortOrder: idx,
-        });
-      }
+      updateSortOrder.mutate({
+        id: item.id,
+        entityType: sourceType,
+        sortOrder: idx,
+      });
     });
   };
 
