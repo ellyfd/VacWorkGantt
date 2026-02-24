@@ -619,58 +619,61 @@ export default function AllLeaveCalendar() {
         <div className="mb-4 space-y-3">
           <div className="bg-white border border-gray-200 rounded-lg p-3">
             <div className="space-y-3">
-              {/* 部門選擇 - 手機版改為下拉選單，桌面版保持原樣 */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700 flex-shrink-0">部門：</span>
-                <div className="hidden sm:flex items-center gap-2 flex-wrap">
-                  {departments.map((dept) => (
-                    <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedDepartments.includes(dept.id)}
-                        onChange={() => {
+              {/* 部門選擇和日期選擇器 - 桌面版水平並排 */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                {/* 部門選擇 */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-700 flex-shrink-0">部門：</span>
+                  <div className="hidden sm:flex items-center gap-2 flex-wrap">
+                    {departments.map((dept) => (
+                      <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedDepartments.includes(dept.id)}
+                          onChange={() => {
+                            if (selectedDepartments.includes(dept.id)) {
+                              setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                            } else {
+                              setSelectedDepartments([...selectedDepartments, dept.id]);
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{dept.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {/* 手機版下拉選單 */}
+                  <div className="flex sm:hidden gap-2 flex-wrap">
+                    {departments.map((dept) => (
+                      <button
+                        key={dept.id}
+                        onClick={() => {
                           if (selectedDepartments.includes(dept.id)) {
                             setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
                           } else {
                             setSelectedDepartments([...selectedDepartments, dept.id]);
                           }
                         }}
-                        className="w-4 h-4 text-blue-600 rounded"
-                      />
-                      <span className="text-sm text-gray-700">{dept.name}</span>
-                    </label>
-                  ))}
+                        className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                          selectedDepartments.includes(dept.id)
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-gray-700 border-gray-300'
+                        }`}
+                      >
+                        {dept.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                {/* 手機版下拉選單 */}
-                <div className="flex sm:hidden gap-2 flex-wrap">
-                  {departments.map((dept) => (
-                    <button
-                      key={dept.id}
-                      onClick={() => {
-                        if (selectedDepartments.includes(dept.id)) {
-                          setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
-                        } else {
-                          setSelectedDepartments([...selectedDepartments, dept.id]);
-                        }
-                      }}
-                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        selectedDepartments.includes(dept.id)
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-300'
-                      }`}
-                    >
-                      {dept.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* 日期選擇器 - 僅桌面版顯示 */}
-              <div className="hidden md:flex justify-end">
-                <CalendarHeader 
-                  currentDate={currentDate} 
-                  onDateChange={setCurrentDate}
-                />
+                {/* 日期選擇器 - 桌面版右對齊 */}
+                <div className="hidden md:flex flex-shrink-0">
+                  <CalendarHeader 
+                    currentDate={currentDate} 
+                    onDateChange={setCurrentDate}
+                  />
+                </div>
               </div>
 
               {/* 假別選擇和區間按鈕 */}

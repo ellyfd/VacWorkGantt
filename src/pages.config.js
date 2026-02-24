@@ -54,10 +54,10 @@ import GanttManagement from './pages/GanttManagement';
 import LeaveCalendar from './pages/LeaveCalendar';
 import LeaveSettings from './pages/LeaveSettings';
 import Notifications from './pages/Notifications';
-import PeopleManagement from './pages/PeopleManagement';
 import ProjectSettings from './pages/ProjectSettings';
 import ReportManagement from './pages/ReportManagement';
 import GanttChart from './pages/GanttChart';
+import PeopleManagement from './pages/PeopleManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -69,10 +69,10 @@ export const PAGES = {
     "LeaveCalendar": LeaveCalendar,
     "LeaveSettings": LeaveSettings,
     "Notifications": Notifications,
-    "PeopleManagement": PeopleManagement,
     "ProjectSettings": ProjectSettings,
     "ReportManagement": ReportManagement,
     "GanttChart": GanttChart,
+    "PeopleManagement": PeopleManagement,
 }
 
 export const pagesConfig = {
