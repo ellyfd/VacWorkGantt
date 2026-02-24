@@ -28,9 +28,15 @@ export default function FilterBar({
     );
   }, [selectedDeptId, selectedBrandIds, hideHolidays]);
 
+  const DEPT_OPTIONS = [
+    { value: null, label: '全部' },
+    { value: 'makalot', label: '數位產品發展中心' },
+    { value: 'dpc', label: 'DPC' },
+  ];
+
   const getSelectedDeptName = () => {
-    const dept = departments.find(d => d.id === selectedDeptId);
-    return dept ? dept.name : '全部部門';
+    const option = DEPT_OPTIONS.find(o => o.value === selectedDeptId);
+    return option ? option.label : '全部';
   };
 
   const getSelectedBrandNames = () => {
