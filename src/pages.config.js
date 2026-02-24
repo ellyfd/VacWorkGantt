@@ -76,7 +76,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Dashboard",
+    mainPage: "AllLeaveCalendar",
     Pages: PAGES,
     Layout: __Layout,
 };
