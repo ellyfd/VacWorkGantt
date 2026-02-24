@@ -47,7 +47,8 @@ export default function GanttChart() {
   const [viewMode, setViewMode] = useState('month'); // 'month' | 'quarter'
 
   const VIEW_CONFIG = {
-    month: { cellWidth: 40, label: '月' },
+    month:   { cellWidth: 40, label: '月' },
+    quarter: { label: '季' },
   };
 
   // 無限捲動：以 centerDate 為中心動態生成日期
@@ -325,12 +326,24 @@ export default function GanttChart() {
 
   // Get days based on viewMode (infinite scroll: center ± buffer)
   const days = useMemo(() => {
-    const start = subDays(centerDate, 90);
-    const end = addDays(centerDate, 180);
-    return eachDayOfInterval({ start, end });
-  }, [centerDate]);
+    if (viewMode === 'quarter') {
+      const start = startOfWeek(subDays(centerDate, 45), { weekStartsOn: 1 });
+      const weeks = [];
+      for (let i = 0; i < 26; i++) {
+        weeks.push(addWeeks(start, i));
+      }
+      return weeks;
+    } else {
+      const start = subDays(centerDate, 90);
+      const end = addDays(centerDate, 180);
+      return eachDayOfInterval({ start, end });
+    }
+  }, [centerDate, viewMode]);
 
-  const CELL_WIDTH = VIEW_CONFIG.month.cellWidth;
+  const CELL_WIDTH = useMemo(() => {
+    if (viewMode === 'quarter') return Math.max(32, Math.floor(containerWidth / days.length));
+    return VIEW_CONFIG[viewMode].cellWidth;
+  }, [viewMode, containerWidth, days.length]);
 
   // 建立統一的 rows 陣列（兩層：project + phase，任務直接畫在 phase 列上）
   const rows = useMemo(() => {
@@ -1147,7 +1160,19 @@ export default function GanttChart() {
       <div className="flex flex-wrap gap-3 items-center">
         <span className="font-semibold text-lg">{format(visibleMonth, 'yyyy年MM月')}</span>
         <Button variant="outline" size="sm" onClick={scrollToToday}>今天</Button>
-
+        <div className="flex rounded-md border border-gray-200 overflow-hidden ml-2">
+          {Object.entries(VIEW_CONFIG).map(([mode, cfg]) => (
+            <button
+              key={mode}
+              onClick={() => { setViewMode(mode); initialScrollDone.current = false; }}
+              className={`px-3 py-1.5 text-xs font-medium border-r border-gray-200 last:border-0 transition-colors ${
+                viewMode === mode ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {cfg.label}
+            </button>
+          ))}
+        </div>
 
         {/* 部門切換（單選） */}
         <div className="flex rounded-md border border-gray-200 overflow-hidden">
