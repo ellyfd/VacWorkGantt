@@ -422,37 +422,11 @@ export default function GanttChart() {
   // Handlers
   const handleAddProject = async () => {
     if (!projectFormData.brand_id || !projectFormData.season) return;
-
-    const brand = projects.find((p) => p.id === projectFormData.brand_id);
+    const brand = projects.find(p => p.id === projectFormData.brand_id);
     const name = `${brand.short_name || brand.name} ${projectFormData.season}`;
-
-    if (projectCreationMode === 'import') {
-      const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
-      setShowAddProjectDialog(false);
-      setShowImportScheduleDialog(true);
-      return;
-    }
-
-    // manual mode: create project then phases in one go
-    const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
-    const selectedSampleIds = Object.keys(selectedSamples).filter((k) => selectedSamples[k]);
-    if (selectedSampleIds.length > 0) {
-      await bulkCreatePhases.mutateAsync(
-        selectedSampleIds.map((sampleId, idx) => {
-          const sample = samples.find((s) => s.id === sampleId);
-          return {
-            gantt_project_id: newProject.id,
-            sample_id: sampleId,
-            name: sample.short_name || sample.name,
-            sort_order: idx + 1,
-          };
-        })
-      );
-    }
+    await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
     setShowAddProjectDialog(false);
     setProjectFormData({ brand_id: '', season: '' });
-    setSelectedSamples({});
-    setProjectCreationMode('manual');
   };
 
   const handleAddPhase = async () => {
