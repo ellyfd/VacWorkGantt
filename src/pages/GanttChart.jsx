@@ -945,8 +945,14 @@ export default function GanttChart() {
                   {task.time_type === 'milestone' && isStart && (
                     <div className="relative flex items-center gap-1 z-10 cursor-pointer">
                       <div
-                        className="w-3 h-3 transform rotate-45 flex-shrink-0"
-                        style={{ backgroundColor: task.is_important ? '#eab308' : projectColor, opacity: isSelectedTask ? 0.7 : 1 }}
+                        className="w-4 h-4 transform rotate-45 flex-shrink-0 z-20"
+                        style={{
+                          backgroundColor: task.is_important ? '#eab308' : projectColor,
+                          borderWidth: 2,
+                          borderStyle: 'solid',
+                          borderColor: task.is_important ? '#92400e' : 'transparent',
+                          opacity: isSelectedTask ? 0.7 : 1,
+                        }}
                       />
                       <span className="text-[10px] text-gray-700 whitespace-nowrap font-medium leading-none select-none">
                         {task.name}
@@ -956,7 +962,7 @@ export default function GanttChart() {
                   {/* 區間 bar + 名稱 */}
                   {task.time_type === 'duration' && isInRange && (
                     <div
-                      className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
+                      className={`absolute top-1/2 h-6 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
                         isStart && isEnd ? 'left-1 right-1 rounded' :
                         isStart ? 'left-1 right-0 rounded-l' :
                         isEnd ? 'left-0 right-1 rounded-r' :
@@ -965,7 +971,7 @@ export default function GanttChart() {
                       style={{ backgroundColor: projectColor, opacity: isSelectedTask ? 0.7 : 1 }}
                     >
                       {isStart && (
-                        <span className="text-[10px] text-white font-medium px-1.5 whitespace-nowrap select-none">
+                        <span className="text-xs font-medium px-1.5 whitespace-nowrap select-none" style={{ color: textColor }}>
                           {task.name}
                         </span>
                       )}
@@ -974,13 +980,16 @@ export default function GanttChart() {
                   {/* Rolling bar + 名稱 */}
                   {task.time_type === 'rolling' && isRolling && (
                     <div
-                      className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
+                      className={`absolute top-1/2 h-6 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
                         isStart ? 'left-1 right-0 rounded-l' : 'left-0 right-0'
                       }`}
-                      style={{ backgroundColor: projectColor, opacity: isStart ? (isSelectedTask ? 0.7 : 1) : 0.4 }}
+                      style={{
+                        backgroundColor: isStart ? projectColor : lightColor,
+                        opacity: isSelectedTask ? 0.7 : 1,
+                      }}
                     >
                       {isStart && (
-                        <span className="text-[10px] text-white font-medium px-1.5 whitespace-nowrap select-none">
+                        <span className="text-xs font-medium px-1.5 whitespace-nowrap select-none" style={{ color: textColor }}>
                           {task.name}
                         </span>
                       )}
