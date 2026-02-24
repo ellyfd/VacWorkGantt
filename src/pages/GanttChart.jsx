@@ -1461,43 +1461,7 @@ export default function GanttChart() {
 
       {/* ===== Dialogs ===== */}
 
-      <MilestoneDialog
-        open={showMilestoneDialog}
-        onOpenChange={setShowMilestoneDialog}
-        taskName={getSelectedTaskName()}
-        firstDate={firstDate}
-        onConfirm={handleConfirmMilestone}
-        onClearTime={() => {
-          updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null });
-          setShowMilestoneDialog(false);
-        }}
-      />
 
-      <DurationDialog
-        open={showDurationDialog}
-        onOpenChange={setShowDurationDialog}
-        taskName={getSelectedTaskName()}
-        firstDate={firstDate}
-        secondDate={secondDate}
-        getSortedDates={getSortedDates}
-        onConfirm={handleConfirmDuration}
-        onClearTime={() => {
-          updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null });
-          setShowDurationDialog(false);
-        }}
-      />
-
-      <RollingDialog
-        open={showRollingDialog}
-        onOpenChange={setShowRollingDialog}
-        taskName={getSelectedTaskName()}
-        firstDate={firstDate}
-        onConfirm={handleConfirmRolling}
-        onClearTime={() => {
-          updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null });
-          setShowRollingDialog(false);
-        }}
-      />
 
       <AddProjectDialog
         open={showAddProjectDialog}
