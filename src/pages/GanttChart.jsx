@@ -1003,7 +1003,7 @@ export default function GanttChart() {
         </div>
       );
     }
-  };
+  }, [ganttTasks, tasksByProjectId]);
 
   // 計算工作天數
   const calculateWorkingDays = (startDate, endDate) => {
