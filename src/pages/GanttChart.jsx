@@ -1037,13 +1037,23 @@ export default function GanttChart() {
     }
   });
 
+  // 正規化日期（移除時間戳記）
+  const normalizeDate = (dateStr) => {
+    if (!dateStr) return null;
+    return dateStr.split('T')[0]; // "2026-02-27T00:00:00.000Z" → "2026-02-27"
+  };
+
   // 計算工作天數
   const calculateWorkingDays = (startDate, endDate) => {
     if (!startDate || !endDate) return 0;
+    const start = normalizeDate(startDate);
+    const end = normalizeDate(endDate);
+    if (!start || !end) return 0;
+    
     let count = 0;
-    const current = new Date(startDate);
-    const end = new Date(endDate);
-    while (current <= end) {
+    const current = new Date(start);
+    const endDate2 = new Date(end);
+    while (current <= endDate2) {
       const dayOfWeek = getDay(current);
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         const dateStr = format(current, 'yyyy-MM-dd');
