@@ -1098,43 +1098,42 @@ export default function GanttChart() {
     const textColor = getContrastColor(projectColor);
 
     return projectTasks.map(task => {
-      if (!task.start_date) return null;
+     if (!task.start_date) return null;
 
-      // 計算 Bar 的 left 和 width
-      const startIdx = dayIndexMap[task.start_date] ?? -1;
-      if (startIdx < 0) return null;
+     // 計算 Bar 的 left 和 width
+     const startIdx = dayIndexMap[task.start_date] ?? -1;
+     if (startIdx < 0) return null;
 
-      let left, width, bgColor;
+     let left, width, bgColor;
 
-      if (task.time_type === 'milestone') {
-        left = startIdx * CELL_WIDTH + CELL_WIDTH / 2 - 8;
-        width = 'auto';
-        bgColor = 'transparent';
-      } else if (task.time_type === 'duration') {
-        if (!task.end_date) return null;
-        const endIdx = dayIndexMap[task.end_date] ?? -1;
-        if (endIdx < 0) return null;
-        left = startIdx * CELL_WIDTH + 2;
-        width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
-        bgColor = projectColor;
-      } else if (task.time_type === 'rolling') {
-        left = startIdx * CELL_WIDTH + 2;
-        width = (days.length - startIdx) * CELL_WIDTH - 4;
-        bgColor = projectColor;
-      } else {
-        return null;
-      }
+     if (task.time_type === 'milestone') {
+       left = startIdx * CELL_WIDTH + CELL_WIDTH / 2 - 8;
+       width = 'auto';
+       bgColor = 'transparent';
+     } else if (task.time_type === 'duration') {
+       if (!task.end_date) return null;
+       const endIdx = dayIndexMap[task.end_date] ?? -1;
+       if (endIdx < 0) return null;
+       left = startIdx * CELL_WIDTH + 2;
+       width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
+       bgColor = projectColor;
+     } else if (task.time_type === 'rolling') {
+       left = startIdx * CELL_WIDTH + 2;
+       width = (days.length - startIdx) * CELL_WIDTH - 4;
+       bgColor = projectColor;
+     } else {
+       return null;
+     }
 
-      const workingDays = task.time_type === 'duration' && task.start_date && task.end_date
-        ? calculateWorkingDays(task.start_date, task.end_date)
-        : 0;
+     const workingDays = task.time_type === 'duration' && task.start_date && task.end_date
+       ? calculateWorkingDays(task.start_date, task.end_date)
+       : 0;
 
-      const isSelected = selectedTaskId === task.id;
+     const isSelected = selectedTaskId === task.id;
 
-      return (
-        <TooltipProvider key={task.id} delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
+     return (
+       <Tooltip key={task.id}>
+         <TooltipTrigger asChild>
               <div
                 style={{
                   position: 'absolute',
@@ -1212,10 +1211,9 @@ export default function GanttChart() {
               {task.time_type === 'rolling' && <p>▶ {task.start_date}</p>}
               {task.note && <div className="text-gray-400 mt-0.5">{task.note}</div>}
             </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        );
-        });
+            </Tooltip>
+            );
+            });
         }, [tasksByProjectId, dayIndexMap, CELL_WIDTH, days.length, selectedTaskId, isDragging, dragTaskId, dragStart, dragEnd]);
 
         // 取得排序後的日期
@@ -1247,6 +1245,7 @@ export default function GanttChart() {
   })();
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="p-4 md:p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -1261,18 +1260,34 @@ export default function GanttChart() {
       />
 
       {/* Filter Bar - Layer 2 */}
-      <FilterBar
-        departments={departments}
-        projects={projects}
-        selectedDeptId={selectedDeptId}
-        onDeptChange={handleDeptChange}
-        selectedBrandIds={selectedBrandIds}
-        onBrandChange={setSelectedBrandIds}
-        hideHolidays={hideHolidays}
-        onHideHolidaysChange={setHideHolidays}
-        visibleRowCount={visibleRows.length}
-        totalRowCount={rows.length}
-      />
+      <div className="flex items-center justify-between">
+        <FilterBar
+          departments={departments}
+          projects={projects}
+          selectedDeptId={selectedDeptId}
+          onDeptChange={handleDeptChange}
+          selectedBrandIds={selectedBrandIds}
+          onBrandChange={setSelectedBrandIds}
+          hideHolidays={hideHolidays}
+          onHideHolidaysChange={setHideHolidays}
+          visibleRowCount={visibleRows.length}
+          totalRowCount={rows.length}
+        />
+        {(selectedDeptId || selectedBrandIds.length > 0 || hideHolidays) && (
+          <button
+            onClick={() => {
+              setSelectedDeptId(null);
+              setSelectedGroupSlug(null);
+              setSelectedBrandIds([]);
+              setHideHolidays(false);
+              localStorage.removeItem('gantt-filters');
+            }}
+            className="text-xs text-red-500 hover:text-red-700 underline whitespace-nowrap"
+          >
+            清除篩選
+          </button>
+        )}
+      </div>
 
       {/* 畫日期模式提示 */}
       {drawingMode && pendingTask && (
@@ -1892,5 +1907,6 @@ export default function GanttChart() {
         </div>
       </details>
       </div>
+    </TooltipProvider>
       );
       }
