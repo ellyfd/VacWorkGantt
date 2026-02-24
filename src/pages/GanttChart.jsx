@@ -1372,15 +1372,14 @@ export default function GanttChart() {
                   <div style={{ ...gridStyle, height: viewMode === 'month' ? ROW_HEIGHT + 14 : ROW_HEIGHT, borderBottom: '1px solid #d1d5db' }}>
                     {days.map((day) => {
                       const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-                      const isHolidayHeader = holidaySet.has(format(day, 'yyyy-MM-dd'));
+                      const isHolidayHeader = !hideHolidays && holidaySet.has(format(day, 'yyyy-MM-dd'));
                       const isFirstDay = format(day, 'd') === '1';
                       return (
                        <div
                          key={day.toISOString()}
                          className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
                            isToday(day) ? 'bg-red-100 text-red-700' :
-                           isHolidayHeader ? 'bg-amber-50 text-amber-700' :
-                           isWeekend ? 'bg-gray-200 text-gray-500' :
+                           (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
                            'bg-gray-100 text-gray-700'
                          }`}
                          style={{ borderLeft: isFirstDay ? '2px solid #6b7280' : undefined }}
