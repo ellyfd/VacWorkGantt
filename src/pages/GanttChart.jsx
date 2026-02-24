@@ -1473,7 +1473,7 @@ export default function GanttChart() {
                     }}
                   >
                     {visibleRows.map((row) => (
-                      <ContextMenu key={row.id}>
+                      <ContextMenu key={row.id} onOpenChange={(open) => { if (!open) setContextMenuDate(null); }}>
                         <ContextMenuTrigger asChild>
                           <div style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
                             {/* 底層：格子背景 + 格線 */}
