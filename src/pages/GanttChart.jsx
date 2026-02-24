@@ -410,9 +410,19 @@ export default function GanttChart() {
 
   const filteredBrands = useMemo(() => {
     if (!selectedGroupSlug) return projects;
+    
+    if (selectedGroupSlug === 'makalot') {
+      // makalot：只留在 makalot 集團內的品牌
+      return projects.filter(p => {
+        const group = groups.find(g => g.id === p.group_id);
+        return group?.name.toLowerCase() === 'makalot';
+      });
+    }
+    
+    // DPC：留下「無集團」或「非 makalot 集團」的所有品牌
     return projects.filter(p => {
       const group = groups.find(g => g.id === p.group_id);
-      return group?.name.toLowerCase() === selectedGroupSlug;
+      return !group || group.name.toLowerCase() !== 'makalot';
     });
   }, [projects, groups, selectedGroupSlug]);
 
