@@ -468,6 +468,12 @@ export default function GanttChart() {
   }, [days, hideHolidays, holidaySet]);
   // ─────────────────────────────────────────────────────────────
 
+  // 同步更新 creatingProjectId state 和 ref（避免 closure stale）
+  const setCreatingProjectIdSync = (id) => {
+    creatingProjectIdRef.current = id;
+    setCreatingProjectId(id);
+  };
+
   // Helper functions
   const getBrandName = (brandId) => {
     const project = projects.find((p) => p.id === brandId);
