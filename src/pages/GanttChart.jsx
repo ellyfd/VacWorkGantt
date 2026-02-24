@@ -183,7 +183,7 @@ export default function GanttChart() {
     mutationFn: (data) => base44.entities.GanttProject.create(data),
     onSuccess: (newProject) => {
       queryClient.invalidateQueries(['ganttProjects']);
-      setCreatingProjectId(newProject.id);
+      setCreatingProjectIdSync(newProject.id);
       return newProject;
     },
   });
