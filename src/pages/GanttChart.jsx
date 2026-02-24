@@ -1304,14 +1304,9 @@ export default function GanttChart() {
                     }}
                     {...provided.droppableProps}
                   >
-                    {rows.map((row, idx) => {
-                      // 只在該項有效位置時才渲染 Draggable
-                      // The draggableId for phase uses the phase.id, so we need to construct it here.
-                      // For project type, its droppableId is "droppable-project".
-                      // For phase type, its droppableId is "droppable-phase-{gantt_project_id}".
-                      // For task type (not directly supported in this DND setup but for consistency), it would be "droppable-task-{gantt_phase_id}".
-                      const droppableIdForPhase = row.type === 'phase' ? `droppable-phase-${row.data.gantt_project_id}` : undefined;
-                      const draggableType = row.type.toUpperCase();
+                    {visibleRows.map((row, idx) => {
+                     const droppableIdForPhase = row.type === 'phase' ? `droppable-phase-${row.data.gantt_project_id}` : undefined;
+                     const draggableType = row.type.toUpperCase();
 
                       return (
                         <Draggable key={row.id} draggableId={row.id} index={idx} type={draggableType}>
