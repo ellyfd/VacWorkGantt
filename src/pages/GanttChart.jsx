@@ -1043,8 +1043,7 @@ export default function GanttChart() {
                 borderBottom: '1px solid #d1d5db',
                 borderLeft: isFirstOfMonth ? '2px solid #6b7280' : undefined,
                 backgroundColor: isInDragRange ? '#bfdbfe'
-                  : isHoliday ? '#fef9c3'
-                  : (dayOfWeek === 0 || dayOfWeek === 6) ? '#f3f4f6'
+                  : (dayOfWeek === 0 || dayOfWeek === 6 || isHoliday) ? '#f3f4f6'
                   : selectedProjectTask ? '#eff6ff'
                   : '#f9fafb',
               }}
