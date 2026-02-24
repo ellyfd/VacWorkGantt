@@ -718,8 +718,20 @@ export default function GanttChart() {
     const right = rightBodyRef.current;
     if (!left || !right) return;
 
-    const onLeft = () => { right.scrollTop = left.scrollTop; };
-    const onRight = () => { left.scrollTop = right.scrollTop; };
+    let isSyncing = false;
+
+    const onLeft = () => {
+      if (isSyncing) return;
+      isSyncing = true;
+      right.scrollTop = left.scrollTop;
+      isSyncing = false;
+    };
+    const onRight = () => {
+      if (isSyncing) return;
+      isSyncing = true;
+      left.scrollTop = right.scrollTop;
+      isSyncing = false;
+    };
 
     left.addEventListener('scroll', onLeft);
     right.addEventListener('scroll', onRight);
