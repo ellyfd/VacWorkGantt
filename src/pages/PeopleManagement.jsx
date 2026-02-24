@@ -36,7 +36,7 @@ export default function PeopleManagement() {
   // ============ EMPLOYEE STATE ============
   const [isEmployeeOpen, setIsEmployeeOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [employeeFormData, setEmployeeFormData] = useState({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', role: 'user', user_emails: [] });
+  const [employeeFormData, setEmployeeFormData] = useState({ name: '', english_name: '', department_ids: [], deputies_by_dept: {}, status: 'active', role: 'user', user_emails: [] });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -146,16 +146,15 @@ export default function PeopleManagement() {
       setEmployeeFormData({
         name: employee.name,
         english_name: employee.english_name || '',
-        deputy_1: employee.deputy_1 || '',
-        deputy_2: employee.deputy_2 || '',
         department_ids: employee.department_ids || [],
+        deputies_by_dept: employee.deputies_by_dept || {},
         status: employee.status || 'active',
         role: employee.role || 'user',
         user_emails: employee.user_emails || [],
       });
     } else {
       setEditingEmployee(null);
-      setEmployeeFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', role: 'user', user_emails: [] });
+      setEmployeeFormData({ name: '', english_name: '', department_ids: [], deputies_by_dept: {}, status: 'active', role: 'user', user_emails: [] });
     }
     setIsEmployeeOpen(true);
   };
@@ -163,7 +162,7 @@ export default function PeopleManagement() {
   const handleCloseEmployeeDialog = () => {
     setIsEmployeeOpen(false);
     setEditingEmployee(null);
-    setEmployeeFormData({ name: '', english_name: '', deputy_1: '', deputy_2: '', department_ids: [], status: 'active', role: 'user', user_emails: [] });
+    setEmployeeFormData({ name: '', english_name: '', department_ids: [], deputies_by_dept: {}, status: 'active', role: 'user', user_emails: [] });
   };
 
   const handleSubmitEmployee = (e) => {
@@ -488,69 +487,87 @@ export default function PeopleManagement() {
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="department">部門</Label>
-                      <div className="mt-1 border rounded-md p-2 max-h-32 overflow-y-auto bg-white">
-                        {departments.map((dept) => (
-                          <label key={dept.id} className="flex items-center gap-2 py-1 hover:bg-gray-50 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={employeeFormData.department_ids.includes(dept.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setEmployeeFormData({ ...employeeFormData, department_ids: [...employeeFormData.department_ids, dept.id] });
-                                } else {
-                                  setEmployeeFormData({ ...employeeFormData, department_ids: employeeFormData.department_ids.filter(id => id !== dept.id) });
-                                }
-                              }}
-                              className="w-4 h-4 text-blue-600 rounded"
-                            />
-                            <span className="text-sm">{dept.name}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label htmlFor="deputy_1">第一順位職代</Label>
-                        <Select
-                          value={employeeFormData.deputy_1}
-                          onValueChange={(value) => setEmployeeFormData({ ...employeeFormData, deputy_1: value })}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="選擇職代" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={null}>無</SelectItem>
-                            {employeeFormData.department_ids.length > 0 && employees
-                              .filter(e => e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id)
-                              .map((emp) => (
-                                <SelectItem key={emp.id} value={emp.id}>
-                                  {emp.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="deputy_2">第二順位職代</Label>
-                        <Select
-                          value={employeeFormData.deputy_2}
-                          onValueChange={(value) => setEmployeeFormData({ ...employeeFormData, deputy_2: value })}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="選擇職代" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={null}>無</SelectItem>
-                            {employeeFormData.department_ids.length > 0 && employees
-                              .filter(e => e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id && e.id !== employeeFormData.deputy_1)
-                              .map((emp) => (
-                                <SelectItem key={emp.id} value={emp.id}>
-                                  {emp.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                      <Label>部門與職代</Label>
+                      <div className="mt-1 border rounded-md p-2 space-y-2 bg-white max-h-64 overflow-y-auto">
+                        {departments.map((dept) => {
+                          const isChecked = employeeFormData.department_ids.includes(dept.id);
+                          const deptDeputies = employeeFormData.deputies_by_dept?.[dept.id] || {};
+                          const deptEmployees = employees.filter(e =>
+                            e.department_ids?.includes(dept.id) && e.id !== editingEmployee?.id
+                          );
+
+                          return (
+                            <div key={dept.id} className={`rounded border p-2 ${isChecked ? 'border-blue-300 bg-blue-50' : 'border-gray-200'}`}>
+                              <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    const newIds = e.target.checked
+                                      ? [...employeeFormData.department_ids, dept.id]
+                                      : employeeFormData.department_ids.filter(id => id !== dept.id);
+                                    setEmployeeFormData({ ...employeeFormData, department_ids: newIds });
+                                  }}
+                                  className="w-4 h-4 text-blue-600 rounded"
+                                />
+                                <span className="text-sm font-medium">{dept.name}</span>
+                              </label>
+
+                              {isChecked && (
+                                <div className="mt-2 grid grid-cols-2 gap-2 pl-6">
+                                  <div>
+                                    <Label className="text-xs text-gray-500">第一職代</Label>
+                                    <Select
+                                      value={deptDeputies.deputy_1 || ''}
+                                      onValueChange={(val) => setEmployeeFormData({
+                                        ...employeeFormData,
+                                        deputies_by_dept: {
+                                          ...employeeFormData.deputies_by_dept,
+                                          [dept.id]: { ...deptDeputies, deputy_1: val }
+                                        }
+                                      })}
+                                    >
+                                      <SelectTrigger className="h-8 mt-1 text-xs">
+                                        <SelectValue placeholder="選擇" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value={null}>無</SelectItem>
+                                        {deptEmployees.map(e => (
+                                          <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs text-gray-500">第二職代</Label>
+                                    <Select
+                                      value={deptDeputies.deputy_2 || ''}
+                                      onValueChange={(val) => setEmployeeFormData({
+                                        ...employeeFormData,
+                                        deputies_by_dept: {
+                                          ...employeeFormData.deputies_by_dept,
+                                          [dept.id]: { ...deptDeputies, deputy_2: val }
+                                        }
+                                      })}
+                                    >
+                                      <SelectTrigger className="h-8 mt-1 text-xs">
+                                        <SelectValue placeholder="選擇" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value={null}>無</SelectItem>
+                                        {deptEmployees
+                                          .filter(e => e.id !== deptDeputies.deputy_1)
+                                          .map(e => (
+                                            <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                                          ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
