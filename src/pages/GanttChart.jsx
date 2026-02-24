@@ -1018,7 +1018,7 @@ export default function GanttChart() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setCreatingProjectId(row.data.id);
+                setCreatingProjectIdSync(row.data.id);
                 setTaskFormData({ name: '', sample_id: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
                 setShowAddTaskDialog(true);
               }}
