@@ -439,14 +439,14 @@ export default function GanttChart() {
     const name = `${brand.short_name || brand.name} ${projectFormData.season}`;
 
     if (projectCreationMode === 'import') {
-      const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name });
+      const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
       setShowAddProjectDialog(false);
       setShowImportScheduleDialog(true);
       return;
     }
 
     // manual mode: create project then phases in one go
-    const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name });
+    const newProject = await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
     const selectedSampleIds = Object.keys(selectedSamples).filter((k) => selectedSamples[k]);
     if (selectedSampleIds.length > 0) {
       await bulkCreatePhases.mutateAsync(
