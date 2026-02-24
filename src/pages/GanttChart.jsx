@@ -830,7 +830,7 @@ export default function GanttChart() {
               onClick={(e) => {
                 e.stopPropagation();
                 setCurrentPhaseId(row.data.id);
-                setTaskFormData({ name: '', is_important: false, note: '' });
+                setTaskFormData({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
                 setShowAddTaskDialog(true);
               }}
               className="p-1 hover:bg-gray-300 rounded"
