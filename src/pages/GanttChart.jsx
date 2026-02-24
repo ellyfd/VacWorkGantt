@@ -1458,6 +1458,7 @@ export default function GanttChart() {
               );
             })()}
             </div>
+            </div>
             </Card>
 
       {/* ===== Dialogs ===== */}
