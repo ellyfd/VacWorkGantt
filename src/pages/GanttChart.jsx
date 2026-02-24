@@ -1434,8 +1434,19 @@ export default function GanttChart() {
                     }}
                   >
                     {visibleRows.map((row) => (
-                      <div key={row.id} style={{ ...gridStyle, borderBottom: '1px solid #e5e7eb' }}>
-                        {days.map((day) => renderRightCell(row, day))}
+                      <div key={row.id} style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
+                        {/* 背景 + 格線層 */}
+                        <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
+                          {days.map((day) => renderRightCell(row, day))}
+                        </div>
+                        {/* Bar overlay 層 */}
+                        <div style={{ position: 'absolute', inset: 0, ...gridStyle, pointerEvents: 'none' }}>
+                          {days.map((day) => (
+                            <div key={day.toISOString()} style={{ position: 'relative', height: ROW_HEIGHT, pointerEvents: 'auto' }}>
+                              {renderTaskBarOverlay(row, day)}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
