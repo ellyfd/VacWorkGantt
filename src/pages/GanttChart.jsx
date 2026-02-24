@@ -103,7 +103,7 @@ export default function GanttChart() {
 
   // 表單資料
   const [projectFormData, setProjectFormData] = useState({ brand_id: '', season: '' });
-  const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '' });
+  const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
 
   // Edit Phase Dialog state
