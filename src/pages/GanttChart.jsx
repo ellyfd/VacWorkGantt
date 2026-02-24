@@ -1095,10 +1095,10 @@ export default function GanttChart() {
 
   // Memoize renderTaskBars to avoid unnecessary re-renders
   const renderTaskBars = useCallback((row) => {
-    if (row.type !== 'project') return null;
-    const projectTasks = tasksByProjectId[row.data.id] ?? [];
-    const projectColor = row.data.color || '#3b82f6';
-    const textColor = getContrastColor(projectColor);
+   if (row.type !== 'project') return null;
+   const projectTasks = tasksByProjectId[row.data.id] ?? [];
+   const projectColor = row.data.color || '#3b82f6';
+   const textColor = '#1f2937';
 
     return projectTasks.map(task => {
      if (!task.start_date) return null;
