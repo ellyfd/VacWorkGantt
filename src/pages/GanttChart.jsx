@@ -1007,20 +1007,6 @@ export default function GanttChart() {
                   setDragEnd(day);
                 }
               }}
-              onMouseUp={() => {
-                if (!isDragging || !dragTaskId) return;
-                let start = dragStart < dragEnd ? dragStart : dragEnd;
-                let end = dragStart < dragEnd ? dragEnd : dragStart;
-                if (format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')) {
-                  updateTaskWithOptimistic(dragTaskId, { time_type: 'milestone', start_date: format(start, 'yyyy-MM-dd'), end_date: null });
-                } else {
-                  updateTaskWithOptimistic(dragTaskId, { time_type: 'duration', start_date: format(start, 'yyyy-MM-dd'), end_date: format(end, 'yyyy-MM-dd') });
-                }
-                setIsDragging(false);
-                setDragTaskId(null);
-                setDrawingMode(false);
-                setPendingTask(null);
-              }}
               onClick={() => {
                 if (isDragging) return;
                 if (selectedProjectTask) handleDateClick(day, selectedProjectTask.id);
