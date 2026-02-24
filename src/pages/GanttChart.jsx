@@ -1609,7 +1609,7 @@ export default function GanttChart() {
           });
         }}
         onSave={() => {
-          updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name, color: editingProject.color } });
+          updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name } });
           editingProjectTasks.forEach(task => {
             const original = ganttTasks.find(t => t.id === task.id);
             if (!original) return;
