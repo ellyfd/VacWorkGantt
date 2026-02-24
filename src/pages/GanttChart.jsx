@@ -132,7 +132,8 @@ export default function GanttChart() {
   const [taskFormData, setTaskFormData] = useState({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
   const [selectedSamples, setSelectedSamples] = useState({});
 
-  const [selectedDeptId, setSelectedDeptId] = useState(null);
+  const [selectedDeptId, setSelectedDeptId] = useState(null); // 真實部門ID，篩請假
+  const [selectedGroupSlug, setSelectedGroupSlug] = useState(null); // 'makalot'/'dpc'，篩甘特圖列
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
   const [hideHolidays, setHideHolidays] = useState(false);
 
@@ -143,6 +144,7 @@ export default function GanttChart() {
       try {
         const filters = JSON.parse(saved);
         if (filters.deptId) setSelectedDeptId(filters.deptId);
+        if (filters.groupSlug) setSelectedGroupSlug(filters.groupSlug);
         if (filters.brandIds?.length > 0) setSelectedBrandIds(filters.brandIds);
         if (filters.hideHolidays) setHideHolidays(filters.hideHolidays);
       } catch (e) {
@@ -441,13 +443,13 @@ export default function GanttChart() {
 
   const visibleRows = useMemo(() => {
     return rows.filter(row => {
-      // 集團篩選
-      if (selectedDeptId && getDept(row.data) !== selectedDeptId) return false;
+      // 集團篩選（用 slug）
+      if (selectedGroupSlug && getDept(row.data) !== selectedGroupSlug) return false;
       // 品牌篩選
       if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(row.data.brand_id)) return false;
       return true;
     });
-  }, [rows, selectedDeptId, selectedBrandIds, projects, makalotGroup, getDept]);
+  }, [rows, selectedGroupSlug, selectedBrandIds, getDept]);
 
   const leaveCountByDate = useMemo(() => {
     const map = {};
@@ -1164,6 +1166,8 @@ export default function GanttChart() {
         departments={departments}
         projects={projects}
         groups={groups}
+        selectedGroupSlug={selectedGroupSlug}
+        onGroupChange={setSelectedGroupSlug}
         selectedDeptId={selectedDeptId}
         onDeptChange={setSelectedDeptId}
         selectedBrandIds={selectedBrandIds}

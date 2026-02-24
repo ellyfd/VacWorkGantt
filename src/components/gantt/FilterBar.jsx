@@ -7,6 +7,8 @@ export default function FilterBar({
   departments,
   projects,
   groups,
+  selectedGroupSlug,
+  onGroupChange,
   selectedDeptId,
   onDeptChange,
   selectedBrandIds,
@@ -22,21 +24,28 @@ export default function FilterBar({
       'gantt-filters',
       JSON.stringify({
         deptId: selectedDeptId,
+        groupSlug: selectedGroupSlug,
         brandIds: selectedBrandIds,
         hideHolidays,
       })
     );
-  }, [selectedDeptId, selectedBrandIds, hideHolidays]);
+  }, [selectedDeptId, selectedGroupSlug, selectedBrandIds, hideHolidays]);
 
-  const DEPT_OPTIONS = [
-    { value: null, label: '全部' },
+  const GROUP_OPTIONS = [
+    { value: null, label: '全部集團' },
     { value: 'makalot', label: '數位產品發展中心' },
     { value: 'dpc', label: 'DPC' },
   ];
 
+  const getSelectedGroupName = () => {
+    const option = GROUP_OPTIONS.find(o => o.value === selectedGroupSlug);
+    return option ? option.label : '全部集團';
+  };
+
   const getSelectedDeptName = () => {
-    const option = DEPT_OPTIONS.find(o => o.value === selectedDeptId);
-    return option ? option.label : '全部';
+    if (!selectedDeptId) return '全部部門';
+    const dept = departments.find(d => d.id === selectedDeptId);
+    return dept ? dept.name : '全部部門';
   };
 
   const getSelectedBrandNames = () => {
@@ -50,22 +59,67 @@ export default function FilterBar({
 
   const isFiltered = selectedDeptId || selectedBrandIds.length > 0;
 
+  const isFiltered = selectedGroupSlug || selectedDeptId || selectedBrandIds.length > 0;
+
   return (
     <div className="space-y-2">
       {/* 篩選控制列 */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* 部門篩選（chip 群組）*/}
+        {/* 集團篩選（甘特圖列）*/}
+        <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-md">
+          <span className="text-xs text-gray-600 font-medium">集團：</span>
+          <div className="flex items-center gap-1">
+            {!selectedGroupSlug ? (
+              <span className="text-xs text-gray-700 font-medium">全部</span>
+            ) : (
+              <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                <span className="text-xs font-medium">{getSelectedGroupName()}</span>
+                <button
+                  onClick={() => onGroupChange(null)}
+                  className="hover:text-blue-900"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+          </div>
+          {/* 集團下拉選單 */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-1">
+                切換
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2" align="start">
+              {GROUP_OPTIONS.map(option => (
+                <button
+                  key={option.value || 'all'}
+                  onClick={() => onGroupChange(option.value)}
+                  className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm ${
+                    selectedGroupSlug === option.value
+                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* 部門篩選（請假人數）*/}
         <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-md">
           <span className="text-xs text-gray-600 font-medium">部門：</span>
           <div className="flex items-center gap-1">
             {!selectedDeptId ? (
               <span className="text-xs text-gray-700 font-medium">全部</span>
             ) : (
-              <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+              <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded">
                 <span className="text-xs font-medium">{getSelectedDeptName()}</span>
                 <button
                   onClick={() => onDeptChange(null)}
-                  className="hover:text-blue-900"
+                  className="hover:text-green-900"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -75,22 +129,32 @@ export default function FilterBar({
           {/* 部門下拉選單 */}
           <Popover>
             <PopoverTrigger asChild>
-              <button className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-1">
+              <button className="text-xs text-green-600 hover:text-green-700 font-medium ml-1">
                 切換
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="start">
-              {DEPT_OPTIONS.map(option => (
+              <button
+                onClick={() => onDeptChange(null)}
+                className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm ${
+                  !selectedDeptId
+                    ? 'bg-green-50 text-green-700 font-medium'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                全部部門
+              </button>
+              {departments.filter(d => d.status !== 'hidden').map(dept => (
                 <button
-                  key={option.value || 'all'}
-                  onClick={() => onDeptChange(option.value)}
+                  key={dept.id}
+                  onClick={() => onDeptChange(dept.id)}
                   className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-sm ${
-                    selectedDeptId === option.value
-                      ? 'bg-blue-50 text-blue-700 font-medium'
+                    selectedDeptId === dept.id
+                      ? 'bg-green-50 text-green-700 font-medium'
                       : 'hover:bg-gray-50'
                   }`}
                 >
-                  {option.label}
+                  {dept.name}
                 </button>
               ))}
             </PopoverContent>
@@ -159,7 +223,7 @@ export default function FilterBar({
           onClick={() => onHideHolidaysChange(!hideHolidays)}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
             hideHolidays
-              ? 'bg-blue-600 text-white border-blue-600'
+              ? 'bg-amber-600 text-white border-amber-600'
               : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
           }`}
         >
