@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, Plus, Edit2, Trash2, Search } from 'lucide-react';
-import { useState as useStateImport, useMemo } from 'react';
 
 export default function ProjectSettings() {
   const queryClient = useQueryClient();
