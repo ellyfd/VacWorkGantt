@@ -886,12 +886,15 @@ export default function GanttChart() {
                   )}
                   {/* 區間 bar + 名稱 */}
                   {task.time_type === 'duration' && isInRange && (
-                    <div className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${isSelectedTask ? 'bg-blue-600' : 'bg-blue-400'} ${
-                      isStart && isEnd ? 'left-1 right-1 rounded' :
-                      isStart ? 'left-1 right-0 rounded-l' :
-                      isEnd ? 'left-0 right-1 rounded-r' :
-                      'left-0 right-0'
-                    }`}>
+                    <div
+                      className={`absolute top-1/2 h-5 -translate-y-1/2 z-10 flex items-center overflow-hidden cursor-pointer ${
+                        isStart && isEnd ? 'left-1 right-1 rounded' :
+                        isStart ? 'left-1 right-0 rounded-l' :
+                        isEnd ? 'left-0 right-1 rounded-r' :
+                        'left-0 right-0'
+                      }`}
+                      style={{ backgroundColor: projectColor, opacity: isSelectedTask ? 0.7 : 1 }}
+                    >
                       {isStart && (
                         <span className="text-[10px] text-white font-medium px-1.5 whitespace-nowrap select-none">
                           {task.name}
