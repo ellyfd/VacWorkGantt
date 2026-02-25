@@ -541,10 +541,19 @@ export default function GanttChart() {
 
   // Handlers
   const handleAddProject = async () => {
-    if (!projectFormData.brand_id || !projectFormData.season || !projectFormData.year) return;
     const brand = projects.find(p => p.id === projectFormData.brand_id);
-    const yy = String(projectFormData.year).slice(-2);
-    const name = `${brand.short_name || brand.name} ${projectFormData.season}${yy}`;
+    const brandGroup = groups.find(g => g.id === brand?.group_id);
+    const isMakalot = brandGroup?.name.toLowerCase() === 'makalot';
+    const isTGT = brand?.short_name === 'TGT' || brand?.name === 'TGT';
+
+    let name;
+    if (isMakalot) {
+      name = `${brand.short_name || brand.name}_${projectFormData.customName}`;
+    } else {
+      const yy = String(projectFormData.year).slice(-2);
+      name = `${brand.short_name || brand.name} ${projectFormData.season}${yy}`;
+    }
+
     await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
     setShowAddProjectDialog(false);
     setProjectFormData({ brand_id: '', season: '', year: new Date().getFullYear(), color: '#3b82f6' });
