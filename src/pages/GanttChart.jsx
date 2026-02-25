@@ -1148,7 +1148,7 @@ export default function GanttChart() {
   const renderTaskBars = useCallback((row) => {
    if (row.type !== 'project') return null;
      const projectTasks = tasksByProjectId[row.data.id] ?? [];
-     const projectColor = row.data.color || '#3b82f6';
+     const projectColor = getProjectColor(row.data);
      const textColor = getContrastColor(projectColor);
 
      // 找最近的可見日期（隱藏假日時用）
