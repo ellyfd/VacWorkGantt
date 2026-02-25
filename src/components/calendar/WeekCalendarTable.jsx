@@ -200,7 +200,7 @@ export default function WeekCalendarTable({
                        onSelectLeave={() => handleCellClick(day.date, record)}
                        onClearLeave={null}
                        onDoubleClickLeave={null}
-                       onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(date)}
+                       onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(day.date)}
                      />
                   </div>
                 </div>
