@@ -1358,7 +1358,7 @@ export default function GanttChart() {
                 開發季
                 <button
                   onClick={() => setShowAddProjectDialog(true)}
-                  className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded font-medium"
+                  className="flex items-center gap-0.5 px-1.5 py-0.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded font-medium"
                 >
                   <Plus className="w-3 h-3" />
                   新增
