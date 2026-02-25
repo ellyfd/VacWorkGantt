@@ -98,6 +98,27 @@ export default function LeaveCalendar() {
     enabled: !!currentEmployee?.id,
   });
 
+  // 預建 Map 用於 O(1) 查詢
+  const employeeMap = React.useMemo(() =>
+    Object.fromEntries(employees.map(e => [e.id, e])),
+    [employees]
+  );
+
+  const leaveTypeMap = React.useMemo(() =>
+    Object.fromEntries(leaveTypes.map(lt => [lt.id, lt])),
+    [leaveTypes]
+  );
+
+  const leaveByDateEmpKey = React.useMemo(() => {
+    const map = {};
+    leaveRecords.forEach(r => {
+      map[`${r.date}_${currentEmployee?.id}`] = r;
+    });
+    return map;
+  }, [leaveRecords, currentEmployee?.id]);
+
+  const queryKey = [currentDate.getFullYear(), currentDate.getMonth(), currentEmployee?.id];
+
   const { data: allLeaveRecords = [] } = useQuery({
     queryKey: ['allLeaveRecords', currentDate.getFullYear(), currentDate.getMonth()],
     queryFn: async () => {
@@ -121,17 +142,14 @@ export default function LeaveCalendar() {
 
   const updateLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
-      const currentEmployee = employees.find(e => e.id === employeeId);
+      const currentEmployee = employeeMap[employeeId];
       
-      // 先檢查是否已存在相同的請假記錄
-      const existing = leaveRecords.find(
-        r => r.employee_id === employeeId && r.date === date
-      );
+      const existing = leaveByDateEmpKey[`${date}_${employeeId}`];
       if (existing && existing.leave_type_id === leaveTypeId) {
         return existing;
       }
       
-      const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
+      const leaveType = leaveTypeMap[leaveTypeId];
       const isBusinessTrip = leaveType?.name === '出差';
 
       // 檢查職代衝突
@@ -216,6 +234,32 @@ export default function LeaveCalendar() {
         return newRecord;
       }
     },
+    onMutate: async ({ employeeId, date, leaveTypeId }) => {
+      await queryClient.cancelQueries(['leaveRecords']);
+      const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
+
+      queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
+        const existing = old?.find(r => r.employee_id === employeeId && r.date === date);
+        if (existing) {
+          return old.map(r =>
+            r.id === existing.id ? { ...r, leave_type_id: leaveTypeId } : r
+          );
+        }
+        return [...(old || []), {
+          id: `temp-${Date.now()}`,
+          employee_id: employeeId,
+          date,
+          leave_type_id: leaveTypeId,
+        }];
+      });
+
+      return { previousRecords };
+    },
+    onError: (err, variables, context) => {
+      if (err.message !== '取消請假') {
+        queryClient.setQueryData(['leaveRecords', ...queryKey], context.previousRecords);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
       queryClient.invalidateQueries(['allLeaveRecords']);
@@ -244,12 +288,11 @@ export default function LeaveCalendar() {
     mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId }) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      const currentEmployee = employees.find(e => e.id === employeeId);
+      const currentEmployee = employeeMap[employeeId];
       
-      const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
+      const leaveType = leaveTypeMap[leaveTypeId];
       const isBusinessTrip = leaveType?.name === '出差';
       
-      // 預先計算部門人數（移出迴圈）
       const deptTotalMembers = !isBusinessTrip
         ? employees.filter(e =>
             e.status === 'active' &&
@@ -271,7 +314,6 @@ export default function LeaveCalendar() {
         
         dates.push(dateStr);
         
-        // 檢查職代衝突
         if (!isBusinessTrip) {
           const deputyConflicts = checkDeputyConflict({
             employee: currentEmployee,
@@ -284,19 +326,16 @@ export default function LeaveCalendar() {
           
           if (deputyConflicts.length > 0) {
             const conflictNames = deputyConflicts.map(c => {
-              const emp = employees.find(e => e.id === c.employee_id);
+              const emp = employeeMap[c.employee_id];
               return emp?.name || '未知';
             }).join('、');
             warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
           }
-        }
-        
-        // 檢查部門人數限制
-        if (!isBusinessTrip) {
+
           const deptLeaves = allLeaveRecords.filter(r => {
             if (r.employee_id === employeeId) return false;
-            const emp = employees.find(e => e.id === r.employee_id);
-            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+            const emp = employeeMap[r.employee_id];
+            const rLeaveType = leaveTypeMap[r.leave_type_id];
             return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
               && r.date === dateStr
               && rLeaveType?.name !== '出差';
@@ -317,6 +356,7 @@ export default function LeaveCalendar() {
       
       const recordsToCreate = [];
       for (const dateStr of dates) {
+        const key = `${dateStr}_${employeeId}`;
         const existing = leaveRecords.find(
           r => r.employee_id === employeeId && r.date === dateStr && r.leave_type_id === leaveTypeId
         );
@@ -341,6 +381,16 @@ export default function LeaveCalendar() {
       }
       
       return recordsToCreate.length > 0 ? base44.entities.LeaveRecord.bulkCreate(recordsToCreate) : [];
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries(['leaveRecords']);
+      const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
+      return { previousRecords };
+    },
+    onError: (err, variables, context) => {
+      if (err.message !== '取消請假') {
+        queryClient.setQueryData(['leaveRecords', ...queryKey], context.previousRecords);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
