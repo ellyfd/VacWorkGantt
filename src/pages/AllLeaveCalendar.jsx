@@ -478,15 +478,25 @@ export default function AllLeaveCalendar() {
       }
       
       if (recordsToCreate.length === 0) {
-        return []; // 沒有需要新增的記錄
+        return [];
       }
-      
+
       return base44.entities.LeaveRecord.bulkCreate(recordsToCreate);
-    },
-    onSuccess: () => {
+      },
+      onMutate: async () => {
+      await queryClient.cancelQueries(['leaveRecords']);
+      const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
+      return { previousRecords };
+      },
+      onError: (err, variables, context) => {
+      if (err.message !== '取消請假') {
+        queryClient.setQueryData(['leaveRecords', ...queryKey], context.previousRecords);
+      }
+      },
+      onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
-    },
-  });
+      },
+      });
 
   const rangeCancelMutation = useMutation({
     mutationFn: async ({ employeeId, startDate, endDate }) => {
