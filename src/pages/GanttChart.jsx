@@ -805,9 +805,9 @@ export default function GanttChart() {
     // 拖曳 bar 時不觸發無限滾動延伸，避免與 edge-scroll 互相干擾
     if (isDragging) return;
 
-    // 節流：每 800ms 才能延伸一次，避免滾動條拖動觸發連鎖跳躍
+    // 節流：每 300ms 才能延伸一次，避免滾動條拖動觸發連鎖跳躍
     const now = Date.now();
-    if (now - scrollExtendThrottleRef.current < 800) return;
+    if (now - scrollExtendThrottleRef.current < 300) return;
 
     // 靠近右端：往右延伸
     if (el.scrollWidth - el.scrollLeft - el.clientWidth < CELL_WIDTH * 30) {
