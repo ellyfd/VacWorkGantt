@@ -529,18 +529,12 @@ export default function GanttChart() {
     }
     
     const dept = departments.find(d => d.id === deptId);
-    const group = groups.find(g => g.id === dept?.group_id);
-    const slug = group?.name.toLowerCase() === 'makalot' ? 'makalot' : 'dpc';
-    setSelectedGroupSlug(slug);
+    const groupId = dept?.group_id || null;
+    setSelectedGroupSlug(groupId);
     
     // 清除不屬於新集團的已選品牌
     const validBrandIds = new Set(
-      projects
-        .filter(p => {
-          const g = groups.find(g => g.id === p.group_id);
-          return g?.name.toLowerCase() === slug;
-        })
-        .map(p => p.id)
+      projects.filter(p => p.group_id === groupId).map(p => p.id)
     );
     setSelectedBrandIds(prev => prev.filter(id => validBrandIds.has(id)));
   };
