@@ -1326,9 +1326,31 @@ export default function GanttChart() {
       {/* Filter Bar - Layer 2 */}
       <FilterBar
         departments={departments}
+        groups={groups}
         projects={filteredBrands}
         selectedDeptId={selectedDeptId}
         onDeptChange={handleDeptChange}
+        selectedGroupSlug={selectedGroupSlug}
+        onGroupChange={(slug) => {
+          setSelectedGroupSlug(slug);
+          setSelectedDeptId(null);
+          if (!slug) {
+            setSelectedBrandIds([]);
+          } else {
+            // 清除不屬於新集團的已選品牌
+            const validBrandIds = new Set(
+              projects
+                .filter(p => {
+                  const g = groups.find(g => g.id === p.group_id);
+                  return slug === 'makalot'
+                    ? g?.name.toLowerCase() === 'makalot'
+                    : !g || g.name.toLowerCase() !== 'makalot';
+                })
+                .map(p => p.id)
+            );
+            setSelectedBrandIds(prev => prev.filter(id => validBrandIds.has(id)));
+          }
+        }}
         selectedBrandIds={selectedBrandIds}
         onBrandChange={setSelectedBrandIds}
         hideHolidays={hideHolidays}
