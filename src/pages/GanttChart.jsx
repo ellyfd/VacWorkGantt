@@ -1519,11 +1519,11 @@ export default function GanttChart() {
                       return (
                         <Popover key={day.toISOString()}>
                           <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
-                          <PopoverContent className="w-auto p-2 text-xs" side="bottom" align="center">
+                          <PopoverContent className="min-w-[140px] p-2 text-xs" side="bottom" align="center">
                             {names.map((item, idx) => (
-                              <p key={idx} className="text-gray-800 py-0.5 whitespace-nowrap">
+                              <p key={idx} className="text-gray-800 py-0.5">
                                 {item.name}
-                                {item.range && <span className="text-gray-400 ml-1">({item.range})</span>}
+                                {item.range && <span className="text-gray-500"> ({item.range})</span>}
                               </p>
                             ))}
                           </PopoverContent>
