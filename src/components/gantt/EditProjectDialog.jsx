@@ -51,7 +51,7 @@ export default function EditProjectDialog({
                   type="button"
                   onClick={() => {
                     onOpenChange(false);
-                    navigate('/project-settings?tab=projects');
+                    navigate('/ProjectSettings?tab=projects');
                   }}
                   className="text-xs text-blue-600 hover:underline"
                 >

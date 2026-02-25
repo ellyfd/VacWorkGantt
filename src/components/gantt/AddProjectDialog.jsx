@@ -150,7 +150,7 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
               <span className="text-sm text-gray-500">由品牌設定帶入</span>
               <button
                 type="button"
-                onClick={() => { onOpenChange(false); navigate('/project-settings?tab=projects'); }}
+                onClick={() => { onOpenChange(false); navigate('/ProjectSettings?tab=projects'); }}
                 className="text-xs text-blue-600 hover:underline"
               >
                 前往品牌設定修改 →
