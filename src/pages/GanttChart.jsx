@@ -1320,22 +1320,14 @@ export default function GanttChart() {
         selectedDeptId={selectedDeptId}
         onDeptChange={handleDeptChange}
         selectedGroupSlug={selectedGroupSlug}
-        onGroupChange={(slug) => {
-          setSelectedGroupSlug(slug);
+        onGroupChange={(groupId) => {
+          setSelectedGroupSlug(groupId);
           setSelectedDeptId(null);
-          if (!slug) {
+          if (!groupId) {
             setSelectedBrandIds([]);
           } else {
-            // 清除不屬於新集團的已選品牌
             const validBrandIds = new Set(
-              projects
-                .filter(p => {
-                  const g = groups.find(g => g.id === p.group_id);
-                  return slug === 'makalot'
-                    ? g?.name.toLowerCase() === 'makalot'
-                    : !g || g.name.toLowerCase() !== 'makalot';
-                })
-                .map(p => p.id)
+              projects.filter(p => p.group_id === groupId).map(p => p.id)
             );
             setSelectedBrandIds(prev => prev.filter(id => validBrandIds.has(id)));
           }
