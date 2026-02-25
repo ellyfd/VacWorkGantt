@@ -1352,7 +1352,7 @@ export default function GanttChart() {
                 style={{ height: MONTH_HEADER_HEIGHT }}
               />
               <div
-                className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-base flex items-center gap-2"
+                className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-xl flex items-center gap-2"
                 style={{ height: DATE_HEADER_HEIGHT }}
               >
                 開發季
