@@ -114,11 +114,6 @@ export default function GanttChart() {
     queryFn: () => base44.entities.GanttProject.list('sort_order'),
   });
 
-  const { data: ganttPhases = [] } = useQuery({
-    queryKey: ['ganttPhases'],
-    queryFn: () => base44.entities.GanttPhase.list('sort_order'),
-  });
-
   const { data: ganttTasks = [] } = useQuery({
     queryKey: ['ganttTasks'],
     queryFn: () => base44.entities.GanttTask.list('sort_order'),
