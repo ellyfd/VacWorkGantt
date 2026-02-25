@@ -78,21 +78,32 @@ export default function AllLeaveCalendar() {
     },
   });
 
+  // 預建 Map 用於 O(1) 查詢
+  const employeeMap = React.useMemo(() =>
+    Object.fromEntries(employees.map(e => [e.id, e])),
+    [employees]
+  );
+
+  const leaveTypeMap = React.useMemo(() =>
+    Object.fromEntries(leaveTypes.map(lt => [lt.id, lt])),
+    [leaveTypes]
+  );
+
+  const queryKey = [currentDate.getFullYear(), currentDate.getMonth()];
+
   const updateLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
-      const currentEmployee = employees.find(e => e.id === employeeId);
+      const currentEmployee = employeeMap[employeeId];
       
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date
       );
       
-      // 如果已存在相同假別，直接返回
       if (existing && existing.leave_type_id === leaveTypeId) {
         return existing;
       }
       
-      // 檢查職代衝突（排除出差）
-      const currentLeaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
+      const currentLeaveType = leaveTypeMap[leaveTypeId];
       const isBusinessTrip = currentLeaveType?.name === '出差';
 
       if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
@@ -232,6 +243,32 @@ export default function AllLeaveCalendar() {
         return newRecord;
       }
     },
+    onMutate: async ({ employeeId, date, leaveTypeId }) => {
+      await queryClient.cancelQueries(['leaveRecords']);
+      const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
+
+      queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
+        const existing = old?.find(r => r.employee_id === employeeId && r.date === date);
+        if (existing) {
+          return old.map(r =>
+            r.id === existing.id ? { ...r, leave_type_id: leaveTypeId } : r
+          );
+        }
+        return [...(old || []), {
+          id: `temp-${Date.now()}`,
+          employee_id: employeeId,
+          date,
+          leave_type_id: leaveTypeId,
+        }];
+      });
+
+      return { previousRecords };
+    },
+    onError: (err, variables, context) => {
+      if (err.message !== '取消請假') {
+        queryClient.setQueryData(['leaveRecords', ...queryKey], context.previousRecords);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
     },
@@ -303,11 +340,18 @@ export default function AllLeaveCalendar() {
     mutationFn: async ({ employeeId, startDate, endDate, leaveTypeId }) => {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      const currentEmployee = employees.find(e => e.id === employeeId);
+      const currentEmployee = employeeMap[employeeId];
 
-      // 檢查是否為出差假別
-      const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
+      const leaveType = leaveTypeMap[leaveTypeId];
       const isBusinessTrip = leaveType?.name === '出差';
+
+      const deptTotalMembers = !isBusinessTrip
+        ? employees.filter(e =>
+            e.status === 'active' &&
+            e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
+          ).length
+        : 0;
+      const deptLimit = !isBusinessTrip ? Math.floor(deptTotalMembers / 3) : 0;
 
       const warnings = [];
       const dates = [];
@@ -318,51 +362,43 @@ export default function AllLeaveCalendar() {
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
         const isHoliday = holidays?.some(h => h.date === dateStr);
 
-        // 出差例外：假日也要記錄，其他假別跳過假日和週末
         if (!isBusinessTrip && (isWeekend || isHoliday)) {
           continue;
         }
 
         dates.push(dateStr);
 
-        // 檢查職代衝突（排除出差）
         if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
           const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
           const conflicts = leaveRecords.filter(r => {
-            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+            const rLeaveType = leaveTypeMap[r.leave_type_id];
             return deputies.includes(r.employee_id) && r.date === dateStr && rLeaveType?.name !== '出差';
           });
 
           if (conflicts.length > 0) {
             const conflictNames = conflicts.map(c => {
-              const emp = employees.find(e => e.id === c.employee_id);
+              const emp = employeeMap[c.employee_id];
               return emp?.name || '未知';
             }).join('、');
             warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
           }
         }
         
-        // 檢查部門人數限制（排除出差）
         if (!isBusinessTrip) {
-        const deptLeaves = leaveRecords.filter(r => {
-          if (r.employee_id === employeeId) return false;
-          const emp = employees.find(e => e.id === r.employee_id);
-          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr && rLeaveType?.name !== '出差';
-        });
+          const deptLeaves = leaveRecords.filter(r => {
+            if (r.employee_id === employeeId) return false;
+            const emp = employeeMap[r.employee_id];
+            const rLeaveType = leaveTypeMap[r.leave_type_id];
+            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
+              && r.date === dateStr
+              && rLeaveType?.name !== '出差';
+          });
 
-        const deptTotalMembers = employees.filter(e => 
-          e.status === 'active' && 
-          e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-        ).length;
-
-        const deptLimit = Math.floor(deptTotalMembers / 3);
-
-        if (deptLeaves.length >= deptLimit) {
-          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（達到1/3人數 ${deptLimit}）`);
+          if (deptLeaves.length >= deptLimit) {
+            warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（達到1/3人數 ${deptLimit}）`);
+          }
         }
-        }
-        }
+      }
 
       if (warnings.length > 0) {
         const confirmed = window.confirm(
