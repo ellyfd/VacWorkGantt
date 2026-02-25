@@ -26,6 +26,9 @@ import {
 import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
+import { checkDeputyConflict, checkDeptLimit, buildWarningInfo } from '@/components/utils/leaveWarnings';
+import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
+import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -125,24 +128,25 @@ export default function LeaveCalendar() {
         r => r.employee_id === employeeId && r.date === date
       );
       if (existing && existing.leave_type_id === leaveTypeId) {
-        // 如果是同一個假別，直接返回，不做任何操作也不顯示警告
         return existing;
       }
       
-      // 如果不存在或假別不同，才進行衝突檢查
-      // 檢查職代衝突（排除出差）
-      const currentLeaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
-      const isBusinessTrip = currentLeaveType?.name === '出差';
+      const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
+      const isBusinessTrip = leaveType?.name === '出差';
 
-      if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-        const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-        const conflicts = allLeaveRecords.filter(r => {
-          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-          return deputies.includes(r.employee_id) && r.date === date && rLeaveType?.name !== '出差';
+      // 檢查職代衝突
+      if (!isBusinessTrip) {
+        const deputyConflicts = checkDeputyConflict({
+          employee: currentEmployee,
+          date,
+          leaveTypes,
+          leaveTypeId,
+          allLeaveRecords,
+          employees
         });
         
-        if (conflicts.length > 0) {
-          const conflictNames = conflicts.map(c => {
+        if (deputyConflicts.length > 0) {
+          const conflictNames = deputyConflicts.map(c => {
             const emp = employees.find(e => e.id === c.employee_id);
             return emp?.name || '未知';
           }).join('、');
@@ -150,94 +154,40 @@ export default function LeaveCalendar() {
           const confirmed = window.confirm(
             `⚠️ 警告：職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
           );
-          
-          if (!confirmed) {
-            throw new Error('取消請假');
-          }
+          if (!confirmed) throw new Error('取消請假');
         }
       }
       
-      // 檢查部門人數限制（排除自己和出差）
+      // 檢查部門人數限制
       if (!isBusinessTrip) {
-      const deptLeaves = allLeaveRecords.filter(r => {
-        if (r.employee_id === employeeId) return false; // 排除自己
-        const emp = employees.find(e => e.id === r.employee_id);
-        const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date && rLeaveType?.name !== '出差';
-      });
-
-      // 計算部門總人數（active狀態）
-      const deptTotalMembers = employees.filter(e => 
-        e.status === 'active' && 
-        e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-      ).length;
-
-      const deptLimit = Math.floor(deptTotalMembers / 3);
-
-      if (deptLeaves.length >= deptLimit) {
-        const confirmed = window.confirm(
-          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假（超過部門1/3人數 ${deptLimit}），確定要繼續請假嗎？`
-        );
-
-        if (!confirmed) {
-          throw new Error('取消請假');
-        }
-      }
-      }
-
-      // 計算警示資訊
-      const warningTypes = [];
-      const warningDetails = {};
-
-      // 職代衝突警示（排除出差）
-      if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-        const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-        const deputyConflicts = allLeaveRecords.filter(r => {
-          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-          return deputies.includes(r.employee_id) && r.date === date && rLeaveType?.name !== '出差';
+        const deptLimitInfo = checkDeptLimit({
+          employee: currentEmployee,
+          date,
+          leaveTypeId,
+          leaveTypes,
+          allLeaveRecords,
+          employees
         });
         
-        if (deputyConflicts.length > 0) {
-          warningTypes.push('deputy_conflict');
-          warningDetails.deputy_conflicts = deputyConflicts.map(c => {
-            const emp = employees.find(e => e.id === c.employee_id);
-            const lt = leaveTypes.find(l => l.id === c.leave_type_id);
-            return {
-              employee_id: c.employee_id,
-              employee_name: emp?.name || '未知',
-              leave_type: lt?.name || '未知'
-            };
-          });
+        if (deptLimitInfo) {
+          const confirmed = window.confirm(
+            `⚠️ 警告：${date} 該部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門1/3人數 ${deptLimitInfo.deptLimit}），確定要繼續請假嗎？`
+          );
+          if (!confirmed) throw new Error('取消請假');
         }
       }
-      
-      // 部門人數警示（排除出差）
-      if (!isBusinessTrip) {
-      const deptLeaves = allLeaveRecords.filter(r => {
-        if (r.employee_id === employeeId) return false;
-        const emp = employees.find(e => e.id === r.employee_id);
-        const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date && rLeaveType?.name !== '出差';
+
+      // 建立警示資訊
+      const { warningTypes, warningDetails } = buildWarningInfo({
+        employee: currentEmployee,
+        date,
+        leaveTypeId,
+        leaveTypes,
+        allLeaveRecords,
+        employees
       });
-      const deptTotalMembers = employees.filter(e => 
-        e.status === 'active' && 
-        e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-      ).length;
-      const deptLimit = Math.floor(deptTotalMembers / 3);
-      
-      if (deptLeaves.length >= deptLimit) {
-        warningTypes.push('department_over_limit');
-        warningDetails.department_info = {
-          total_members: deptTotalMembers,
-          leave_count: deptLeaves.length + 1,
-          limit: deptLimit,
-          percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
-        };
-      }
-      }
 
       if (existing) {
-        // 不同假別則更新
         return base44.entities.LeaveRecord.update(existing.id, {
           leave_type_id: leaveTypeId,
           warning_type: warningTypes.length > 0 ? warningTypes : undefined,
@@ -252,23 +202,16 @@ export default function LeaveCalendar() {
           warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
 
-        // 發送通知（並行）
-        const emp = employees.find(e => e.id === employeeId);
-        const leaveTypeName = leaveTypes.find(lt => lt.id === leaveTypeId)?.name || '未知假別';
-
-        const sendNotif = async (email, message) => {
-          const oldNotifications = await base44.entities.Notification.filter({ recipient_email: email, message: { $regex: date } });
-          await Promise.all(oldNotifications.map(n => base44.entities.Notification.delete(n.id)));
-          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_created', message, related_entity_id: newRecord.id, related_entity_type: 'LeaveRecord' });
-        };
-        const adminEmails = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0).flatMap(e => e.user_emails);
-        const deputyEmails = (emp?.deputy_1 || emp?.deputy_2)
-          ? [emp.deputy_1, emp.deputy_2].filter(Boolean).flatMap(depId => employees.find(e => e.id === depId)?.user_emails || [])
-          : [];
-        await Promise.all([
-          ...adminEmails.map(email => sendNotif(email, `${emp?.name || '未知員工'} 新增了 ${date} 的 ${leaveTypeName}`)),
-          ...deputyEmails.map(email => sendNotif(email, `您的職務代理人 ${emp.name} 新增了 ${date} 的 ${leaveTypeName}`)),
-        ]);
+        // 發送通知
+        await sendLeaveNotification({
+          employees,
+          employeeId,
+          date,
+          leaveTypeId,
+          leaveTypes,
+          action: 'create',
+          relatedRecord: newRecord
+        });
 
         return newRecord;
       }
@@ -303,11 +246,18 @@ export default function LeaveCalendar() {
       const end = new Date(endDate);
       const currentEmployee = employees.find(e => e.id === employeeId);
       
-      // 檢查是否為出差假別
       const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
       const isBusinessTrip = leaveType?.name === '出差';
       
-      // 檢查每一天的衝突
+      // 預先計算部門人數（移出迴圈）
+      const deptTotalMembers = !isBusinessTrip
+        ? employees.filter(e =>
+            e.status === 'active' &&
+            e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
+          ).length
+        : 0;
+      const deptLimit = !isBusinessTrip ? Math.floor(deptTotalMembers / 3) : 0;
+      
       const warnings = [];
       const dates = [];
       
@@ -317,23 +267,23 @@ export default function LeaveCalendar() {
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
         const isHoliday = holidays?.some(h => h.date === dateStr);
         
-        // 出差例外：假日也要記錄，其他假別跳過假日和週末
-        if (!isBusinessTrip && (isWeekend || isHoliday)) {
-          continue;
-        }
+        if (!isBusinessTrip && (isWeekend || isHoliday)) continue;
         
         dates.push(dateStr);
         
-        // 檢查職代衝突（排除出差）
-        if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-          const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-          const conflicts = allLeaveRecords.filter(r => {
-            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-            return deputies.includes(r.employee_id) && r.date === dateStr && rLeaveType?.name !== '出差';
+        // 檢查職代衝突
+        if (!isBusinessTrip) {
+          const deputyConflicts = checkDeputyConflict({
+            employee: currentEmployee,
+            date: dateStr,
+            leaveTypes,
+            leaveTypeId,
+            allLeaveRecords,
+            employees
           });
           
-          if (conflicts.length > 0) {
-            const conflictNames = conflicts.map(c => {
+          if (deputyConflicts.length > 0) {
+            const conflictNames = deputyConflicts.map(c => {
               const emp = employees.find(e => e.id === c.employee_id);
               return emp?.name || '未知';
             }).join('、');
@@ -341,95 +291,44 @@ export default function LeaveCalendar() {
           }
         }
         
-        // 檢查部門人數限制（排除自己和出差）
+        // 檢查部門人數限制
         if (!isBusinessTrip) {
-        const deptLeaves = allLeaveRecords.filter(r => {
-          if (r.employee_id === employeeId) return false; // 排除自己
-          const emp = employees.find(e => e.id === r.employee_id);
-          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-          return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr && rLeaveType?.name !== '出差';
-        });
+          const deptLeaves = allLeaveRecords.filter(r => {
+            if (r.employee_id === employeeId) return false;
+            const emp = employees.find(e => e.id === r.employee_id);
+            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
+            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
+              && r.date === dateStr
+              && rLeaveType?.name !== '出差';
+          });
 
-        // 計算部門總人數（active狀態）
-        const deptTotalMembers = employees.filter(e => 
-          e.status === 'active' && 
-          e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-        ).length;
-
-        const deptLimit = Math.floor(deptTotalMembers / 3);
-
-        if (deptLeaves.length >= deptLimit) {
-          warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（超過1/3人數 ${deptLimit}）`);
+          if (deptLeaves.length >= deptLimit) {
+            warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（超過1/3人數 ${deptLimit}）`);
+          }
         }
-        }
-        }
+      }
       
       if (warnings.length > 0) {
         const confirmed = window.confirm(
           `⚠️ 警告：\n${warnings.join('\n')}\n\n確定要繼續請假嗎？`
         );
-        
-        if (!confirmed) {
-          throw new Error('取消請假');
-        }
+        if (!confirmed) throw new Error('取消請假');
       }
       
-      // 過濾掉已存在相同假別的日期，並計算每個日期的警示資訊
       const recordsToCreate = [];
       for (const dateStr of dates) {
         const existing = leaveRecords.find(
           r => r.employee_id === employeeId && r.date === dateStr && r.leave_type_id === leaveTypeId
         );
         if (!existing) {
-          const warningTypes = [];
-          const warningDetails = {};
-          
-          // 職代衝突警示（排除出差）
-          if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-            const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-            const deputyConflicts = allLeaveRecords.filter(r => {
-              const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-              return deputies.includes(r.employee_id) && r.date === dateStr && rLeaveType?.name !== '出差';
-            });
-            
-            if (deputyConflicts.length > 0) {
-              warningTypes.push('deputy_conflict');
-              warningDetails.deputy_conflicts = deputyConflicts.map(c => {
-                const emp = employees.find(e => e.id === c.employee_id);
-                const lt = leaveTypes.find(l => l.id === c.leave_type_id);
-                return {
-                  employee_id: c.employee_id,
-                  employee_name: emp?.name || '未知',
-                  leave_type: lt?.name || '未知'
-                };
-              });
-            }
-          }
-          
-          // 部門人數警示（排除出差）
-          if (!isBusinessTrip) {
-          const deptLeaves = allLeaveRecords.filter(r => {
-            if (r.employee_id === employeeId) return false;
-            const emp = employees.find(e => e.id === r.employee_id);
-            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr && rLeaveType?.name !== '出差';
+          const { warningTypes, warningDetails } = buildWarningInfo({
+            employee: currentEmployee,
+            date: dateStr,
+            leaveTypeId,
+            leaveTypes,
+            allLeaveRecords,
+            employees
           });
-          const deptTotalMembers = employees.filter(e => 
-            e.status === 'active' && 
-            e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-          ).length;
-          const deptLimit = Math.floor(deptTotalMembers / 3);
-
-          if (deptLeaves.length >= deptLimit) {
-            warningTypes.push('department_over_limit');
-            warningDetails.department_info = {
-              total_members: deptTotalMembers,
-              leave_count: deptLeaves.length + 1,
-              limit: deptLimit,
-              percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
-            };
-          }
-          }
           
           recordsToCreate.push({
             employee_id: employeeId,
@@ -441,11 +340,7 @@ export default function LeaveCalendar() {
         }
       }
       
-      if (recordsToCreate.length === 0) {
-        return []; // 沒有需要新增的記錄
-      }
-      
-      return base44.entities.LeaveRecord.bulkCreate(recordsToCreate);
+      return recordsToCreate.length > 0 ? base44.entities.LeaveRecord.bulkCreate(recordsToCreate) : [];
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['leaveRecords']);
@@ -485,7 +380,6 @@ export default function LeaveCalendar() {
   const handleDeleteRangeLeave = (record) => {
     if (!record) return;
 
-    // 找出同一假別的所有記錄並排序
     const sameTypeRecords = leaveRecords.filter(r => 
       r.employee_id === record.employee_id && 
       r.leave_type_id === record.leave_type_id
@@ -493,56 +387,19 @@ export default function LeaveCalendar() {
 
     if (sameTypeRecords.length === 0) return;
 
-    // 找出包含點擊日期的連續區間
-    const rangeRecords = [record];
-    const recordIndex = sameTypeRecords.findIndex(r => r.id === record.id);
+    // 使用通用函數找出連續區間
+    const rangeRecords = buildDeleteRange(record, sameTypeRecords);
 
-    // 向前找連續日期
-    for (let i = recordIndex - 1; i >= 0; i--) {
-      const currentDate = sameTypeRecords[i].date;
-      const nextDate = rangeRecords[0].date;
-
-      const current = new Date(currentDate + 'T00:00:00');
-      const next = new Date(nextDate + 'T00:00:00');
-      const diffDays = (next - current) / (1000 * 60 * 60 * 24);
-
-      if (diffDays === 1) {
-        rangeRecords.unshift(sameTypeRecords[i]);
-      } else {
-        break;
-      }
-    }
-
-    // 向後找連續日期
-    for (let i = recordIndex + 1; i < sameTypeRecords.length; i++) {
-      const currentDate = rangeRecords[rangeRecords.length - 1].date;
-      const nextDate = sameTypeRecords[i].date;
-
-      const current = new Date(currentDate + 'T00:00:00');
-      const next = new Date(nextDate + 'T00:00:00');
-      const diffDays = (next - current) / (1000 * 60 * 60 * 24);
-
-      if (diffDays === 1) {
-        rangeRecords.push(sameTypeRecords[i]);
-      } else {
-        break;
-      }
-    }
-
-    // 如果是區間（超過1天），顯示對話框讓使用者選擇
-    if (rangeRecords.length > 1) {
-      const startDate = rangeRecords[0].date;
-      const endDate = rangeRecords[rangeRecords.length - 1].date;
+    if (rangeRecords) {
       setDeleteDialogData({
         record,
         rangeRecords,
-        startDate,
-        endDate,
+        startDate: rangeRecords[0].date,
+        endDate: rangeRecords[rangeRecords.length - 1].date,
         count: rangeRecords.length
       });
       setDeleteDialogOpen(true);
     } else {
-      // 單天直接刪除
       deleteLeaveMutation.mutate(record.id);
     }
   };
