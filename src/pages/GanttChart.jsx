@@ -455,13 +455,16 @@ export default function GanttChart() {
 
   const visibleRows = useMemo(() => {
     return rows.filter(row => {
-      // 集團篩選（用 slug）
-      if (selectedGroupSlug && getDept(row.data) !== selectedGroupSlug) return false;
+      // 集團篩選：直接用 brand 的 group_id 比對
+      if (selectedGroupSlug) {
+        const brand = projects.find(p => p.id === row.data.brand_id);
+        if (brand?.group_id !== selectedGroupSlug) return false;
+      }
       // 品牌篩選
       if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(row.data.brand_id)) return false;
       return true;
     });
-  }, [rows, selectedGroupSlug, selectedBrandIds, getDept]);
+  }, [rows, selectedGroupSlug, selectedBrandIds, projects]);
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
