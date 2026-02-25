@@ -510,6 +510,11 @@ export default function GanttChart() {
   };
 
   // Helper functions
+  const getProjectColor = (ganttProject) => {
+    const brand = projects.find(p => p.id === ganttProject.brand_id);
+    return brand?.default_color || ganttProject.color || '#3b82f6';
+  };
+
   const getBrandName = (brandId) => {
     const project = projects.find((p) => p.id === brandId);
     return project ? (project.short_name || project.name) : '-';
