@@ -35,22 +35,19 @@ export default function FilterBar({
           >
             全部
           </button>
-          {activeGroups.map(group => {
-            const slug = group.name.toLowerCase();
-            return (
-              <button
-                key={group.id}
-                onClick={() => onGroupChange(selectedGroupSlug === slug ? null : slug)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  selectedGroupSlug === slug
-                    ? 'bg-gray-800 text-white border-gray-800'
-                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {group.name}
-              </button>
-            );
-          })}
+          {activeGroups.map(group => (
+            <button
+              key={group.id}
+              onClick={() => onGroupChange(selectedGroupSlug === group.id ? null : group.id)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                selectedGroupSlug === group.id
+                  ? 'bg-gray-800 text-white border-gray-800'
+                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {group.name}
+            </button>
+          ))}
         </div>
       </div>
 
