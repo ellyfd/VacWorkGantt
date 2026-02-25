@@ -108,10 +108,11 @@ export default function FilterBar({
         </span>
 
         {/* 清除篩選（有篩選才顯示，靠右） */}
-        {(selectedDeptId || selectedBrandIds.length > 0) && (
+        {(selectedDeptId || selectedGroupSlug || selectedBrandIds.length > 0) && (
           <button
             onClick={() => { 
-              onDeptChange(null); 
+              onDeptChange(null);
+              onGroupChange(null);
               onBrandChange([]); 
             }}
             className="text-xs text-red-400 hover:text-red-600 underline ml-auto"
