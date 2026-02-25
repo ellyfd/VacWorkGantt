@@ -1879,29 +1879,72 @@ export default function GanttChart() {
       {/* 操作說明 */}
       <details className="mt-4 text-sm text-gray-600">
         <summary className="cursor-pointer font-medium">📖 操作說明</summary>
-        <ul className="mt-2 ml-4 space-y-1 list-disc">
-             <li><strong>新增任務</strong>：滑鼠移到專案列名稱上，點擊 ＋ 按鈕新增任務</li>
-             <li><strong>編輯/刪除任務</strong>：點擊任務 bar 直接開啟編輯對話框，或右鍵選單選擇編輯/刪除</li>
-             <li><strong>設定日期</strong>：在編輯對話框中選擇時間類型（里程碑 ◆、區間 ▬、Rolling ▶）並填寫日期</li>
-             <li><strong>橫向捲動</strong>：滑鼠滾輪或 Trackpad 可平滑捲動，每次移動約 1 格，支援月份快速跳轉按鈕</li>
-           </ul>
-        <div className="mt-3 ml-4">
-          <p className="font-medium text-gray-700 mb-1">請假人數色碼：</p>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-semibold bg-yellow-100 text-yellow-700">1人</span>
-              <span>1–2 人請假</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-semibold bg-orange-100 text-orange-700">3人</span>
-              <span>3–4 人請假</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-bold bg-red-100 text-red-700">5人</span>
-              <span>5 人以上請假，需特別注意</span>
-            </div>
-            <p className="text-gray-400 text-xs mt-1">點擊數字可查看各部門請假人員名單</p>
+        <div className="mt-3 ml-2 space-y-4">
+
+          {/* 開發季管理 */}
+          <div>
+            <p className="font-semibold text-gray-800 mb-1">📁 開發季管理</p>
+            <ul className="ml-3 space-y-1 list-disc">
+              <li><strong>新增</strong>：點擊左側「＋ 新增」按鈕，選擇品牌、季節與年份後建立</li>
+              <li><strong>編輯</strong>：點擊開發季列的 ✏️ 按鈕，可修改名稱及各任務日期</li>
+              <li><strong>刪除</strong>：點擊開發季列的 🗑️ 按鈕，刪除後無法復原</li>
+              <li><strong>調整列寬</strong>：拖曳左側欄右邊緣可調整欄位寬度（160–480px）</li>
+            </ul>
           </div>
+
+          {/* 任務管理 */}
+          <div>
+            <p className="font-semibold text-gray-800 mb-1">📌 任務管理</p>
+            <ul className="ml-3 space-y-1 list-disc">
+              <li><strong>新增任務</strong>：點擊開發季列的 ＋ 按鈕，選擇樣品並設定時間類型</li>
+              <li><strong>編輯任務</strong>：直接點擊甘特圖上的 bar，開啟編輯對話框修改樣品與日期</li>
+              <li><strong>刪除任務</strong>：點擊 bar 開啟編輯後，點擊左下角「刪除」按鈕</li>
+              <li><strong>撤銷</strong>：按 Ctrl+Z（Mac 為 ⌘Z）可撤銷上一次時間變更</li>
+            </ul>
+          </div>
+
+          {/* 時間類型 */}
+          <div>
+            <p className="font-semibold text-gray-800 mb-1">⏱ 時間類型</p>
+            <ul className="ml-3 space-y-1 list-disc">
+              <li><strong>◆ 里程碑</strong>：單一日期，顯示為菱形標記</li>
+              <li><strong>▬ 區間</strong>：開始到結束日期，顯示為色塊，標示工作天數</li>
+              <li><strong>▶ Rolling</strong>：從開始日期持續延伸至時間軸末端，表示進行中狀態</li>
+            </ul>
+          </div>
+
+          {/* 篩選與瀏覽 */}
+          <div>
+            <p className="font-semibold text-gray-800 mb-1">🔍 篩選與瀏覽</p>
+            <ul className="ml-3 space-y-1 list-disc">
+              <li><strong>集團／品牌篩選</strong>：點擊頂部集團或品牌標籤，可多選品牌</li>
+              <li><strong>部門篩選</strong>：選擇部門後自動連動集團，同步過濾請假人數</li>
+              <li><strong>僅工作日</strong>：隱藏週末與假日欄位，讓時程更緊湊</li>
+              <li><strong>橫向捲動</strong>：滑鼠滾輪或 Trackpad 左右捲動，每次移動 1 格</li>
+              <li><strong>月份跳轉</strong>：點擊頂部 ‹ › 按鈕切換月份，「今天」按鈕快速回到當日</li>
+            </ul>
+          </div>
+
+          {/* 請假人數 */}
+          <div>
+            <p className="font-semibold text-gray-800 mb-1">🏖 請假人數色碼</p>
+            <div className="flex flex-col gap-1 ml-3">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-semibold bg-yellow-100 text-yellow-700">1人</span>
+                <span>1–2 人請假</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-semibold bg-orange-100 text-orange-700">3人</span>
+                <span>3–4 人請假</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-8 h-5 rounded text-[11px] font-bold bg-red-100 text-red-700">5人</span>
+                <span>5 人以上請假，需特別注意</span>
+              </div>
+              <p className="text-gray-400 text-xs mt-1">點擊數字查看請假人員名單，連假會顯示日期區間</p>
+            </div>
+          </div>
+
         </div>
       </details>
       </div>
