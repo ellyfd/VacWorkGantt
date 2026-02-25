@@ -1050,8 +1050,8 @@ export default function GanttChart() {
           className="flex items-center gap-2 px-3 font-bold text-sm"
           style={{
             height: ROW_HEIGHT,
-            backgroundColor: row.data.color || '#3b82f6',
-            color: getContrastColor(row.data.color || '#3b82f6'),
+            backgroundColor: getProjectColor(row.data),
+            color: getContrastColor(getProjectColor(row.data)),
           }}
         >
           <span className="truncate flex-1">{row.data.name}</span>
