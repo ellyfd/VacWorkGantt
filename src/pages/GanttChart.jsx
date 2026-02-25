@@ -1577,6 +1577,7 @@ export default function GanttChart() {
         projectFormData={projectFormData}
         setProjectFormData={setProjectFormData}
         projects={projects}
+        groups={groups}
         ganttProjects={ganttProjects}
         onConfirm={handleAddProject}
         isLoading={createGanttProject.isPending}
