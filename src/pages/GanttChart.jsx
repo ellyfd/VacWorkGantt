@@ -810,15 +810,15 @@ export default function GanttChart() {
     if (now - scrollExtendThrottleRef.current < 300) return;
 
     // 靠近右端：往右延伸
-    if (el.scrollWidth - el.scrollLeft - el.clientWidth < CELL_WIDTH * 30) {
+    if (el.scrollWidth - el.scrollLeft - el.clientWidth < CELL_WIDTH * 60) {
       scrollExtendThrottleRef.current = now;
-      setCenterDate(d => addDays(d, 30));
+      setCenterDate(d => addDays(d, 60));
     }
     // 靠近左端：往左延伸
-    if (el.scrollLeft < CELL_WIDTH * 30) {
+    if (el.scrollLeft < CELL_WIDTH * 60) {
       scrollExtendThrottleRef.current = now;
-      pendingScrollCompensation.current = CELL_WIDTH * 30;
-      setCenterDate(d => subDays(d, 30));
+      pendingScrollCompensation.current = CELL_WIDTH * 60;
+      setCenterDate(d => subDays(d, 60));
     }
   }, [CELL_WIDTH, isDragging]);
 
