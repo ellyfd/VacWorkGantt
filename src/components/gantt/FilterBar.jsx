@@ -2,9 +2,12 @@ import React from 'react';
 
 export default function FilterBar({
   departments,
+  groups,
   projects,
   selectedDeptId,
   onDeptChange,
+  selectedGroupSlug,
+  onGroupChange,
   selectedBrandIds,
   onBrandChange,
   hideHolidays,
@@ -13,6 +16,7 @@ export default function FilterBar({
   totalRowCount,
 }) {
   const filteredDepts = departments.filter(d => d.status !== 'hidden');
+  const activeGroups = (groups || []).filter(g => g.status !== 'inactive');
 
   return (
     <div className="flex flex-col gap-2">
