@@ -792,33 +792,6 @@ export default function GanttChart() {
   // 節流 ref
   const wheelThrottleRef = useRef(0);
 
-  // 精確橫向滾動：每個 tick 固定移動 1 格（無動量）
-  const handleRightWheel = useCallback((e) => {
-    const absDeltaX = Math.abs(e.deltaX);
-    const absDeltaY = Math.abs(e.deltaY);
-    
-    // 純垂直滾動不攔截
-    if (absDeltaY > absDeltaX * 2 && absDeltaX < 5) return;
-    
-    e.preventDefault();
-    const el = rightPanelRef.current;
-    if (!el) return;
-
-    // 節流：每 120ms 最多處理一次
-    const now = Date.now();
-    if (now - wheelThrottleRef.current < 120) return;
-    wheelThrottleRef.current = now;
-
-    // 正規化 delta 值（處理不同 deltaMode）
-    let rawDelta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-    if (e.deltaMode === 1) rawDelta *= 16;   // line mode → pixel
-    if (e.deltaMode === 2) rawDelta *= 100;  // page mode → pixel
-
-    // 每次精確移動 1 格，完全沒有累積或動量
-    const step = Math.sign(rawDelta) * CELL_WIDTH;
-    el.scrollLeft += step;
-  }, [CELL_WIDTH]);
-
   // 節流 ref
   const scrollExtendThrottleRef = useRef(0);
 
