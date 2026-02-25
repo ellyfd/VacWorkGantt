@@ -308,8 +308,8 @@ export default function GanttChart() {
 
   // Get days for month view (infinite scroll: center ± buffer)
   const days = useMemo(() => {
-    const start = subDays(centerDate, 60);
-    const end = addDays(centerDate, 120);
+    const start = subDays(centerDate, 180);
+    const end = addDays(centerDate, 180);
     const allDays = eachDayOfInterval({ start, end });
     // 隱藏假日時過濾掉週末和假日
     if (hideHolidays) {
