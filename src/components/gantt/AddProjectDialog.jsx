@@ -106,11 +106,10 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
                   >
                     <SelectTrigger className="mt-1"><SelectValue placeholder="選擇季節..." /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SS">SS（春夏）</SelectItem>
-                      <SelectItem value="FW">FW（秋冬）</SelectItem>
-                      <SelectItem value="HO">HO（假日）</SelectItem>
-                      <SelectItem value="SU">SU（夏季）</SelectItem>
-                      <SelectItem value="SP">SP（春季）</SelectItem>
+                      <SelectItem value="FW">FW</SelectItem>
+                      <SelectItem value="HO">HO</SelectItem>
+                      <SelectItem value="SU">SU</SelectItem>
+                      <SelectItem value="SP">SP</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
