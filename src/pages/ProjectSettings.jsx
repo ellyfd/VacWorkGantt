@@ -260,14 +260,6 @@ export default function ProjectSettings() {
 
   const isLoading = loadingSamples || loadingProjects || loadingGroups;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
   const usedColors = useMemo(() => {
     return new Set(
       projects
