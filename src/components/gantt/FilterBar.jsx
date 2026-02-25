@@ -20,7 +20,40 @@ export default function FilterBar({
 
   return (
     <div className="flex flex-col gap-2">
-      
+
+      {/* 第零行：集團 */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-gray-500 whitespace-nowrap font-medium">集團</span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => onGroupChange(null)}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+              !selectedGroupSlug
+                ? 'bg-gray-800 text-white border-gray-800'
+                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            全部
+          </button>
+          {activeGroups.map(group => {
+            const slug = group.name.toLowerCase();
+            return (
+              <button
+                key={group.id}
+                onClick={() => onGroupChange(selectedGroupSlug === slug ? null : slug)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  selectedGroupSlug === slug
+                    ? 'bg-gray-800 text-white border-gray-800'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {group.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 第一行：部門 + 工作日 + 統計 + 清除篩選 */}
       <div className="flex items-center gap-3 flex-wrap">
         
