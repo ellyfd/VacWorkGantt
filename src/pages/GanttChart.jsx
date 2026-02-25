@@ -1290,10 +1290,9 @@ export default function GanttChart() {
 
   const samplesForEditTask = useMemo(() => {
     if (!editingTask) return [];
-    const task = ganttTasks.find(t => t.id === editingTask.id);
-    const project = ganttProjects.find(p => p.id === task?.gantt_project_id);
+    const project = ganttProjects.find(p => p.id === editingTask.gantt_project_id);
     return project ? getSamplesByBrand(project.brand_id) : [];
-  }, [editingTask, ganttTasks, ganttProjects, samples]);
+  }, [editingTask, ganttProjects, samples]);
 
   const projectForAddPhase = ganttProjects.find(p => p.id === creatingProjectId);
   const brandIdForAddPhase = projectForAddPhase?.brand_id;
