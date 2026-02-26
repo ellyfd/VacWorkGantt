@@ -215,37 +215,72 @@ export default function MobileGanttChart() {
       </div>
 
       {/* 篩選 */}
-      <div className="space-y-2">
-        <Select value={selectedDeptId} onValueChange={(val) => {
-          setSelectedDeptId(val);
-          setSelectedGroupSlug(val ? departments.find(d => d.id === val)?.group_id : null);
-          setSelectedBrandIds([]);
-        }}>
-          <SelectTrigger className="text-sm">
-            <SelectValue placeholder="選擇部門..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={null}>全部</SelectItem>
+      <div className="space-y-3">
+        {/* 部門篩選 */}
+        <div className="space-y-1">
+          <div className="text-xs text-gray-600 font-medium">部門</div>
+          <div className="flex flex-wrap gap-1">
+            <Button
+              variant={!selectedDeptId ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setSelectedDeptId('');
+                setSelectedGroupSlug('');
+                setSelectedBrandIds([]);
+              }}
+              className="text-xs h-7"
+            >
+              全部
+            </Button>
             {departments.map(d => (
-              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+              <Button
+                key={d.id}
+                variant={selectedDeptId === d.id ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setSelectedDeptId(d.id);
+                  setSelectedGroupSlug(d.group_id);
+                  setSelectedBrandIds([]);
+                }}
+                className="text-xs h-7"
+              >
+                {d.name}
+              </Button>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        </div>
 
-        <Select value={selectedGroupSlug} onValueChange={(val) => {
-          setSelectedGroupSlug(val || null);
-          setSelectedBrandIds([]);
-        }}>
-          <SelectTrigger className="text-sm">
-            <SelectValue placeholder="選擇集團..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={null}>全部</SelectItem>
+        {/* 集團篩選 */}
+        <div className="space-y-1">
+          <div className="text-xs text-gray-600 font-medium">集團</div>
+          <div className="flex flex-wrap gap-1">
+            <Button
+              variant={!selectedGroupSlug ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setSelectedGroupSlug('');
+                setSelectedBrandIds([]);
+              }}
+              className="text-xs h-7"
+            >
+              全部
+            </Button>
             {groups.map(g => (
-              <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+              <Button
+                key={g.id}
+                variant={selectedGroupSlug === g.id ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setSelectedGroupSlug(g.id);
+                  setSelectedBrandIds([]);
+                }}
+                className="text-xs h-7"
+              >
+                {g.name}
+              </Button>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        </div>
 
         {/* 品牌篩選 */}
         {(() => {
