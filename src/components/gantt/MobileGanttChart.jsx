@@ -468,7 +468,7 @@ export default function MobileGanttChart() {
                         height: ROW_HEIGHT - 2,
                       }}
                       title={`${proj?.name} - ${task.name}`}
-                      onClick={() => setEditingTask(task)}
+                      onClick={() => handleOpenEditDialog(task)}
                     >
                       <span className="truncate font-medium text-xs" style={{ color: getContrastColor(color) }}>
                         {proj?.name} {task.name}
@@ -489,6 +489,51 @@ export default function MobileGanttChart() {
           篩選結果無任務
         </div>
       )}
+
+      {/* 編輯任務對話框 */}
+      <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>編輯任務</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>任務名稱</Label>
+              <Input
+                value={editTaskName}
+                onChange={(e) => setEditTaskName(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>開始日期</Label>
+              <Input
+                type="date"
+                value={editTaskStartDate}
+                onChange={(e) => setEditTaskStartDate(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>結束日期（可選）</Label>
+              <Input
+                type="date"
+                value={editTaskEndDate}
+                onChange={(e) => setEditTaskEndDate(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTask(null)}>
+              取消
+            </Button>
+            <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending}>
+              {updateTaskMutation.isPending ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
