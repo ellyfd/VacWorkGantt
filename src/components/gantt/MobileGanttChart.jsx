@@ -1,18 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Plus, Edit2, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
 const CELL_WIDTH = 45;
-const ROW_HEIGHT = 50;
+const ROW_HEIGHT = 24;
 
 export default function MobileGanttChart() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [activeProjectIdx, setActiveProjectIdx] = useState(0);
+  const [selectedDeptId, setSelectedDeptId] = useState('');
+  const [selectedGroupSlug, setSelectedGroupSlug] = useState('');
+  const [selectedBrandIds, setSelectedBrandIds] = useState([]);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -23,6 +25,21 @@ export default function MobileGanttChart() {
   const { data: ganttTasks = [] } = useQuery({
     queryKey: ['ganttTasks'],
     queryFn: () => base44.entities.GanttTask.list('sort_order'),
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list('sort_order'),
+  });
+
+  const { data: departments = [] } = useQuery({
+    queryKey: ['departments'],
+    queryFn: () => base44.entities.Department.list('sort_order'),
+  });
+
+  const { data: groups = [] } = useQuery({
+    queryKey: ['groups'],
+    queryFn: () => base44.entities.Group.list(),
   });
 
   const queryStart = format(subDays(currentDate, 7), 'yyyy-MM-dd');
@@ -42,6 +59,11 @@ export default function MobileGanttChart() {
     queryFn: () => base44.entities.Holiday.list(),
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => base44.entities.Employee.list('name'),
+  });
+
   // 當週 7 天
   const weekDays = useMemo(() => {
     const start = subDays(currentDate, getDay(currentDate) - 1);
@@ -50,6 +72,24 @@ export default function MobileGanttChart() {
 
   // Holiday set
   const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
+
+  // 篩選
+  const filteredProjects = useMemo(() => {
+    return ganttProjects.filter(proj => {
+      if (selectedGroupSlug) {
+        const brand = projects.find(p => p.id === proj.brand_id);
+        if (brand?.group_id !== selectedGroupSlug) return false;
+      }
+      if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(proj.brand_id)) return false;
+      return true;
+    });
+  }, [ganttProjects, selectedGroupSlug, selectedBrandIds, projects]);
+
+  // 篩選後的 tasks（所有匹配 project）
+  const filteredTasks = useMemo(() => {
+    const projectIds = new Set(filteredProjects.map(p => p.id));
+    return ganttTasks.filter(t => t.start_date && projectIds.has(t.gantt_project_id));
+  }, [ganttTasks, filteredProjects]);
 
   // 該周最大請假人數
   const maxLeaveCount = useMemo(() => {
@@ -61,11 +101,6 @@ export default function MobileGanttChart() {
     });
     return max;
   }, [weekDays, leaveRecords]);
-
-  const activeProject = ganttProjects[activeProjectIdx];
-  const projectTasks = activeProject 
-    ? ganttTasks.filter(t => t.gantt_project_id === activeProject.id && t.start_date) 
-    : [];
 
   // 取得該 task 在週視圖中的位置和寬度
   const getTaskPosition = (task) => {
@@ -96,6 +131,11 @@ export default function MobileGanttChart() {
     };
   };
 
+  const getProjectColor = (ganttProject) => {
+    const brand = projects.find(p => p.id === ganttProject.brand_id);
+    return brand?.default_color || ganttProject.color || '#3b82f6';
+  };
+
   const getLeaveCount = (dateStr) => {
     return new Set(leaveRecords.filter(r => r.date === dateStr).map(r => r.employee_id)).size;
   };
@@ -116,24 +156,39 @@ export default function MobileGanttChart() {
         </div>
       </div>
 
-      {/* Project Tabs */}
-      {ganttProjects.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {ganttProjects.map((proj, idx) => (
-            <button
-              key={proj.id}
-              onClick={() => setActiveProjectIdx(idx)}
-              className={`px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap transition-colors ${
-                activeProjectIdx === idx
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {proj.name}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* 篩選 */}
+      <div className="space-y-2">
+        <Select value={selectedDeptId} onValueChange={(val) => {
+          setSelectedDeptId(val);
+          setSelectedGroupSlug(val ? departments.find(d => d.id === val)?.group_id : null);
+          setSelectedBrandIds([]);
+        }}>
+          <SelectTrigger className="text-sm">
+            <SelectValue placeholder="選擇部門..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>全部</SelectItem>
+            {departments.map(d => (
+              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedGroupSlug} onValueChange={(val) => {
+          setSelectedGroupSlug(val || null);
+          setSelectedBrandIds([]);
+        }}>
+          <SelectTrigger className="text-sm">
+            <SelectValue placeholder="選擇集團..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>全部</SelectItem>
+            {groups.map(g => (
+              <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* 請假峰值 */}
       {maxLeaveCount > 0 && (
@@ -142,7 +197,7 @@ export default function MobileGanttChart() {
         </div>
       )}
 
-      {activeProject ? (
+      {filteredTasks.length > 0 ? (
         <Card className="overflow-hidden">
           {/* 週期 header */}
           <div className="flex bg-gray-100 border-b border-gray-200">
@@ -160,10 +215,10 @@ export default function MobileGanttChart() {
                   }`}
                   style={{ width: CELL_WIDTH }}
                 >
-                  <span className={`font-bold ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
+                  <span className={`font-bold text-[11px] ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                     {format(day, 'd')}
                   </span>
-                  <span className={`text-[10px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
+                  <span className={`text-[9px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
                     {format(day, 'EEE', { locale: zhTW })}
                   </span>
                 </div>
@@ -171,58 +226,57 @@ export default function MobileGanttChart() {
             })}
           </div>
 
-          {/* Task rows */}
-          <div className="space-y-0 divide-y divide-gray-200">
-            {projectTasks.length > 0 ? (
-              projectTasks.map(task => {
-                const pos = getTaskPosition(task);
-                if (!pos) return null;
+          {/* Task rows (all projects stacked) */}
+          <div className="space-y-0">
+            {filteredTasks.map((task, idx) => {
+              const pos = getTaskPosition(task);
+              if (!pos) return null;
+              const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
+              const color = proj ? getProjectColor(proj) : '#ccc';
 
-                return (
-                  <div key={task.id} className="relative" style={{ height: ROW_HEIGHT }}>
-                    {/* Background grid */}
-                    <div className="absolute inset-0 flex">
-                      {weekDays.map((day, idx) => {
-                        const dateStr = format(day, 'yyyy-MM-dd');
-                        const isHoliday = holidaySet.has(dateStr);
-                        const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-                        return (
-                          <div
-                            key={idx}
-                            className={`flex-1 border-r border-gray-100 ${
-                              isWeekend || isHoliday ? 'bg-gray-50' : 'bg-white'
-                            }`}
-                            style={{ width: CELL_WIDTH }}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {/* Task bar */}
-                    {pos && (
-                      <div
-                        className="absolute top-1 rounded bg-blue-500 text-white text-xs overflow-hidden flex items-center px-1 cursor-pointer hover:bg-blue-600"
-                        style={{
-                          left: pos.left + 1,
-                          width: pos.width,
-                          height: ROW_HEIGHT - 4,
-                        }}
-                        title={task.name}
-                      >
-                        <span className="truncate font-medium">{task.name}</span>
-                      </div>
-                    )}
+              return (
+                <div key={task.id} className="relative border-b border-gray-100" style={{ height: ROW_HEIGHT }}>
+                  {/* Background grid */}
+                  <div className="absolute inset-0 flex">
+                    {weekDays.map((day, dayIdx) => {
+                      const dateStr = format(day, 'yyyy-MM-dd');
+                      const isHoliday = holidaySet.has(dateStr);
+                      const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+                      return (
+                        <div
+                          key={dayIdx}
+                          className={`flex-1 border-r border-gray-100 ${
+                            isWeekend || isHoliday ? 'bg-gray-50' : 'bg-white'
+                          }`}
+                          style={{ width: CELL_WIDTH }}
+                        />
+                      );
+                    })}
                   </div>
-                );
-              })
-            ) : (
-              <div className="p-6 text-center text-gray-400 text-sm">無任務</div>
-            )}
+
+                  {/* Task bar */}
+                  {pos && (
+                    <div
+                      className="absolute top-0.5 rounded text-white text-[10px] overflow-hidden flex items-center px-0.5 cursor-pointer hover:opacity-80"
+                      style={{
+                        backgroundColor: color,
+                        left: pos.left + 1,
+                        width: pos.width,
+                        height: ROW_HEIGHT - 2,
+                      }}
+                      title={`${proj?.name} - ${task.name}`}
+                    >
+                      <span className="truncate font-medium">{task.name}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* 請假人數列 */}
           <div className="bg-gray-50 border-t border-gray-200 p-2">
-            <div className="text-xs font-medium text-gray-600 mb-2">請假人數</div>
+            <div className="text-xs font-medium text-gray-600 mb-1">請假人數</div>
             <div className="flex gap-1">
               {weekDays.map(day => {
                 const dateStr = format(day, 'yyyy-MM-dd');
@@ -230,7 +284,7 @@ export default function MobileGanttChart() {
                 return (
                   <div key={dateStr} className="flex-1 text-center">
                     {count > 0 && (
-                      <span className="inline-block bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="inline-block bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
                         {count}
                       </span>
                     )}
@@ -241,8 +295,8 @@ export default function MobileGanttChart() {
           </div>
         </Card>
       ) : (
-        <div className="p-8 text-center text-gray-400">
-          <p>建立新專案開始</p>
+        <div className="p-8 text-center text-gray-400 text-sm">
+          篩選結果無任務
         </div>
       )}
     </div>
