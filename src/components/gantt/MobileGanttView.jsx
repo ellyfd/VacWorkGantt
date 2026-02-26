@@ -14,6 +14,7 @@ export default function MobileGanttView({
   onSelectProject,
   onEditProject,
   onDeleteProject,
+  onAddProject,
   onAddTask,
 }) {
   const [viewMonth, setViewMonth] = useState(new Date());
@@ -66,7 +67,7 @@ export default function MobileGanttView({
       <div className="space-y-2">
         <div className="flex items-center justify-between px-4">
           <h2 className="font-semibold text-gray-900">開發季</h2>
-          <Button size="sm" variant="outline" onClick={() => onAddTask?.()}>
+          <Button size="sm" variant="outline" onClick={() => onAddProject?.()}>
             <Plus className="w-4 h-4" />
           </Button>
         </div>
