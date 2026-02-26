@@ -137,6 +137,40 @@ export default function MobileGanttChart() {
     return brand?.default_color || ganttProject.color || '#3b82f6';
   };
 
+  const getContrastColor = (hexColor) => {
+    if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.55 ? '#1f2937' : '#ffffff';
+  };
+
+  const normalizeDate = (dateStr) => {
+    if (!dateStr) return null;
+    return dateStr.split('T')[0];
+  };
+
+  const calculateWorkingDays = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+    const start = normalizeDate(startDate);
+    const end = normalizeDate(endDate);
+    if (!start || !end) return 0;
+    
+    let count = 0;
+    const current = new Date(start);
+    const endDate2 = new Date(end);
+    while (current <= endDate2) {
+      const dayOfWeek = getDay(current);
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const dateStr = format(current, 'yyyy-MM-dd');
+        if (!holidaySet.has(dateStr)) count++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    return count;
+  };
+
   const employeeMap = useMemo(() =>
     Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
 
@@ -273,7 +307,7 @@ export default function MobileGanttChart() {
                   {/* Task bar */}
                   {pos && (
                     <div
-                      className="absolute top-0.5 rounded text-white text-[10px] overflow-hidden flex items-center px-0.5 cursor-pointer hover:opacity-80"
+                      className="absolute top-0.5 rounded overflow-hidden flex items-center px-0.5 cursor-pointer hover:opacity-90 transition-opacity"
                       style={{
                         backgroundColor: color,
                         left: pos.left + 1,
@@ -282,7 +316,13 @@ export default function MobileGanttChart() {
                       }}
                       title={`${proj?.name} - ${task.name}`}
                     >
-                      <span className="truncate font-medium">{task.name}</span>
+                      <span className="truncate font-medium text-[9px]" style={{ color: getContrastColor(color) }}>
+                        {proj?.name} {task.name}
+                        {task.time_type === 'duration' && (() => {
+                          const wd = calculateWorkingDays(task.start_date, task.end_date);
+                          return wd > 0 ? ` (${wd}工作天)` : '';
+                        })()}
+                      </span>
                     </div>
                   )}
                 </div>
