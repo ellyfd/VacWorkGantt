@@ -29,12 +29,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Plus, Diamond, ArrowRight, Repeat, GripVertical, Upload, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { addDays, addWeeks, subDays, format, eachDayOfInterval, isToday, startOfWeek, getDay } from 'date-fns';
+import { addDays, subDays, format, eachDayOfInterval, isToday, getDay } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+
 import AddProjectDialog from '@/components/gantt/AddProjectDialog';
 import EditProjectDialog from '@/components/gantt/EditProjectDialog';
 import AddPhaseDialog from '@/components/gantt/AddPhaseDialog';
@@ -93,14 +93,13 @@ export default function GanttChart() {
   const { isDragging, setIsDragging, dragTaskId, setDragTaskId, dragStart, setDragStart, dragEnd, setDragEnd } = useDragState();
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditPhaseDialog, setShowEditPhaseDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, editingPhase, setEditingPhase, editingPhaseName, setEditingPhaseName, editingPhaseTasks, setEditingPhaseTasks, newTaskName, setNewTaskName, deleteConfirm, setDeleteConfirm } = useDialogState();
   const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
-  const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays, clearFilters } = useFilterState();
-  const { creatingProjectId, setCreatingProjectId, projectCreationMode, setProjectCreationMode, scheduleFile, setScheduleFile, isAnalyzingSchedule, setIsAnalyzingSchedule } = useProjectCreation();
+  const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays } = useFilterState();
+  const { creatingProjectId, setCreatingProjectId, scheduleFile, setScheduleFile, isAnalyzingSchedule, setIsAnalyzingSchedule } = useProjectCreation();
 
   // Scroll refs
   const leftPanelRef = React.useRef(null);
   const rightPanelRef = React.useRef(null); // outer overflow-x-auto
 
-  const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [showAddPhaseDialog, setShowAddPhaseDialog] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [firstDate, setFirstDate] = useState(null);
@@ -350,20 +349,10 @@ export default function GanttChart() {
     }));
   }, [ganttProjects]);
 
-  // 先計算 makalotGroup
+  // 計算 makalotGroup
   const makalotGroup = useMemo(() => {
-    const found = groups.find(g => g.name.toLowerCase() === 'makalot');
-    console.log('groups:', groups, 'makalotGroup:', found);
-    return found;
+    return groups.find(g => g.name.toLowerCase() === 'makalot');
   }, [groups]);
-
-  // 再計算 getDept（它依賴 makalotGroup，用 useCallback 避免重複定義）
-  const getDept = useCallback((ganttProject) => {
-    const brand = projects.find(p => p.id === ganttProject.brand_id);
-    if (!brand) return 'dpc';  // 找不到品牌 → 視為 DPC
-    return brand.group_id === makalotGroup?.id ? 'makalot' : 'dpc';
-    // 沒有集團 (group_id 為 null) → group_id !== makalotGroup?.id → 歸入 DPC
-  }, [projects, makalotGroup]);
 
   // ── More Lookup Maps（定義早：employeeMap 需要在 filteredLeaveRecords 前面）
   const employeeMap = useMemo(() =>
@@ -518,11 +507,6 @@ export default function GanttChart() {
   const getProjectColor = (ganttProject) => {
     const brand = projects.find(p => p.id === ganttProject.brand_id);
     return brand?.default_color || ganttProject.color || '#3b82f6';
-  };
-
-  const getBrandName = (brandId) => {
-    const project = projects.find((p) => p.id === brandId);
-    return project ? (project.short_name || project.name) : '-';
   };
 
   const getSamplesByBrand = (brandId) => {
@@ -806,12 +790,6 @@ export default function GanttChart() {
     }
   }, [days, CELL_WIDTH]);
 
-  // 顯示的月份（根據捲動位置計算）
-  const [visibleMonth, setVisibleMonth] = useState(new Date());
-
-  // 節流 ref
-  const wheelThrottleRef = useRef(0);
-
   // 節流 ref
   const scrollExtendThrottleRef = useRef(0);
 
@@ -820,7 +798,6 @@ export default function GanttChart() {
     const el = e.currentTarget;
     // 更新可見月份
     const scrolledDays = Math.floor(el.scrollLeft / CELL_WIDTH);
-    if (days[scrolledDays]) setVisibleMonth(days[scrolledDays]);
     
     // 拖曳 bar 時不觸發無限滾動延伸，避免與 edge-scroll 互相干擾
     if (isDragging) return;
@@ -849,16 +826,14 @@ export default function GanttChart() {
   };
 
   // 跳轉到任務最早日期
-  const handleJumpToTasks = (phaseId) => {
-    const phaseTasks = ganttTasks.filter(t => t.gantt_phase_id === phaseId && (t.start_date || t.date));
-    if (phaseTasks.length === 0) return;
-    const earliest = phaseTasks.reduce((min, t) => {
-      const d = t.start_date || t.date;
-      return d < min ? d : min;
-    }, phaseTasks[0].start_date || phaseTasks[0].date);
+  const handleJumpToTasks = (projectId) => {
+    const projectTasks = ganttTasks.filter(t => t.gantt_project_id === projectId && t.start_date);
+    if (projectTasks.length === 0) return;
+    const earliest = projectTasks.reduce((min, t) => {
+      return t.start_date < min ? t.start_date : min;
+    }, projectTasks[0].start_date);
     const targetDate = new Date(earliest);
     setCenterDate(targetDate);
-    // scroll after re-render
     setTimeout(() => {
       const el = rightPanelRef.current;
       if (!el) return;
