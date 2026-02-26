@@ -65,10 +65,10 @@ export default function MobileGanttChart() {
     queryFn: () => base44.entities.Employee.list('name'),
   });
 
-  // 當週 7 天
+  // 當週 14 天
   const weekDays = useMemo(() => {
     const start = subDays(currentDate, getDay(currentDate) - 1);
-    return eachDayOfInterval({ start, end: addDays(start, 6) });
+    return eachDayOfInterval({ start, end: addDays(start, 13) });
   }, [currentDate]);
 
   // Holiday set
@@ -165,7 +165,7 @@ export default function MobileGanttChart() {
           <button onClick={() => setCurrentDate(d => subDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[6], 'M月d日')}</span>
+          <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[13], 'M月d日')}</span>
           <button onClick={() => setCurrentDate(d => addDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
             <ChevronRight className="w-5 h-5" />
           </button>
