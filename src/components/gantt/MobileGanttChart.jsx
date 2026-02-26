@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -136,8 +137,23 @@ export default function MobileGanttChart() {
     return brand?.default_color || ganttProject.color || '#3b82f6';
   };
 
+  const employeeMap = useMemo(() =>
+    Object.fromEntries(employees.map(e => [e.id, e])), [employees]);
+
   const getLeaveCount = (dateStr) => {
     return new Set(leaveRecords.filter(r => r.date === dateStr).map(r => r.employee_id)).size;
+  };
+
+  const getLeaveNames = (dateStr) => {
+    const records = leaveRecords.filter(r => r.date === dateStr);
+    const names = new Map();
+    records.forEach(r => {
+      if (!names.has(r.employee_id)) {
+        const name = employeeMap[r.employee_id]?.name || `未知員工(${r.employee_id.slice(0, 6)})`;
+        names.set(r.employee_id, name);
+      }
+    });
+    return Array.from(names.values());
   };
 
   return (
@@ -281,14 +297,29 @@ export default function MobileGanttChart() {
               {weekDays.map(day => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const count = getLeaveCount(dateStr);
+                const names = getLeaveNames(dateStr);
+                
+                if (count === 0) {
+                  return <div key={dateStr} className="flex-1" />;
+                }
+
                 return (
-                  <div key={dateStr} className="flex-1 text-center">
-                    {count > 0 && (
-                      <span className="inline-block bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                        {count}
-                      </span>
-                    )}
-                  </div>
+                  <Popover key={dateStr}>
+                    <PopoverTrigger asChild>
+                      <button className="flex-1 cursor-pointer hover:opacity-80">
+                        <span className="inline-block bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                          {count}
+                        </span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-max p-2 text-xs" side="bottom" align="center">
+                      {names.map((name, idx) => (
+                        <p key={idx} className="text-gray-800 py-0.5 whitespace-nowrap">
+                          {name}
+                        </p>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
                 );
               })}
             </div>
