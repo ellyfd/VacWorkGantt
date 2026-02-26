@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -245,6 +246,37 @@ export default function MobileGanttChart() {
             ))}
           </SelectContent>
         </Select>
+
+        {/* 品牌篩選 */}
+        <div className="space-y-1">
+          <div className="text-xs text-gray-600 font-medium">品牌</div>
+          <div className="flex flex-wrap gap-1">
+            {projects.map(p => (
+              <Button
+                key={p.id}
+                variant={selectedBrandIds.includes(p.id) ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedBrandIds(prev =>
+                  prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                )}
+                className="text-xs h-7"
+              >
+                {p.short_name}
+              </Button>
+            ))}
+          </div>
+          {selectedBrandIds.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedBrandIds([])}
+              className="text-xs h-6"
+            >
+              <X className="w-3 h-3 mr-1" />
+              清除品牌篩選
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 請假峰值 */}
