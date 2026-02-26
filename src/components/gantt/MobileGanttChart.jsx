@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
@@ -18,6 +21,10 @@ export default function MobileGanttChart() {
   const [selectedGroupSlug, setSelectedGroupSlug] = useState('');
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
+  const [editTaskName, setEditTaskName] = useState('');
+  const [editTaskStartDate, setEditTaskStartDate] = useState('');
+  const [editTaskEndDate, setEditTaskEndDate] = useState('');
+  const queryClient = useQueryClient();
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -197,6 +204,33 @@ export default function MobileGanttChart() {
     if (count <= 2) return { bg: '#fef9c3', text: '#854d0e', label: `${count}人` };
     if (count <= 4) return { bg: '#ffedd5', text: '#9a3412', label: `${count}人` };
     return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
+  };
+
+  const updateTaskMutation = useMutation({
+    mutationFn: async (data) => {
+      await base44.entities.GanttTask.update(editingTask.id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttTasks']);
+      setEditingTask(null);
+    },
+  });
+
+  const handleEditTask = () => {
+    if (editingTask) {
+      updateTaskMutation.mutate({
+        name: editTaskName,
+        start_date: editTaskStartDate,
+        end_date: editTaskEndDate || null,
+      });
+    }
+  };
+
+  const handleOpenEditDialog = (task) => {
+    setEditingTask(task);
+    setEditTaskName(task.name);
+    setEditTaskStartDate(task.start_date);
+    setEditTaskEndDate(task.end_date || '');
   };
 
   return (
