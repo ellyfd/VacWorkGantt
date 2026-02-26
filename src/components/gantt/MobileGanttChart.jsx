@@ -219,7 +219,7 @@ export default function MobileGanttChart() {
         {/* 部門篩選 */}
         <div className="space-y-1">
           <div className="text-xs text-gray-600 font-medium">部門</div>
-          <div className="flex flex-wrap gap-1">
+          <div className="grid grid-cols-3 gap-1">
             <Button
               variant={!selectedDeptId ? 'default' : 'outline'}
               size="sm"
