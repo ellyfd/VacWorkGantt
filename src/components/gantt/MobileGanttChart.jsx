@@ -256,31 +256,72 @@ export default function MobileGanttChart() {
 
       {filteredTasks.length > 0 ? (
         <Card className="overflow-hidden">
-          {/* 週期 header */}
-          <div className="flex bg-gray-100 border-b border-gray-200">
-            {weekDays.map(day => {
-              const dateStr = format(day, 'yyyy-MM-dd');
-              const isHoliday = holidaySet.has(dateStr);
-              const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-              const isDim = isWeekend || isHoliday;
-              
-              return (
-                <div
-                  key={dateStr}
-                  className={`flex-1 flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs ${
-                    isToday(day) ? 'bg-red-100' : isDim ? 'bg-gray-50' : ''
-                  }`}
-                  style={{ width: CELL_WIDTH }}
-                >
-                  <span className={`font-bold text-[11px] ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
-                    {format(day, 'd')}
-                  </span>
-                  <span className={`text-[9px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
-                    {format(day, 'EEE', { locale: zhTW })}
-                  </span>
-                </div>
-              );
-            })}
+          {/* 週期 header + 請假人數 */}
+          <div>
+            <div className="flex bg-gray-100 border-b border-gray-200">
+              {weekDays.map(day => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const isHoliday = holidaySet.has(dateStr);
+                const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+                const isDim = isWeekend || isHoliday;
+
+                return (
+                  <div
+                    key={dateStr}
+                    className={`flex-1 flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs ${
+                      isToday(day) ? 'bg-red-100' : isDim ? 'bg-gray-50' : ''
+                    }`}
+                    style={{ width: CELL_WIDTH }}
+                  >
+                    <span className={`font-bold text-[11px] ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
+                      {format(day, 'd')}
+                    </span>
+                    <span className={`text-[9px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
+                      {format(day, 'EEE', { locale: zhTW })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 請假人數列 */}
+            <div className="flex bg-gray-50 border-b border-gray-200" style={{ height: 32 }}>
+              {weekDays.map(day => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const count = getLeaveCount(dateStr);
+                const names = getLeaveNames(dateStr);
+                const leaveStyle = getLeaveCountStyle(count);
+                const cellContent = (
+                  <div
+                    key={dateStr}
+                    className="flex-1 border-r border-gray-200 flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{
+                      backgroundColor: leaveStyle?.bg || 'transparent',
+                      color: leaveStyle?.text || '#d1d5db',
+                      fontWeight: leaveStyle?.bold ? 700 : 600,
+                      width: CELL_WIDTH,
+                    }}
+                  >
+                    {leaveStyle?.label || ''}
+                  </div>
+                );
+
+                if (!count) return cellContent;
+
+                return (
+                  <Popover key={dateStr}>
+                    <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
+                    <PopoverContent className="w-max p-2 text-xs" side="bottom" align="center">
+                      {names.map((name, idx) => (
+                        <p key={idx} className="text-gray-800 py-0.5 whitespace-nowrap">
+                          {name}
+                        </p>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
+                );
+              })}
+            </div>
           </div>
 
           {/* Task rows (all projects stacked) */}
@@ -335,46 +376,6 @@ export default function MobileGanttChart() {
                 </div>
               );
             })}
-          </div>
-
-          {/* 請假人數列 */}
-          <div className="bg-gray-50 border-t border-gray-200" style={{ height: 40 }}>
-            <div className="flex h-full">
-              {weekDays.map(day => {
-                const dateStr = format(day, 'yyyy-MM-dd');
-                const count = getLeaveCount(dateStr);
-                const names = getLeaveNames(dateStr);
-                const leaveStyle = getLeaveCountStyle(count);
-                const cellContent = (
-                  <div
-                    key={dateStr}
-                    className="flex-1 border-r border-gray-200 flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
-                    style={{
-                      backgroundColor: leaveStyle?.bg || 'transparent',
-                      color: leaveStyle?.text || '#d1d5db',
-                      fontWeight: leaveStyle?.bold ? 700 : 600,
-                    }}
-                  >
-                    {leaveStyle?.label || ''}
-                  </div>
-                );
-
-                if (!count) return cellContent;
-
-                return (
-                  <Popover key={dateStr}>
-                    <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
-                    <PopoverContent className="w-max p-2 text-xs" side="bottom" align="center">
-                      {names.map((name, idx) => (
-                        <p key={idx} className="text-gray-800 py-0.5 whitespace-nowrap">
-                          {name}
-                        </p>
-                      ))}
-                    </PopoverContent>
-                  </Popover>
-                );
-              })}
-            </div>
           </div>
         </Card>
       ) : (
