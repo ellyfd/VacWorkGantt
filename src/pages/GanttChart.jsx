@@ -44,6 +44,7 @@ import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gan
 import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 import TimeNavigation from '@/components/gantt/TimeNavigation';
 import FilterBar from '@/components/gantt/FilterBar';
+import MobileGanttView from '@/components/gantt/MobileGanttView';
 import { useSelectionState } from '@/components/hooks/useSelectionState';
 import { useDragState } from '@/components/hooks/useDragState';
 import { useDialogState } from '@/components/hooks/useDialogState';
