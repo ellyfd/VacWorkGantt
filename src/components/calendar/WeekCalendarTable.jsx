@@ -66,23 +66,28 @@ export default function WeekCalendarTable({
     return leaveRecordMap.get(`${employeeId}_${date}`);
   }, [leaveRecordMap]);
 
-  const handleSelectLeave = useCallback((date) => {
-    if (selectedLeaveTypeIdRef.current) {
-      onUpdateLeave(currentEmployee.id, date, selectedLeaveTypeIdRef.current);
+  const clickTimerRef = useRef(null);
+
+  const handleCellClick = useCallback((date, record) => {
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+      if (record && !rangeMode) onDeleteRangeLeave(record);
+      return;
     }
-  }, [onUpdateLeave, currentEmployee.id]);
+    clickTimerRef.current = setTimeout(() => {
+      clickTimerRef.current = null;
+      if (rangeMode && onCellClickInRangeMode) {
+        onCellClickInRangeMode(date);
+      } else if (selectedLeaveTypeIdRef.current) {
+        onUpdateLeave(currentEmployee.id, date, selectedLeaveTypeIdRef.current);
+      }
+    }, 250);
+  }, [rangeMode, onCellClickInRangeMode, onUpdateLeave, onDeleteRangeLeave, currentEmployee?.id]);
 
   const handleClearLeave = useCallback((recordId) => {
     onDeleteLeave(recordId);
   }, [onDeleteLeave]);
-
-  const handleDoubleClickLeave = useCallback((record) => {
-    if (onDeleteRangeLeave) onDeleteRangeLeave(record);
-  }, [onDeleteRangeLeave]);
-
-  const handleRangeCellClick = useCallback((date) => {
-    if (rangeMode && onCellClickInRangeMode) onCellClickInRangeMode(date);
-  }, [rangeMode, onCellClickInRangeMode]);
 
   // 月份休假統計
   const leaveTypeMap = useMemo(() => new Map(leaveTypes.map(lt => [lt.id, lt])), [leaveTypes]);

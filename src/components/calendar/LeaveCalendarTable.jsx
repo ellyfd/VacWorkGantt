@@ -92,21 +92,28 @@ export default function LeaveCalendarTable({
     return result;
   }, [departments, employees]);
 
-  const handleSelectLeave = useCallback((employeeId, date) => {
-    if (rangeMode && onCellClickInRangeMode) {
-      onCellClickInRangeMode(employeeId, date);
-    } else if (selectedLeaveTypeIdRef.current) {
-      onUpdateLeave(employeeId, date, selectedLeaveTypeIdRef.current);
+  const clickTimerRef = useRef(null);
+
+  const handleCellClick = useCallback((employeeId, date, record) => {
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+      if (record && !rangeMode) onDeleteRangeLeave(record);
+      return;
     }
-  }, [rangeMode, onCellClickInRangeMode, onUpdateLeave]);
+    clickTimerRef.current = setTimeout(() => {
+      clickTimerRef.current = null;
+      if (rangeMode && onCellClickInRangeMode) {
+        onCellClickInRangeMode(employeeId, date);
+      } else if (selectedLeaveTypeIdRef.current) {
+        onUpdateLeave(employeeId, date, selectedLeaveTypeIdRef.current);
+      }
+    }, 250);
+  }, [rangeMode, onCellClickInRangeMode, onUpdateLeave, onDeleteRangeLeave]);
 
   const handleClearLeave = useCallback((recordId) => {
     if (!rangeMode) onDeleteLeave(recordId);
   }, [rangeMode, onDeleteLeave]);
-
-  const handleDoubleClickLeave = useCallback((record) => {
-    if (!rangeMode && onDeleteRangeLeave) onDeleteRangeLeave(record);
-  }, [rangeMode, onDeleteRangeLeave]);
 
 
 
