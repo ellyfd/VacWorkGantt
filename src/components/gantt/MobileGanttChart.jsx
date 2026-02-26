@@ -17,6 +17,7 @@ export default function MobileGanttChart() {
   const [selectedDeptId, setSelectedDeptId] = useState('');
   const [selectedGroupSlug, setSelectedGroupSlug] = useState('');
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
+  const [editingTask, setEditingTask] = useState(null);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -322,12 +323,7 @@ export default function MobileGanttChart() {
         })()}
       </div>
 
-      {/* 請假峰值 */}
-      {maxLeaveCount > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-blue-800">
-          本周請假峰值：<span className="font-bold">{maxLeaveCount} 人</span>
-        </div>
-      )}
+
 
       {filteredTasks.length > 0 ? (
         <Card className="overflow-hidden">
@@ -438,6 +434,7 @@ export default function MobileGanttChart() {
                         height: ROW_HEIGHT - 2,
                       }}
                       title={`${proj?.name} - ${task.name}`}
+                      onClick={() => setEditingTask(task)}
                     >
                       <span className="truncate font-medium text-xs" style={{ color: getContrastColor(color) }}>
                         {proj?.name} {task.name}
