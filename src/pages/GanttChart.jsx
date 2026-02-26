@@ -102,6 +102,9 @@ export default function GanttChart() {
 
   const [currentPhaseId, setCurrentPhaseId] = useState(null);
   const [showAddPhaseDialog, setShowAddPhaseDialog] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [firstDate, setFirstDate] = useState(null);
+  const [secondDate, setSecondDate] = useState(null);
   const [leftPanelWidth, setLeftPanelWidth] = useState(256); // w-64 = 256px
   const isResizingRef = useRef(false);
   const resizeStartXRef = useRef(0);
@@ -161,6 +164,11 @@ export default function GanttChart() {
   const { data: holidays = [] } = useQuery({
     queryKey: ['holidays'],
     queryFn: () => base44.entities.Holiday.list(),
+  });
+
+  const { data: ganttPhases = [] } = useQuery({
+    queryKey: ['ganttPhases'],
+    queryFn: () => base44.entities.GanttPhase.list('sort_order'),
   });
 
   const { data: currentUser } = useQuery({
@@ -242,7 +250,19 @@ export default function GanttChart() {
 
   const createGanttTask = useMutation({
     mutationFn: (data) => base44.entities.GanttTask.create(data),
-    onSuccess: (newTask) => {
+    onMutate: async (newTaskData) => {
+      await queryClient.cancelQueries(['ganttTasks']);
+      const previous = queryClient.getQueryData(['ganttTasks']);
+      queryClient.setQueryData(['ganttTasks'], old => [
+        ...(old || []),
+        { ...newTaskData, id: `temp-${Date.now()}` }
+      ]);
+      return { previous };
+    },
+    onError: (err, _, context) => {
+      queryClient.setQueryData(['ganttTasks'], context.previous);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries(['ganttTasks']);
       setShowAddTaskDialog(false);
       setTaskFormData({ name: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
@@ -1264,14 +1284,13 @@ export default function GanttChart() {
 
   const projectForAddPhase = ganttProjects.find(p => p.id === creatingProjectId);
   const brandIdForAddPhase = projectForAddPhase?.brand_id;
-  const samplesForPhaseSelection = (() => {
+  const samplesForPhaseSelection = useMemo(() => {
     if (!brandIdForAddPhase) return [];
     const allSamples = getSamplesByBrand(brandIdForAddPhase);
-    // 排除已加入的樣品
     const existingPhases = ganttPhases.filter(p => p.gantt_project_id === creatingProjectId);
     const existingSampleIds = new Set(existingPhases.map(p => p.sample_id));
     return allSamples.filter(s => !existingSampleIds.has(s.id));
-  })();
+  }, [brandIdForAddPhase, ganttPhases, creatingProjectId, samples]);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -1535,6 +1554,35 @@ export default function GanttChart() {
             </Card>
 
       {/* ===== Dialogs ===== */}
+
+      <MilestoneDialog
+        open={showMilestoneDialog}
+        onOpenChange={setShowMilestoneDialog}
+        selectedTaskId={selectedTaskId}
+        firstDate={firstDate}
+        setFirstDate={setFirstDate}
+        onConfirm={handleConfirmMilestone}
+      />
+
+      <DurationDialog
+        open={showDurationDialog}
+        onOpenChange={setShowDurationDialog}
+        selectedTaskId={selectedTaskId}
+        firstDate={firstDate}
+        setFirstDate={setFirstDate}
+        secondDate={secondDate}
+        setSecondDate={setSecondDate}
+        onConfirm={handleConfirmDuration}
+      />
+
+      <RollingDialog
+        open={showRollingDialog}
+        onOpenChange={setShowRollingDialog}
+        selectedTaskId={selectedTaskId}
+        firstDate={firstDate}
+        setFirstDate={setFirstDate}
+        onConfirm={handleConfirmRolling}
+      />
 
 
 
