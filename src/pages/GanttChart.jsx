@@ -51,8 +51,6 @@ import { useFormData } from '@/components/hooks/useFormData';
 import { useFilterState } from '@/components/hooks/useFilterState';
 import { useProjectCreation } from '@/components/hooks/useProjectCreation';
 
-const ROW_HEIGHT = 40;
-
 // 根據背景色決定文字要用深色或淺色
 const getContrastColor = (hexColor) => {
   if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
@@ -1533,29 +1531,29 @@ export default function GanttChart() {
       <MilestoneDialog
         open={showMilestoneDialog}
         onOpenChange={setShowMilestoneDialog}
-        selectedTaskId={selectedTaskId}
+        taskName={getSelectedTaskName()}
         firstDate={firstDate}
-        setFirstDate={setFirstDate}
+        onClearTime={() => { updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null }); setShowMilestoneDialog(false); }}
         onConfirm={handleConfirmMilestone}
       />
 
       <DurationDialog
         open={showDurationDialog}
         onOpenChange={setShowDurationDialog}
-        selectedTaskId={selectedTaskId}
+        taskName={getSelectedTaskName()}
         firstDate={firstDate}
-        setFirstDate={setFirstDate}
         secondDate={secondDate}
-        setSecondDate={setSecondDate}
+        getSortedDates={getSortedDates}
+        onClearTime={() => { updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null }); setShowDurationDialog(false); }}
         onConfirm={handleConfirmDuration}
       />
 
       <RollingDialog
         open={showRollingDialog}
         onOpenChange={setShowRollingDialog}
-        selectedTaskId={selectedTaskId}
+        taskName={getSelectedTaskName()}
         firstDate={firstDate}
-        setFirstDate={setFirstDate}
+        onClearTime={() => { updateTaskWithOptimistic(selectedTaskId, { time_type: null, start_date: null, end_date: null }); setShowRollingDialog(false); }}
         onConfirm={handleConfirmRolling}
       />
 
@@ -1606,7 +1604,7 @@ export default function GanttChart() {
               setShowImportScheduleDialog(false);
               setScheduleFile(null);
               setCreatingProjectId(null);
-              setProjectCreationMode('manual');
+        
             }
           } finally {
             setIsAnalyzingSchedule(false);
