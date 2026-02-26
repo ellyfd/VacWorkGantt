@@ -215,10 +215,10 @@ export default function MobileGanttChart() {
       </div>
 
       {/* 篩選 */}
-      <div className="space-y-3">
+      <div className="space-y-2 bg-gray-50 rounded p-2">
         {/* 部門篩選 */}
-        <div className="space-y-1">
-          <div className="text-xs text-gray-600 font-medium">部門</div>
+        <div>
+          <div className="text-[11px] text-gray-600 font-medium mb-1">部門</div>
           <div className="flex flex-wrap gap-1">
             <Button
               variant={!selectedDeptId ? 'default' : 'outline'}
@@ -228,7 +228,7 @@ export default function MobileGanttChart() {
                 setSelectedGroupSlug('');
                 setSelectedBrandIds([]);
               }}
-              className="text-xs h-7"
+              className="text-xs h-6 px-2"
             >
               全部
             </Button>
@@ -242,7 +242,7 @@ export default function MobileGanttChart() {
                   setSelectedGroupSlug(d.group_id);
                   setSelectedBrandIds([]);
                 }}
-                className="text-xs h-7"
+                className="text-xs h-6 px-2"
               >
                 {d.name}
               </Button>
@@ -251,8 +251,8 @@ export default function MobileGanttChart() {
         </div>
 
         {/* 集團篩選 */}
-        <div className="space-y-1">
-          <div className="text-xs text-gray-600 font-medium">集團</div>
+        <div>
+          <div className="text-[11px] text-gray-600 font-medium mb-1">集團</div>
           <div className="flex flex-wrap gap-1">
             <Button
               variant={!selectedGroupSlug ? 'default' : 'outline'}
@@ -261,7 +261,7 @@ export default function MobileGanttChart() {
                 setSelectedGroupSlug('');
                 setSelectedBrandIds([]);
               }}
-              className="text-xs h-7"
+              className="text-xs h-6 px-2"
             >
               全部
             </Button>
@@ -274,7 +274,7 @@ export default function MobileGanttChart() {
                   setSelectedGroupSlug(g.id);
                   setSelectedBrandIds([]);
                 }}
-                className="text-xs h-7"
+                className="text-xs h-6 px-2"
               >
                 {g.name}
               </Button>
@@ -287,8 +287,8 @@ export default function MobileGanttChart() {
           const usedBrandIds = new Set(ganttProjects.map(p => p.brand_id));
           const activeBrands = projects.filter(p => usedBrandIds.has(p.id));
           return (
-            <div className="space-y-1">
-              <div className="text-xs text-gray-600 font-medium">品牌</div>
+            <div>
+              <div className="text-[11px] text-gray-600 font-medium mb-1">品牌</div>
               <div className="flex flex-wrap gap-1">
                 {activeBrands.map(p => (
                   <Button
@@ -298,7 +298,7 @@ export default function MobileGanttChart() {
                     onClick={() => setSelectedBrandIds(prev =>
                       prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
                     )}
-                    className="text-xs h-7"
+                    className="text-xs h-6 px-2"
                   >
                     {p.short_name}
                   </Button>
@@ -309,10 +309,10 @@ export default function MobileGanttChart() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedBrandIds([])}
-                  className="text-xs h-6"
+                  className="text-xs h-6 px-2 mt-1"
                 >
                   <X className="w-3 h-3 mr-1" />
-                  清除品牌篩選
+                  清除
                 </Button>
               )}
             </div>
