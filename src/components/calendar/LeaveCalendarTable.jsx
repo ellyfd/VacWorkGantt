@@ -179,9 +179,9 @@ export default function LeaveCalendarTable({
                          dateRange={dateRange}
                          currentDate={d.date}
                          isHighlighted={highlightedEmployeeId === emp.id || highlightedDate === d.date}
-                         onSelectLeave={() => handleSelectLeave(emp.id, d.date)}
+                         onSelectLeave={() => handleCellClick(emp.id, d.date, record)}
                          onClearLeave={() => record && handleClearLeave(record.id)}
-                         onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
+                         onDoubleClickLeave={null}
                          onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
                         />
                       </td>
