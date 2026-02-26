@@ -1915,6 +1915,8 @@ export default function GanttChart() {
         </ul>
       </details>
       </div>
+      </div>
+      </div>
     </TooltipProvider>
       );
       }
