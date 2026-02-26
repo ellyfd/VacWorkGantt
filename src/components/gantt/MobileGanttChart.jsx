@@ -253,7 +253,7 @@ export default function MobileGanttChart() {
         {/* 集團篩選 */}
         <div className="space-y-1">
           <div className="text-xs text-gray-600 font-medium">集團</div>
-          <div className="flex flex-wrap gap-1">
+          <div className="grid grid-cols-3 gap-1">
             <Button
               variant={!selectedGroupSlug ? 'default' : 'outline'}
               size="sm"
