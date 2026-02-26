@@ -66,24 +66,23 @@ export default function WeekCalendarTable({
     return leaveRecordMap.get(`${employeeId}_${date}`);
   }, [leaveRecordMap]);
 
-  const clickTimerRef = useRef(null);
-
-  const handleCellClick = useCallback((date, record) => {
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-      clickTimerRef.current = null;
-      if (record && !rangeMode) onDeleteRangeLeave(record);
-      return;
+  const handleSelectLeave = useCallback((date) => {
+    if (selectedLeaveTypeIdRef.current) {
+      onUpdateLeave(currentEmployee.id, date, selectedLeaveTypeIdRef.current);
     }
-    clickTimerRef.current = setTimeout(() => {
-      clickTimerRef.current = null;
-      if (rangeMode && onCellClickInRangeMode) {
-        onCellClickInRangeMode(date);
-      } else if (selectedLeaveTypeIdRef.current) {
-        onUpdateLeave(currentEmployee.id, date, selectedLeaveTypeIdRef.current);
-      }
-    }, 250);
-  }, [rangeMode, onCellClickInRangeMode, onUpdateLeave, onDeleteRangeLeave, currentEmployee?.id]);
+  }, [onUpdateLeave, currentEmployee.id]);
+
+  const handleClearLeave = useCallback((recordId) => {
+    onDeleteLeave(recordId);
+  }, [onDeleteLeave]);
+
+  const handleDoubleClickLeave = useCallback((record) => {
+    if (onDeleteRangeLeave) onDeleteRangeLeave(record);
+  }, [onDeleteRangeLeave]);
+
+  const handleRangeCellClick = useCallback((date) => {
+    if (rangeMode && onCellClickInRangeMode) onCellClickInRangeMode(date);
+  }, [rangeMode, onCellClickInRangeMode]);
 
   // 月份休假統計
   const leaveTypeMap = useMemo(() => new Map(leaveTypes.map(lt => [lt.id, lt])), [leaveTypes]);
@@ -190,18 +189,18 @@ export default function WeekCalendarTable({
                   {isToday && <div className="absolute top-1.5 right-1 text-[8px] font-bold text-blue-600 leading-none z-20">今</div>}
                   <div className="w-full h-full flex items-center justify-center">
                     <LeaveCell
-                       record={record}
-                       leaveTypes={leaveTypes}
-                       isWeekend={day.isWeekend}
-                       isHoliday={day.isHoliday}
-                       rangeMode={rangeMode}
-                       dateRange={dateRange}
-                       currentDate={day.date}
-                       onSelectLeave={() => handleCellClick(day.date, record)}
-                       onClearLeave={null}
-                       onDoubleClickLeave={null}
-                       onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(day.date)}
-                     />
+                      record={record}
+                      leaveTypes={leaveTypes}
+                      isWeekend={day.isWeekend}
+                      isHoliday={day.isHoliday}
+                      rangeMode={rangeMode}
+                      dateRange={dateRange}
+                      currentDate={day.date}
+                      onSelectLeave={() => handleSelectLeave(day.date)}
+                      onClearLeave={() => record && handleClearLeave(record.id)}
+                      onDoubleClickLeave={() => record && handleDoubleClickLeave(record)}
+                      onRangeCellClick={() => handleRangeCellClick(day.date)}
+                    />
                   </div>
                 </div>
               );
