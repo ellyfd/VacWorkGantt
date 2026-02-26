@@ -190,6 +190,13 @@ export default function MobileGanttChart() {
     return Array.from(names.values());
   };
 
+  const getLeaveCountStyle = (count) => {
+    if (!count) return null;
+    if (count <= 2) return { bg: '#fef9c3', text: '#854d0e', label: `${count}人` };
+    if (count <= 4) return { bg: '#ffedd5', text: '#9a3412', label: `${count}人` };
+    return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
+  };
+
   return (
     <div className="md:hidden p-3 space-y-4 pb-20">
       {/* Header */}
@@ -331,27 +338,32 @@ export default function MobileGanttChart() {
           </div>
 
           {/* 請假人數列 */}
-          <div className="bg-gray-50 border-t border-gray-200 p-2">
-            <div className="text-xs font-medium text-gray-600 mb-1">請假人數</div>
-            <div className="flex gap-1">
+          <div className="bg-gray-50 border-t border-gray-200" style={{ height: 40 }}>
+            <div className="flex h-full">
               {weekDays.map(day => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const count = getLeaveCount(dateStr);
                 const names = getLeaveNames(dateStr);
-                
-                if (count === 0) {
-                  return <div key={dateStr} className="flex-1" />;
-                }
+                const leaveStyle = getLeaveCountStyle(count);
+                const cellContent = (
+                  <div
+                    key={dateStr}
+                    className="flex-1 border-r border-gray-200 flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{
+                      backgroundColor: leaveStyle?.bg || 'transparent',
+                      color: leaveStyle?.text || '#d1d5db',
+                      fontWeight: leaveStyle?.bold ? 700 : 600,
+                    }}
+                  >
+                    {leaveStyle?.label || ''}
+                  </div>
+                );
+
+                if (!count) return cellContent;
 
                 return (
                   <Popover key={dateStr}>
-                    <PopoverTrigger asChild>
-                      <button className="flex-1 cursor-pointer hover:opacity-80">
-                        <span className="inline-block bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                          {count}
-                        </span>
-                      </button>
-                    </PopoverTrigger>
+                    <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
                     <PopoverContent className="w-max p-2 text-xs" side="bottom" align="center">
                       {names.map((name, idx) => (
                         <p key={idx} className="text-gray-800 py-0.5 whitespace-nowrap">
