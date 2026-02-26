@@ -1274,6 +1274,42 @@ export default function GanttChart() {
         <h1 className="text-2xl font-bold text-gray-900">專案甘特圖</h1>
       </div>
 
+      {/* 手機版 */}
+      <div className="md:hidden">
+        <MobileGanttView
+          ganttProjects={ganttProjects}
+          ganttTasks={ganttTasks}
+          holidays={holidays}
+          hideHolidays={hideHolidays}
+          selectedProjectId={editingProject?.id}
+          onSelectProject={(projectId) => {
+            const project = ganttProjects.find(p => p.id === projectId);
+            if (project) {
+              setEditingProject(project);
+              setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === projectId));
+            }
+          }}
+          onEditProject={(project) => {
+            setEditingProject(project);
+            setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === project.id));
+            setShowEditProjectDialog(true);
+          }}
+          onDeleteProject={(projectId) => {
+            const project = ganttProjects.find(p => p.id === projectId);
+            if (project) setDeleteConfirm({ type: 'project', id: projectId, name: project.name });
+          }}
+          onAddTask={() => {
+            if (editingProject) {
+              setCreatingProjectIdSync(editingProject.id);
+              setTaskFormData({ name: '', sample_id: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
+              setShowAddTaskDialog(true);
+            }
+          }}
+        />
+      </div>
+
+      {/* 桌面版 */}
+      <div className="hidden md:block space-y-4">
       {/* Time Navigation - Layer 1 */}
       <TimeNavigation
         centerDate={centerDate}
