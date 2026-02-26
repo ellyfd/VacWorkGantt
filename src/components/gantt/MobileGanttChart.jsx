@@ -402,7 +402,7 @@ export default function MobileGanttChart() {
                       }}
                       title={`${proj?.name} - ${task.name}`}
                     >
-                      <span className="truncate font-medium text-[9px]" style={{ color: getContrastColor(color) }}>
+                      <span className="truncate font-medium text-xs" style={{ color: getContrastColor(color) }}>
                         {proj?.name} {task.name}
                         {task.time_type === 'duration' && (() => {
                           const wd = calculateWorkingDays(task.start_date, task.end_date);
