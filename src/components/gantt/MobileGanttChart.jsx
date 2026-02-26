@@ -248,35 +248,41 @@ export default function MobileGanttChart() {
         </Select>
 
         {/* 品牌篩選 */}
-        <div className="space-y-1">
-          <div className="text-xs text-gray-600 font-medium">品牌</div>
-          <div className="flex flex-wrap gap-1">
-            {projects.map(p => (
-              <Button
-                key={p.id}
-                variant={selectedBrandIds.includes(p.id) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedBrandIds(prev =>
-                  prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
-                )}
-                className="text-xs h-7"
-              >
-                {p.short_name}
-              </Button>
-            ))}
-          </div>
-          {selectedBrandIds.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedBrandIds([])}
-              className="text-xs h-6"
-            >
-              <X className="w-3 h-3 mr-1" />
-              清除品牌篩選
-            </Button>
-          )}
-        </div>
+        {(() => {
+          const usedBrandIds = new Set(ganttProjects.map(p => p.brand_id));
+          const activeBrands = projects.filter(p => usedBrandIds.has(p.id));
+          return (
+            <div className="space-y-1">
+              <div className="text-xs text-gray-600 font-medium">品牌</div>
+              <div className="flex flex-wrap gap-1">
+                {activeBrands.map(p => (
+                  <Button
+                    key={p.id}
+                    variant={selectedBrandIds.includes(p.id) ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedBrandIds(prev =>
+                      prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                    )}
+                    className="text-xs h-7"
+                  >
+                    {p.short_name}
+                  </Button>
+                ))}
+              </div>
+              {selectedBrandIds.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedBrandIds([])}
+                  className="text-xs h-6"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  清除品牌篩選
+                </Button>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* 請假峰值 */}
