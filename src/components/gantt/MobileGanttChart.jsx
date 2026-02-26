@@ -215,10 +215,10 @@ export default function MobileGanttChart() {
       </div>
 
       {/* 篩選 */}
-      <div className="space-y-2 bg-gray-50 rounded p-2">
+      <div className="bg-gray-50 rounded p-2 space-y-1">
         {/* 部門篩選 */}
-        <div>
-          <div className="text-[11px] text-gray-600 font-medium mb-1">部門</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">部門</div>
           <div className="flex flex-wrap gap-1">
             <Button
               variant={!selectedDeptId ? 'default' : 'outline'}
@@ -251,8 +251,8 @@ export default function MobileGanttChart() {
         </div>
 
         {/* 集團篩選 */}
-        <div>
-          <div className="text-[11px] text-gray-600 font-medium mb-1">集團</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">集團</div>
           <div className="flex flex-wrap gap-1">
             <Button
               variant={!selectedGroupSlug ? 'default' : 'outline'}
@@ -288,28 +288,30 @@ export default function MobileGanttChart() {
           const activeBrands = projects.filter(p => usedBrandIds.has(p.id));
           return (
             <div>
-              <div className="text-[11px] text-gray-600 font-medium mb-1">品牌</div>
-              <div className="flex flex-wrap gap-1">
-                {activeBrands.map(p => (
-                  <Button
-                    key={p.id}
-                    variant={selectedBrandIds.includes(p.id) ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedBrandIds(prev =>
-                      prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
-                    )}
-                    className="text-xs h-6 px-2"
-                  >
-                    {p.short_name}
-                  </Button>
-                ))}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">品牌</div>
+                <div className="flex flex-wrap gap-1">
+                  {activeBrands.map(p => (
+                    <Button
+                      key={p.id}
+                      variant={selectedBrandIds.includes(p.id) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedBrandIds(prev =>
+                        prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
+                      )}
+                      className="text-xs h-6 px-2"
+                    >
+                      {p.short_name}
+                    </Button>
+                  ))}
+                </div>
               </div>
               {selectedBrandIds.length > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedBrandIds([])}
-                  className="text-xs h-6 px-2 mt-1"
+                  className="text-xs h-6 px-2 ml-12"
                 >
                   <X className="w-3 h-3 mr-1" />
                   清除
