@@ -236,7 +236,18 @@ export default function MobileGanttChart() {
   return (
     <div className="md:hidden p-3 space-y-4 pb-20">
       {/* Header */}
-      <h1 className="text-xl font-bold text-gray-900">專案甘特圖</h1>
+      <div className="space-y-2">
+        <h1 className="text-xl font-bold text-gray-900">甘特圖 - 週視圖</h1>
+        <div className="flex items-center justify-between text-sm">
+          <button onClick={() => setCurrentDate(d => subDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[13], 'M月d日')}</span>
+          <button onClick={() => setCurrentDate(d => addDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
       {/* 篩選 */}
       <div className="bg-gray-50 rounded p-2 space-y-1">
@@ -331,36 +342,24 @@ export default function MobileGanttChart() {
                 </div>
               </div>
               {selectedBrandIds.length > 0 && (
-                       <Button
-                         variant="ghost"
-                         size="sm"
-                         onClick={() => setSelectedBrandIds([])}
-                         className="text-xs h-6 px-2 ml-12"
-                       >
-                         <X className="w-3 h-3 mr-1" />
-                         清除
-                       </Button>
-                     )}
-                   </div>
-                 );
-               })()}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedBrandIds([])}
+                  className="text-xs h-6 px-2 ml-12"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  清除
+                </Button>
+              )}
+            </div>
+          );
+        })()}
+      </div>
 
-              {/* 時間選擇 */}
-              <div className="flex items-center gap-2 pt-1 border-t border-gray-200 mt-1">
-                <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">週期</div>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setCurrentDate(d => subDays(d, 7))} className="p-0.5 hover:bg-gray-200 rounded">
-                    <ChevronLeft className="w-4 h-4 text-gray-600" />
-                  </button>
-                  <span className="text-xs font-medium text-gray-700">{format(weekDays[0], 'M/d')} - {format(weekDays[13], 'M/d')}</span>
-                  <button onClick={() => setCurrentDate(d => addDays(d, 7))} className="p-0.5 hover:bg-gray-200 rounded">
-                    <ChevronRight className="w-4 h-4 text-gray-600" />
-                  </button>
-                </div>
-              </div>
-              </div>
 
-              {filteredTasks.length > 0 ? (
+
+      {filteredTasks.length > 0 ? (
         <Card className="overflow-hidden">
           {/* 週期 header + 請假人數 */}
           <div>
