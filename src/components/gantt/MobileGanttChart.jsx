@@ -272,6 +272,8 @@ export default function MobileGanttChart() {
     setEditTaskName(task.name);
     setEditTaskStartDate(task.start_date);
     setEditTaskEndDate(task.end_date || '');
+    const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
+    setEditingProject(proj);
   };
 
   return (
