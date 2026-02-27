@@ -392,7 +392,7 @@ export default function MobileGanttChart() {
                     <span className={`font-bold text-xs ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                       {format(day, 'd')}
                     </span>
-                    <span className={`text-xs ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
+                    <span className={`text-[11px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
                       {format(day, 'EEE', { locale: zhTW })}
                     </span>
                   </div>
@@ -464,7 +464,7 @@ export default function MobileGanttChart() {
                   <div className="flex-shrink-0 flex flex-row items-center justify-center gap-0.5 border-r border-gray-200 bg-gray-50 text-xs font-semibold text-gray-600 leading-tight text-center px-0.5"
                     style={{ width: LABEL_WIDTH }}>
                     <div>{brand.short_name}</div>
-                    {seasons.length > 0 && <div className="text-xs text-gray-500">{seasons.join('/')}</div>}
+                    {seasons.length > 0 && <div className="text-[11px] text-gray-500">{seasons.join('/')}</div>}
                   </div>
                   {/* Grid + bars */}
                   <div className="relative" style={{ width: weekDays.length * CELL_WIDTH, minHeight: ROW_HEIGHT }}>
