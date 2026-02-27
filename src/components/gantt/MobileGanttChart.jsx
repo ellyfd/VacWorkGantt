@@ -468,7 +468,7 @@ export default function MobileGanttChart() {
                         return (
                           <div
                             key={dayIdx}
-                            className={`flex-shrink-0 border-r border-gray-100 ${isHoliday ? 'bg-yellow-100' : 'bg-white'}`}
+                            className={`flex-shrink-0 border-r border-gray-100 ${isHoliday ? 'bg-gray-200' : 'bg-white'}`}
                             style={{ width: CELL_WIDTH }}
                           />
                         );
