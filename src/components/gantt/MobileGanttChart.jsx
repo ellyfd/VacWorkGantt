@@ -403,7 +403,7 @@ export default function MobileGanttChart() {
             {/* 請假人數列 */}
             <div className="flex bg-gray-50 border-b border-gray-200" style={{ height: 28 }}>
               {/* 請假 label col */}
-              <div className="flex-shrink-0 border-r border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-500" style={{ width: LABEL_WIDTH }}>
+              <div className="flex-shrink-0 border-r border-gray-300 flex items-center justify-center text-xs font-bold text-gray-500" style={{ width: LABEL_WIDTH }}>
                 請假
               </div>
               {weekDays.map(day => {
