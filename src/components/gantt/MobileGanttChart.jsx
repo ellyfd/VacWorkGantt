@@ -346,7 +346,16 @@ export default function MobileGanttChart() {
         })()}
       </div>
 
-
+      {/* 時間導航 */}
+      <div className="flex items-center justify-between text-sm bg-white border border-gray-200 rounded px-3 py-2">
+        <button onClick={() => setCurrentDate(d => subDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[13], 'M月d日')}</span>
+        <button onClick={() => setCurrentDate(d => addDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
 
       {filteredTasks.length > 0 ? (
         <Card className="overflow-hidden">
