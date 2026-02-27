@@ -1,10 +1,6 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { format, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
-import { CalendarRange, Loader2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import LeaveCell from "./LeaveCell";
 import CalendarHeader from "./CalendarHeader";
@@ -20,17 +16,12 @@ export default function WeekCalendarTable({
   leaveTypes,
   holidays,
   selectedLeaveTypeId,
-  onLeaveTypeChange,
   rangeMode = false,
   dateRange = { from: undefined, to: undefined },
-  onRangeModeToggle,
-  onRangeConfirm,
-  onRangeModeCancel,
   onUpdateLeave,
   onDeleteLeave,
   onDeleteRangeLeave,
-  onCellClickInRangeMode,
-  rangeLeavePending = false,
+  onCellClickInRangeMode
 }) {
   const selectedLeaveTypeIdRef = useRef(selectedLeaveTypeId);
   useEffect(() => {
@@ -143,105 +134,29 @@ export default function WeekCalendarTable({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="p-3 border-b border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between gap-2">
-          {/* 左側：姓名 + 假別選擇 + 區間按鈕 */}
-          <div className="flex flex-col gap-1 min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base font-bold text-gray-800 whitespace-nowrap">
-                {currentEmployee.name}
-                {currentEmployee.english_name && (
-                  <span className="ml-1.5 text-xs font-normal text-gray-500">{currentEmployee.english_name}</span>
-                )}
-              </h3>
-              {/* 假別選擇 + 區間按鈕 inline */}
-              {onLeaveTypeChange && (
-                <div className="flex items-center gap-1.5">
-                  <Select
-                    value={selectedLeaveTypeId || ''}
-                    onValueChange={(value) => onLeaveTypeChange(value || null)}
-                    disabled={rangeMode}
-                  >
-                    <SelectTrigger className="h-7 text-xs w-[110px]">
-                      <SelectValue placeholder="選假別" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>不選擇</SelectItem>
-                      {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                        <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {!rangeMode ? (
-                    <Button
-                      onClick={() => onRangeModeToggle && onRangeModeToggle()}
-                      className="bg-blue-600 hover:bg-blue-700 h-7 w-7 p-0"
-                      size="icon"
-                    >
-                      <CalendarRange className="h-3.5 w-3.5" />
-                    </Button>
-                  ) : (
-                    <Popover open={dateRange.from && dateRange.to}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          onClick={() => {
-                            if (!dateRange.from || !dateRange.to) {
-                              onRangeModeCancel && onRangeModeCancel();
-                            }
-                          }}
-                          variant="outline"
-                          size="icon"
-                          className={`h-7 w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
-                        >
-                          {dateRange.from && dateRange.to ? '✓' : '✕'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64">
-                        <div className="space-y-3">
-                          <div>
-                            <h3 className="font-semibold text-sm">確認區間請假</h3>
-                            <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button onClick={() => onRangeModeCancel && onRangeModeCancel()} variant="outline" size="sm" className="flex-1">取消</Button>
-                            <Button onClick={() => onRangeConfirm && onRangeConfirm()} disabled={rangeLeavePending} className="bg-blue-600 hover:bg-blue-700 flex-1" size="sm">
-                              {rangeLeavePending ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" />處理中</> : '確定'}
-                            </Button>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  )}
+      <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row items-start md:items-center gap-3 md:justify-between">
+        <div className="flex flex-col gap-1.5">
+          <h3 className="text-lg font-bold text-gray-800">
+            {currentEmployee.name}
+            {currentEmployee.english_name && (
+              <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
+            )}
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {monthlyLeaveStats.length > 0 ? (
+              monthlyLeaveStats.map((stat) => (
+                <div key={stat.leaveTypeId} className="flex items-center gap-1">
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: stat.color }} />
+                  <span className="text-xs text-gray-600">{stat.name} {stat.count}天</span>
                 </div>
-              )}
-            </div>
-            {/* 統計 + range hint */}
-            <div className="flex flex-wrap gap-2 items-center">
-              {rangeMode ? (
-                <span className="text-[11px] text-blue-600">
-                  {!dateRange.from && "📍 請點擊選擇起始日"}
-                  {dateRange.from && !dateRange.to && `📍 開始：${dateRange.from} - 選結束日`}
-                  {dateRange.from && dateRange.to && `✓ ${dateRange.from} 至 ${dateRange.to}`}
-                </span>
-              ) : (
-                monthlyLeaveStats.length > 0 ? (
-                  monthlyLeaveStats.map((stat) => (
-                    <div key={stat.leaveTypeId} className="flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: stat.color }} />
-                      <span className="text-[11px] text-gray-600">{stat.name} {stat.count}天</span>
-                    </div>
-                  ))
-                ) : (
-                  <span className="text-[11px] text-gray-400">本月無休假</span>
-                )
-              )}
-            </div>
+              ))
+            ) : (
+              <span className="text-xs text-gray-400">本月無休假</span>
+            )}
           </div>
-          {/* 右側：日曆導航 */}
-          <div className="flex-shrink-0">
-            <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
-          </div>
+        </div>
+        <div className="hidden md:block">
+          <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
         </div>
       </div>
 
