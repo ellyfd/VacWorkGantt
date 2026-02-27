@@ -28,7 +28,6 @@ export default function MobileGanttChart() {
   const [editTaskName, setEditTaskName] = useState('');
   const [editTaskStartDate, setEditTaskStartDate] = useState('');
   const [editTaskEndDate, setEditTaskEndDate] = useState('');
-  const [editingProject, setEditingProject] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch data
@@ -272,8 +271,6 @@ export default function MobileGanttChart() {
     setEditTaskName(task.name);
     setEditTaskStartDate(task.start_date);
     setEditTaskEndDate(task.end_date || '');
-    const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
-    setEditingProject(proj);
   };
 
   return (
