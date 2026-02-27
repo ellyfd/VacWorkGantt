@@ -1,6 +1,10 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { format, getDay } from "date-fns";
 import { zhTW } from "date-fns/locale";
+import { CalendarRange, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import LeaveCell from "./LeaveCell";
 import CalendarHeader from "./CalendarHeader";
