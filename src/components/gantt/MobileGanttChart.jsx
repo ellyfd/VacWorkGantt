@@ -431,7 +431,7 @@ export default function MobileGanttChart() {
                 return (
                   <Popover key={dateStr}>
                     <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
-                    <PopoverContent className="w-max p-2 text-xs" side="bottom" align="center">
+                    <PopoverContent className="w-max p-2" side="bottom" align="center">
                       {names.map((name, idx) => (
                         <p key={idx} className="text-gray-800 py-0.5 whitespace-nowrap">
                           {name}
