@@ -75,19 +75,22 @@ export default function MobileGanttChart() {
     queryFn: () => base44.entities.Employee.list('name'),
   });
 
-  // 雙週區間（只顯示工作日，共 10 天）
-  // anchor: 2025-12-29 (週一)，每 14 自然日一組
+  // 雙週區間（只顯示週一~週五，共 10 天）
   const weekDays = useMemo(() => {
-    // 用本地時間建立 anchor，避免時區問題
-    const anchor = new Date(2025, 11, 29); // 2025-12-29 本地時間
-    // currentDate 也用本地日期計算 diff
-    const today = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-    const anchorLocal = new Date(2025, 11, 29);
-    const diffDays = Math.round((today - anchorLocal) / (1000 * 60 * 60 * 24));
+    // anchor: 2025-12-29 (週一)，純本地時間，避免UTC偏移
+    const cy = currentDate.getFullYear();
+    const cm = currentDate.getMonth();
+    const cd = currentDate.getDate();
+    const todayLocal = new Date(cy, cm, cd, 12, 0, 0);
+    const anchorLocal = new Date(2025, 11, 29, 12, 0, 0); // 2025-12-29
+    const diffMs = todayLocal.getTime() - anchorLocal.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const periodIndex = Math.floor(diffDays / 14);
-    const start = addDays(anchorLocal, periodIndex * 14);
-    const allDays = eachDayOfInterval({ start, end: addDays(start, 13) }); // 14 自然日
-    return allDays.filter(d => getDay(d) >= 1 && getDay(d) <= 5); // 只隱藏週六(6)和週日(0)
+    const startMs = anchorLocal.getTime() + periodIndex * 14 * 24 * 60 * 60 * 1000;
+    const startDate = new Date(startMs);
+    const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const allDays = eachDayOfInterval({ start, end: addDays(start, 13) });
+    return allDays.filter(d => getDay(d) >= 1 && getDay(d) <= 5);
   }, [currentDate]);
 
   // Holiday set
