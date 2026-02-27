@@ -520,43 +520,43 @@ export default function MobileGanttChart() {
 
       {/* 編輯任務對話框 */}
       <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="w-[95vw] max-w-sm sm:max-w-md p-3 sm:p-6">
+          <DialogHeader className="p-0 sm:pb-4">
             <DialogTitle>編輯任務</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             <div>
-              <Label>任務名稱</Label>
+              <Label className="text-xs sm:text-sm">任務名稱</Label>
               <Input
                 value={editTaskName}
                 onChange={(e) => setEditTaskName(e.target.value)}
-                className="mt-1"
+                className="mt-1 text-xs sm:text-sm"
               />
             </div>
             <div>
-              <Label>開始日期</Label>
+              <Label className="text-xs sm:text-sm">開始日期</Label>
               <Input
                 type="date"
                 value={editTaskStartDate}
                 onChange={(e) => setEditTaskStartDate(e.target.value)}
-                className="mt-1"
+                className="mt-1 text-xs sm:text-sm"
               />
             </div>
             <div>
-              <Label>結束日期（可選）</Label>
+              <Label className="text-xs sm:text-sm">結束日期（可選）</Label>
               <Input
                 type="date"
                 value={editTaskEndDate}
                 onChange={(e) => setEditTaskEndDate(e.target.value)}
-                className="mt-1"
+                className="mt-1 text-xs sm:text-sm"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingTask(null)}>
+          <DialogFooter className="flex gap-2 pt-2 sm:pt-4">
+            <Button variant="outline" onClick={() => setEditingTask(null)} className="text-xs sm:text-sm">
               取消
             </Button>
-            <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending}>
+            <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending} className="text-xs sm:text-sm">
               {updateTaskMutation.isPending ? '保存中...' : '保存'}
             </Button>
           </DialogFooter>
