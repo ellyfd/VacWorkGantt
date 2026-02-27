@@ -381,7 +381,7 @@ export default function MobileGanttChart() {
                   <div
                     key={dateStr}
                     className={`flex flex-col items-center justify-center py-1 border-r border-gray-200 text-xs ${
-                      isToday(day) ? 'bg-red-100' : isDim ? 'bg-gray-50' : ''
+                      isToday(day) ? 'bg-red-100' : isDim ? 'bg-yellow-100' : ''
                     }`}
                     style={{ width: CELL_WIDTH, flexShrink: 0 }}
                   >
