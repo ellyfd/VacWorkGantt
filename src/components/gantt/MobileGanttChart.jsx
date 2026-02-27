@@ -75,15 +75,19 @@ export default function MobileGanttChart() {
     queryFn: () => base44.entities.Employee.list('name'),
   });
 
-  // 當週 12 天（只取工作日：週一到週五 × 2週）
+  // 雙週區間（只顯示工作日，共 10 天）
+  // anchor: 2025-12-29 (週一)，每 14 自然日一組
   const weekDays = useMemo(() => {
-    // 以固定雙週區間為基準：從 2025-12-29 開始每14天一組
-    const anchor = new Date('2025-12-29'); // 第一個雙週的週一
-    const diffDays = Math.floor((currentDate - anchor) / (1000 * 60 * 60 * 24));
+    // 用本地時間建立 anchor，避免時區問題
+    const anchor = new Date(2025, 11, 29); // 2025-12-29 本地時間
+    // currentDate 也用本地日期計算 diff
+    const today = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    const anchorLocal = new Date(2025, 11, 29);
+    const diffDays = Math.round((today - anchorLocal) / (1000 * 60 * 60 * 24));
     const periodIndex = Math.floor(diffDays / 14);
-    const start = addDays(anchor, periodIndex * 14);
-    const allDays = eachDayOfInterval({ start, end: addDays(start, 13) }); // 14自然日
-    return allDays.filter(d => getDay(d) !== 0 && getDay(d) !== 6); // 只留工作日
+    const start = addDays(anchorLocal, periodIndex * 14);
+    const allDays = eachDayOfInterval({ start, end: addDays(start, 13) }); // 14 自然日
+    return allDays.filter(d => getDay(d) !== 0 && getDay(d) !== 6); // 只留週一~週五
   }, [currentDate]);
 
   // Holiday set
