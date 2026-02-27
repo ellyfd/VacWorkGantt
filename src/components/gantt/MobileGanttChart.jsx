@@ -478,7 +478,7 @@ export default function MobileGanttChart() {
                     {/* Task bars — stack vertically if multiple */}
                     {thisWeekTasks.map((task, taskIdx) => {
                       const pos = getTaskPosition(task);
-                      const proj = ganttProjects.find(p => p.id === task.gantt_project_id);
+                      const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
                       const color = proj ? getProjectColor(proj) : '#ccc';
                       const wd = task.time_type === 'duration' ? calculateWorkingDays(task.start_date, task.end_date) : 0;
                       const barText = [proj?.season, task.name, wd > 0 ? `(${wd}天)` : ''].filter(Boolean).join(' ');
