@@ -520,48 +520,48 @@ export default function MobileGanttChart() {
 
       {/* 編輯任務對話框 */}
       <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
-        <DialogContent className="w-[95vw] max-w-md sm:max-w-lg p-4 sm:p-6 gap-3 sm:gap-4">
-          <DialogHeader className="space-y-1">
-            <DialogTitle className="text-base sm:text-lg">編輯任務</DialogTitle>
+        <DialogContent className="w-[95vw] max-w-md sm:max-w-lg p-3 sm:p-5 gap-2 sm:gap-3">
+          <DialogHeader className="space-y-0.5 pb-2">
+            <DialogTitle className="text-base">編輯任務</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <Label className="text-sm font-medium block mb-1">任務名稱</Label>
+              <Label className="text-xs font-medium">任務名稱</Label>
               <Input
                 value={editTaskName}
                 onChange={(e) => setEditTaskName(e.target.value)}
-                className="h-9 text-sm"
+                className="h-8 text-sm mt-1"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-sm font-medium block mb-1">開始日期</Label>
+                <Label className="text-xs font-medium">開始</Label>
                 <Input
                   type="date"
                   value={editTaskStartDate}
                   onChange={(e) => setEditTaskStartDate(e.target.value)}
-                  className="h-9 text-sm"
+                  className="h-8 text-xs mt-1 p-2"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium block mb-1">結束日期</Label>
+                <Label className="text-xs font-medium">結束</Label>
                 <Input
                   type="date"
                   value={editTaskEndDate}
                   onChange={(e) => setEditTaskEndDate(e.target.value)}
-                  className="h-9 text-sm"
+                  className="h-8 text-xs mt-1 p-2"
                 />
               </div>
             </div>
           </div>
-          <DialogFooter className="flex gap-2 pt-2 sm:pt-0">
-            <Button variant="outline" onClick={() => setEditingTask(null)} className="h-9 text-sm flex-1">
+          <div className="flex gap-2 pt-1">
+            <Button variant="outline" onClick={() => setEditingTask(null)} className="h-8 text-xs flex-1">
               取消
             </Button>
-            <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending} className="h-9 text-sm flex-1">
+            <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending} className="h-8 text-xs flex-1">
               {updateTaskMutation.isPending ? '保存中' : '保存'}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
