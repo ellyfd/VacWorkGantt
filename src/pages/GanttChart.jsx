@@ -543,17 +543,15 @@ export default function GanttChart() {
     const isMakalot = brandGroup?.name.toLowerCase() === 'makalot';
     const isTGT = brand?.short_name === 'TGT' || brand?.name === 'TGT';
 
-    let name, season;
+    let name;
     if (isMakalot) {
       name = `${brand.short_name || brand.name}_${projectFormData.customName}`;
-      season = projectFormData.customName;
     } else {
       const yy = String(projectFormData.year).slice(-2);
       name = `${brand.short_name || brand.name} ${projectFormData.season}${yy}`;
-      season = `${projectFormData.season}${yy}`;
     }
 
-    await createGanttProject.mutateAsync({ ...projectFormData, name, season, created_by: currentUser?.id });
+    await createGanttProject.mutateAsync({ ...projectFormData, name, created_by: currentUser?.id });
     setShowAddProjectDialog(false);
     setProjectFormData({ brand_id: '', season: '', year: new Date().getFullYear(), color: '#3b82f6' });
   };
