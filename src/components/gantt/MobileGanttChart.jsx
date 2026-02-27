@@ -464,7 +464,7 @@ export default function MobileGanttChart() {
                   <div className="flex-shrink-0 flex flex-col items-center justify-center border-r border-gray-200 bg-gray-50 text-[11px] font-semibold text-gray-600 leading-tight text-center px-0.5"
                     style={{ width: LABEL_WIDTH }}>
                     <div>{brand.short_name}</div>
-                    {seasons.length > 0 && <div className="text-[9px] text-gray-500 mt-0.5">{seasons.join('/')}</div>}
+                    {seasons.length > 0 && <div className="text-xs text-gray-500 mt-0.5">{seasons.join('/')}</div>}
                   </div>
                   {/* Grid + bars */}
                   <div className="relative" style={{ width: weekDays.length * CELL_WIDTH, minHeight: ROW_HEIGHT }}>
