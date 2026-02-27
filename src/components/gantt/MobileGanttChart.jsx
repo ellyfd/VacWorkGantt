@@ -103,6 +103,15 @@ export default function MobileGanttChart() {
     return ganttTasks.filter(t => t.start_date && projectIds.has(t.gantt_project_id));
   }, [ganttTasks, filteredProjects]);
 
+  // 有任務的品牌（不限本週，所有有 task 的品牌都顯示），依照品牌 sort_order 排列
+  const brandsWithTasks = useMemo(() => {
+    const brandIds = new Set(filteredTasks.map(t => {
+      const proj = filteredProjects.find(p => p.id === t.gantt_project_id);
+      return proj?.brand_id;
+    }).filter(Boolean));
+    return projects.filter(p => brandIds.has(p.id)).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  }, [filteredTasks, filteredProjects, projects]);
+
   // 該周最大請假人數
   const maxLeaveCount = useMemo(() => {
     let max = 0;
