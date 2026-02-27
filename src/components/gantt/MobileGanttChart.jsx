@@ -114,12 +114,12 @@ export default function MobileGanttChart() {
     return max;
   }, [weekDays, leaveRecords]);
 
-  // 取得該 task 在週視圖中的位置和寬度
+  // 取得該 task 在週視圖中的位置和寬度（只算工作日欄）
   const getTaskPosition = (task) => {
-    const taskStart = new Date(task.start_date);
-    const taskEnd = task.end_date ? new Date(task.end_date) : taskStart;
+    const taskStart = new Date(task.start_date + 'T00:00:00');
+    const taskEnd = task.end_date ? new Date(task.end_date + 'T00:00:00') : taskStart;
     const weekStart = weekDays[0];
-    const weekEnd = weekDays[6];
+    const weekEnd = weekDays[weekDays.length - 1];
 
     if (taskEnd < weekStart || taskStart > weekEnd) return null;
 
@@ -129,16 +129,31 @@ export default function MobileGanttChart() {
     const startIdx = weekDays.findIndex(d => 
       format(d, 'yyyy-MM-dd') === format(displayStart, 'yyyy-MM-dd')
     );
-    const endIdx = weekDays.findIndex(d => 
+    // If displayStart falls on a weekend, find the nearest next weekday in our list
+    let resolvedStartIdx = startIdx;
+    if (resolvedStartIdx < 0) {
+      // find first weekday on or after displayStart
+      const ds = format(displayStart, 'yyyy-MM-dd');
+      resolvedStartIdx = weekDays.findIndex(d => format(d, 'yyyy-MM-dd') >= ds);
+      if (resolvedStartIdx < 0) return null;
+    }
+
+    let endIdx = weekDays.findIndex(d => 
       format(d, 'yyyy-MM-dd') === format(displayEnd, 'yyyy-MM-dd')
     );
-
-    if (startIdx < 0) return null;
+    if (endIdx < 0) {
+      // find last weekday on or before displayEnd
+      const de = format(displayEnd, 'yyyy-MM-dd');
+      for (let i = weekDays.length - 1; i >= 0; i--) {
+        if (format(weekDays[i], 'yyyy-MM-dd') <= de) { endIdx = i; break; }
+      }
+    }
+    if (endIdx < 0) endIdx = resolvedStartIdx;
 
     return {
-      left: startIdx * CELL_WIDTH,
-      width: Math.max((endIdx - startIdx + 1) * CELL_WIDTH - 2, CELL_WIDTH),
-      startIdx,
+      left: resolvedStartIdx * CELL_WIDTH,
+      width: Math.max((endIdx - resolvedStartIdx + 1) * CELL_WIDTH - 2, CELL_WIDTH - 2),
+      startIdx: resolvedStartIdx,
       endIdx,
     };
   };
