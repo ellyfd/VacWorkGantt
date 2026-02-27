@@ -14,7 +14,7 @@ import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'da
 import { zhTW } from 'date-fns/locale';
 
 const ROW_HEIGHT = 28;
-const LABEL_WIDTH = 60;
+const LABEL_WIDTH = 65;
 // 10 工作天，動態根據螢幕寬度計算，最小 26px，最大 40px
 const SCREEN_W = typeof window !== 'undefined' ? Math.min(window.innerWidth, 430) : 390;
 const CELL_WIDTH = Math.floor(Math.min(Math.max((SCREEN_W - LABEL_WIDTH - 16) / 10, 26), 40));
