@@ -392,7 +392,7 @@ export default function MobileGanttChart() {
       </div>
 
       {filteredTasks.length > 0 ? (
-        <Card className="overflow-hidden">
+        <Card className="overflow-x-auto">
           {/* 週期 header + 請假人數 */}
           <div>
             {/* Header row with label column */}
