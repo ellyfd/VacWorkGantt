@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 
-const CELL_WIDTH = 30;
 const ROW_HEIGHT = 28;
 const LABEL_WIDTH = 40;
 
