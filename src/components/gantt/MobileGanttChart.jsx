@@ -291,7 +291,7 @@ export default function MobileGanttChart() {
                 setSelectedGroupSlug('');
                 setSelectedBrandIds([]);
               }}
-              className="text-[11px] h-6 px-2"
+              className="text-xs h-6 px-2"
             >
               全部
             </Button>
@@ -304,7 +304,7 @@ export default function MobileGanttChart() {
                   setSelectedGroupSlug(g.id);
                   setSelectedBrandIds([]);
                 }}
-                className="text-[11px] h-6 px-2"
+                className="text-xs h-6 px-2"
               >
                 {g.name}
               </Button>
@@ -329,7 +329,7 @@ export default function MobileGanttChart() {
                       onClick={() => setSelectedBrandIds(prev =>
                         prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
                       )}
-                      className="text-[11px] h-6 px-2"
+                      className="text-xs h-6 px-2"
                     >
                       {p.short_name}
                     </Button>
@@ -341,7 +341,7 @@ export default function MobileGanttChart() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedBrandIds([])}
-                  className="text-[11px] h-6 px-2 ml-12"
+                  className="text-xs h-6 px-2 ml-12"
                 >
                   <X className="w-3 h-3 mr-1" />
                   清除
@@ -353,16 +353,16 @@ export default function MobileGanttChart() {
       </div>
 
       {/* 時間導航 */}
-      <div className="flex items-center justify-between text-[11px] bg-white border border-gray-200 rounded px-3 py-2">
-        <button onClick={() => setCurrentDate(new Date())} className="px-2 py-1 text-[11px] font-medium text-blue-600 hover:bg-blue-50 rounded">
+      <div className="flex items-center justify-between text-sm bg-white border border-gray-200 rounded px-3 py-2">
+        <button onClick={() => setCurrentDate(new Date())} className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded">
           今天
         </button>
         <button onClick={() => setCurrentDate(d => subDays(d, 14))} className="p-1 hover:bg-gray-100 rounded">
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="font-medium text-[11px]">{format(weekDays[0], 'M月d日')} - {format(weekDays[weekDays.length - 1], 'M月d日')}</span>
+        <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[weekDays.length - 1], 'M月d日')}</span>
         <button onClick={() => setCurrentDate(d => addDays(d, 14))} className="p-1 hover:bg-gray-100 rounded">
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
@@ -373,7 +373,7 @@ export default function MobileGanttChart() {
             {/* Header row with label column */}
             <div className="flex bg-gray-100 border-b border-gray-200">
               {/* 客戶 label header */}
-              <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-300 bg-gray-200 text-[11px] font-bold text-gray-600"
+              <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-300 bg-gray-200 text-[10px] font-bold text-gray-600"
                 style={{ width: LABEL_WIDTH }}>
                 客戶
               </div>
@@ -384,7 +384,7 @@ export default function MobileGanttChart() {
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col items-center justify-center py-1 border-r border-gray-200 ${
+                    className={`flex flex-col items-center justify-center py-1 border-r border-gray-200 text-xs ${
                       isToday(day) ? 'bg-red-100' : isDim ? 'bg-gray-200' : ''
                     }`}
                     style={{ width: CELL_WIDTH, flexShrink: 0 }}
@@ -392,7 +392,7 @@ export default function MobileGanttChart() {
                     <span className={`font-bold text-[11px] ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                       {format(day, 'd')}
                     </span>
-                    <span className={`text-[10px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
+                    <span className={`text-[9px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
                       {format(day, 'EEE', { locale: zhTW })}
                     </span>
                   </div>
@@ -403,7 +403,7 @@ export default function MobileGanttChart() {
             {/* 請假人數列 */}
             <div className="flex bg-gray-50 border-b border-gray-200" style={{ height: 28 }}>
               {/* 請假 label col */}
-              <div className="flex-shrink-0 border-r border-gray-300 flex items-center justify-center text-[10px] font-bold text-gray-500" style={{ width: LABEL_WIDTH }}>
+              <div className="flex-shrink-0 border-r border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-500" style={{ width: LABEL_WIDTH }}>
                 請假
               </div>
               {weekDays.map(day => {
