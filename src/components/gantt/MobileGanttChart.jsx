@@ -373,7 +373,7 @@ export default function MobileGanttChart() {
             {/* Header row with label column */}
             <div className="flex bg-gray-100 border-b border-gray-200">
               {/* 客戶 label header */}
-              <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-300 bg-gray-200 text-[10px] font-bold text-gray-600"
+              <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-300 bg-gray-200 text-xs font-bold text-gray-600"
                 style={{ width: LABEL_WIDTH }}>
                 客戶
               </div>
