@@ -398,7 +398,6 @@ export default function MobileGanttChart() {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const isHoliday = holidaySet.has(dateStr);
                 const isDim = isHoliday;
-
                 return (
                   <div
                     key={dateStr}
@@ -420,8 +419,10 @@ export default function MobileGanttChart() {
 
             {/* 請假人數列 */}
             <div className="flex bg-gray-50 border-b border-gray-200" style={{ height: 28 }}>
-              {/* empty label col */}
-              <div className="flex-shrink-0 border-r border-gray-300" style={{ width: LABEL_WIDTH }} />
+              {/* 請假 label col */}
+              <div className="flex-shrink-0 border-r border-gray-300 flex items-center justify-center text-[9px] font-bold text-gray-500" style={{ width: LABEL_WIDTH }}>
+                請假
+              </div>
               {weekDays.map(day => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const count = getLeaveCount(dateStr);
@@ -460,28 +461,26 @@ export default function MobileGanttChart() {
             </div>
           </div>
 
-          {/* Task rows */}
+          {/* Task rows — 每個品牌一排，所有品牌（有任務的）都固定顯示 */}
           <div className="space-y-0">
-            {filteredTasks.map((task) => {
-              const pos = getTaskPosition(task);
-              if (!pos) return null;
-              const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
-              const color = proj ? getProjectColor(proj) : '#ccc';
-              const brand = projects.find(p => p.id === proj?.brand_id);
-              const clientLabel = brand?.short_name || proj?.name?.slice(0, 4) || '';
+            {brandsWithTasks.map((brand) => {
+              // 找這個品牌所有 tasks（不限本週）
+              const brandProjects = filteredProjects.filter(p => p.brand_id === brand.id);
+              const brandProjectIds = new Set(brandProjects.map(p => p.id));
+              const brandTasks = filteredTasks.filter(t => brandProjectIds.has(t.gantt_project_id));
 
-              const wd = task.time_type === 'duration' ? calculateWorkingDays(task.start_date, task.end_date) : 0;
-              const barText = `${proj?.season || ''} ${task.name}${wd > 0 ? ` (${wd}天)` : ''}`.trim();
+              // 只渲染本週有任務的 bar（但行固定存在）
+              const thisWeekTasks = brandTasks.filter(t => getTaskPosition(t) !== null);
 
               return (
-                <div key={task.id} className="flex border-b border-gray-100" style={{ height: ROW_HEIGHT }}>
+                <div key={brand.id} className="flex border-b border-gray-100" style={{ minHeight: ROW_HEIGHT }}>
                   {/* 客戶 label */}
                   <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-200 bg-gray-50 text-[9px] font-semibold text-gray-600 leading-tight text-center px-0.5"
                     style={{ width: LABEL_WIDTH }}>
-                    {clientLabel}
+                    {brand.short_name}
                   </div>
-                  {/* Grid + bar */}
-                  <div className="relative flex-1" style={{ width: weekDays.length * CELL_WIDTH }}>
+                  {/* Grid + bars */}
+                  <div className="relative" style={{ width: weekDays.length * CELL_WIDTH, minHeight: ROW_HEIGHT }}>
                     {/* Background grid */}
                     <div className="absolute inset-0 flex">
                       {weekDays.map((day, dayIdx) => {
@@ -497,22 +496,34 @@ export default function MobileGanttChart() {
                       })}
                     </div>
 
-                    {/* Task bar */}
-                    <div
-                      className="absolute top-1 rounded cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center overflow-hidden"
-                      style={{
-                        backgroundColor: color,
-                        left: pos.left + 1,
-                        width: pos.width,
-                        height: ROW_HEIGHT - 6,
-                      }}
-                      title={`${proj?.name} - ${task.name}`}
-                      onClick={() => handleOpenEditDialog(task)}
-                    >
-                      <span className="font-medium text-[10px] px-1 text-center leading-tight" style={{ color: getContrastColor(color) }}>
-                        {barText}
-                      </span>
-                    </div>
+                    {/* Task bars — stack vertically if multiple */}
+                    {thisWeekTasks.map((task, taskIdx) => {
+                      const pos = getTaskPosition(task);
+                      const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
+                      const color = proj ? getProjectColor(proj) : '#ccc';
+                      const wd = task.time_type === 'duration' ? calculateWorkingDays(task.start_date, task.end_date) : 0;
+                      const barText = `${proj?.season || ''} ${task.name}${wd > 0 ? ` (${wd}天)` : ''}`.trim();
+
+                      return (
+                        <div
+                          key={task.id}
+                          className="absolute rounded cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center overflow-hidden"
+                          style={{
+                            backgroundColor: color,
+                            left: pos.left + 1,
+                            width: pos.width,
+                            height: ROW_HEIGHT - 6,
+                            top: taskIdx * ROW_HEIGHT + 3,
+                          }}
+                          title={`${proj?.name} - ${task.name}`}
+                          onClick={() => handleOpenEditDialog(task)}
+                        >
+                          <span className="font-medium text-[10px] px-1 text-center leading-tight" style={{ color: getContrastColor(color) }}>
+                            {barText}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
