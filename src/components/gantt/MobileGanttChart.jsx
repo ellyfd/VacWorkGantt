@@ -389,7 +389,7 @@ export default function MobileGanttChart() {
                     }`}
                     style={{ width: CELL_WIDTH, flexShrink: 0 }}
                   >
-                    <span className={`font-bold text-[11px] ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <span className={`font-bold text-xs ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                       {format(day, 'd')}
                     </span>
                     <span className={`text-[9px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
