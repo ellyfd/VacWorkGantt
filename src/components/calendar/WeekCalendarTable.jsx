@@ -146,15 +146,17 @@ export default function WeekCalendarTable({
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row items-start md:items-center gap-3 md:justify-between">
         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h3 className="text-lg font-bold text-gray-800">
-              {currentEmployee.name}
-              {currentEmployee.english_name && (
-                <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
-              )}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-800">
+                {currentEmployee.name}
+                {currentEmployee.english_name && (
+                  <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
+                )}
+              </h3>
+            </div>
             {/* 假別選擇 + 區間按鈕 */}
             {onLeaveTypeChange && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-auto">
                 <Select
                   value={selectedLeaveTypeId || ''}
                   onValueChange={(value) => onLeaveTypeChange(value || null)}
