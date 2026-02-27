@@ -28,6 +28,7 @@ export default function MobileGanttChart() {
   const [editTaskName, setEditTaskName] = useState('');
   const [editTaskStartDate, setEditTaskStartDate] = useState('');
   const [editTaskEndDate, setEditTaskEndDate] = useState('');
+  const [editingProject, setEditingProject] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch data
