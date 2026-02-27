@@ -16,12 +16,17 @@ export default function WeekCalendarTable({
   leaveTypes,
   holidays,
   selectedLeaveTypeId,
+  onLeaveTypeChange,
   rangeMode = false,
   dateRange = { from: undefined, to: undefined },
+  onRangeModeToggle,
+  onRangeConfirm,
+  onRangeModeCancel,
   onUpdateLeave,
   onDeleteLeave,
   onDeleteRangeLeave,
-  onCellClickInRangeMode
+  onCellClickInRangeMode,
+  rangeLeavePending = false,
 }) {
   const selectedLeaveTypeIdRef = useRef(selectedLeaveTypeId);
   useEffect(() => {
