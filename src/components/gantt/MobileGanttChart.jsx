@@ -87,7 +87,7 @@ export default function MobileGanttChart() {
     const periodIndex = Math.floor(diffDays / 14);
     const start = addDays(anchorLocal, periodIndex * 14);
     const allDays = eachDayOfInterval({ start, end: addDays(start, 13) }); // 14 自然日
-    return allDays.filter(d => getDay(d) !== 0 && getDay(d) !== 6); // 只留週一~週五
+    return allDays.filter(d => getDay(d) >= 1 && getDay(d) <= 5); // 只隱藏週六(6)和週日(0)
   }, [currentDate]);
 
   // Holiday set
