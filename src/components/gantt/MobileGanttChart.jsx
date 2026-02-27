@@ -14,6 +14,9 @@ import { zhTW } from 'date-fns/locale';
 
 const ROW_HEIGHT = 28;
 const LABEL_WIDTH = 40;
+// 10 工作天，動態根據螢幕寬度計算，最小 28px，最大 44px
+const SCREEN_W = typeof window !== 'undefined' ? Math.min(window.innerWidth, 430) : 390;
+const CELL_WIDTH = Math.floor(Math.min(Math.max((SCREEN_W - LABEL_WIDTH - 16) / 10, 28), 44));
 
 export default function MobileGanttChart() {
   const [currentDate, setCurrentDate] = useState(new Date());
