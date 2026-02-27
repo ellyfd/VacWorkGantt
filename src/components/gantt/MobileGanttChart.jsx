@@ -241,9 +241,9 @@ export default function MobileGanttChart() {
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
-    if (count <= 2) return { bg: '#fef9c3', text: '#854d0e', label: `${count}人` };
-    if (count <= 4) return { bg: '#ffedd5', text: '#9a3412', label: `${count}人` };
-    return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
+    if (count <= 2) return { bg: '#fef9c3', text: '#854d0e', label: `${count}` };
+    if (count <= 4) return { bg: '#ffedd5', text: '#9a3412', label: `${count}` };
+    return { bg: '#fee2e2', text: '#991b1b', label: `${count}`, bold: true };
   };
 
   const updateTaskMutation = useMutation({
