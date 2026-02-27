@@ -233,7 +233,6 @@ export default function WeekCalendarTable({
           <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
         </div>
       </div>
-      </div>
 
       <div className="p-4">
         <div className="grid grid-cols-7 gap-0 border border-gray-200 rounded-lg overflow-hidden">
