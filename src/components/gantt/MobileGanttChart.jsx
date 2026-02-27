@@ -497,7 +497,7 @@ export default function MobileGanttChart() {
                           title={`${proj?.name} - ${task.name}`}
                           onClick={() => handleOpenEditDialog(task)}
                         >
-                          <span className="font-medium text-[10px] px-1 text-center leading-tight" style={{ color: getContrastColor(color) }}>
+                          <span className="font-medium text-[10px] px-1 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: getContrastColor(color), maxWidth: '100%' }}>
                             {barText}
                           </span>
                         </div>
