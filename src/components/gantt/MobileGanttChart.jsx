@@ -373,7 +373,7 @@ export default function MobileGanttChart() {
             {/* Header row with label column */}
             <div className="flex bg-gray-100 border-b border-gray-200">
               {/* 客戶 label header */}
-              <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-300 bg-gray-200 text-[10px] font-bold text-gray-600"
+              <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-300 bg-gray-200 text-[11px] font-bold text-gray-600"
                 style={{ width: LABEL_WIDTH }}>
                 客戶
               </div>
@@ -384,7 +384,7 @@ export default function MobileGanttChart() {
                 return (
                   <div
                     key={dateStr}
-                    className={`flex flex-col items-center justify-center py-1 border-r border-gray-200 text-xs ${
+                    className={`flex flex-col items-center justify-center py-1 border-r border-gray-200 ${
                       isToday(day) ? 'bg-red-100' : isDim ? 'bg-gray-200' : ''
                     }`}
                     style={{ width: CELL_WIDTH, flexShrink: 0 }}
@@ -392,7 +392,7 @@ export default function MobileGanttChart() {
                     <span className={`font-bold text-[11px] ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                       {format(day, 'd')}
                     </span>
-                    <span className={`text-[9px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
+                    <span className={`text-[10px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
                       {format(day, 'EEE', { locale: zhTW })}
                     </span>
                   </div>
