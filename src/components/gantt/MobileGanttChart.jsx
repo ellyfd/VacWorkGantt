@@ -368,7 +368,7 @@ export default function MobileGanttChart() {
         <button onClick={() => setCurrentDate(d => subDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[13], 'M月d日')}</span>
+        <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[weekDays.length - 1], 'M月d日')}</span>
         <button onClick={() => setCurrentDate(d => addDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
           <ChevronRight className="w-5 h-5" />
         </button>
