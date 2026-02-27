@@ -576,7 +576,78 @@ export default function LeaveCalendar() {
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div className="space-y-3">
-              <div>
+              {/* 假別選擇 + 區間請假 */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select
+                    value={selectedLeaveTypeId || ''}
+                    onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+                    disabled={rangeMode}
+                  >
+                    <SelectTrigger className="w-[180px] h-8 text-sm">
+                      <SelectValue placeholder="選擇假別" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>不選擇</SelectItem>
+                      {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                        <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!rangeMode ? (
+                    <Button
+                      onClick={() => {
+                        if (!selectedLeaveTypeId) { alert('請先選擇假別'); return; }
+                        setRangeMode(true);
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 h-8"
+                      size="icon"
+                    >
+                      <CalendarRange className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Popover open={dateRange.from && dateRange.to}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          onClick={() => {
+                            if (!dateRange.from || !dateRange.to) {
+                              setRangeMode(false);
+                              setDateRange({ from: undefined, to: undefined });
+                            }
+                          }}
+                          variant="outline"
+                          size="icon"
+                          className={`h-8 w-8 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                        >
+                          {dateRange.from && dateRange.to ? '✓' : '✕'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72">
+                        <div className="space-y-3">
+                          <div>
+                            <h3 className="font-semibold text-sm">確認區間請假</h3>
+                            <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button onClick={() => { setRangeMode(false); setDateRange({ from: undefined, to: undefined }); }} variant="outline" size="sm" className="flex-1">取消</Button>
+                            <Button onClick={handleRangeSubmit} disabled={rangeLeaveMutation.isPending} className="bg-blue-600 hover:bg-blue-700 flex-1" size="sm">
+                              {rangeLeaveMutation.isPending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />處理中</> : '確定'}
+                            </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                  {rangeMode && (
+                    <p className="text-xs text-blue-600">
+                      {!dateRange.from && "📍 點擊日曆選起始日"}
+                      {dateRange.from && !dateRange.to && `📍 開始：${dateRange.from}，選結束日`}
+                      {dateRange.from && dateRange.to && `✓ ${dateRange.from} 至 ${dateRange.to}`}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="border-t border-gray-300 pt-2">
                 <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
                 <ul className="text-xs text-gray-600 space-y-1">
                   <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
