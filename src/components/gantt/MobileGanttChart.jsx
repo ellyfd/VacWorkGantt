@@ -275,7 +275,29 @@ export default function MobileGanttChart() {
   return (
     <div className="md:hidden p-3 space-y-3 pb-20">
       {/* Header */}
-      <h1 className="text-xl font-bold text-gray-900">專案甘特圖</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-900">專案甘特圖</h1>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="text-xs h-8 px-2 bg-blue-600 hover:bg-blue-700"
+            onClick={() => {
+              // TODO: 打開新增開發季對話框
+            }}
+          >
+            + 新增開發季
+          </Button>
+          <Button
+            size="sm"
+            className="text-xs h-8 px-2 bg-blue-600 hover:bg-blue-700"
+            onClick={() => {
+              // TODO: 打開新增任務對話框
+            }}
+          >
+            + 新增任務
+          </Button>
+        </div>
+      </div>
 
       {/* 篩選 */}
       <div className="bg-gray-50 rounded p-2 space-y-1">
