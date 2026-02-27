@@ -319,7 +319,7 @@ export default function MobileGanttChart() {
           return (
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">品牌</div>
+                <div className="text-xs text-gray-600 font-medium whitespace-nowrap">品牌</div>
                 <div className="flex flex-wrap gap-1">
                   {activeBrands.map(p => (
                     <Button
