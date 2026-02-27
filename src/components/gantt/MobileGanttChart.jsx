@@ -75,10 +75,11 @@ export default function MobileGanttChart() {
     queryFn: () => base44.entities.Employee.list('name'),
   });
 
-  // 當週 14 天
+  // 當週 12 天（只取工作日：週一到週五 × 2週）
   const weekDays = useMemo(() => {
-    const start = subDays(currentDate, getDay(currentDate) - 1);
-    return eachDayOfInterval({ start, end: addDays(start, 13) });
+    const start = subDays(currentDate, getDay(currentDate) - 1); // 本週一
+    const allDays = eachDayOfInterval({ start, end: addDays(start, 13) });
+    return allDays.filter(d => getDay(d) !== 0 && getDay(d) !== 6);
   }, [currentDate]);
 
   // Holiday set
