@@ -78,7 +78,7 @@ export default function MobileGanttChart() {
   // 當週 12 天（只取工作日：週一到週五 × 2週）
   const weekDays = useMemo(() => {
     const start = subDays(currentDate, getDay(currentDate) - 1); // 本週一
-    const allDays = eachDayOfInterval({ start, end: addDays(start, 13) });
+    const allDays = eachDayOfInterval({ start, end: addDays(start, 11) }); // 本週一 ~ 下週五 (12天含兩端)
     return allDays.filter(d => getDay(d) !== 0 && getDay(d) !== 6);
   }, [currentDate]);
 
