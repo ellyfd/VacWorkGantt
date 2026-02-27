@@ -454,7 +454,7 @@ export default function MobileGanttChart() {
               return (
                 <div key={brand.id} className="flex border-b border-gray-100" style={{ minHeight: ROW_HEIGHT }}>
                   {/* 客戶 label */}
-                  <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-200 bg-gray-50 text-[9px] font-semibold text-gray-600 leading-tight text-center px-0.5"
+                  <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-200 bg-gray-50 text-[11px] font-semibold text-gray-600 leading-tight text-center px-0.5"
                     style={{ width: LABEL_WIDTH }}>
                     {brand.short_name}
                   </div>
