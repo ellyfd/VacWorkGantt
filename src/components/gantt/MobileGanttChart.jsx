@@ -535,24 +535,46 @@ export default function MobileGanttChart() {
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs font-medium block mb-1">開始日期</Label>
-                <Input
-                  type="date"
-                  value={editTaskStartDate}
-                  onChange={(e) => setEditTaskStartDate(e.target.value)}
-                  className="h-8 text-sm px-2"
-                />
-              </div>
-              <div>
-                <Label className="text-xs font-medium block mb-1">結束日期</Label>
-                <Input
-                  type="date"
-                  value={editTaskEndDate}
-                  onChange={(e) => setEditTaskEndDate(e.target.value)}
-                  className="h-8 text-sm px-2"
-                />
-              </div>
+              <Popover>
+                <div>
+                  <Label className="text-xs font-medium block mb-1">開始日期</Label>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="h-8 w-full text-xs px-2 justify-start font-normal">
+                      <CalendarIcon className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">{editTaskStartDate ? format(new Date(editTaskStartDate), 'M/d') : '選擇日期'}</span>
+                    </Button>
+                  </PopoverTrigger>
+                </div>
+                <PopoverContent className="w-auto p-2" align="start" side="top">
+                  <Calendar
+                    mode="single"
+                    selected={editTaskStartDate ? new Date(editTaskStartDate) : undefined}
+                    onSelect={(date) => setEditTaskStartDate(date ? format(date, 'yyyy-MM-dd') : '')}
+                    disabled={(date) => date > (editTaskEndDate ? new Date(editTaskEndDate) : new Date('2099-12-31'))}
+                    className="text-xs"
+                  />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <div>
+                  <Label className="text-xs font-medium block mb-1">結束日期</Label>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="h-8 w-full text-xs px-2 justify-start font-normal">
+                      <CalendarIcon className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">{editTaskEndDate ? format(new Date(editTaskEndDate), 'M/d') : '選擇日期'}</span>
+                    </Button>
+                  </PopoverTrigger>
+                </div>
+                <PopoverContent className="w-auto p-2" align="end" side="top">
+                  <Calendar
+                    mode="single"
+                    selected={editTaskEndDate ? new Date(editTaskEndDate) : undefined}
+                    onSelect={(date) => setEditTaskEndDate(date ? format(date, 'yyyy-MM-dd') : '')}
+                    disabled={(date) => date < (editTaskStartDate ? new Date(editTaskStartDate) : new Date('2000-01-01'))}
+                    className="text-xs"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <div className="flex gap-2 pt-1 sm:pt-2">
