@@ -282,7 +282,7 @@ export default function MobileGanttChart() {
       <div className="bg-gray-50 rounded p-2 space-y-1">
         {/* 集團篩選 */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">集團</div>
+          <div className="text-xs text-gray-600 font-medium whitespace-nowrap">集團</div>
           <div className="flex flex-wrap gap-1">
             <Button
               variant={!selectedGroupSlug ? 'default' : 'outline'}
