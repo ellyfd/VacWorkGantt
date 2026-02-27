@@ -358,11 +358,11 @@ export default function MobileGanttChart() {
           今天
         </button>
         <button onClick={() => setCurrentDate(d => subDays(d, 14))} className="p-1 hover:bg-gray-100 rounded">
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[weekDays.length - 1], 'M月d日')}</span>
+        <span className="font-medium text-[11px]">{format(weekDays[0], 'M月d日')} - {format(weekDays[weekDays.length - 1], 'M月d日')}</span>
         <button onClick={() => setCurrentDate(d => addDays(d, 14))} className="p-1 hover:bg-gray-100 rounded">
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
