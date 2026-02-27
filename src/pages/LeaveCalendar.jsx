@@ -566,12 +566,20 @@ export default function LeaveCalendar() {
             leaveTypes={leaveTypes}
             holidays={holidays}
             selectedLeaveTypeId={selectedLeaveTypeId}
+            onLeaveTypeChange={(value) => setSelectedLeaveTypeId(value || null)}
             rangeMode={rangeMode}
             dateRange={dateRange}
             onUpdateLeave={handleUpdateLeave}
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
             onCellClickInRangeMode={handleCellClickInRangeMode}
+            onRangeModeToggle={() => {
+              if (!selectedLeaveTypeId) { alert('請先選擇假別'); return; }
+              setRangeMode(true);
+            }}
+            onRangeModeCancel={() => { setRangeMode(false); setDateRange({ from: undefined, to: undefined }); }}
+            onRangeSubmit={handleRangeSubmit}
+            rangeLeavePending={rangeLeaveMutation.isPending}
           />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
