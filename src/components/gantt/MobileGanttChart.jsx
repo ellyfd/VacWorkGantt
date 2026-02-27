@@ -481,7 +481,7 @@ export default function MobileGanttChart() {
                       const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
                       const color = proj ? getProjectColor(proj) : '#ccc';
                       const wd = task.time_type === 'duration' ? calculateWorkingDays(task.start_date, task.end_date) : 0;
-                      const barText = `${proj?.season || ''} ${task.name}${wd > 0 ? ` (${wd}天)` : ''}`.trim();
+                      const barText = [proj?.season, task.name, wd > 0 ? `(${wd}天)` : ''].filter(Boolean).join(' ');
 
                       return (
                         <div
