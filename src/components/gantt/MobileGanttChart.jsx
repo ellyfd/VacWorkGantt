@@ -392,7 +392,7 @@ export default function MobileGanttChart() {
                     <span className={`font-bold text-xs ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                       {format(day, 'd')}
                     </span>
-                    <span className={`text-[9px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
+                    <span className={`text-xs ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
                       {format(day, 'EEE', { locale: zhTW })}
                     </span>
                   </div>
