@@ -236,18 +236,7 @@ export default function MobileGanttChart() {
   return (
     <div className="md:hidden p-3 space-y-4 pb-20">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-xl font-bold text-gray-900">甘特圖 - 週視圖</h1>
-        <div className="flex items-center justify-between text-sm">
-          <button onClick={() => setCurrentDate(d => subDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[13], 'M月d日')}</span>
-          <button onClick={() => setCurrentDate(d => addDays(d, 7))} className="p-1 hover:bg-gray-100 rounded">
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
+      <h1 className="text-xl font-bold text-gray-900">專案甘特圖</h1>
 
       {/* 篩選 */}
       <div className="bg-gray-50 rounded p-2 space-y-1">
