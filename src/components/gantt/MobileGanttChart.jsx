@@ -77,9 +77,13 @@ export default function MobileGanttChart() {
 
   // 當週 12 天（只取工作日：週一到週五 × 2週）
   const weekDays = useMemo(() => {
-    const start = subDays(currentDate, getDay(currentDate) - 1); // 本週一
-    const allDays = eachDayOfInterval({ start, end: addDays(start, 11) }); // 本週一 ~ 下週五 (12天含兩端)
-    return allDays.filter(d => getDay(d) !== 0 && getDay(d) !== 6);
+    // 以固定雙週區間為基準：從 2025-12-29 開始每14天一組
+    const anchor = new Date('2025-12-29'); // 第一個雙週的週一
+    const diffDays = Math.floor((currentDate - anchor) / (1000 * 60 * 60 * 24));
+    const periodIndex = Math.floor(diffDays / 14);
+    const start = addDays(anchor, periodIndex * 14);
+    const allDays = eachDayOfInterval({ start, end: addDays(start, 13) }); // 14自然日
+    return allDays.filter(d => getDay(d) !== 0 && getDay(d) !== 6); // 只留工作日
   }, [currentDate]);
 
   // Holiday set
