@@ -378,20 +378,25 @@ export default function MobileGanttChart() {
         <Card className="overflow-hidden">
           {/* 週期 header + 請假人數 */}
           <div>
+            {/* Header row with label column */}
             <div className="flex bg-gray-100 border-b border-gray-200">
+              {/* 客戶 label header */}
+              <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-300 bg-gray-200 text-[10px] font-bold text-gray-600"
+                style={{ width: LABEL_WIDTH }}>
+                客戶
+              </div>
               {weekDays.map(day => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const isHoliday = holidaySet.has(dateStr);
-                const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-                const isDim = isWeekend || isHoliday;
+                const isDim = isHoliday;
 
                 return (
                   <div
                     key={dateStr}
-                    className={`flex-1 flex flex-col items-center justify-center py-2 border-r border-gray-200 text-xs ${
+                    className={`flex flex-col items-center justify-center py-1 border-r border-gray-200 text-xs ${
                       isToday(day) ? 'bg-red-100' : isDim ? 'bg-gray-50' : ''
                     }`}
-                    style={{ width: CELL_WIDTH }}
+                    style={{ width: CELL_WIDTH, flexShrink: 0 }}
                   >
                     <span className={`font-bold text-[11px] ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                       {format(day, 'd')}
@@ -405,7 +410,9 @@ export default function MobileGanttChart() {
             </div>
 
             {/* 請假人數列 */}
-            <div className="flex bg-gray-50 border-b border-gray-200" style={{ height: 32 }}>
+            <div className="flex bg-gray-50 border-b border-gray-200" style={{ height: 28 }}>
+              {/* empty label col */}
+              <div className="flex-shrink-0 border-r border-gray-300" style={{ width: LABEL_WIDTH }} />
               {weekDays.map(day => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const count = getLeaveCount(dateStr);
@@ -414,7 +421,7 @@ export default function MobileGanttChart() {
                 const cellContent = (
                   <div
                     key={dateStr}
-                    className="flex-1 border-r border-gray-200 flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+                    className="flex-shrink-0 border-r border-gray-200 flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                       backgroundColor: leaveStyle?.bg || 'transparent',
                       color: leaveStyle?.text || '#d1d5db',
@@ -444,56 +451,60 @@ export default function MobileGanttChart() {
             </div>
           </div>
 
-          {/* Task rows (all projects stacked) */}
+          {/* Task rows */}
           <div className="space-y-0">
-            {filteredTasks.map((task, idx) => {
+            {filteredTasks.map((task) => {
               const pos = getTaskPosition(task);
               if (!pos) return null;
               const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
               const color = proj ? getProjectColor(proj) : '#ccc';
+              const brand = projects.find(p => p.id === proj?.brand_id);
+              const clientLabel = brand?.short_name || proj?.name?.slice(0, 4) || '';
+
+              const wd = task.time_type === 'duration' ? calculateWorkingDays(task.start_date, task.end_date) : 0;
+              const barText = `${proj?.season || ''} ${task.name}${wd > 0 ? ` (${wd}天)` : ''}`.trim();
 
               return (
-                <div key={task.id} className="relative border-b border-gray-100" style={{ height: ROW_HEIGHT }}>
-                  {/* Background grid */}
-                  <div className="absolute inset-0 flex">
-                    {weekDays.map((day, dayIdx) => {
-                      const dateStr = format(day, 'yyyy-MM-dd');
-                      const isHoliday = holidaySet.has(dateStr);
-                      const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-                      return (
-                        <div
-                          key={dayIdx}
-                          className={`flex-1 border-r border-gray-100 ${
-                            isWeekend || isHoliday ? 'bg-gray-50' : 'bg-white'
-                          }`}
-                          style={{ width: CELL_WIDTH }}
-                        />
-                      );
-                    })}
+                <div key={task.id} className="flex border-b border-gray-100" style={{ height: ROW_HEIGHT }}>
+                  {/* 客戶 label */}
+                  <div className="flex-shrink-0 flex items-center justify-center border-r border-gray-200 bg-gray-50 text-[9px] font-semibold text-gray-600 leading-tight text-center px-0.5"
+                    style={{ width: LABEL_WIDTH }}>
+                    {clientLabel}
                   </div>
+                  {/* Grid + bar */}
+                  <div className="relative flex-1" style={{ width: weekDays.length * CELL_WIDTH }}>
+                    {/* Background grid */}
+                    <div className="absolute inset-0 flex">
+                      {weekDays.map((day, dayIdx) => {
+                        const dateStr = format(day, 'yyyy-MM-dd');
+                        const isHoliday = holidaySet.has(dateStr);
+                        return (
+                          <div
+                            key={dayIdx}
+                            className={`flex-shrink-0 border-r border-gray-100 ${isHoliday ? 'bg-gray-50' : 'bg-white'}`}
+                            style={{ width: CELL_WIDTH }}
+                          />
+                        );
+                      })}
+                    </div>
 
-                  {/* Task bar */}
-                  {pos && (
+                    {/* Task bar */}
                     <div
-                      className="absolute top-0.5 rounded overflow-hidden flex items-center px-0.5 cursor-pointer hover:opacity-90 transition-opacity"
+                      className="absolute top-1 rounded cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center overflow-hidden"
                       style={{
                         backgroundColor: color,
                         left: pos.left + 1,
                         width: pos.width,
-                        height: ROW_HEIGHT - 2,
+                        height: ROW_HEIGHT - 6,
                       }}
                       title={`${proj?.name} - ${task.name}`}
                       onClick={() => handleOpenEditDialog(task)}
                     >
-                      <span className="truncate font-medium text-xs" style={{ color: getContrastColor(color) }}>
-                        {proj?.name} {task.name}
-                        {task.time_type === 'duration' && (() => {
-                          const wd = calculateWorkingDays(task.start_date, task.end_date);
-                          return wd > 0 ? ` (${wd}工作天)` : '';
-                        })()}
+                      <span className="font-medium text-[10px] px-1 text-center leading-tight" style={{ color: getContrastColor(color) }}>
+                        {barText}
                       </span>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
