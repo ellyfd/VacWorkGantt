@@ -14,7 +14,7 @@ import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'da
 import { zhTW } from 'date-fns/locale';
 
 const ROW_HEIGHT = 28;
-const LABEL_WIDTH = 55;
+const LABEL_WIDTH = 60;
 // 10 工作天，動態根據螢幕寬度計算，最小 26px，最大 40px
 const SCREEN_W = typeof window !== 'undefined' ? Math.min(window.innerWidth, 430) : 390;
 const CELL_WIDTH = Math.floor(Math.min(Math.max((SCREEN_W - LABEL_WIDTH - 16) / 10, 26), 40));
@@ -461,10 +461,10 @@ export default function MobileGanttChart() {
               return (
                 <div key={brand.id} className="flex border-b border-gray-100" style={{ minHeight: ROW_HEIGHT }}>
                   {/* 客戶 label */}
-                  <div className="flex-shrink-0 flex flex-col items-center justify-center border-r border-gray-200 bg-gray-50 text-[11px] font-semibold text-gray-600 leading-tight text-center px-0.5"
+                  <div className="flex-shrink-0 flex flex-row items-center justify-center gap-0.5 border-r border-gray-200 bg-gray-50 text-xs font-semibold text-gray-600 leading-tight text-center px-0.5"
                     style={{ width: LABEL_WIDTH }}>
                     <div>{brand.short_name}</div>
-                    {seasons.length > 0 && <div className="text-xs text-gray-500 mt-0.5">{seasons.join('/')}</div>}
+                    {seasons.length > 0 && <div className="text-xs text-gray-500">{seasons.join('/')}</div>}
                   </div>
                   {/* Grid + bars */}
                   <div className="relative" style={{ width: weekDays.length * CELL_WIDTH, minHeight: ROW_HEIGHT }}>
