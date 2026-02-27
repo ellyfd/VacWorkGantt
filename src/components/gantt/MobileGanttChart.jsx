@@ -277,40 +277,6 @@ export default function MobileGanttChart() {
 
       {/* 篩選 */}
       <div className="bg-gray-50 rounded p-2 space-y-1">
-        {/* 部門篩選 */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">部門</div>
-          <div className="flex flex-wrap gap-1">
-            <Button
-              variant={!selectedDeptId ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => {
-                setSelectedDeptId('');
-                setSelectedGroupSlug('');
-                setSelectedBrandIds([]);
-              }}
-              className="text-xs h-6 px-2"
-            >
-              全部
-            </Button>
-            {departments.map(d => (
-              <Button
-                key={d.id}
-                variant={selectedDeptId === d.id ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setSelectedDeptId(d.id);
-                  setSelectedGroupSlug(d.group_id);
-                  setSelectedBrandIds([]);
-                }}
-                className="text-xs h-6 px-2"
-              >
-                {d.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-
         {/* 集團篩選 */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="text-[11px] text-gray-600 font-medium whitespace-nowrap">集團</div>
