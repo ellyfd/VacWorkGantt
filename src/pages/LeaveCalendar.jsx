@@ -546,16 +546,49 @@ export default function LeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 pb-8 sm:p-6">
       <div className="max-w-full mx-auto">
-        {/* 標題和日期選擇器 */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
-          <div className="md:hidden">
-            <CalendarHeader 
-              currentDate={currentDate} 
-              onDateChange={setCurrentDate}
-            />
-          </div>
-        </div>
+         {/* 標題 */}
+         <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
+
+         {/* 頂部工具欄 - 日期選擇 + 假別選擇 */}
+         <div className="mb-6 bg-white rounded-lg border border-gray-200 p-4 flex flex-col gap-3">
+           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+             {/* 左側：日期選擇 */}
+             <div className="flex items-center gap-2">
+               <span className="text-sm font-medium text-gray-700 hidden sm:inline">日期：</span>
+               <div className="md:hidden">
+                 <CalendarHeader 
+                   currentDate={currentDate} 
+                   onDateChange={setCurrentDate}
+                 />
+               </div>
+               <div className="hidden md:block">
+                 <CalendarHeader 
+                   currentDate={currentDate} 
+                   onDateChange={setCurrentDate}
+                 />
+               </div>
+             </div>
+
+             {/* 右側：假別選擇 */}
+             <div className="flex items-center gap-2">
+               <span className="text-sm font-medium text-gray-700">假別：</span>
+               <Select
+                 value={selectedLeaveTypeId || ''}
+                 onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+               >
+                 <SelectTrigger className="w-[140px]">
+                   <SelectValue placeholder="選擇假別" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value={null}>不選擇</SelectItem>
+                   {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                     <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+           </div>
+         </div>
 
           <WeekCalendarTable
             currentDate={currentDate}
