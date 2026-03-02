@@ -133,13 +133,13 @@ export default function LeaveCalendarTable({
                   setHighlightedDate(highlightedDate === d.date ? null : d.date);
                   setHighlightedEmployeeId(null);
                 }}
-                className={`px-0.5 py-0.5 text-center text-xs font-semibold border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
-                  d.isHoliday || d.isWeekend ? 'bg-gray-300 text-red-500' : 
-                  highlightedDate === d.date ? 'bg-yellow-200' : 'text-gray-600'
+                className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
+                  d.isHoliday || d.isWeekend ? 'bg-gray-100 text-red-500' : 
+                  highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                 }`}
               >
-                <div>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                <div className="text-[10px] font-normal">{d.weekday}</div>
+                <div className="text-[13px] font-medium text-gray-800">{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                <div className="text-[10px] text-gray-400">{d.weekday}</div>
               </th>
             ))}
           </tr>
