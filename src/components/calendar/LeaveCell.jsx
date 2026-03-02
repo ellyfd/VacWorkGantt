@@ -52,14 +52,18 @@ function LeaveCell({
 
   return (
     <div 
-      className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-all text-xs font-medium ${!record ? cellBgClass : ''} ${
-        isInRange ? 'ring-2 ring-inset ring-blue-500' : ''
-      } ${isRangeStart || isRangeEnd ? 'ring-4 ring-blue-600' : ''}`}
+      className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-all text-[12px] font-medium ${!record ? cellBgClass : ''} ${
+        isInRange ? 'ring-1 ring-inset ring-blue-400' : ''
+      } ${isRangeStart || isRangeEnd ? 'ring-2 ring-blue-500' : ''}`}
       style={record && leaveType ? { backgroundColor: leaveType.color, color: '#fff' } : (isInRange && !record ? { backgroundColor: '#dbeafe' } : {})}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
-      {record && leaveType ? leaveType.short_name : ''}
+      {record && leaveType ? (
+        <span className={`${leaveType.name === '午休' || leaveType.name === '半天假' ? 'font-semibold' : ''}`}>
+          {leaveType.short_name}
+        </span>
+      ) : ''}
     </div>
   );
 }
