@@ -591,29 +591,29 @@ export default function LeaveCalendar() {
          </div>
 
           <WeekCalendarTable
-            currentDate={currentDate}
-            onDateChange={setCurrentDate}
-            currentEmployee={currentEmployee}
-            currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
-            leaveRecords={leaveRecords}
-            leaveTypes={leaveTypes}
-            holidays={holidays}
-            selectedLeaveTypeId={selectedLeaveTypeId}
-            onLeaveTypeChange={(value) => setSelectedLeaveTypeId(value || null)}
-            rangeMode={rangeMode}
-            dateRange={dateRange}
-            onUpdateLeave={handleUpdateLeave}
-            onDeleteLeave={handleDeleteLeave}
-            onDeleteRangeLeave={handleDeleteRangeLeave}
-            onCellClickInRangeMode={handleCellClickInRangeMode}
-            onRangeModeToggle={() => {
-              if (!selectedLeaveTypeId) { alert('請先選擇假別'); return; }
-              setRangeMode(true);
-            }}
-            onRangeModeCancel={() => { setRangeMode(false); setDateRange({ from: undefined, to: undefined }); }}
-            onRangeSubmit={handleRangeSubmit}
-            rangeLeavePending={rangeLeaveMutation.isPending}
-          />
+             currentDate={currentDate}
+             onDateChange={setCurrentDate}
+             currentEmployee={currentEmployee}
+             currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
+             leaveRecords={leaveRecords}
+             leaveTypes={leaveTypes}
+             holidays={holidays}
+             selectedLeaveTypeId={selectedLeaveTypeId}
+             onLeaveTypeChange={null}
+             rangeMode={rangeMode}
+             dateRange={dateRange}
+             onUpdateLeave={handleUpdateLeave}
+             onDeleteLeave={handleDeleteLeave}
+             onDeleteRangeLeave={handleDeleteRangeLeave}
+             onCellClickInRangeMode={handleCellClickInRangeMode}
+             onRangeModeToggle={() => {
+               if (!selectedLeaveTypeId) { alert('請先選擇假別'); return; }
+               setRangeMode(true);
+             }}
+             onRangeModeCancel={() => { setRangeMode(false); setDateRange({ from: undefined, to: undefined }); }}
+             onRangeSubmit={handleRangeSubmit}
+             rangeLeavePending={rangeLeaveMutation.isPending}
+           />
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div className="space-y-3">
