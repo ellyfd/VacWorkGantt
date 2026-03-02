@@ -158,12 +158,7 @@ export default function WeekCalendarTable({
             )}
           </div>
 
-          {/* 中：年月 */}
-          <div className="flex-shrink-0">
-            <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
-          </div>
-
-          {/* 右：假別 + 區間 */}
+          {/* 中：假別 + 區間 */}
           <div className="flex items-center gap-2 flex-shrink-0">
             {onLeaveTypeChange && (
               <>
@@ -220,6 +215,11 @@ export default function WeekCalendarTable({
                 )}
               </>
             )}
+          </div>
+
+          {/* 右：年月 */}
+          <div className="flex-shrink-0">
+            <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
           </div>
         </div>
 
