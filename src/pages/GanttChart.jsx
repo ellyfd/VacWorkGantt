@@ -1613,32 +1613,21 @@ export default function GanttChart() {
             onSuccess: () => setEditingProjectTasks(prev => prev.filter(t => t.id !== taskId))
           });
         }}
-        onCreateTask={(name) => {
-          createGanttTask.mutate({
-            name,
-            gantt_project_id: editingProject.id,
-            sort_order: editingProjectTasks.length + 1,
-          }, {
-            onSuccess: (newTask) => setEditingProjectTasks(prev => [...prev, newTask])
-          });
-        }}
         onSave={() => {
           updateGanttProject.mutate({ id: editingProject.id, data: { name: editingProject.name } });
           editingProjectTasks.forEach(task => {
             const original = ganttTasks.find(t => t.id === task.id);
             if (!original) return;
 
-            const nameChanged = original.name !== task.name;
             const timeChanged =
               original.time_type !== task.time_type ||
               original.start_date !== task.start_date ||
               original.end_date !== task.end_date;
 
-            if (nameChanged || timeChanged) {
+            if (timeChanged) {
               updateGanttTask.mutate({
                 id: task.id,
                 data: {
-                  name: task.name,
                   time_type: task.time_type || null,
                   start_date: task.start_date || null,
                   end_date: task.time_type === 'duration' ? (task.end_date || null) : null,
