@@ -540,40 +540,18 @@ export default function GanttChart() {
     setProjectFormData({ brand_id: '', season: '', year: new Date().getFullYear(), color: '#3b82f6' });
   };
 
-  const handleAddPhase = async () => {
-    if (!creatingProjectId) return;
 
-    const currentProjectPhases = ganttPhases.filter(p => p.gantt_project_id === creatingProjectId);
-    const maxSortOrder = currentProjectPhases.reduce((max, p) => Math.max(max, p.sort_order || 0), 0);
-
-    const selectedSampleIds = Object.keys(selectedSamples).filter((k) => selectedSamples[k]);
-    if (selectedSampleIds.length === 0) return; 
-
-    await bulkCreatePhases.mutateAsync(
-        selectedSampleIds.map((sampleId, idx) => {
-            const sample = samples.find((s) => s.id === sampleId);
-            return {
-                gantt_project_id: creatingProjectId,
-                sample_id: sampleId,
-                name: sample.short_name || sample.name,
-                sort_order: maxSortOrder + idx + 1,
-            };
-        })
-    );
-    setShowAddPhaseDialog(false);
-    setSelectedSamples({});
-    setCreatingProjectId(null);
-  };
 
   const handleAddTask = () => {
     const projectId = creatingProjectIdRef.current;
-    if (!taskFormData.name || !projectId) return;
+    if (!taskFormData.sample_id || !projectId) return;
 
+    const sample = samples.find(s => s.id === taskFormData.sample_id);
     const tasksInProject = ganttTasks.filter((t) => t.gantt_project_id === projectId);
     const taskData = {
-      name: taskFormData.name,
+      name: sample.short_name || sample.name,
       gantt_project_id: projectId,
-      sample_id: taskFormData.sample_id || null,
+      sample_id: taskFormData.sample_id,
       sort_order: tasksInProject.length + 1,
     };
 
