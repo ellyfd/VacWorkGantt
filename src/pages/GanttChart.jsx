@@ -1220,15 +1220,7 @@ export default function GanttChart() {
     return project ? getSamplesByBrand(project.brand_id) : [];
   }, [editingTask, ganttProjects, samples]);
 
-  const projectForAddPhase = ganttProjects.find(p => p.id === creatingProjectId);
-  const brandIdForAddPhase = projectForAddPhase?.brand_id;
-  const samplesForPhaseSelection = useMemo(() => {
-    if (!brandIdForAddPhase) return [];
-    const allSamples = getSamplesByBrand(brandIdForAddPhase);
-    const existingPhases = ganttPhases.filter(p => p.gantt_project_id === creatingProjectId);
-    const existingSampleIds = new Set(existingPhases.map(p => p.sample_id));
-    return allSamples.filter(s => !existingSampleIds.has(s.id));
-  }, [brandIdForAddPhase, ganttPhases, creatingProjectId, samples]);
+
 
   return (
     <TooltipProvider delayDuration={200}>
