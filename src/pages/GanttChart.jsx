@@ -1011,6 +1011,7 @@ export default function GanttChart() {
             color: getContrastColor(getProjectColor(row.data)),
           }}
         >
+          <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
           <span className="truncate flex-1">{row.data.name}</span>
           <div className="flex gap-1 flex-shrink-0">
             <button
