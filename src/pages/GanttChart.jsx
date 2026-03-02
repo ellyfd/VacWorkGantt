@@ -1491,8 +1491,8 @@ export default function GanttChart() {
                           className="border-r border-gray-200 flex items-center justify-center"
                           style={{
                             backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#d1d5db' : 'transparent'),
-                            fontSize: 13,
-                            fontWeight: leaveStyle?.bold ? 700 : 500,
+                            fontSize: 11,
+                            fontWeight: leaveStyle?.bold ? 700 : 600,
                             color: leaveStyle?.text || '#d1d5db',
                             cursor: count ? 'pointer' : 'default',
                           }}
