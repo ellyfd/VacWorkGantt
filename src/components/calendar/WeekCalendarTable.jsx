@@ -288,19 +288,78 @@ export default function WeekCalendarTable({
           )}
         </div>
 
-        {/* 統計列 */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {monthlyLeaveStats.length > 0 ? (
-            monthlyLeaveStats.map((stat) => (
-              <div key={stat.leaveTypeId} className="flex items-center gap-1">
-                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: stat.color }} />
-                <span className="text-xs text-gray-600">{stat.name} {stat.count}天</span>
-              </div>
-            ))
-          ) : (
-            <span className="text-xs text-gray-400">本月無休假</span>
-          )}
-        </div>
+        {/* 統計列 + 假別/區間（水平併排） */}
+         <div className="flex items-center justify-between gap-4 mb-3">
+           <div className="flex flex-wrap gap-2 flex-1">
+             {monthlyLeaveStats.length > 0 ? (
+               monthlyLeaveStats.map((stat) => (
+                 <div key={stat.leaveTypeId} className="flex items-center gap-1">
+                   <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: stat.color }} />
+                   <span className="text-xs text-gray-600">{stat.name} {stat.count}天</span>
+                 </div>
+               ))
+             ) : (
+               <span className="text-xs text-gray-400">本月無休假</span>
+             )}
+           </div>
+
+           {/* 假別 + 區間（行動版右側） */}
+           {onLeaveTypeChange && (
+             <div className="flex items-center gap-1 flex-shrink-0">
+               <Select
+                 value={selectedLeaveTypeId || ''}
+                 onValueChange={(value) => onLeaveTypeChange(value || null)}
+                 disabled={rangeMode}
+               >
+                 <SelectTrigger className="h-7 text-xs w-[100px]">
+                   <SelectValue placeholder="選擇假別" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value={null}>不選擇</SelectItem>
+                   {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                     <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+               {!rangeMode ? (
+                 <Button
+                   onClick={onRangeModeToggle}
+                   className="bg-blue-600 hover:bg-blue-700 h-7 w-7"
+                   size="icon"
+                 >
+                   <CalendarRange className="h-4 w-4" />
+                 </Button>
+               ) : (
+                 <Popover open={dateRange.from && dateRange.to}>
+                   <PopoverTrigger asChild>
+                     <Button
+                       onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
+                       variant="outline"
+                       size="icon"
+                       className={`h-7 w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                     >
+                       {dateRange.from && dateRange.to ? '✓' : '✕'}
+                     </Button>
+                   </PopoverTrigger>
+                   <PopoverContent className="w-72">
+                     <div className="space-y-3">
+                       <div>
+                         <h3 className="font-semibold text-sm">確認區間請假</h3>
+                         <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
+                       </div>
+                       <div className="flex gap-2">
+                         <Button onClick={onRangeModeCancel} variant="outline" size="sm" className="flex-1">取消</Button>
+                         <Button onClick={onRangeSubmit} disabled={rangeLeavePending} className="bg-blue-600 hover:bg-blue-700 flex-1" size="sm">
+                           {rangeLeavePending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />處理中</> : '確定'}
+                         </Button>
+                       </div>
+                     </div>
+                   </PopoverContent>
+                 </Popover>
+               )}
+             </div>
+           )}
+         </div>
 
         {/* Range 模式提示 */}
         {rangeMode && (
