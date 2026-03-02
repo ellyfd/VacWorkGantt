@@ -1354,14 +1354,18 @@ export default function GanttChart() {
                 {visibleRows.map((row) => (
                   <div
                     key={row.id}
-                    className="border-b border-gray-200"
+                    className="border-b border-gray-200 relative"
                     draggable={true}
                     onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
-                    onDragOver={(e) => handleProjectDragOver(e)}
+                    onDragOver={(e) => handleProjectDragOver(e, row.data.id)}
                     onDrop={(e) => handleProjectDrop(e, row.data.id)}
                     onDragEnd={() => handleProjectDragEnd()}
+                    onDragLeave={() => setDropTargetId(null)}
                     style={{ cursor: 'move', opacity: draggedProjectIdRef.current === row.data.id ? 0.5 : 1, userSelect: 'none' }}
                   >
+                    {dropTargetId === row.data.id && (
+                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 z-50" />
+                    )}
                     {renderLeftCell(row)}
                   </div>
                 ))}
