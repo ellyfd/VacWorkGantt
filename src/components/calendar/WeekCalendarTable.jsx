@@ -145,83 +145,83 @@ export default function WeekCalendarTable({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         {/* 三區 Header */}
-        <div className="hidden md:flex items-start justify-between gap-4 mb-3">
-          {/* 左：姓名 */}
-          <div>
-            <h3 className="text-lg font-bold text-gray-800 leading-tight">
-              {currentEmployee.name}
-            </h3>
-            {currentEmployee.english_name && (
-              <div className="text-xs text-gray-500">
-                {currentEmployee.english_name}
-              </div>
-            )}
-          </div>
+         <div className="hidden md:flex items-start justify-between gap-4 mb-3">
+           {/* 左：姓名 */}
+           <div>
+             <h3 className="text-lg font-bold text-gray-800 leading-tight">
+               {currentEmployee.name}
+             </h3>
+             {currentEmployee.english_name && (
+               <div className="text-xs text-gray-500">
+                 {currentEmployee.english_name}
+               </div>
+             )}
+           </div>
 
-          {/* 中：假別 + 區間 */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {onLeaveTypeChange && (
-              <>
-                <Select
-                  value={selectedLeaveTypeId || ''}
-                  onValueChange={(value) => onLeaveTypeChange(value || null)}
-                  disabled={rangeMode}
-                >
-                  <SelectTrigger className="h-7 text-xs w-[130px]">
-                    <SelectValue placeholder="選擇假別" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不選擇</SelectItem>
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!rangeMode ? (
-                  <Button
-                    onClick={onRangeModeToggle}
-                    className="bg-blue-600 hover:bg-blue-700 h-7 w-7"
-                    size="icon"
-                  >
-                    <CalendarRange className="h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Popover open={dateRange.from && dateRange.to}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
-                        variant="outline"
-                        size="icon"
-                        className={`h-7 w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
-                      >
-                        {dateRange.from && dateRange.to ? '✓' : '✕'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-72">
-                      <div className="space-y-3">
-                        <div>
-                          <h3 className="font-semibold text-sm">確認區間請假</h3>
-                          <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button onClick={onRangeModeCancel} variant="outline" size="sm" className="flex-1">取消</Button>
-                          <Button onClick={onRangeSubmit} disabled={rangeLeavePending} className="bg-blue-600 hover:bg-blue-700 flex-1" size="sm">
-                            {rangeLeavePending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />處理中</> : '確定'}
-                          </Button>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </>
-            )}
-          </div>
+           {/* 右：控制區（上下階梯） */}
+           <div className="flex flex-col items-end gap-2">
+             {/* 第一排：年月 */}
+             <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
 
-          {/* 右：年月 */}
-          <div className="flex-shrink-0">
-            <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
-          </div>
-        </div>
+             {/* 第二排：假別 + 區間（右對齊） */}
+             {onLeaveTypeChange && (
+               <div className="flex items-center gap-2 justify-end">
+                 <Select
+                   value={selectedLeaveTypeId || ''}
+                   onValueChange={(value) => onLeaveTypeChange(value || null)}
+                   disabled={rangeMode}
+                 >
+                   <SelectTrigger className="h-9 text-sm w-[150px]">
+                     <SelectValue placeholder="選擇假別" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value={null}>不選擇</SelectItem>
+                     {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                       <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+
+                 {!rangeMode ? (
+                   <Button
+                     onClick={onRangeModeToggle}
+                     className="bg-blue-600 hover:bg-blue-700 h-9 w-9"
+                     size="icon"
+                   >
+                     <CalendarRange className="h-4 w-4" />
+                   </Button>
+                 ) : (
+                   <Popover open={dateRange.from && dateRange.to}>
+                     <PopoverTrigger asChild>
+                       <Button
+                         onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
+                         variant="outline"
+                         size="icon"
+                         className={`h-9 w-9 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                       >
+                         {dateRange.from && dateRange.to ? '✓' : '✕'}
+                       </Button>
+                     </PopoverTrigger>
+                     <PopoverContent className="w-72">
+                       <div className="space-y-3">
+                         <div>
+                           <h3 className="font-semibold text-sm">確認區間請假</h3>
+                           <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
+                         </div>
+                         <div className="flex gap-2">
+                           <Button onClick={onRangeModeCancel} variant="outline" size="sm" className="flex-1">取消</Button>
+                           <Button onClick={onRangeSubmit} disabled={rangeLeavePending} className="bg-blue-600 hover:bg-blue-700 flex-1" size="sm">
+                             {rangeLeavePending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />處理中</> : '確定'}
+                           </Button>
+                         </div>
+                       </div>
+                     </PopoverContent>
+                   </Popover>
+                 )}
+               </div>
+             )}
+           </div>
+         </div>
 
         {/* 行動版姓名 + 控制 */}
         <div className="md:hidden flex items-center justify-between mb-2">
