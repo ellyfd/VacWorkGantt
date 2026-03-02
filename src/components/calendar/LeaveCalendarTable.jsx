@@ -120,7 +120,7 @@ export default function LeaveCalendarTable({
   return (
     <div className="bg-white w-full">
       <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
-        <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 85, 600)}px` }}>
+        <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 70, 600)}px` }}>
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
               <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap">
