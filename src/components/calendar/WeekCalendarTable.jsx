@@ -163,28 +163,7 @@ export default function WeekCalendarTable({
              {/* 第一排：年月 */}
              <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
 
-             {/* 第二排：假別 + 區間（右對齊） */}
-             {onLeaveTypeChange && (
-               <div className="flex items-center gap-2 justify-end">
-                 <Select
-                   value={selectedLeaveTypeId || ''}
-                   onValueChange={(value) => onLeaveTypeChange(value || null)}
-                   disabled={rangeMode}
-                 >
-                   <SelectTrigger className="h-9 text-sm w-[150px]">
-                     <SelectValue placeholder="選擇假別" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value={null}>不選擇</SelectItem>
-                     {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                       <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
 
-
-               </div>
-             )}
            </div>
          </div>
 
