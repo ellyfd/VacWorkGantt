@@ -165,10 +165,7 @@ export default function GanttChart() {
     queryFn: () => base44.entities.Holiday.list(),
   });
 
-  const { data: ganttPhases = [] } = useQuery({
-    queryKey: ['ganttPhases'],
-    queryFn: () => base44.entities.GanttPhase.list('sort_order'),
-  });
+
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -195,19 +192,7 @@ export default function GanttChart() {
     onSuccess: () => queryClient.invalidateQueries(['ganttProjects']),
   });
 
-  const bulkCreatePhases = useMutation({
-    mutationFn: async (phases) => {
-      for (const phase of phases) {
-        await base44.entities.GanttPhase.create(phase);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['ganttPhases']);
-      setSelectedSamples({});
-      setProjectFormData({ brand_id: '', season: '' });
-      setScheduleFile(null);
-    },
-  });
+
 
   const uploadScheduleFile = useMutation({
     mutationFn: async (file) => {
@@ -315,10 +300,7 @@ export default function GanttChart() {
     },
   });
 
-  const updateGanttPhase = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.GanttPhase.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries(['ganttPhases']),
-  });
+
 
 
 
