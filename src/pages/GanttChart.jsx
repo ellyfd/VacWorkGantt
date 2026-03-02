@@ -1004,16 +1004,16 @@ export default function GanttChart() {
       const projectTasks = tasksByProjectId[row.data.id] ?? [];
       return (
         <div
-          className="flex items-center gap-2 px-3 font-bold text-sm"
+          className="flex items-center gap-2 px-3"
           style={{
             height: ROW_HEIGHT,
             backgroundColor: getProjectColor(row.data),
             color: getContrastColor(getProjectColor(row.data)),
           }}
         >
-          <GripVertical className="w-4 h-4 flex-shrink-0 opacity-60" />
-          <span className="truncate flex-1">{row.data.name}</span>
-          <div className="flex gap-1 flex-shrink-0">
+          <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-40" />
+          <span className="truncate flex-1 font-semibold text-[14px]">{row.data.name}</span>
+          <div className="flex gap-1 flex-shrink-0 opacity-70">
             <button
               onClick={(e) => {
                 e.stopPropagation();
