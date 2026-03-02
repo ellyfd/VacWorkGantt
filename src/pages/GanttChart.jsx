@@ -1097,7 +1097,7 @@ export default function GanttChart() {
         }}
       >
         {props.isToday && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
-        {props.isToday && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-red-500" />}
+        {props.isToday && <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-red-400" />}
       </div>
     );
   }, [dayCellPropsMap, tasksByProjectId, isDragging, dragTaskId, dragStart, dragEnd]);
