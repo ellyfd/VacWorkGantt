@@ -1570,28 +1570,27 @@ export default function GanttChart() {
             const { file_url } = await uploadScheduleFile.mutateAsync(scheduleFile);
             const result = await analyzeSchedule.mutateAsync(file_url);
             if (result && result.tasks && result.tasks.length > 0) {
-              let phaseIndex = 1;
               for (const task of result.tasks) {
                 if (task.name.trim()) {
-                  const phase = await base44.entities.GanttPhase.create({
-                    gantt_project_id: creatingProjectId,
-                    name: task.name.trim(),
-                    sort_order: phaseIndex++,
-                  });
-                  await base44.entities.GanttTask.create({
-                    gantt_phase_id: phase.id,
-                    name: task.name.trim(),
-                    sort_order: 1,
-                    time_type: 'milestone',
-                  });
+                  // 嘗試找到對應的樣品
+                  const sample = samples.find(s => 
+                    (s.short_name || s.name).toLowerCase() === task.name.trim().toLowerCase()
+                  );
+                  if (sample) {
+                    await base44.entities.GanttTask.create({
+                      gantt_project_id: creatingProjectId,
+                      name: sample.short_name || sample.name,
+                      sample_id: sample.id,
+                      sort_order: (ganttTasks.filter(t => t.gantt_project_id === creatingProjectId).length) + 1,
+                      time_type: 'milestone',
+                    });
+                  }
                 }
               }
-              queryClient.invalidateQueries(['ganttPhases']);
               queryClient.invalidateQueries(['ganttTasks']);
               setShowImportScheduleDialog(false);
               setScheduleFile(null);
               setCreatingProjectId(null);
-        
             }
           } finally {
             setIsAnalyzingSchedule(false);
