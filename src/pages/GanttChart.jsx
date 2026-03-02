@@ -1352,12 +1352,12 @@ export default function GanttChart() {
                   <div
                     key={row.id}
                     className="border-b border-gray-200"
-                    draggable
+                    draggable={true}
                     onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
-                    onDragOver={handleProjectDragOver}
+                    onDragOver={(e) => handleProjectDragOver(e)}
                     onDrop={(e) => handleProjectDrop(e, row.data.id)}
-                    onDragEnd={handleProjectDragEnd}
-                    style={{ cursor: 'move', opacity: draggedProjectIdRef.current === row.data.id ? 0.5 : 1 }}
+                    onDragEnd={() => handleProjectDragEnd()}
+                    style={{ cursor: 'move', opacity: draggedProjectIdRef.current === row.data.id ? 0.5 : 1, userSelect: 'none' }}
                   >
                     {renderLeftCell(row)}
                   </div>
