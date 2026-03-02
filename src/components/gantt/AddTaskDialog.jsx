@@ -13,43 +13,30 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
         </DialogHeader>
         <div className="space-y-4 py-4">
 
-          {/* 樣品選擇 → 自動帶入任務名稱 */}
-          {samplesForProject.length > 0 ? (
-            <div>
-              <Label>樣品 *</Label>
-              <select
-                value={taskFormData.sample_id || ''}
-                onChange={(e) => {
-                  const sample = samplesForProject.find(s => s.id === e.target.value);
-                  setTaskFormData({
-                    ...taskFormData,
-                    sample_id: e.target.value,
-                    name: sample ? (sample.short_name || sample.name) : '',
-                  });
-                }}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">選擇樣品...</option>
-                {samplesForProject.map(s => (
-                  <option key={s.id} value={s.id}>{s.short_name || s.name}</option>
-                ))}
-              </select>
-              {taskFormData.name && (
-                <p className="mt-1 text-xs text-gray-400">任務名稱：{taskFormData.name}</p>
-              )}
-            </div>
-          ) : (
-            <div>
-              <Label>任務名稱 *</Label>
-              <Input
-                value={taskFormData.name}
-                onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
-                placeholder="例：SPR raised in Centric"
-                className="mt-1"
-                autoFocus
-              />
-            </div>
-          )}
+          {/* 樣品必選 */}
+          <div>
+            <Label>樣品 *</Label>
+            <select
+              value={taskFormData.sample_id || ''}
+              onChange={(e) => {
+                const sample = samplesForProject.find(s => s.id === e.target.value);
+                setTaskFormData({
+                  ...taskFormData,
+                  sample_id: e.target.value,
+                  name: sample ? (sample.short_name || sample.name) : '',
+                });
+              }}
+              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">選擇樣品...</option>
+              {samplesForProject.map(s => (
+                <option key={s.id} value={s.id}>{s.short_name || s.name}</option>
+              ))}
+            </select>
+            {taskFormData.name && (
+              <p className="mt-1 text-xs text-gray-400">任務名稱：{taskFormData.name}</p>
+            )}
+          </div>
 
           {/* 時間設定（選填） */}
           <div className="border-t pt-4">
@@ -119,7 +106,7 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
           <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
           <Button
             onClick={onConfirm}
-            disabled={!taskFormData.name}
+            disabled={!taskFormData.sample_id}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {taskFormData.time_type ? '新增' : '新增並畫日期 →'}
