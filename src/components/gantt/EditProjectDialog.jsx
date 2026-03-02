@@ -68,23 +68,18 @@ export default function EditProjectDialog({
                   <p className="text-xs text-gray-400 py-2 text-center">尚無任務</p>
                 )}
                 {projectTasks.map(task => (
-                  <div key={task.id} className="space-y-2 p-3 border rounded-lg bg-gray-50">
-                    {/* 第一行：顏色點 + 名稱 + 刪除 */}
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color || '#3b82f6' }} />
-                      <Input
-                        value={task.name}
-                        onChange={(e) => onUpdateTask(task.id, { ...task, name: e.target.value })}
-                        placeholder="任務名稱"
-                        className="flex-1 h-8 text-sm"
-                      />
-                      <button
-                        onClick={() => onDeleteTask(task.id)}
-                        className="p-1 hover:bg-red-100 rounded text-red-500"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                   <div key={task.id} className="space-y-2 p-3 border rounded-lg bg-gray-50">
+                     {/* 第一行：顏色點 + 名稱 + 刪除 */}
+                     <div className="flex items-center gap-2">
+                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color || '#3b82f6' }} />
+                       <span className="flex-1 h-8 text-sm flex items-center">{task.name}</span>
+                       <button
+                         onClick={() => onDeleteTask(task.id)}
+                         className="p-1 hover:bg-red-100 rounded text-red-500"
+                       >
+                         <Trash2 className="w-3.5 h-3.5" />
+                       </button>
+                     </div>
 
                     {/* 第二行：時間類型（獨立一行） */}
                     <div className="pl-4">
