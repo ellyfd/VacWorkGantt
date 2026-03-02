@@ -967,29 +967,30 @@ export default function GanttChart() {
 
   const handleProjectDrop = (e, targetProjectId) => {
     e.preventDefault();
+    setDropTargetId(null);
     const draggedId = draggedProjectIdRef.current;
     if (!draggedId || draggedId === targetProjectId) return;
 
-    const items = visibleRows.map(r => r.data);
-    const draggedIndex = items.findIndex(i => i.id === draggedId);
-    const targetIndex = items.findIndex(i => i.id === targetProjectId);
+    const allProjects = ganttProjects;
+    const draggedIndex = allProjects.findIndex(i => i.id === draggedId);
+    const targetIndex = allProjects.findIndex(i => i.id === targetProjectId);
     if (draggedIndex < 0 || targetIndex < 0) return;
 
-    const reorderedItems = Array.from(items);
+    // 立即更新 UI
+    const reorderedItems = Array.from(allProjects);
     const [movedItem] = reorderedItems.splice(draggedIndex, 1);
     reorderedItems.splice(targetIndex, 0, movedItem);
 
-    // 批量更新排序
-    Promise.all(
-      reorderedItems.map((item, idx) =>
-        new Promise((resolve) => {
-          updateSortOrder.mutate(
-            { id: item.id, entityType: 'project', sortOrder: idx },
-            { onSuccess: resolve, onError: resolve }
-          );
-        })
-      )
-    );
+    // 更新所有受影響項目的 sort_order
+    const updatedItems = reorderedItems.map((item, idx) => ({ ...item, sort_order: idx }));
+    queryClient.setQueryData(['ganttProjects'], updatedItems);
+
+    // 背景同步 DB（只更新被拖曳的項目）
+    updateSortOrder.mutate({ 
+      id: draggedId, 
+      entityType: 'project', 
+      sortOrder: targetIndex 
+    });
   };
 
   const handleProjectDragEnd = () => {
