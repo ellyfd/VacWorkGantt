@@ -37,9 +37,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 import AddProjectDialog from '@/components/gantt/AddProjectDialog';
 import EditProjectDialog from '@/components/gantt/EditProjectDialog';
-import AddPhaseDialog from '@/components/gantt/AddPhaseDialog';
 import AddTaskDialog from '@/components/gantt/AddTaskDialog';
-import EditPhaseDialog from '@/components/gantt/EditPhaseDialog';
 import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gantt/TimeDialogs';
 import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 import TimeNavigation from '@/components/gantt/TimeNavigation';
@@ -1653,16 +1651,7 @@ export default function GanttChart() {
         }}
       />
 
-      <AddPhaseDialog
-        open={showAddPhaseDialog}
-        onOpenChange={setShowAddPhaseDialog}
-        projectName={projectForAddPhase?.name}
-        samplesForSelection={samplesForPhaseSelection}
-        selectedSamples={selectedSamples}
-        setSelectedSamples={setSelectedSamples}
-        onConfirm={handleAddPhase}
-        isLoading={bulkCreatePhases.isPending}
-      />
+
 
       <AddTaskDialog
         open={showAddTaskDialog}
@@ -1788,42 +1777,7 @@ export default function GanttChart() {
         </DialogContent>
       </Dialog>
 
-      <EditPhaseDialog
-        open={showEditPhaseDialog}
-        onOpenChange={setShowEditPhaseDialog}
-        phase={editingPhase}
-        phaseName={editingPhaseName}
-        setPhaseName={setEditingPhaseName}
-        phaseTasks={editingPhaseTasks}
-        setPhaseTasks={setEditingPhaseTasks}
-        newTaskName={newTaskName}
-        setNewTaskName={setNewTaskName}
-        onSave={() => {
-          if (editingPhase && editingPhaseName.trim()) {
-            updateGanttPhase.mutate({ id: editingPhase.id, data: { name: editingPhaseName.trim() } });
-          }
-          setShowEditPhaseDialog(false);
-        }}
-        onCreateTask={() => {
-          if (!newTaskName.trim() || !editingPhase) return;
-          createGanttTask.mutate({
-            name: newTaskName.trim(),
-            gantt_phase_id: editingPhase.id,
-            sort_order: editingPhaseTasks.length + 1,
-          }, {
-            onSuccess: (newTask) => {
-              setEditingPhaseTasks(prev => [...prev, newTask]);
-              setNewTaskName('');
-              queryClient.invalidateQueries(['ganttTasks']);
-            }
-          });
-        }}
-        onDeleteTask={(taskId) => {
-          deleteGanttTask.mutate(taskId, {
-            onSuccess: () => setEditingPhaseTasks(prev => prev.filter(t => t.id !== taskId))
-          });
-        }}
-      />
+
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
