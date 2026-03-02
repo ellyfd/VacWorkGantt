@@ -953,23 +953,14 @@ export default function GanttChart() {
     if (!destination) return;
     if (source.index === destination.index && source.droppableId === destination.droppableId) return;
 
-    // 解析 droppableId 格式: "droppable-{type}" 或 "droppable-{parentType}-{parentId}"
-    const [,, destParentId] = destination.droppableId.split('-');
-
-    // 需要同一層級拖曳
-    if (source.droppableId !== destination.droppableId) return;
-
-    const [, sourceType] = source.droppableId.split('-');
+    // 處理左側和右側的拖曳（都是 project 層級）
+    const isProjectDrag = source.droppableId === 'droppable-project' || source.droppableId === 'droppable-project-right';
+    
+    // 需要同一層級拖曳（允許左右互換）
+    if (!isProjectDrag) return;
 
     // 取得該層的所有項目
-    let items = [];
-    if (sourceType === 'project') {
-      items = visibleRows.map(r => r.data); // 用篩選後的順序，與 Draggable index 一致
-    } else if (sourceType === 'phase') {
-      items = ganttPhases.filter(p => p.gantt_project_id === destParentId);
-    } else if (sourceType === 'task') {
-      items = ganttTasks.filter(t => t.gantt_project_id === destParentId);
-    }
+    const items = visibleRows.map(r => r.data);
 
     // 新排序
     const reorderedItems = Array.from(items);
@@ -983,12 +974,12 @@ export default function GanttChart() {
           updateSortOrder.mutate(
             {
               id: item.id,
-              entityType: sourceType,
+              entityType: 'project',
               sortOrder: idx,
             },
             {
               onSuccess: resolve,
-              onError: resolve, // 无论成功或失败都继续
+              onError: resolve,
             }
           );
         })
