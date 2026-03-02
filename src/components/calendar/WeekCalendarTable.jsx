@@ -145,10 +145,10 @@ export default function WeekCalendarTable({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         {/* 三區 Header */}
-        <div className="hidden md:flex items-center justify-between gap-6 mb-4">
+        <div className="hidden md:flex items-start justify-between gap-4 mb-3">
           {/* 左：姓名 */}
-          <div className="flex-shrink-0">
-            <h3 className="text-sm font-semibold text-gray-800 leading-tight">
+          <div>
+            <h3 className="text-lg font-bold text-gray-800 leading-tight">
               {currentEmployee.name}
             </h3>
             {currentEmployee.english_name && (
@@ -158,8 +158,8 @@ export default function WeekCalendarTable({
             )}
           </div>
 
-          {/* 中：假別 + 區間 + 年月 */}
-          <div className="flex items-center gap-3 flex-grow justify-center">
+          {/* 中：假別 + 區間 */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             {onLeaveTypeChange && (
               <>
                 <Select
@@ -167,7 +167,7 @@ export default function WeekCalendarTable({
                   onValueChange={(value) => onLeaveTypeChange(value || null)}
                   disabled={rangeMode}
                 >
-                  <SelectTrigger className="h-8 text-xs w-[110px]">
+                  <SelectTrigger className="h-7 text-xs w-[130px]">
                     <SelectValue placeholder="選擇假別" />
                   </SelectTrigger>
                   <SelectContent>
@@ -180,7 +180,7 @@ export default function WeekCalendarTable({
                 {!rangeMode ? (
                   <Button
                     onClick={onRangeModeToggle}
-                    className="bg-blue-600 hover:bg-blue-700 h-8 w-8"
+                    className="bg-blue-600 hover:bg-blue-700 h-7 w-7"
                     size="icon"
                   >
                     <CalendarRange className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function WeekCalendarTable({
                         onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
                         variant="outline"
                         size="icon"
-                        className={`h-8 w-8 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                        className={`h-7 w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
                       >
                         {dateRange.from && dateRange.to ? '✓' : '✕'}
                       </Button>
@@ -213,11 +213,13 @@ export default function WeekCalendarTable({
                     </PopoverContent>
                   </Popover>
                 )}
-                <div className="flex-shrink-0 pl-3 border-l border-gray-200">
-                  <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
-                </div>
               </>
             )}
+          </div>
+
+          {/* 右：年月 */}
+          <div className="flex-shrink-0">
+            <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
           </div>
         </div>
 
