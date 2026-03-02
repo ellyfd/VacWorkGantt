@@ -1662,29 +1662,10 @@ export default function GanttChart() {
           {editingTask && (
             <div className="space-y-4 py-2">
               <div>
-                <Label>樣品 *</Label>
-                <Select
-                  value={editingTask?.sample_id || ''}
-                  onValueChange={(val) => {
-                    const sample = samplesForEditTask.find(s => s.id === val);
-                    setEditingTask({ 
-                      ...editingTask, 
-                      sample_id: val,
-                      name: sample?.short_name || sample?.name || '',
-                    });
-                  }}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="選擇樣品..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {samplesForEditTask.map(s => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.short_name || s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>樣品</Label>
+                <div className="mt-1 flex items-center h-10 px-3 border border-gray-300 rounded-md text-sm bg-gray-50">
+                  {editingTask.name || '未設定'}
+                </div>
               </div>
               <div className="border-t pt-4">
                 <Label className="mb-2 block text-gray-600">時間類型</Label>
