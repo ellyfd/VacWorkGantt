@@ -1524,24 +1524,47 @@ export default function GanttChart() {
                   </div>
 
                   {/* rows */}
-                  <div
-                    className="overflow-y-auto"
-                    ref={rightBodyRef}
-                    style={{ maxHeight: 'calc(100vh - 440px)' }}
-                  >
-                    {visibleRows.map((row) => (
-                      <div key={row.id} style={{ position: 'relative', borderBottom: '1px solid #e5e7eb', height: ROW_HEIGHT }}>
-                        {/* 底層：格子背景 + 格線 */}
-                        <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
-                          {days.map((day) => renderCellBackground(row, day))}
-                        </div>
-                        {/* 上層：Bar */}
-                        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                          {renderTaskBars(row)}
-                        </div>
+                  <Droppable droppableId="droppable-project-right">
+                    {(provided, snapshot) => (
+                      <div
+                        className="overflow-y-auto"
+                        ref={(el) => {
+                          rightBodyRef.current = el;
+                          provided.innerRef(el);
+                        }}
+                        style={{ maxHeight: 'calc(100vh - 440px)' }}
+                        {...provided.droppableProps}
+                      >
+                        {visibleRows.map((row, index) => (
+                          <Draggable key={row.id} draggableId={`right-${row.id}`} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  position: 'relative',
+                                  borderBottom: '1px solid #e5e7eb',
+                                  height: ROW_HEIGHT,
+                                  opacity: snapshot.isDragging ? 0.5 : 1,
+                                }}
+                              >
+                                {/* 底層：格子背景 + 格線 */}
+                                <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
+                                  {days.map((day) => renderCellBackground(row, day))}
+                                </div>
+                                {/* 上層：Bar */}
+                                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                                  {renderTaskBars(row)}
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </Droppable>
                 </div>
               );
             })()}
