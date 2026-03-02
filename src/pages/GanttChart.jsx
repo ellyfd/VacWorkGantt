@@ -1171,12 +1171,13 @@ export default function GanttChart() {
            transform: 'translateY(-50%)',
            left,
            width: width === 'auto' ? undefined : width,
-           height: 28,
-           borderRadius: 4,
+           height: 24,
+           borderRadius: 6,
            backgroundColor: bgColor,
            display: 'flex',
            alignItems: 'center',
            justifyContent: 'center',
+           padding: '0 8px',
            overflow: 'hidden',
            whiteSpace: 'nowrap',
            pointerEvents: 'auto',
@@ -1194,7 +1195,7 @@ export default function GanttChart() {
           }}
        >
         {task.time_type === 'milestone' && (
-          <div className="flex items-center gap-1 px-1">
+          <div className="flex items-center gap-1">
             <div style={{
               width: 12, height: 12,
               transform: 'rotate(45deg)',
@@ -1203,17 +1204,17 @@ export default function GanttChart() {
               boxShadow: 'none',
               transition: 'box-shadow 0.15s',
             }} />
-            <span style={{ fontSize: 14, color: textColor, fontWeight: 500 }}>
-              {`${row.data.name} ${task.name}`}
+            <span style={{ fontSize: 13, color: textColor, fontWeight: 500 }}>
+              {task.name}
             </span>
           </div>
         )}
        {task.time_type === 'duration' && (
-         <span style={{ fontSize: 14, color: textColor, fontWeight: 500 }}>
-           {`${row.data.name} ${task.name}`}
+         <span style={{ fontSize: 13, color: textColor, fontWeight: 500 }}>
+           {task.name}
            {workingDays > 0 && (
-             <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 6 }}>
-               ({workingDays}工作天)
+             <span style={{ fontSize: 11, opacity: 0.8, marginLeft: 4 }}>
+               {workingDays}d
              </span>
            )}
          </span>
@@ -1226,8 +1227,8 @@ export default function GanttChart() {
              background: `linear-gradient(to right, ${getLightColor(projectColor)}, transparent)`,
              pointerEvents: 'none',
            }} />
-           <span style={{ fontSize: 14, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
-             {`${row.data.name} ${task.name}`}
+           <span style={{ fontSize: 13, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
+             {task.name}
            </span>
          </div>
        )}
