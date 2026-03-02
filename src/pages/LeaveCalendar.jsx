@@ -616,10 +616,7 @@ export default function LeaveCalendar() {
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
             onCellClickInRangeMode={handleCellClickInRangeMode}
-            onRangeModeToggle={() => {
-              if (!selectedLeaveTypeId) { alert('請先選擇假別'); return; }
-              setRangeMode(true);
-            }}
+            onRangeModeToggle={null}
             onRangeModeCancel={() => { setRangeMode(false); setDateRange({ from: undefined, to: undefined }); }}
             onRangeSubmit={handleRangeSubmit}
             rangeLeavePending={rangeLeaveMutation.isPending}
