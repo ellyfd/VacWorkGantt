@@ -154,13 +154,17 @@ export default function LeaveCalendarTable({
                             setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
                             setHighlightedDate(null);
                           }}
-                          className={`sticky left-0 z-10 px-2 py-1 text-xs text-gray-800 border-r border-b border-gray-200 cursor-pointer select-none ${
-                            highlightedEmployeeId === emp.id ? 'bg-yellow-200' :
-                            isCurrentUser ? 'bg-yellow-100' : 'bg-white'
+                          className={`sticky left-0 z-10 px-2 py-1 border-r border-b border-gray-200 cursor-pointer select-none ${
+                            highlightedEmployeeId === emp.id ? 'bg-amber-100' :
+                            isCurrentUser ? 'bg-amber-50' : 'bg-white'
                           }`}
                         >
-                          <div>{emp.name}</div>
-                          <div className="text-[10px] text-gray-500">{emp.english_name || ''}</div>
+                          <div className="leading-tight">
+                            <div className="text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
+                            {emp.english_name && (
+                              <div className="text-[11px] text-gray-500 truncate">{emp.english_name}</div>
+                            )}
+                          </div>
                         </td>
                   {days.map((d, idx) => {
                     const record = getLeaveRecord(emp.id, d.date);
