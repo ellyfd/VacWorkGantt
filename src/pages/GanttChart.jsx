@@ -948,43 +948,47 @@ export default function GanttChart() {
     },
   });
 
-  const handleDragEnd = async (result) => {
-    const { source, destination, draggableId } = result;
-    if (!destination) return;
-    if (source.index === destination.index && source.droppableId === destination.droppableId) return;
+  // 原生 HTML5 拖曳處理
+  const handleProjectDragStart = (e, projectId) => {
+    draggedProjectIdRef.current = projectId;
+    e.dataTransfer.effectAllowed = 'move';
+  };
 
-    // 處理左側和右側的拖曳（都是 project 層級）
-    const isProjectDrag = source.droppableId === 'droppable-project' || source.droppableId === 'droppable-project-right';
-    
-    // 需要同一層級拖曳（允許左右互換）
-    if (!isProjectDrag) return;
+  const handleProjectDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
 
-    // 取得該層的所有項目
+  const handleProjectDrop = (e, targetProjectId) => {
+    e.preventDefault();
+    const draggedId = draggedProjectIdRef.current;
+    if (!draggedId || draggedId === targetProjectId) return;
+
     const items = visibleRows.map(r => r.data);
+    const draggedIndex = items.findIndex(i => i.id === draggedId);
+    const targetIndex = items.findIndex(i => i.id === targetProjectId);
+    if (draggedIndex < 0 || targetIndex < 0) return;
 
-    // 新排序
     const reorderedItems = Array.from(items);
-    const [movedItem] = reorderedItems.splice(source.index, 1);
-    reorderedItems.splice(destination.index, 0, movedItem);
+    const [movedItem] = reorderedItems.splice(draggedIndex, 1);
+    reorderedItems.splice(targetIndex, 0, movedItem);
 
-    // 批量更新所有项目的排序（并发执行）
+    // 批量更新排序
     Promise.all(
       reorderedItems.map((item, idx) =>
         new Promise((resolve) => {
           updateSortOrder.mutate(
-            {
-              id: item.id,
-              entityType: 'project',
-              sortOrder: idx,
-            },
-            {
-              onSuccess: resolve,
-              onError: resolve,
-            }
+            { id: item.id, entityType: 'project', sortOrder: idx },
+            { onSuccess: resolve, onError: resolve }
           );
         })
       )
     );
+    draggedProjectIdRef.current = null;
+  };
+
+  const handleProjectDragEnd = () => {
+    draggedProjectIdRef.current = null;
   };
 
   // 渲染左側單元格（memoized）
