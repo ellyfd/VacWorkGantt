@@ -951,12 +951,17 @@ export default function GanttChart() {
   // 原生 HTML5 拖曳處理
   const handleProjectDragStart = (e, projectId) => {
     draggedProjectIdRef.current = projectId;
-    e.dataTransfer.effectAllowed = 'move';
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', projectId);
+    }
   };
 
   const handleProjectDragOver = (e) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
   };
 
   const handleProjectDrop = (e, targetProjectId) => {
@@ -984,7 +989,6 @@ export default function GanttChart() {
         })
       )
     );
-    draggedProjectIdRef.current = null;
   };
 
   const handleProjectDragEnd = () => {
