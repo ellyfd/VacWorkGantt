@@ -163,25 +163,10 @@ export default function WeekCalendarTable({
             <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
           </div>
 
-          {/* 右：假別 + 區間 */}
+          {/* 右：區間 + 假別 */}
           <div className="flex items-center gap-2 flex-shrink-0">
             {onLeaveTypeChange && (
               <>
-                <Select
-                  value={selectedLeaveTypeId || ''}
-                  onValueChange={(value) => onLeaveTypeChange(value || null)}
-                  disabled={rangeMode}
-                >
-                  <SelectTrigger className="h-7 text-xs w-[130px]">
-                    <SelectValue placeholder="選擇假別" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>不選擇</SelectItem>
-                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                      <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 {!rangeMode ? (
                   <Button
                     onClick={onRangeModeToggle}
@@ -218,6 +203,21 @@ export default function WeekCalendarTable({
                     </PopoverContent>
                   </Popover>
                 )}
+                <Select
+                  value={selectedLeaveTypeId || ''}
+                  onValueChange={(value) => onLeaveTypeChange(value || null)}
+                  disabled={rangeMode}
+                >
+                  <SelectTrigger className="h-7 text-xs w-[130px]">
+                    <SelectValue placeholder="選擇假別" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>不選擇</SelectItem>
+                    {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                      <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </>
             )}
           </div>
