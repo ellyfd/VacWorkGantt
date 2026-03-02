@@ -546,15 +546,58 @@ export default function LeaveCalendar() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 pb-8 sm:p-6">
       <div className="max-w-full mx-auto">
-        {/* 標題和日期選擇器 */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800">我的排休</h1>
-          <div className="md:hidden">
-            <CalendarHeader 
-              currentDate={currentDate} 
-              onDateChange={setCurrentDate}
-            />
+        {/* 標題 */}
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">我的排休</h1>
+
+        {/* 電腦版：時間選擇器 + 假別選擇 + 區間按鈕 */}
+        <div className="hidden md:flex items-center gap-4 mb-6">
+          <CalendarHeader 
+            currentDate={currentDate} 
+            onDateChange={setCurrentDate}
+          />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Select
+              value={selectedLeaveTypeId || ''}
+              onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+              disabled={rangeMode}
+            >
+              <SelectTrigger className="h-8 text-sm w-[140px]">
+                <SelectValue placeholder="選擇假別" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>不選擇</SelectItem>
+                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                  <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!rangeMode ? (
+              <button
+                onClick={() => {
+                  if (!selectedLeaveTypeId) { alert('請先選擇假別'); return; }
+                  setRangeMode(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white h-8 w-8 rounded-md flex items-center justify-center flex-shrink-0"
+              >
+                📅
+              </button>
+            ) : (
+              <button
+                onClick={() => { setRangeMode(false); setDateRange({ from: undefined, to: undefined }); }}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-600 h-8 w-8 rounded-md flex items-center justify-center flex-shrink-0"
+              >
+                ✕
+              </button>
+            )}
           </div>
+        </div>
+
+        {/* 行動版：日期選擇器 */}
+        <div className="md:hidden mb-6">
+          <CalendarHeader 
+            currentDate={currentDate} 
+            onDateChange={setCurrentDate}
+          />
         </div>
 
           <WeekCalendarTable
