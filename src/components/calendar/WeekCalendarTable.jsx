@@ -144,14 +144,14 @@ export default function WeekCalendarTable({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
+        <div className="md:hidden flex items-center justify-between gap-2">
           <h3 className="text-lg font-bold text-gray-800">
             {currentEmployee.name}
             {currentEmployee.english_name && (
               <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
             )}
           </h3>
-          {/* 假別選擇 + 區間按鈕 */}
+          {/* 行動版：假別選擇 + 區間按鈕 */}
           {onLeaveTypeChange && (
             <div className="flex items-center gap-2 flex-shrink-0">
               <Select
@@ -207,6 +207,14 @@ export default function WeekCalendarTable({
               )}
             </div>
           )}
+        </div>
+        <div className="hidden md:block">
+          <h3 className="text-lg font-bold text-gray-800">
+            {currentEmployee.name}
+            {currentEmployee.english_name && (
+              <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
+            )}
+          </h3>
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-wrap gap-2">
