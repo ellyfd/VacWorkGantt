@@ -1527,9 +1527,10 @@ export default function GanttChart() {
                         key={row.id}
                         draggable={true}
                         onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
-                        onDragOver={(e) => handleProjectDragOver(e)}
+                        onDragOver={(e) => handleProjectDragOver(e, row.data.id)}
                         onDrop={(e) => handleProjectDrop(e, row.data.id)}
                         onDragEnd={() => handleProjectDragEnd()}
+                        onDragLeave={() => setDropTargetId(null)}
                         style={{
                           position: 'relative',
                           borderBottom: '1px solid #e5e7eb',
@@ -1539,6 +1540,9 @@ export default function GanttChart() {
                           userSelect: 'none',
                         }}
                       >
+                        {dropTargetId === row.data.id && (
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', zIndex: 50 }} />
+                        )}
                         {/* 底層：格子背景 + 格線 */}
                         <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
                           {days.map((day) => renderCellBackground(row, day))}
