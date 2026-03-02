@@ -18,11 +18,11 @@ function LeaveCell({
   const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
 
   const cellBgClass = (isHoliday || isWeekend) 
-    ? "bg-gray-200" 
+    ? "bg-gray-50" 
     : isHighlighted
-    ? "bg-yellow-100"
+    ? "bg-amber-50"
     : isCurrentUser 
-    ? "bg-yellow-100" 
+    ? "bg-amber-50" 
     : "bg-white";
 
   const isInRange = rangeMode && dateRange.from && dateRange.to && 
