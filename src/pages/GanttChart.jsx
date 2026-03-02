@@ -958,11 +958,12 @@ export default function GanttChart() {
     }
   };
 
-  const handleProjectDragOver = (e) => {
+  const handleProjectDragOver = (e, projectId) => {
     e.preventDefault();
     if (e.dataTransfer) {
       e.dataTransfer.dropEffect = 'move';
     }
+    setDropTargetId(projectId);
   };
 
   const handleProjectDrop = (e, targetProjectId) => {
