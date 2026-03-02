@@ -1518,17 +1518,18 @@ export default function GanttChart() {
                     {visibleRows.map((row) => (
                       <div
                         key={row.id}
-                        draggable
+                        draggable={true}
                         onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
-                        onDragOver={handleProjectDragOver}
+                        onDragOver={(e) => handleProjectDragOver(e)}
                         onDrop={(e) => handleProjectDrop(e, row.data.id)}
-                        onDragEnd={handleProjectDragEnd}
+                        onDragEnd={() => handleProjectDragEnd()}
                         style={{
                           position: 'relative',
                           borderBottom: '1px solid #e5e7eb',
                           height: ROW_HEIGHT,
                           cursor: 'move',
                           opacity: draggedProjectIdRef.current === row.data.id ? 0.5 : 1,
+                          userSelect: 'none',
                         }}
                       >
                         {/* 底層：格子背景 + 格線 */}
