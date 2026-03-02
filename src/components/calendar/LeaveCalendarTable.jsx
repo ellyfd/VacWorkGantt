@@ -133,7 +133,7 @@ export default function LeaveCalendarTable({
                   setHighlightedDate(highlightedDate === d.date ? null : d.date);
                   setHighlightedEmployeeId(null);
                 }}
-                className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] h-8 cursor-pointer select-none ${
+                className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-8 cursor-pointer select-none ${
                   d.isHoliday || d.isWeekend ? 'bg-gray-100 text-red-500' : 
                   highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                 }`}
@@ -172,7 +172,7 @@ export default function LeaveCalendarTable({
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
                     return (
-                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-10">
+                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px]">
                         <LeaveCell
                          record={record}
                          leaveTypes={leaveTypes}
