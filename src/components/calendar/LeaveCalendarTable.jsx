@@ -172,7 +172,7 @@ export default function LeaveCalendarTable({
                       dateRange.from && dateRange.to && 
                       d.date >= dateRange.from && d.date <= dateRange.to;
                     return (
-                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-9">
+                      <td key={idx} className="p-0 border-r border-b border-gray-200 h-10">
                         <LeaveCell
                          record={record}
                          leaveTypes={leaveTypes}
