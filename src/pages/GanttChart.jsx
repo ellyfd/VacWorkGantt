@@ -1342,24 +1342,46 @@ export default function GanttChart() {
               >
                 請假人數
               </div>
-              <div
-                className="overflow-y-auto"
-                style={{ maxHeight: 'calc(100vh - 440px)' }}
-                ref={(el) => {
-                  leftPanelRef.current = el;
-                }}
-              >
-                {visibleRows.map((row) => (
-                  <div key={row.id} className="border-b border-gray-200">
-                    {renderLeftCell(row)}
-                  </div>
-                ))}
-                {visibleRows.length === 0 && (
-                  <div className="p-8 text-center text-gray-400">
-                    點擊「新增開發季」開始
-                  </div>
-                )}
-              </div>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="droppable-project">
+                  {(provided, snapshot) => (
+                    <div
+                      className="overflow-y-auto"
+                      style={{ maxHeight: 'calc(100vh - 440px)' }}
+                      ref={(el) => {
+                        leftPanelRef.current = el;
+                        provided.innerRef(el);
+                      }}
+                      {...provided.droppableProps}
+                    >
+                      {visibleRows.map((row, index) => (
+                        <Draggable key={row.id} draggableId={row.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="border-b border-gray-200"
+                              style={{
+                                ...provided.draggableProps.style,
+                                opacity: snapshot.isDragging ? 0.5 : 1,
+                              }}
+                            >
+                              {renderLeftCell(row)}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                      {visibleRows.length === 0 && (
+                        <div className="p-8 text-center text-gray-400">
+                          點擊「新增開發季」開始
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
 
               {/* 拖曳 handle */}
               <div
