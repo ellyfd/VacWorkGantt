@@ -1506,47 +1506,38 @@ export default function GanttChart() {
                   </div>
 
                   {/* rows */}
-                  <Droppable droppableId="droppable-project-right">
-                    {(provided, snapshot) => (
+                  <div
+                    className="overflow-y-auto"
+                    ref={rightBodyRef}
+                    style={{ maxHeight: 'calc(100vh - 440px)' }}
+                  >
+                    {visibleRows.map((row) => (
                       <div
-                        className="overflow-y-auto"
-                        ref={(el) => {
-                          rightBodyRef.current = el;
-                          provided.innerRef(el);
+                        key={row.id}
+                        draggable
+                        onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
+                        onDragOver={handleProjectDragOver}
+                        onDrop={(e) => handleProjectDrop(e, row.data.id)}
+                        onDragEnd={handleProjectDragEnd}
+                        style={{
+                          position: 'relative',
+                          borderBottom: '1px solid #e5e7eb',
+                          height: ROW_HEIGHT,
+                          cursor: 'move',
+                          opacity: draggedProjectIdRef.current === row.data.id ? 0.5 : 1,
                         }}
-                        style={{ maxHeight: 'calc(100vh - 440px)' }}
-                        {...provided.droppableProps}
                       >
-                        {visibleRows.map((row, index) => (
-                          <Draggable key={row.id} draggableId={`right-${row.id}`} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                style={{
-                                  ...provided.draggableProps.style,
-                                  position: 'relative',
-                                  borderBottom: '1px solid #e5e7eb',
-                                  height: ROW_HEIGHT,
-                                  opacity: snapshot.isDragging ? 0.5 : 1,
-                                }}
-                              >
-                                {/* 底層：格子背景 + 格線 */}
-                                <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
-                                  {days.map((day) => renderCellBackground(row, day))}
-                                </div>
-                                {/* 上層：Bar */}
-                                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                                  {renderTaskBars(row)}
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
+                        {/* 底層：格子背景 + 格線 */}
+                        <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
+                          {days.map((day) => renderCellBackground(row, day))}
+                        </div>
+                        {/* 上層：Bar */}
+                        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                          {renderTaskBars(row)}
+                        </div>
                       </div>
-                    )}
-                  </Droppable>
+                    ))}
+                  </div>
                 </div>
               );
             })()}
