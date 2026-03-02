@@ -162,7 +162,7 @@ export default function LeaveCalendarTable({
                           <div className="leading-[1.1]">
                             <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
                             {emp.english_name && (
-                              <div className="hidden sm:block text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
+                              <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
                             )}
                           </div>
                         </td>
