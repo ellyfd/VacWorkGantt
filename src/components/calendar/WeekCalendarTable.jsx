@@ -151,7 +151,31 @@ export default function WeekCalendarTable({
               <span className="ml-2 text-sm font-normal text-gray-600">{currentEmployee.english_name}</span>
             )}
           </h3>
-          {/* 假別選擇 + 區間按鈕 */}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-wrap gap-2">
+            {monthlyLeaveStats.length > 0 ? (
+              monthlyLeaveStats.map((stat) => (
+                <div key={stat.leaveTypeId} className="flex items-center gap-1">
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: stat.color }} />
+                  <span className="text-xs text-gray-600">{stat.name} {stat.count}天</span>
+                </div>
+              ))
+            ) : (
+              <span className="text-xs text-gray-400">本月無休假</span>
+            )}
+          </div>
+          {rangeMode && (
+            <p className="text-xs text-blue-600">
+              {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
+              {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
+              {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊左側按鈕確認`}
+            </p>
+          )}
+        </div>
+        <div className="hidden md:flex md:items-center md:justify-between md:gap-2">
+          <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
+          {/* 假別選擇 + 區間按鈕 - 電腦版 */}
           {onLeaveTypeChange && (
             <div className="flex items-center gap-2 flex-shrink-0">
               <Select
@@ -207,30 +231,6 @@ export default function WeekCalendarTable({
               )}
             </div>
           )}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap gap-2">
-            {monthlyLeaveStats.length > 0 ? (
-              monthlyLeaveStats.map((stat) => (
-                <div key={stat.leaveTypeId} className="flex items-center gap-1">
-                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: stat.color }} />
-                  <span className="text-xs text-gray-600">{stat.name} {stat.count}天</span>
-                </div>
-              ))
-            ) : (
-              <span className="text-xs text-gray-400">本月無休假</span>
-            )}
-          </div>
-          {rangeMode && (
-            <p className="text-xs text-blue-600">
-              {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
-              {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
-              {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊左側按鈕確認`}
-            </p>
-          )}
-        </div>
-        <div className="hidden md:block">
-          <CalendarHeader currentDate={currentDate} onDateChange={onDateChange} />
         </div>
       </div>
       <div className="p-4">
