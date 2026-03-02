@@ -346,7 +346,7 @@ export default function WeekCalendarTable({
                     {day.day}
                   </div>
                   {isToday && <div className="absolute top-1.5 right-1 text-[8px] font-bold text-blue-600 leading-none z-20">今</div>}
-                  <div className="w-full h-full flex items-center justify-center p-1">
+                  <div className="w-full h-full flex items-center justify-center p-0.5">
                     <div className="w-full h-full rounded-md overflow-hidden">
                       <LeaveCell
                         record={record}
