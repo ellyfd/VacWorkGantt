@@ -378,55 +378,104 @@ export default function ProjectSettings() {
 
           <Card>
             <CardContent className="p-0 overflow-x-auto">
-              <Table className="min-w-full">
+              {/* 手機版：卡片式列表 */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {filteredProjects.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">
+                    {projectSearchText ? '未找到匹配的品牌' : '沒有品牌資料'}
+                  </div>
+                ) : (
+                  filteredProjects.map((project) => (
+                    <div key={project.id} className="flex items-center gap-3 px-4 py-3">
+                      {/* 色圈 */}
+                      <div
+                        className="w-8 h-8 rounded-full border border-gray-200 flex-shrink-0"
+                        style={{ backgroundColor: project.default_color || '#d1d5db' }}
+                      />
+                      {/* 文字 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{project.short_name}</div>
+                        <div className="text-xs text-gray-500 truncate">{project.full_name}</div>
+                        {project.categories?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {project.categories.map((cat, i) => (
+                              <span key={i} className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">{cat}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {/* 操作 */}
+                      <div className="flex gap-1 flex-shrink-0">
+                        <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => handleOpenProjectDialog(project)}>
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => deleteProject.mutate(project.id)} disabled={deleteProject.isPending}>
+                          <Trash2 className="w-3 h-3 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* 電腦版：表格 */}
+              <Table className="min-w-full hidden md:table">
                 <TableHeader>
                   <TableRow className="bg-gray-50 border-b whitespace-nowrap">
-                    <TableHead className="w-[15%]">品牌縮寫</TableHead>
-                    <TableHead className="w-[25%]">品牌全名</TableHead>
-                    <TableHead className="w-[15%]">顏色</TableHead>
-                    <TableHead className="w-[20%]">集團</TableHead>
-                    <TableHead className="w-[15%]">狀態</TableHead>
+                    <TableHead className="w-[12%]">品牌縮寫</TableHead>
+                    <TableHead className="w-[20%]">品牌全名</TableHead>
+                    <TableHead className="w-[10%]">顏色</TableHead>
+                    <TableHead className="w-[15%]">集團</TableHead>
+                    <TableHead className="w-[12%]">狀態</TableHead>
+                    <TableHead className="w-[21%]">Category</TableHead>
                     <TableHead className="w-[10%] text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredProjects.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                      <TableCell colSpan={7} className="text-center text-gray-500 py-8">
                         {projectSearchText ? '未找到匹配的品牌' : '沒有品牌資料'}
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredProjects.map((project) => (
-                       <TableRow key={project.id} className="hover:bg-gray-50 whitespace-nowrap">
-                         <TableCell className="font-medium text-sm md:text-base truncate">{project.short_name}</TableCell>
-                         <TableCell className="text-xs md:text-sm truncate">{project.full_name}</TableCell>
-                         <TableCell className="text-xs md:text-sm">
-                            {project.default_color ? (
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
-                                  style={{ backgroundColor: project.default_color }}
-                                  title={project.default_color}
-                                />
-                                <span className="text-gray-500 font-mono text-[11px]">{project.default_color}</span>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                         </TableCell>
-                         <TableCell className="text-xs md:text-sm">{getGroupName(project.group_id)}</TableCell>
-                         <TableCell className="text-xs md:text-sm">
-                          <span className={`px-1.5 md:px-2 py-1 rounded text-[10px] md:text-xs font-medium inline-block ${project.status === 'active' ? 'bg-green-100 text-green-800' : project.status === 'completed' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <TableRow key={project.id} className="hover:bg-gray-50 whitespace-nowrap">
+                        <TableCell className="font-medium text-sm truncate">{project.short_name}</TableCell>
+                        <TableCell className="text-xs text-sm truncate">{project.full_name}</TableCell>
+                        <TableCell>
+                          {project.default_color ? (
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
+                                style={{ backgroundColor: project.default_color }}
+                                title={project.default_color}
+                              />
+                              <span className="text-gray-500 font-mono text-[11px]">{project.default_color}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs text-sm">{getGroupName(project.group_id)}</TableCell>
+                        <TableCell className="text-xs text-sm">
+                          <span className={`px-2 py-1 rounded text-xs font-medium inline-block ${project.status === 'active' ? 'bg-green-100 text-green-800' : project.status === 'completed' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
                             {project.status === 'active' ? '進行中' : project.status === 'completed' ? '已完成' : '已存檔'}
                           </span>
                         </TableCell>
-                        <TableCell className="flex gap-0.5 md:gap-2 justify-end flex-shrink-0">
-                          <Button variant="ghost" size="icon" className="w-7 h-7 md:w-8 md:h-8" onClick={() => handleOpenProjectDialog(project)}>
-                            <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {project.categories?.length > 0 ? project.categories.map((cat, i) => (
+                              <span key={i} className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[11px] font-medium">{cat}</span>
+                            )) : <span className="text-gray-400 text-xs">-</span>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="flex gap-1 justify-end flex-shrink-0">
+                          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleOpenProjectDialog(project)}>
+                            <Edit2 className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="w-7 h-7 md:w-8 md:h-8" onClick={() => deleteProject.mutate(project.id)} disabled={deleteProject.isPending}>
-                            <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
+                          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => deleteProject.mutate(project.id)} disabled={deleteProject.isPending}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
                           </Button>
                         </TableCell>
                       </TableRow>
