@@ -305,22 +305,17 @@ export default function GanttChart() {
   // ── Lookup Maps（需要先定義以供 days useMemo 使用）
   const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
 
-  // Get days for month view (infinite scroll: center ± buffer)
+  // Get days：真正的 window 模型，只在邊界延伸時重算差異
   const days = useMemo(() => {
-    const start = subDays(centerDate, 180);
-    const end = addDays(centerDate, 180);
-    const allDays = eachDayOfInterval({ start, end });
-    // 隱藏假日時過濾掉週末和假日
+    const allDays = eachDayOfInterval({ start: startDate, end: endDate });
     if (hideHolidays) {
       return allDays.filter(d => {
         const dow = getDay(d);
-        const isWeekend = dow === 0 || dow === 6;
-        const isHoliday = holidaySet.has(format(d, 'yyyy-MM-dd'));
-        return !isWeekend && !isHoliday;
+        return dow !== 0 && dow !== 6 && !holidaySet.has(format(d, 'yyyy-MM-dd'));
       });
     }
     return allDays;
-  }, [centerDate, hideHolidays, holidaySet]);
+  }, [startDate, endDate, hideHolidays, holidaySet]);
 
   // 建立統一的 rows 陣列（兩層：project + phase，任務直接畫在 phase 列上）
   const rows = useMemo(() => {
