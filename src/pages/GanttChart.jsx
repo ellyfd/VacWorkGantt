@@ -121,10 +121,8 @@ export default function GanttChart() {
     queryFn: () => base44.entities.GanttTask.list('sort_order'),
   });
 
-  // days 需要先算出來給 leaveRecords 用，但 days 依賴 centerDate
-  // 所以先計算 leaveRecords 的查詢範圍
-  const leaveQueryStart = format(subDays(centerDate, 90), 'yyyy-MM-dd');
-  const leaveQueryEnd = format(addDays(centerDate, 180), 'yyyy-MM-dd');
+  const leaveQueryStart = format(startDate, 'yyyy-MM-dd');
+  const leaveQueryEnd = format(endDate, 'yyyy-MM-dd');
 
   const { data: leaveRecords = [] } = useQuery({
     queryKey: ['leaveRecords', leaveQueryStart, leaveQueryEnd],
