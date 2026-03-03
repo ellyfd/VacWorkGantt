@@ -674,7 +674,7 @@ export default function ProjectSettings() {
 
             {/* Categories */}
             <div>
-              <Label>任務分類</Label>
+              <Label>Category</Label>
               <div className="mt-2 space-y-2">
                 <div className="flex flex-wrap gap-1.5">
                   {(projectFormData.categories || []).map((cat, idx) => (
