@@ -1023,11 +1023,6 @@ export default function GanttChart() {
     }
   });
 
-  // 正規化日期（移除時間戳記）
-  const normalizeDate = (dateStr) => {
-    if (!dateStr) return null;
-    return dateStr.split('T')[0]; // "2026-02-27T00:00:00.000Z" → "2026-02-27"
-  };
 
 
 
