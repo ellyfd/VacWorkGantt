@@ -692,7 +692,7 @@ export default function GanttChart() {
 
   const rightBodyRef = useRef(null);
   const prevDaysLengthRef = useRef(0);
-  const prevCenterDateRef = useRef(centerDate);
+  const prevStartDateRef = useRef(startDate);
   const pendingScrollCompensation = useRef(0);
 
   // useLayoutEffect：在瀏覽器 paint 前修正滾動位置（防止跳躍）
