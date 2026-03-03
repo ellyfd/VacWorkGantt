@@ -1512,8 +1512,16 @@ export default function GanttChart() {
                     <SelectValue placeholder="選擇分類" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="core">Core</SelectItem>
-                    <SelectItem value="fashion">Fashion</SelectItem>
+                    {categoriesForEditTask.length > 0 ? (
+                      categoriesForEditTask.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))
+                    ) : (
+                      <>
+                        <SelectItem value="core">Core</SelectItem>
+                        <SelectItem value="fashion">Fashion</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
