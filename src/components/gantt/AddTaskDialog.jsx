@@ -42,7 +42,7 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
           {/* 分類 */}
           {categories.length > 0 && (
             <div>
-              <Label>分類</Label>
+              <Label>Category</Label>
               <Select
                 value={taskFormData.category || ''}
                 onValueChange={(val) => setTaskFormData({ ...taskFormData, category: val })}
