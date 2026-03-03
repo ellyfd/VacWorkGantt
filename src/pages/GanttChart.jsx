@@ -415,6 +415,10 @@ export default function GanttChart() {
     };
   }, [leaveRecords, selectedDeptId, employees, employeeMap, holidaySet]);
 
+  // ② O(1) lookup map（取代 O(n) find）
+  const projectMap = useMemo(() =>
+    Object.fromEntries(projects.map(p => [p.id, p])), [projects]);
+
   const filteredBrands = useMemo(() => {
     if (!selectedGroupSlug) return projects;
     return projects.filter(p => p.group_id === selectedGroupSlug);
