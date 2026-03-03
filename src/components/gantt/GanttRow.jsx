@@ -165,6 +165,9 @@ const GanttRow = React.memo(function GanttRow({
               }} />
               <span style={{ fontSize: 13, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
                 {task.name}
+                {task.category && (
+                  <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.7 }}>({task.category})</span>
+                )}
               </span>
             </div>
           )}
