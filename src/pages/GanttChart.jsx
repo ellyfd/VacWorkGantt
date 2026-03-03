@@ -445,6 +445,26 @@ export default function GanttChart() {
     return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
   };
 
+  // 工作天數預先計算（移出 render，避免每次重新 loop）
+  const workingDaysMap = useMemo(() => {
+    const map = {};
+    ganttTasks.forEach(task => {
+      if (task.time_type !== 'duration' || !task.start_date || !task.end_date) return;
+      const start = task.start_date.split('T')[0];
+      const end = task.end_date.split('T')[0];
+      let count = 0;
+      const current = new Date(start);
+      const endDate = new Date(end);
+      while (current <= endDate) {
+        const dow = getDay(current);
+        if (dow !== 0 && dow !== 6 && !holidaySet.has(format(current, 'yyyy-MM-dd'))) count++;
+        current.setDate(current.getDate() + 1);
+      }
+      map[task.id] = count;
+    });
+    return map;
+  }, [ganttTasks, holidaySet]);
+
   // ── More Lookup Maps（employeeMap、tasksByProjectId 等）────────
   const tasksByProjectId = useMemo(() => {
     return ganttTasks.reduce((acc, task) => {
