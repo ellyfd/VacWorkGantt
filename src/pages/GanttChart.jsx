@@ -1407,14 +1407,14 @@ export default function GanttChart() {
                     (s.short_name || s.name).toLowerCase() === task.name.trim().toLowerCase()
                   );
                   if (sample) {
-                    await base44.entities.GanttTask.create({
-                      gantt_project_id: creatingProjectId,
-                      name: sample.short_name || sample.name,
-                      sample_id: sample.id,
-                      sort_order: (ganttTasks.filter(t => t.gantt_project_id === creatingProjectId).length) + 1,
-                      time_type: 'milestone',
-                    });
-                  }
+                     createGanttTask.mutate({
+                       gantt_project_id: creatingProjectId,
+                       name: sample.short_name || sample.name,
+                       sample_id: sample.id,
+                       sort_order: (ganttTasks.filter(t => t.gantt_project_id === creatingProjectId).length) + 1,
+                       time_type: 'milestone',
+                     });
+                   }
                 }
               }
               queryClient.invalidateQueries(['ganttTasks']);
