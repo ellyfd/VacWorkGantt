@@ -1036,11 +1036,25 @@ export default function GanttChart() {
     return project ? getSamplesByBrand(project.brand_id) : [];
   }, [creatingProjectId, ganttProjects, samples]);
 
+  const categoriesForProject = useMemo(() => {
+    if (!creatingProjectId) return [];
+    const ganttProj = ganttProjects.find(p => p.id === creatingProjectId);
+    const brand = ganttProj ? projectMap[ganttProj.brand_id] : null;
+    return brand?.categories || [];
+  }, [creatingProjectId, ganttProjects, projectMap]);
+
   const samplesForEditTask = useMemo(() => {
     if (!editingTask) return [];
     const project = ganttProjects.find(p => p.id === editingTask.gantt_project_id);
     return project ? getSamplesByBrand(project.brand_id) : [];
   }, [editingTask, ganttProjects, samples]);
+
+  const categoriesForEditTask = useMemo(() => {
+    if (!editingTask) return [];
+    const ganttProj = ganttProjects.find(p => p.id === editingTask.gantt_project_id);
+    const brand = ganttProj ? projectMap[ganttProj.brand_id] : null;
+    return brand?.categories || [];
+  }, [editingTask, ganttProjects, projectMap]);
 
 
 
