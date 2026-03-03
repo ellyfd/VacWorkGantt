@@ -1045,8 +1045,13 @@ export default function GanttChart() {
 
       {/* Time Navigation - Layer 1 */}
       <TimeNavigation
-        centerDate={centerDate}
-        onCenterDateChange={setCenterDate}
+        centerDate={startDate}
+        onCenterDateChange={(date) => {
+          const d = new Date(date);
+          setStartDate(subDays(d, 0));
+          setEndDate(addDays(d, 360));
+          initialScrollDone.current = false;
+        }}
         onScrollToToday={scrollToToday}
       />
 
