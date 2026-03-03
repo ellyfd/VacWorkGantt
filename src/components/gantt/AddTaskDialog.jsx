@@ -39,6 +39,23 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
             )}
           </div>
 
+          {/* 分類 */}
+          <div>
+            <Label>分類</Label>
+            <Select
+              value={taskFormData.category || ''}
+              onValueChange={(val) => setTaskFormData({ ...taskFormData, category: val })}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="選擇分類" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="core">Core</SelectItem>
+                <SelectItem value="fashion">Fashion</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* 時間設定（選填） */}
           <div className="border-t pt-4">
             <Label className="mb-2 block text-gray-600">
