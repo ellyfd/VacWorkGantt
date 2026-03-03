@@ -703,22 +703,23 @@ export default function GanttChart() {
     }
   });
 
-  // 修復無限滾動滾動跳轉：當 centerDate 改變導致新日期加入時，補償滾動位置
+  // 向左延伸時補償 scrollLeft（防止畫面跳躍）
   React.useLayoutEffect(() => {
     const el = rightPanelRef.current;
     if (!el || days.length === 0) return;
 
     const prevDaysLength = prevDaysLengthRef.current;
-    
-    // 如果向左擴展（新增了左邊的日期），需要補償 scrollLeft
-    if (prevDaysLength > 0 && days.length > prevDaysLength) {
+    const prevStart = prevStartDateRef.current;
+
+    // 只有左邊新增日期時才需要補償（startDate 往前移）
+    if (prevDaysLength > 0 && startDate < prevStart) {
       const addedDays = days.length - prevDaysLength;
       pendingScrollCompensation.current = addedDays * CELL_WIDTH;
     }
 
     prevDaysLengthRef.current = days.length;
-    prevCenterDateRef.current = centerDate;
-  }, [days.length, CELL_WIDTH, centerDate]);
+    prevStartDateRef.current = startDate;
+  }, [days.length, CELL_WIDTH, startDate]);
 
   // 同步垂直滾動：左側 panel ↔ 右側 body
   React.useEffect(() => {
