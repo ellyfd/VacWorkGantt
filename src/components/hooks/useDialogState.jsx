@@ -9,14 +9,7 @@ export function useDialogState() {
   const [showDurationDialog, setShowDurationDialog] = useState(false);
   const [showRollingDialog, setShowRollingDialog] = useState(false);
   const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
-  const [showEditPhaseDialog, setShowEditPhaseDialog] = useState(false);
-  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  const [editingProjectTasks, setEditingProjectTasks] = useState([]);
-  const [editingPhase, setEditingPhase] = useState(null);
-  const [editingPhaseName, setEditingPhaseName] = useState('');
-  const [editingPhaseTasks, setEditingPhaseTasks] = useState([]);
-  const [newTaskName, setNewTaskName] = useState('');
+
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   return {
