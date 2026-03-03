@@ -574,6 +574,7 @@ export default function GanttChart() {
       name: sample.short_name || sample.name,
       gantt_project_id: projectId,
       sample_id: taskFormData.sample_id,
+      category: taskFormData.category || null,
       sort_order: tasksInProject.length + 1,
     };
 
