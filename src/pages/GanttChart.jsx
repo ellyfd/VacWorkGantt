@@ -1029,26 +1029,7 @@ export default function GanttChart() {
     return dateStr.split('T')[0]; // "2026-02-27T00:00:00.000Z" → "2026-02-27"
   };
 
-  // 計算工作天數
-  const calculateWorkingDays = (startDate, endDate) => {
-    if (!startDate || !endDate) return 0;
-    const start = normalizeDate(startDate);
-    const end = normalizeDate(endDate);
-    if (!start || !end) return 0;
-    
-    let count = 0;
-    const current = new Date(start);
-    const endDate2 = new Date(end);
-    while (current <= endDate2) {
-      const dayOfWeek = getDay(current);
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        const dateStr = format(current, 'yyyy-MM-dd');
-        if (!holidaySet.has(dateStr)) count++;
-      }
-      current.setDate(current.getDate() + 1);
-    }
-    return count;
-  };
+
 
 
 
