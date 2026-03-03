@@ -34,7 +34,8 @@ export default function ProjectSettings() {
   const [editingId, setEditingId] = useState(null);
   const [editingType, setEditingType] = useState(null);
   const [sampleFormData, setSampleFormData] = useState({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
-  const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
+  const [projectFormData, setProjectFormData] = useState({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6', categories: [] });
+  const [newCategory, setNewCategory] = useState('');
   const [groupFormData, setGroupFormData] = useState({ name: '', status: 'active' });
   const [searchText, setSearchText] = useState('');
   const [projectSearchText, setProjectSearchText] = useState('');
