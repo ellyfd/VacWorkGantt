@@ -947,11 +947,9 @@ export default function GanttChart() {
     const updatedItems = reorderedItems.map((item, idx) => ({ ...item, sort_order: idx }));
     queryClient.setQueryData(['ganttProjects'], updatedItems);
 
-    // 背景同步 DB（只更新被拖曳的項目）
-    updateSortOrder.mutate({ 
-      id: draggedId, 
-      entityType: 'project', 
-      sortOrder: targetIndex 
+    // ③ 批次更新所有受影響項目的 sort_order（修正 DB 與 cache 不一致問題）
+    reorderedItems.forEach((item, idx) => {
+      updateSortOrder.mutate({ id: item.id, entityType: 'project', sortOrder: idx });
     });
   };
 
