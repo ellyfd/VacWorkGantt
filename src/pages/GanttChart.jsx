@@ -507,10 +507,6 @@ export default function GanttChart() {
     setCreatingProjectId(id);
   };
 
-  // ② O(1) lookup map（取代 O(n) find）
-  const projectMap = useMemo(() =>
-    Object.fromEntries(projects.map(p => [p.id, p])), [projects]);
-
   // Helper functions
   const getProjectColor = (ganttProject) => {
     const brand = projectMap[ganttProject.brand_id];
