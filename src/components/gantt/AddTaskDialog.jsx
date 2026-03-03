@@ -40,7 +40,7 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
           </div>
 
           {/* 分類 */}
-          {categories.length > 0 && (
+          {categories.length > 0 ? (
             <div>
               <Label>Category</Label>
               <Select
@@ -48,7 +48,7 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
                 onValueChange={(val) => setTaskFormData({ ...taskFormData, category: val })}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="選擇分類" />
+                  <SelectValue placeholder="選擇 category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map(cat => (
@@ -57,6 +57,12 @@ export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTas
                 </SelectContent>
               </Select>
             </div>
+          ) : (
+            taskFormData.sample_id && (
+              <p className="text-xs text-gray-400">
+                如需設定 category，請至「專案設定 &gt; 品牌管理」新增。
+              </p>
+            )
           )}
 
           {/* 時間設定（選填） */}
