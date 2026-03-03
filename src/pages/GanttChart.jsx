@@ -35,6 +35,7 @@ import { addDays, subDays, format, eachDayOfInterval, isToday, getDay } from 'da
 import { zhTW } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
+import GanttRow from '@/components/gantt/GanttRow';
 import AddProjectDialog from '@/components/gantt/AddProjectDialog';
 import EditProjectDialog from '@/components/gantt/EditProjectDialog';
 import AddTaskDialog from '@/components/gantt/AddTaskDialog';
