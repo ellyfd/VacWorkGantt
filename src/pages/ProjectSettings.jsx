@@ -218,12 +218,28 @@ export default function ProjectSettings() {
   const getProjectName = (projectId) => projectMap.get(projectId)?.name || '-';
   const getGroupName = (groupId) => groupMap.get(groupId)?.name || '-';
 
-  const filteredSamples = samples.filter(s => {
+  const filteredSamples = useMemo(() => {
     const q = searchText.toLowerCase();
-    return s.name?.toLowerCase().includes(q) ||
+    const filtered = samples.filter(s =>
+      s.name?.toLowerCase().includes(q) ||
       s.full_name?.toLowerCase().includes(q) ||
-      (projectMap.get(s.project_id)?.name || '').toLowerCase().includes(q);
-  });
+      (projectMap.get(s.project_id)?.name || '').toLowerCase().includes(q)
+    );
+    return [...filtered].sort((a, b) => {
+      let va, vb;
+      if (sampleSort.key === 'project') {
+        va = projectMap.get(a.project_id)?.name || '';
+        vb = projectMap.get(b.project_id)?.name || '';
+      } else if (sampleSort.key === 'short_name') {
+        va = a.short_name || a.name || '';
+        vb = b.short_name || b.name || '';
+      } else {
+        va = a.full_name || a.name || '';
+        vb = b.full_name || b.name || '';
+      }
+      return sampleSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+  }, [samples, searchText, projectMap, sampleSort]);
 
   const filteredProjects = projects.filter(p => {
     const q = projectSearchText.toLowerCase();
