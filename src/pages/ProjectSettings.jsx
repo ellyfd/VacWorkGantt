@@ -693,7 +693,7 @@ export default function ProjectSettings() {
                     </span>
                   ))}
                   {(projectFormData.categories || []).length === 0 && (
-                    <span className="text-xs text-gray-400">尚無分類</span>
+                    <span className="text-xs text-gray-400">尚無 category</span>
                   )}
                 </div>
                 <div className="flex gap-2">
