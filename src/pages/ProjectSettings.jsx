@@ -700,7 +700,7 @@ export default function ProjectSettings() {
                   <Input
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder="輸入分類名稱（例: core）"
+                    placeholder="輸入 category（例: core）"
                     className="h-8 text-sm"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && newCategory.trim()) {
