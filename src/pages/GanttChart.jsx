@@ -884,45 +884,29 @@ export default function GanttChart() {
     mutationFn: ({ id, entityType, sortOrder }) => {
       if (entityType === 'project') {
         return base44.entities.GanttProject.update(id, { sort_order: sortOrder });
-      } else if (entityType === 'phase') {
-        return base44.entities.GanttPhase.update(id, { sort_order: sortOrder });
-      } else if (entityType === 'task') {
+      } else {
         return base44.entities.GanttTask.update(id, { sort_order: sortOrder });
       }
     },
     onMutate: ({ id, entityType, sortOrder }) => {
-      // 保存原始数据用于回滚
-      let previousData = {};
-      
       if (entityType === 'project') {
-        previousData = queryClient.getQueryData(['ganttProjects']);
-        const newData = previousData?.map(item => 
+        const previousData = queryClient.getQueryData(['ganttProjects']);
+        queryClient.setQueryData(['ganttProjects'], previousData?.map(item =>
           item.id === id ? { ...item, sort_order: sortOrder } : item
-        );
-        queryClient.setQueryData(['ganttProjects'], newData);
-      } else if (entityType === 'phase') {
-        previousData = queryClient.getQueryData(['ganttPhases']);
-        const newData = previousData?.map(item => 
+        ));
+        return { previousData, entityType };
+      } else {
+        const previousData = queryClient.getQueryData(['ganttTasks']);
+        queryClient.setQueryData(['ganttTasks'], previousData?.map(item =>
           item.id === id ? { ...item, sort_order: sortOrder } : item
-        );
-        queryClient.setQueryData(['ganttPhases'], newData);
-      } else if (entityType === 'task') {
-        previousData = queryClient.getQueryData(['ganttTasks']);
-        const newData = previousData?.map(item => 
-          item.id === id ? { ...item, sort_order: sortOrder } : item
-        );
-        queryClient.setQueryData(['ganttTasks'], newData);
+        ));
+        return { previousData, entityType };
       }
-      
-      return { previousData, entityType };
     },
     onError: (error, variables, context) => {
-      // 恢复原始数据
       if (context?.entityType === 'project') {
         queryClient.setQueryData(['ganttProjects'], context.previousData);
-      } else if (context?.entityType === 'phase') {
-        queryClient.setQueryData(['ganttPhases'], context.previousData);
-      } else if (context?.entityType === 'task') {
+      } else {
         queryClient.setQueryData(['ganttTasks'], context.previousData);
       }
     },
