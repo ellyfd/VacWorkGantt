@@ -672,6 +672,66 @@ export default function ProjectSettings() {
              </div>
             </div>
 
+            {/* Categories */}
+            <div>
+              <Label>任務分類</Label>
+              <div className="mt-2 space-y-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {(projectFormData.categories || []).map((cat, idx) => (
+                    <span key={idx} className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                      {cat}
+                      <button
+                        type="button"
+                        onClick={() => setProjectFormData({
+                          ...projectFormData,
+                          categories: projectFormData.categories.filter((_, i) => i !== idx)
+                        })}
+                        className="hover:text-red-600 ml-0.5"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  {(projectFormData.categories || []).length === 0 && (
+                    <span className="text-xs text-gray-400">尚無分類</span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder="輸入分類名稱（例: core）"
+                    className="h-8 text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newCategory.trim()) {
+                        e.preventDefault();
+                        const cat = newCategory.trim();
+                        if (!(projectFormData.categories || []).includes(cat)) {
+                          setProjectFormData({ ...projectFormData, categories: [...(projectFormData.categories || []), cat] });
+                        }
+                        setNewCategory('');
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const cat = newCategory.trim();
+                      if (cat && !(projectFormData.categories || []).includes(cat)) {
+                        setProjectFormData({ ...projectFormData, categories: [...(projectFormData.categories || []), cat] });
+                      }
+                      setNewCategory('');
+                    }}
+                    disabled={!newCategory.trim()}
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             <div>
               <Label>狀態</Label>
               <Select
