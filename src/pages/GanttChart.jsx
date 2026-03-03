@@ -1485,6 +1485,7 @@ export default function GanttChart() {
         setTaskFormData={setTaskFormData}
         onConfirm={handleAddTask}
         samplesForProject={samplesForProject}
+        categories={categoriesForProject}
       />
 
       {/* Edit Task Dialog */}
