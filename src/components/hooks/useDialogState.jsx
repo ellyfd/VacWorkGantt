@@ -9,7 +9,9 @@ export function useDialogState() {
   const [showDurationDialog, setShowDurationDialog] = useState(false);
   const [showRollingDialog, setShowRollingDialog] = useState(false);
   const [showImportScheduleDialog, setShowImportScheduleDialog] = useState(false);
-
+  const [showEditTaskDialog, setShowEditTaskDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [editingProjectTasks, setEditingProjectTasks] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   return {
@@ -21,14 +23,9 @@ export function useDialogState() {
     showDurationDialog, setShowDurationDialog,
     showRollingDialog, setShowRollingDialog,
     showImportScheduleDialog, setShowImportScheduleDialog,
-    showEditPhaseDialog, setShowEditPhaseDialog,
     showEditTaskDialog, setShowEditTaskDialog,
     editingTask, setEditingTask,
     editingProjectTasks, setEditingProjectTasks,
-    editingPhase, setEditingPhase,
-    editingPhaseName, setEditingPhaseName,
-    editingPhaseTasks, setEditingPhaseTasks,
-    newTaskName, setNewTaskName,
     deleteConfirm, setDeleteConfirm,
   };
 }
