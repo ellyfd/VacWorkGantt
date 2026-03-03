@@ -40,6 +40,7 @@ export default function ProjectSettings() {
   const [searchText, setSearchText] = useState('');
   const [projectSearchText, setProjectSearchText] = useState('');
   const [groupSearchText, setGroupSearchText] = useState('');
+  const [sampleSort, setSampleSort] = useState({ key: 'project', dir: 'asc' });
 
   // Queries
   const { data: samples = [], isLoading: loadingSamples } = useQuery({
