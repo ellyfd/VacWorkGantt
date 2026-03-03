@@ -190,12 +190,14 @@ export default function ProjectSettings() {
         group_id: project.group_id || '',
         status: project.status || 'active',
         default_color: project.default_color || '#3b82f6',
+        categories: project.categories || [],
       });
     } else {
       setEditingId(null);
       setEditingType('project');
-      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
+      setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6', categories: [] });
     }
+    setNewCategory('');
     setShowProjectDialog(true);
   };
 
