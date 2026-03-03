@@ -81,8 +81,9 @@ export default function GanttChart() {
   const DATE_HEADER_HEIGHT = ROW_HEIGHT + 20;
   const LEAVE_HEADER_HEIGHT = 32;
 
-  // 無限捲動：以 centerDate 為中心動態生成日期
-  const [centerDate, setCenterDate] = useState(new Date());
+  // 無限捲動：真正的 window 模型（只延伸邊界，不重建整條 timeline）
+  const [startDate, setStartDate] = useState(() => subDays(new Date(), 180));
+  const [endDate, setEndDate] = useState(() => addDays(new Date(), 180));
   const rightPanelContainerRef = useRef(null);
   
   // 使用 custom hooks
