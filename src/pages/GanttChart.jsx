@@ -1187,6 +1187,7 @@ export default function GanttChart() {
           <div className="flex-1 overflow-x-auto" data-gantt-scroll ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
             {/* 所有列共用同一個 grid track，完全對齊 */}
             {(() => {
+              // ⑤ gridStyle 移出 render，避免每次生成新 object
               const gridStyle = {
                 display: 'grid',
                 gridTemplateColumns: `repeat(${days.length}, ${CELL_WIDTH}px)`,
