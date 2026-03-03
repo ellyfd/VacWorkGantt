@@ -1496,35 +1496,30 @@ export default function GanttChart() {
                     style={{ maxHeight: 'calc(100vh - 440px)' }}
                   >
                     {visibleRows.map((row) => (
-                      <div
+                      <GanttRow
                         key={row.id}
-                        draggable={true}
+                        row={row}
+                        days={days}
+                        dayCellPropsMap={dayCellPropsMap}
+                        dayIndexMap={dayIndexMap}
+                        tasks={tasksByProjectId[row.data.id] ?? []}
+                        projectColor={getProjectColor(row.data)}
+                        workingDaysMap={workingDaysMap}
+                        isDragging={isDragging}
+                        dragTaskId={dragTaskId}
+                        dragStart={dragStart}
+                        dragEnd={dragEnd}
+                        dropTargetId={dropTargetId === row.data.id}
+                        gridStyle={gridStyle}
+                        CELL_WIDTH={CELL_WIDTH}
+                        ROW_HEIGHT={ROW_HEIGHT}
+                        onEditTask={(task) => { setEditingTask({ ...task }); setShowEditTaskDialog(true); }}
                         onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
                         onDragOver={(e) => handleProjectDragOver(e, row.data.id)}
                         onDrop={(e) => handleProjectDrop(e, row.data.id)}
-                        onDragEnd={() => handleProjectDragEnd()}
+                        onDragEnd={handleProjectDragEnd}
                         onDragLeave={() => setDropTargetId(null)}
-                        style={{
-                          position: 'relative',
-                          borderBottom: '1px solid #e5e7eb',
-                          height: ROW_HEIGHT,
-                          cursor: 'move',
-                          opacity: draggedProjectIdRef.current === row.data.id ? 0.5 : 1,
-                          userSelect: 'none',
-                        }}
-                      >
-                        {dropTargetId === row.data.id && (
-                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', zIndex: 50 }} />
-                        )}
-                        {/* 底層：格子背景 + 格線 */}
-                        <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
-                          {days.map((day) => renderCellBackground(row, day))}
-                        </div>
-                        {/* 上層：Bar */}
-                        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                          {renderTaskBars(row)}
-                        </div>
-                      </div>
+                      />
                     ))}
                   </div>
                 </div>
