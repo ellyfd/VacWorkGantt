@@ -779,7 +779,7 @@ export default function GanttChart() {
     const scrolledDays = Math.floor(el.scrollLeft / CELL_WIDTH);
     
     // 拖曳 bar 時不觸發無限滾動延伸，避免與 edge-scroll 互相干擾
-    if (isDragging) return;
+    if (isDragging || edgeScrollRafRef.current) return;
 
     // 節流：每 300ms 才能延伸一次，避免滾動條拖動觸發連鎖跳躍
     const now = Date.now();
