@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTaskFormData, onConfirm, samplesForProject = [] }) {
+export default function AddTaskDialog({ open, onOpenChange, taskFormData, setTaskFormData, onConfirm, samplesForProject = [], categories = [] }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
