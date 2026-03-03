@@ -1050,36 +1050,7 @@ export default function GanttChart() {
     return count;
   };
 
-  // 渲染右側單元格背景（只處理視覺，不渲染 Bar）（memoized）
-  const renderCellBackground = useCallback((row, day) => {
-    const dateStr = format(day, 'yyyy-MM-dd');
-    const props = dayCellPropsMap[dateStr];
-    const projectTasks = tasksByProjectId[row.data.id] ?? [];
-    const hasDragOnProject = isDragging && projectTasks.some(t => t.id === dragTaskId);
-    const isInDragRange = hasDragOnProject && dragStart && dragEnd && (() => {
-      const s = format(dragStart < dragEnd ? dragStart : dragEnd, 'yyyy-MM-dd');
-      const e = format(dragStart < dragEnd ? dragEnd : dragStart, 'yyyy-MM-dd');
-      return dateStr >= s && dateStr <= e;
-    })();
 
-    const bgColor = isInDragRange ? '#bfdbfe' : props.bgColor;
-
-    return (
-      <div
-        key={dateStr}
-        style={{
-          height: ROW_HEIGHT,
-          borderRight: '1px solid #d1d5db',
-          borderLeft: props.isFirstOfMonth ? '2px solid #6b7280' : undefined,
-          backgroundColor: bgColor,
-          position: 'relative',
-        }}
-      >
-        {props.isToday && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
-        {props.isToday && <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-red-400" />}
-      </div>
-    );
-  }, [dayCellPropsMap, tasksByProjectId, isDragging, dragTaskId, dragStart, dragEnd]);
 
 
 
