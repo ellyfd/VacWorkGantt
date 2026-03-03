@@ -97,7 +97,7 @@ export default function GanttChart() {
   const leftPanelRef = React.useRef(null);
   const rightPanelRef = React.useRef(null); // outer overflow-x-auto
 
-  const [showAddPhaseDialog, setShowAddPhaseDialog] = useState(false);
+
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [firstDate, setFirstDate] = useState(null);
   const [secondDate, setSecondDate] = useState(null);
