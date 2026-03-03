@@ -794,7 +794,10 @@ export default function GanttChart() {
 
   // 跳轉到今天
   const scrollToToday = () => {
-    setCenterDate(new Date());
+    // 確保今天在 window 範圍內
+    const today = new Date();
+    setStartDate(d => today < d ? subDays(today, 180) : d);
+    setEndDate(d => today > d ? addDays(today, 180) : d);
     initialScrollDone.current = false;
   };
 
