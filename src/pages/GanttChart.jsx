@@ -805,11 +805,10 @@ export default function GanttChart() {
   const handleJumpToTasks = (projectId) => {
     const projectTasks = ganttTasks.filter(t => t.gantt_project_id === projectId && t.start_date);
     if (projectTasks.length === 0) return;
-    const earliest = projectTasks.reduce((min, t) => {
-      return t.start_date < min ? t.start_date : min;
-    }, projectTasks[0].start_date);
+    const earliest = projectTasks.reduce((min, t) => t.start_date < min ? t.start_date : min, projectTasks[0].start_date);
     const targetDate = new Date(earliest);
-    setCenterDate(targetDate);
+    setStartDate(d => targetDate < d ? subDays(targetDate, 180) : d);
+    setEndDate(d => targetDate > d ? addDays(targetDate, 180) : d);
     setTimeout(() => {
       const el = rightPanelRef.current;
       if (!el) return;
