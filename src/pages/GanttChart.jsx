@@ -458,6 +458,12 @@ export default function GanttChart() {
     return map;
   }, [ganttTasks, holidaySet]);
 
+  // ⑤ gridStyle useMemo（傳給 GanttRow 時不重建 object）
+  const gridStyle = useMemo(() => ({
+    display: 'grid',
+    gridTemplateColumns: `repeat(${days.length}, ${CELL_WIDTH}px)`,
+  }), [days.length, CELL_WIDTH]);
+
   // ── More Lookup Maps（employeeMap、tasksByProjectId 等）────────
   const tasksByProjectId = useMemo(() => {
     return ganttTasks.reduce((acc, task) => {
