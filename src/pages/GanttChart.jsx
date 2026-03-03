@@ -1487,6 +1487,21 @@ export default function GanttChart() {
                   {editingTask.name || '未設定'}
                 </div>
               </div>
+              <div>
+                <Label className="text-xs">分類</Label>
+                <Select
+                  value={editingTask.category || ''}
+                  onValueChange={(val) => setEditingTask({ ...editingTask, category: val })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="選擇分類" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="core">Core</SelectItem>
+                    <SelectItem value="fashion">Fashion</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="border-t pt-4">
                 <Label className="mb-2 block text-gray-600">時間類型</Label>
                 <div className="flex gap-1.5">
