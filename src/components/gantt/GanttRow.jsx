@@ -142,6 +142,9 @@ const GanttRow = React.memo(function GanttRow({
           {task.time_type === 'duration' && (
             <span style={{ fontSize: 13, color: textColor, fontWeight: 500 }}>
               {task.name}
+              {task.category && (
+                <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.7 }}>({task.category})</span>
+              )}
               {workingDays > 0 && (
                 <span style={{ fontSize: 11, opacity: 0.8, marginLeft: 4 }}>
                   {workingDays}d
