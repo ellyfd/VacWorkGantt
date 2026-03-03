@@ -1502,29 +1502,28 @@ export default function GanttChart() {
                   {editingTask.name || '未設定'}
                 </div>
               </div>
-              <div>
-                <Label className="text-xs">Category</Label>
-                <Select
-                  value={editingTask.category || ''}
-                  onValueChange={(val) => setEditingTask({ ...editingTask, category: val })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="選擇分類" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriesForEditTask.length > 0 ? (
-                      categoriesForEditTask.map(cat => (
+              {categoriesForEditTask.length > 0 ? (
+                <div>
+                  <Label className="text-xs">Category</Label>
+                  <Select
+                    value={editingTask.category || ''}
+                    onValueChange={(val) => setEditingTask({ ...editingTask, category: val })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="選擇 category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoriesForEditTask.map(cat => (
                         <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))
-                    ) : (
-                      <>
-                        <SelectItem value="core">Core</SelectItem>
-                        <SelectItem value="fashion">Fashion</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400">
+                  如需設定 category，請至「專案設定 &gt; 品牌管理」新增。
+                </p>
+              )}
               <div className="border-t pt-4">
                 <Label className="mb-2 block text-gray-600">時間類型</Label>
                 <div className="flex gap-1.5">
