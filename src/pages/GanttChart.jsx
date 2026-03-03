@@ -1503,7 +1503,7 @@ export default function GanttChart() {
                 </div>
               </div>
               <div>
-                <Label className="text-xs">分類</Label>
+                <Label className="text-xs">Category</Label>
                 <Select
                   value={editingTask.category || ''}
                   onValueChange={(val) => setEditingTask({ ...editingTask, category: val })}
