@@ -529,10 +529,26 @@ export default function ProjectSettings() {
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="bg-gray-50 border-b whitespace-nowrap">
-                    <TableHead className="w-[30%]">樣品縮寫</TableHead>
-                    <TableHead className="w-[35%]">樣品全名</TableHead>
-                    <TableHead className="w-[20%]">品牌</TableHead>
-                    <TableHead className="w-[15%] text-right">操作</TableHead>
+                    {[
+                      { key: 'project', label: '品牌', w: 'w-[20%]' },
+                      { key: 'short_name', label: '樣品縮寫', w: 'w-[25%]' },
+                      { key: 'full_name', label: '樣品全名', w: 'w-[35%]' },
+                    ].map(col => (
+                      <TableHead
+                        key={col.key}
+                        className={`${col.w} cursor-pointer select-none hover:bg-gray-100`}
+                        onClick={() => setSampleSort(s => ({
+                          key: col.key,
+                          dir: s.key === col.key && s.dir === 'asc' ? 'desc' : 'asc'
+                        }))}
+                      >
+                        <span className="flex items-center gap-1">
+                          {col.label}
+                          {sampleSort.key === col.key ? (sampleSort.dir === 'asc' ? ' ↑' : ' ↓') : <span className="text-gray-300"> ↕</span>}
+                        </span>
+                      </TableHead>
+                    ))}
+                    <TableHead className="w-[20%] text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -545,11 +561,11 @@ export default function ProjectSettings() {
                   ) : (
                     filteredSamples.map((sample) => (
                       <TableRow key={sample.id} className="hover:bg-gray-50 whitespace-nowrap">
-                        <TableCell className="font-medium text-sm md:text-base truncate">{sample.short_name || sample.name}</TableCell>
-                        <TableCell className="text-xs md:text-sm truncate">{sample.full_name || sample.name}</TableCell>
-                        <TableCell className="text-xs md:text-sm text-gray-600 truncate">
+                        <TableCell className="text-xs md:text-sm text-gray-600 truncate font-medium">
                           {getProjectName(sample.project_id)}
                         </TableCell>
+                        <TableCell className="font-medium text-sm md:text-base truncate">{sample.short_name || sample.name}</TableCell>
+                        <TableCell className="text-xs md:text-sm truncate">{sample.full_name || sample.name}</TableCell>
                         <TableCell className="flex gap-0.5 md:gap-2 justify-end flex-shrink-0">
                           <Button variant="ghost" size="icon" className="w-7 h-7 md:w-8 md:h-8" onClick={() => handleOpenSampleDialog(sample)}>
                             <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
