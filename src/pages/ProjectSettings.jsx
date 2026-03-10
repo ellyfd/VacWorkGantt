@@ -716,7 +716,7 @@ export default function ProjectSettings() {
              <div className="mt-2 space-y-2">
                {/* 色票 */}
                <div className="flex gap-2 flex-wrap">
-                 {['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280','#f97316','#84cc16']
+                 {['#4a7fc1','#6b9fd4','#3d8f6e','#5aab87','#b87333','#c9955c','#7b5ea7','#9b7dc4','#5c7a8a','#7a98a8']
                    .filter(color => !usedColors.has(color))
                    .map(color => (
                      <button

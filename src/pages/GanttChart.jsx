@@ -61,12 +61,17 @@ const getContrastColor = (hexColor) => {
 };
 
 // 產生同色系淺色（用於 Rolling 延伸段）
-const getLightColor = (hexColor) => {
-  if (!hexColor || !hexColor.startsWith('#')) return '#bfdbfe';
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  // 混入 75% 白色
+const getLightColor = (color) => {
+  if (!color) return '#bfdbfe';
+  // hsl() 格式：直接提高 lightness
+  const hslMatch = color.match(/hsl\((\d+),\s*(\d+)%,\s*([\d.]+)%\)/);
+  if (hslMatch) {
+    return `hsl(${hslMatch[1]}, ${hslMatch[2]}%, 82%)`;
+  }
+  if (!color.startsWith('#')) return '#bfdbfe';
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
   const lr = Math.round(r + (255 - r) * 0.72);
   const lg = Math.round(g + (255 - g) * 0.72);
   const lb = Math.round(b + (255 - b) * 0.72);
@@ -508,9 +513,30 @@ export default function GanttChart() {
   };
 
   // Helper functions
+  const hashToHue = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    return Math.abs(hash) % 360;
+  };
+
   const getProjectColor = (ganttProject) => {
     const brand = projectMap[ganttProject.brand_id];
-    return brand?.default_color || ganttProject.color || '#3b82f6';
+    if (brand?.default_color) return brand.default_color;
+
+    const group = groups.find(g => g.id === brand?.group_id);
+    if (group) {
+      const brandsInGroup = projects
+        .filter(p => p.group_id === group.id)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const idx = brandsInGroup.findIndex(p => p.id === brand?.id);
+      const total = Math.max(brandsInGroup.length, 1);
+      const hue = hashToHue(group.name);
+      const saturation = 45;
+      const lightness = 38 + (idx / total) * 18;
+      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    return ganttProject.color || '#6b7280';
   };
 
   const getSamplesByBrand = (brandId) => {
