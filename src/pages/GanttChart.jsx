@@ -521,6 +521,7 @@ export default function GanttChart() {
 
   const getProjectColor = (ganttProject) => {
     const brand = projectMap[ganttProject.brand_id];
+    console.log('brand:', brand?.short_name, '| default_color:', brand?.default_color, '| group_id:', brand?.group_id);
     if (brand?.default_color) return brand.default_color;
 
     const group = groups.find(g => g.id === brand?.group_id);
