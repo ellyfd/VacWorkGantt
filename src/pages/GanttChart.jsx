@@ -1640,7 +1640,9 @@ export default function GanttChart() {
 
       {/* 操作說明 */}
       <details className="mt-4 text-sm text-gray-600">
-        <summary className="cursor-pointer font-medium">📖 操作說明</summary>
+        <summary className="cursor-pointer font-medium flex items-center gap-1.5 text-gray-500 hover:text-gray-700">
+          <HelpCircle className="w-4 h-4" /> 操作說明
+        </summary>
         <ul className="mt-2 ml-4 space-y-1 list-disc">
           <li><strong>新增開發季</strong>：點擊「＋ 新增」，選品牌與季節建立</li>
           <li><strong>新增任務</strong>：點擊開發季列的 ＋，選樣品與時間類型</li>
