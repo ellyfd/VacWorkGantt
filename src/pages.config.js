@@ -58,6 +58,7 @@ import Notifications from './pages/Notifications';
 import PeopleManagement from './pages/PeopleManagement';
 import ProjectSettings from './pages/ProjectSettings';
 import ReportManagement from './pages/ReportManagement';
+import MigrateLeaveRecords from './pages/MigrateLeaveRecords';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "PeopleManagement": PeopleManagement,
     "ProjectSettings": ProjectSettings,
     "ReportManagement": ReportManagement,
+    "MigrateLeaveRecords": MigrateLeaveRecords,
 }
 
 export const pagesConfig = {
