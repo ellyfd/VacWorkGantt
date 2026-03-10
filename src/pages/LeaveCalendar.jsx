@@ -151,8 +151,12 @@ export default function LeaveCalendar() {
       const currentEmployee = employeeMap[employeeId];
       
       const leaveType = leaveTypeMap[leaveTypeId];
-      const isBusinessTrip = leaveType?.name === '出差';
+      console.log('leaveTypeId:', leaveTypeId);
+      console.log('leaveTypeMap keys:', Object.keys(leaveTypeMap));
+      console.log('currentLeaveType:', leaveType);
       const period = getLeavePeriod(leaveType?.name);
+      console.log('period:', period);
+      const isBusinessTrip = leaveType?.name === '出差';
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period
       );
