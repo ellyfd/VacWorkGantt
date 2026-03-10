@@ -1266,7 +1266,7 @@ export default function GanttChart() {
                   </div>
 
                   {/* 請假人數列 */}
-                  <div style={{ ...gridStyle, height: LEAVE_HEADER_HEIGHT, borderBottom: '1px solid #d1d5db', backgroundColor: 'white' }}>
+                  <div style={{ ...gridStyle, height: LEAVE_HEADER_HEIGHT, borderBottom: '1px solid #d1d5db', backgroundColor: '#f9fafb' }}>
                     {days.map((day) => {
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
