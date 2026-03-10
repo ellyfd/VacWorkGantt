@@ -1250,7 +1250,7 @@ export default function GanttChart() {
                         <div
                           key={day.toISOString()}
                           className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                            isToday(day) ? 'bg-red-100 text-red-700' :
+                            isToday(day) ? 'bg-orange-200 text-orange-800 font-bold border-t-2 border-orange-500' :
                             (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
                             'bg-gray-100 text-gray-700'
                           }`}
