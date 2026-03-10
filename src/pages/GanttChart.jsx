@@ -51,11 +51,16 @@ import { useFilterState } from '@/components/hooks/useFilterState';
 import { useProjectCreation } from '@/components/hooks/useProjectCreation';
 
 // 根據背景色決定文字要用深色或淺色
-const getContrastColor = (hexColor) => {
-  if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
+const getContrastColor = (color) => {
+  if (!color) return '#ffffff';
+  const hslMatch = color.match(/hsl\([\d.]+,\s*[\d.]+%,\s*([\d.]+)%\)/);
+  if (hslMatch) {
+    return parseFloat(hslMatch[1]) > 52 ? '#1f2937' : '#ffffff';
+  }
+  if (!color.startsWith('#')) return '#ffffff';
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return luminance > 0.55 ? '#1f2937' : '#ffffff';
 };
@@ -521,7 +526,6 @@ export default function GanttChart() {
 
   const getProjectColor = (ganttProject) => {
     const brand = projectMap[ganttProject.brand_id];
-    if (brand?.default_color) return brand.default_color;
 
     const group = groups.find(g => g.id === brand?.group_id);
     if (group) {
@@ -536,7 +540,7 @@ export default function GanttChart() {
       return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     }
 
-    return ganttProject.color || '#6b7280';
+    return brand?.default_color || ganttProject.color || '#6b7280';
   };
 
   const getSamplesByBrand = (brandId) => {
