@@ -980,7 +980,12 @@ export default function GanttChart() {
           }}
         >
           <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-40" />
-          <span className="truncate flex-1 font-semibold text-[14px]">{row.data.name}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="truncate flex-1 font-semibold text-[14px]">{row.data.name}</span>
+            </TooltipTrigger>
+            <TooltipContent side="right">{row.data.name}</TooltipContent>
+          </Tooltip>
           <div className="flex gap-1 flex-shrink-0 opacity-70">
             <button
               onClick={(e) => {
