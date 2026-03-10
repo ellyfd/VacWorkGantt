@@ -30,6 +30,12 @@ import { checkDeputyConflict, checkDeptLimit, buildWarningInfo } from '@/compone
 import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
 
+const getLeavePeriod = (leaveTypeName) => {
+  if (['早休', '健檢'].includes(leaveTypeName)) return 'AM';
+  if (['午休'].includes(leaveTypeName)) return 'PM';
+  return 'full';
+};
+
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
@@ -144,13 +150,15 @@ export default function LeaveCalendar() {
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
       const currentEmployee = employeeMap[employeeId];
       
-      const existing = leaveByDateEmpKey[`${date}_${employeeId}`];
+      const leaveType = leaveTypeMap[leaveTypeId];
+      const isBusinessTrip = leaveType?.name === '出差';
+      const period = getLeavePeriod(leaveType?.name);
+      const existing = leaveRecords.find(
+        r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period
+      );
       if (existing && existing.leave_type_id === leaveTypeId) {
         return existing;
       }
-      
-      const leaveType = leaveTypeMap[leaveTypeId];
-      const isBusinessTrip = leaveType?.name === '出差';
 
       // 檢查職代衝突
       if (!isBusinessTrip) {
@@ -208,6 +216,7 @@ export default function LeaveCalendar() {
       if (existing) {
         return base44.entities.LeaveRecord.update(existing.id, {
           leave_type_id: leaveTypeId,
+          period,
           warning_type: warningTypes.length > 0 ? warningTypes : undefined,
           warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
@@ -216,6 +225,7 @@ export default function LeaveCalendar() {
           employee_id: employeeId,
           date: date,
           leave_type_id: leaveTypeId,
+          period,
           warning_type: warningTypes.length > 0 ? warningTypes : undefined,
           warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
@@ -239,7 +249,9 @@ export default function LeaveCalendar() {
       const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
 
       queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
-        const existing = old?.find(r => r.employee_id === employeeId && r.date === date);
+        const leaveType = leaveTypeMap[leaveTypeId];
+        const period = getLeavePeriod(leaveType?.name);
+        const existing = old?.find(r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period);
         if (existing) {
           return old.map(r =>
             r.id === existing.id ? { ...r, leave_type_id: leaveTypeId } : r
@@ -250,6 +262,7 @@ export default function LeaveCalendar() {
           employee_id: employeeId,
           date,
           leave_type_id: leaveTypeId,
+          period,
         }];
       });
 

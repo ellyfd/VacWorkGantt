@@ -1,9 +1,18 @@
 import React from 'react';
 
+// 假別期間判斷 - 也在 Page 層 mutation 中需要相同邏輯
+export const getLeavePeriod = (leaveTypeName) => {
+  if (['早休', '健檢'].includes(leaveTypeName)) return 'AM';
+  if (['午休'].includes(leaveTypeName)) return 'PM';
+  return 'full';
+};
+
 function LeaveCell({ 
-  record, 
+  fullRecord,
+  amRecord,
+  pmRecord,
   leaveTypes,
-  onSelectLeave, 
+  onSelectLeave,
   onClearLeave,
   onDoubleClickLeave,
   isWeekend,
@@ -15,58 +24,103 @@ function LeaveCell({
   onRangeCellClick,
   isHighlighted = false
 }) {
-  const leaveType = record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
+  const findLeaveType = (record) =>
+    record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
 
-  const cellBgClass = (isHoliday || isWeekend) 
-    ? "bg-gray-50" 
+  const fullLeaveType = findLeaveType(fullRecord);
+  const amLeaveType   = findLeaveType(amRecord);
+  const pmLeaveType   = findLeaveType(pmRecord);
+
+  const cellBgClass = (isHoliday || isWeekend)
+    ? 'bg-gray-50'
     : isHighlighted
-    ? "bg-amber-50"
-    : isCurrentUser 
-    ? "bg-amber-50" 
-    : "bg-white";
+    ? 'bg-amber-50'
+    : isCurrentUser
+    ? 'bg-amber-50'
+    : 'bg-white';
 
-  const isInRange = rangeMode && dateRange.from && dateRange.to && 
+  const isInRange    = rangeMode && dateRange.from && dateRange.to &&
     currentDate >= dateRange.from && currentDate <= dateRange.to;
   const isRangeStart = rangeMode && currentDate === dateRange.from;
-  const isRangeEnd = rangeMode && currentDate === dateRange.to;
+  const isRangeEnd   = rangeMode && currentDate === dateRange.to;
+  const ringClass = `${isInRange ? 'ring-1 ring-inset ring-blue-400' : ''} ${isRangeStart || isRangeEnd ? 'ring-2 ring-blue-500' : ''}`;
 
   const handleClick = () => {
-    if (rangeMode) {
-      onRangeCellClick();
-    } else {
-      onSelectLeave();
-    }
+    if (rangeMode) { onRangeCellClick(); return; }
+    onSelectLeave();
   };
 
   const handleDoubleClick = (e) => {
-    if (record) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (onDoubleClickLeave) {
-        onDoubleClickLeave();
-      } else {
-        onClearLeave();
-      }
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (fullRecord) {
+      if (onDoubleClickLeave) onDoubleClickLeave(fullRecord);
+      else onClearLeave(fullRecord.id);
+      return;
     }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const isTopHalf = e.clientY < rect.top + rect.height / 2;
+    const target = isTopHalf ? amRecord : pmRecord;
+    if (!target) return;
+    if (onDoubleClickLeave) onDoubleClickLeave(target);
+    else onClearLeave(target.id);
   };
 
+  // ── Case 1: 整天假
+  if (fullRecord && fullLeaveType) {
+    return (
+      <div className="w-full h-full p-[1px] sm:p-[2px]">
+        <div
+          className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-all rounded-[2px] sm:rounded-sm text-[11px] sm:text-[12px] font-medium ${ringClass}`}
+          style={{ backgroundColor: fullLeaveType.color, color: '#fff' }}
+          onClick={handleClick}
+          onDoubleClick={handleDoubleClick}
+        >
+          <span>{fullLeaveType.short_name}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Case 2: 上下分割（AM / PM 任一或兩者都有）
+  if (amRecord || pmRecord) {
+    return (
+      <div className={`w-full h-full p-[1px] sm:p-[2px] ${cellBgClass}`}>
+        <div
+          className={`w-full h-full flex flex-col rounded-[2px] sm:rounded-sm overflow-hidden cursor-pointer ${ringClass}`}
+          onClick={handleClick}
+          onDoubleClick={handleDoubleClick}
+        >
+          {/* 上半：AM */}
+          <div
+            className="flex-1 flex items-center justify-center text-[10px] sm:text-[11px] font-semibold hover:opacity-90 transition-all"
+            style={amLeaveType ? { backgroundColor: amLeaveType.color, color: '#fff' } : {}}
+          >
+            {amLeaveType?.short_name || ''}
+          </div>
+          {/* 下半：PM */}
+          <div
+            className="flex-1 flex items-center justify-center text-[10px] sm:text-[11px] font-semibold hover:opacity-90 transition-all"
+            style={pmLeaveType ? { backgroundColor: pmLeaveType.color, color: '#fff' } : {}}
+          >
+            {pmLeaveType?.short_name || ''}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Case 3: 空格
   return (
-    <div className={`w-full h-full p-[1px] sm:p-[2px] ${!record ? cellBgClass : ''}`}>
+    <div className={`w-full h-full p-[1px] sm:p-[2px] ${cellBgClass}`}>
       <div
-        className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-all
-          rounded-[2px] sm:rounded-sm
-          text-[11px] sm:text-[12px] font-medium
-          ${isInRange ? 'ring-1 ring-inset ring-blue-400' : ''}
-          ${isRangeStart || isRangeEnd ? 'ring-2 ring-blue-500' : ''}`}
-        style={record && leaveType ? { backgroundColor: leaveType.color, color: '#fff' } : (isInRange && !record ? { backgroundColor: '#dbeafe' } : {})}
+        className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-all rounded-[2px] sm:rounded-sm ${ringClass}`}
+        style={isInRange ? { backgroundColor: '#dbeafe' } : {}}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
       >
-        {record && leaveType ? (
-          <span className={`${leaveType.name === '午休' || leaveType.name === '半天假' ? 'font-semibold' : ''}`}>
-            {leaveType.short_name}
-          </span>
-        ) : ''}
       </div>
     </div>
   );

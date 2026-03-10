@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { format, getDaysInMonth, startOfMonth, getDay } from "date-fns";
-import { zhTW } from "date-fns/locale";
+import { format, getDaysInMonth, getDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 
 import LeaveCell from "./LeaveCell";
@@ -65,14 +64,20 @@ export default function LeaveCalendarTable({
       }),
   [year, month, currentDate, holidaySet]);
 
+  // 一個 key 可存多筆（full / AM / PM）
   const leaveRecordMap = useMemo(() => {
     const map = new Map();
-    leaveRecords.forEach(r => map.set(`${r.employee_id}_${r.date}`, r));
+    leaveRecords.forEach(r => {
+      const key = `${r.employee_id}_${r.date}`;
+      if (!map.has(key)) map.set(key, { full: null, AM: null, PM: null });
+      const period = r.period || 'full';
+      map.get(key)[period] = r;
+    });
     return map;
   }, [leaveRecords]);
 
-  const getLeaveRecord = useCallback((employeeId, date) => {
-    return leaveRecordMap.get(`${employeeId}_${date}`);
+  const getLeaveRecords = useCallback((employeeId, date) => {
+    return leaveRecordMap.get(`${employeeId}_${date}`) || { full: null, AM: null, PM: null };
   }, [leaveRecordMap]);
 
   const employeesToShow = useMemo(() => {
@@ -94,11 +99,13 @@ export default function LeaveCalendarTable({
 
   const clickTimerRef = useRef(null);
 
-  const handleCellClick = useCallback((employeeId, date, record) => {
+  const handleCellClick = useCallback((employeeId, date, records) => {
+    const targetRecord = records.full || records.AM || records.PM;
+
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current);
       clickTimerRef.current = null;
-      if (record && !rangeMode) onDeleteRangeLeave(record);
+      if (targetRecord && !rangeMode) onDeleteRangeLeave(targetRecord);
       return;
     }
     clickTimerRef.current = setTimeout(() => {
@@ -115,8 +122,6 @@ export default function LeaveCalendarTable({
     if (!rangeMode) onDeleteLeave(recordId);
   }, [rangeMode, onDeleteLeave]);
 
-
-
   return (
     <div className="bg-white w-full">
       <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
@@ -126,67 +131,66 @@ export default function LeaveCalendarTable({
               <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap">
                 姓名
               </th>
-            {days.map((d, idx) => (
-              <th 
-                key={idx} 
-                onDoubleClick={() => {
-                  setHighlightedDate(highlightedDate === d.date ? null : d.date);
-                  setHighlightedEmployeeId(null);
-                }}
-                className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-8 cursor-pointer select-none ${
-                  d.isHoliday || d.isWeekend ? 'bg-gray-100 text-red-500' : 
-                  highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
-                }`}
-              >
-                <div className="text-[13px] font-medium text-gray-800">{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                <div className="text-[10px] text-gray-400">{d.weekday}</div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {employeesToShow.map((emp) => {
+              {days.map((d, idx) => (
+                <th
+                  key={idx}
+                  onDoubleClick={() => {
+                    setHighlightedDate(highlightedDate === d.date ? null : d.date);
+                    setHighlightedEmployeeId(null);
+                  }}
+                  className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-8 cursor-pointer select-none ${
+                    d.isHoliday || d.isWeekend ? 'bg-gray-100 text-red-500' :
+                    highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
+                  }`}
+                >
+                  <div className="text-[13px] font-medium text-gray-800">{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                  <div className="text-[10px] text-gray-400">{d.weekday}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {employeesToShow.map((emp) => {
               const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
               return (
                 <tr key={emp.id} className={highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'}>
-                        <td 
-                          onDoubleClick={() => {
-                            setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
-                            setHighlightedDate(null);
-                          }}
-                          className={`sticky left-0 z-10 px-2 py-1 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
-                            highlightedEmployeeId === emp.id ? 'bg-amber-100' :
-                            isCurrentUser ? 'bg-amber-50' : 'bg-white'
-                          }`}
-                        >
-                          <div className="leading-[1.1]">
-                            <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
-                            {emp.english_name && (
-                              <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
-                            )}
-                          </div>
-                        </td>
+                  <td
+                    onDoubleClick={() => {
+                      setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
+                      setHighlightedDate(null);
+                    }}
+                    className={`sticky left-0 z-10 px-2 py-1 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
+                      highlightedEmployeeId === emp.id ? 'bg-amber-100' :
+                      isCurrentUser ? 'bg-amber-50' : 'bg-white'
+                    }`}
+                  >
+                    <div className="leading-[1.1]">
+                      <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
+                      {emp.english_name && (
+                        <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
+                      )}
+                    </div>
+                  </td>
                   {days.map((d, idx) => {
-                    const record = getLeaveRecord(emp.id, d.date);
-                    const isInRangeSelection = rangeMode && selectedEmployeeId === emp.id && 
-                      dateRange.from && dateRange.to && 
-                      d.date >= dateRange.from && d.date <= dateRange.to;
+                    const records = getLeaveRecords(emp.id, d.date);
                     return (
                       <td key={idx} className="p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px]">
                         <LeaveCell
-                         record={record}
-                         leaveTypes={leaveTypes}
-                         isWeekend={d.isWeekend}
-                         isHoliday={d.isHoliday}
-                         isCurrentUser={isCurrentUser}
-                         rangeMode={rangeMode && selectedEmployeeId === emp.id}
-                         dateRange={dateRange}
-                         currentDate={d.date}
-                         isHighlighted={highlightedEmployeeId === emp.id || highlightedDate === d.date}
-                         onSelectLeave={() => handleCellClick(emp.id, d.date, record)}
-                         onClearLeave={() => record && handleClearLeave(record.id)}
-                         onDoubleClickLeave={null}
-                         onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
+                          fullRecord={records.full}
+                          amRecord={records.AM}
+                          pmRecord={records.PM}
+                          leaveTypes={leaveTypes}
+                          isWeekend={d.isWeekend}
+                          isHoliday={d.isHoliday}
+                          isCurrentUser={isCurrentUser}
+                          rangeMode={rangeMode && selectedEmployeeId === emp.id}
+                          dateRange={dateRange}
+                          currentDate={d.date}
+                          isHighlighted={highlightedEmployeeId === emp.id || highlightedDate === d.date}
+                          onSelectLeave={() => handleCellClick(emp.id, d.date, records)}
+                          onClearLeave={handleClearLeave}
+                          onDoubleClickLeave={(record) => !rangeMode && onDeleteRangeLeave(record)}
+                          onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
                         />
                       </td>
                     );
@@ -194,9 +198,9 @@ export default function LeaveCalendarTable({
                 </tr>
               );
             })}
-        </tbody>
+          </tbody>
         </table>
-        </div>
-        </div>
-        );
-        }
+      </div>
+    </div>
+  );
+}

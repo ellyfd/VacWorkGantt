@@ -67,21 +67,27 @@ export default function WeekCalendarTable({
 
   const leaveRecordMap = useMemo(() => {
     const map = new Map();
-    leaveRecords.forEach(r => map.set(`${r.employee_id}_${r.date}`, r));
+    leaveRecords.forEach(r => {
+      const key = `${r.employee_id}_${r.date}`;
+      if (!map.has(key)) map.set(key, { full: null, AM: null, PM: null });
+      const period = r.period || 'full';
+      map.get(key)[period] = r;
+    });
     return map;
   }, [leaveRecords]);
 
-  const getLeaveRecord = useCallback((employeeId, date) => {
-    return leaveRecordMap.get(`${employeeId}_${date}`);
+  const getLeaveRecords = useCallback((employeeId, date) => {
+    return leaveRecordMap.get(`${employeeId}_${date}`) || { full: null, AM: null, PM: null };
   }, [leaveRecordMap]);
 
   const clickTimerRef = useRef(null);
 
-  const handleCellClick = useCallback((date, record) => {
+  const handleCellClick = useCallback((date, records) => {
+    const targetRecord = records.full || records.AM || records.PM;
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current);
       clickTimerRef.current = null;
-      if (record && !rangeMode) onDeleteRangeLeave(record);
+      if (targetRecord && !rangeMode) onDeleteRangeLeave(targetRecord);
       return;
     }
     clickTimerRef.current = setTimeout(() => {
@@ -111,8 +117,9 @@ export default function WeekCalendarTable({
         const leaveType = leaveTypeMap.get(record.leave_type_id);
         if (leaveType) {
           const existing = statsMap.get(leaveType.id);
-          if (existing) existing.count += 1;
-          else statsMap.set(leaveType.id, { leaveTypeId: leaveType.id, name: leaveType.name, color: leaveType.color, count: 1 });
+          const increment = (record.period === 'AM' || record.period === 'PM') ? 0.5 : 1;
+          if (existing) existing.count += increment;
+          else statsMap.set(leaveType.id, { leaveTypeId: leaveType.id, name: leaveType.name, color: leaveType.color, count: increment });
         }
       }
     });
@@ -353,7 +360,7 @@ export default function WeekCalendarTable({
               if (!day) {
                 return <div key={`${weekIdx}-${dayIdx}`} className="h-12 border-r border-b border-gray-200 bg-gray-50" />;
               }
-              const record = getLeaveRecord(currentEmployee.id, day.date);
+              const records = getLeaveRecords(currentEmployee.id, day.date);
               const isToday = day.date === today;
               return (
                 <div
@@ -370,16 +377,18 @@ export default function WeekCalendarTable({
                   <div className="w-full h-full flex items-center justify-center p-0.5">
                     <div className="w-full h-full rounded-md overflow-hidden">
                       <LeaveCell
-                        record={record}
+                        fullRecord={records.full}
+                        amRecord={records.AM}
+                        pmRecord={records.PM}
                         leaveTypes={leaveTypes}
                         isWeekend={day.isWeekend}
                         isHoliday={day.isHoliday}
                         rangeMode={rangeMode}
                         dateRange={dateRange}
                         currentDate={day.date}
-                        onSelectLeave={() => handleCellClick(day.date, record)}
-                        onClearLeave={() => record && handleClearLeave(record.id)}
-                        onDoubleClickLeave={null}
+                        onSelectLeave={() => handleCellClick(day.date, records)}
+                        onClearLeave={(recordId) => handleClearLeave(recordId)}
+                        onDoubleClickLeave={(rec) => !rangeMode && onDeleteRangeLeave(rec)}
                         onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(day.date)}
                       />
                     </div>

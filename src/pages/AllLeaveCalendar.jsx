@@ -17,6 +17,12 @@ import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import CalendarSettings from '@/components/calendar/CalendarSettings';
 import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 
+const getLeavePeriod = (leaveTypeName) => {
+  if (['早休', '健檢'].includes(leaveTypeName)) return 'AM';
+  if (['午休'].includes(leaveTypeName)) return 'PM';
+  return 'full';
+};
+
 export default function AllLeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
@@ -94,17 +100,17 @@ export default function AllLeaveCalendar() {
   const updateLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
       const currentEmployee = employeeMap[employeeId];
-      
+      const currentLeaveType = leaveTypeMap[leaveTypeId];
+      const isBusinessTrip = currentLeaveType?.name === '出差';
+      const period = getLeavePeriod(currentLeaveType?.name);
+
       const existing = leaveRecords.find(
-        r => r.employee_id === employeeId && r.date === date
+        r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period
       );
       
       if (existing && existing.leave_type_id === leaveTypeId) {
         return existing;
       }
-      
-      const currentLeaveType = leaveTypeMap[leaveTypeId];
-      const isBusinessTrip = currentLeaveType?.name === '出差';
 
       if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
         const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
@@ -208,6 +214,7 @@ export default function AllLeaveCalendar() {
       if (existing) {
         return base44.entities.LeaveRecord.update(existing.id, {
           leave_type_id: leaveTypeId,
+          period,
           warning_type: warningTypes.length > 0 ? warningTypes : undefined,
           warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
@@ -216,6 +223,7 @@ export default function AllLeaveCalendar() {
           employee_id: employeeId,
           date: date,
           leave_type_id: leaveTypeId,
+          period,
           warning_type: warningTypes.length > 0 ? warningTypes : undefined,
           warning_details: warningTypes.length > 0 ? warningDetails : undefined
         });
@@ -248,7 +256,9 @@ export default function AllLeaveCalendar() {
       const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
 
       queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
-        const existing = old?.find(r => r.employee_id === employeeId && r.date === date);
+        const leaveType = leaveTypeMap[leaveTypeId];
+        const period = getLeavePeriod(leaveType?.name);
+        const existing = old?.find(r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period);
         if (existing) {
           return old.map(r =>
             r.id === existing.id ? { ...r, leave_type_id: leaveTypeId } : r
@@ -259,6 +269,7 @@ export default function AllLeaveCalendar() {
           employee_id: employeeId,
           date,
           leave_type_id: leaveTypeId,
+          period,
         }];
       });
 
