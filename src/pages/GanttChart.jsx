@@ -1279,7 +1279,7 @@ export default function GanttChart() {
                           key={day.toISOString()}
                           className="border-r border-gray-200 flex items-center justify-center"
                           style={{
-                            backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#d1d5db' : 'transparent'),
+                            backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#e5e7eb' : '#f9fafb'),
                             fontSize: 11,
                             fontWeight: leaveStyle?.bold ? 700 : 600,
                             color: leaveStyle?.text || '#d1d5db',
