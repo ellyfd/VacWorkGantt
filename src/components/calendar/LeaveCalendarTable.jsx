@@ -68,7 +68,6 @@ export default function LeaveCalendarTable({
   const leaveRecordMap = useMemo(() => {
     const map = new Map();
     leaveRecords.forEach(r => {
-      console.log('record period:', r.date, r.period);
       const key = `${r.employee_id}_${r.date}`;
       if (!map.has(key)) map.set(key, { full: null, AM: null, PM: null });
       const period = r.period || 'full';
