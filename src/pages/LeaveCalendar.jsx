@@ -31,8 +31,8 @@ import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components
 import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
 
 const getLeavePeriod = (leaveTypeName) => {
-  if (['早休', '健檢'].includes(leaveTypeName)) return 'AM';
-  if (['午休'].includes(leaveTypeName)) return 'PM';
+  if (['健檢', '上午休'].includes(leaveTypeName)) return 'AM';
+  if (['下午休'].includes(leaveTypeName)) return 'PM';
   return 'full';
 };
 
