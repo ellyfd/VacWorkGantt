@@ -54,11 +54,11 @@ import GanttChart from './pages/GanttChart';
 import GanttManagement from './pages/GanttManagement';
 import LeaveCalendar from './pages/LeaveCalendar';
 import LeaveSettings from './pages/LeaveSettings';
+import MigrateLeaveRecords from './pages/MigrateLeaveRecords';
 import Notifications from './pages/Notifications';
 import PeopleManagement from './pages/PeopleManagement';
 import ProjectSettings from './pages/ProjectSettings';
 import ReportManagement from './pages/ReportManagement';
-import MigrateLeaveRecords from './pages/MigrateLeaveRecords';
 import __Layout from './Layout.jsx';
 
 
@@ -70,11 +70,11 @@ export const PAGES = {
     "GanttManagement": GanttManagement,
     "LeaveCalendar": LeaveCalendar,
     "LeaveSettings": LeaveSettings,
+    "MigrateLeaveRecords": MigrateLeaveRecords,
     "Notifications": Notifications,
     "PeopleManagement": PeopleManagement,
     "ProjectSettings": ProjectSettings,
     "ReportManagement": ReportManagement,
-    "MigrateLeaveRecords": MigrateLeaveRecords,
 }
 
 export const pagesConfig = {

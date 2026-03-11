@@ -114,6 +114,8 @@ export default function GanttChart() {
   const creatingProjectIdRef = useRef(null);
   const draggedProjectIdRef = useRef(null);
   const [dropTargetId, setDropTargetId] = useState(null);
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+  const pendingScrollToDate = useRef(null);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
