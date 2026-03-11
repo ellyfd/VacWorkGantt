@@ -115,7 +115,7 @@ export default function GanttChart() {
   const draggedProjectIdRef = useRef(null);
   const [dropTargetId, setDropTargetId] = useState(null);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
-  const pendingScrollToDate = useRef(null);
+  const [pendingScrollToDate, setPendingScrollToDate] = useState(null);
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -806,16 +806,15 @@ export default function GanttChart() {
 
   // 處理 pendingScrollToDate：等 days 重算後執行捲動
   React.useEffect(() => {
-    const target = pendingScrollToDate.current;
-    if (!target || days.length === 0) return;
+    if (!pendingScrollToDate || days.length === 0) return;
     const el = rightPanelRef.current;
     if (!el) return;
-    const idx = days.findIndex(d => format(d, 'yyyy-MM-dd') >= target);
+    const idx = days.findIndex(d => format(d, 'yyyy-MM-dd') >= pendingScrollToDate);
     if (idx >= 0) {
       el.scrollLeft = idx * CELL_WIDTH;
-      pendingScrollToDate.current = null;
+      setPendingScrollToDate(null);
     }
-  }, [days, CELL_WIDTH]);
+  }, [pendingScrollToDate, days, CELL_WIDTH]);
 
   // 節流 ref
   const scrollExtendThrottleRef = useRef(0);
@@ -860,18 +859,16 @@ export default function GanttChart() {
     const today = new Date();
     const todayStr = format(today, 'yyyy-MM-dd');
     const el = rightPanelRef.current;
-    // 今天已在 days 範圍內：直接 scroll
     const idx = days.findIndex(d => format(d, 'yyyy-MM-dd') === todayStr);
     if (idx >= 0 && el) {
       el.scrollLeft = idx * CELL_WIDTH - el.clientWidth / 2;
       setVisibleMonth(today);
       return;
     }
-    // 今天不在範圍內：重建 timeline 再捲
     setStartDate(subDays(today, 180));
     setEndDate(addDays(today, 180));
     setVisibleMonth(today);
-    pendingScrollToDate.current = todayStr;
+    setPendingScrollToDate(todayStr);
   };
 
   // 跳轉到任務最早日期
@@ -1140,13 +1137,11 @@ export default function GanttChart() {
         onCenterDateChange={(date) => {
           const d = new Date(date);
           setVisibleMonth(d);
-          // 只有目標月份超出現有範圍才延伸，不要每次都重建
           const needLeft = d < addDays(startDate, 30);
           const needRight = d > subDays(endDate, 30);
           if (needLeft) setStartDate(subDays(d, 180));
           if (needRight) setEndDate(addDays(d, 180));
-          // 用 ref 記錄待捲動的目標，等 days 重算完再跳
-          pendingScrollToDate.current = format(d, 'yyyy-MM-01');
+          setPendingScrollToDate(format(d, 'yyyy-MM-01'));
         }}
         onScrollToToday={scrollToToday}
       />
