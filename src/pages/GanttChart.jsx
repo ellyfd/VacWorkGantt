@@ -1112,12 +1112,21 @@ export default function GanttChart() {
 
       {/* Time Navigation - Layer 1 */}
       <TimeNavigation
-        centerDate={startDate}
+        centerDate={visibleMonth}
         onCenterDateChange={(date) => {
           const d = new Date(date);
-          setStartDate(subDays(d, 0));
-          setEndDate(addDays(d, 360));
+          setStartDate(subDays(d, 180));
+          setEndDate(addDays(d, 180));
+          setVisibleMonth(d);
           initialScrollDone.current = false;
+          // 捲動到選定月份的第一天
+          setTimeout(() => {
+            const el = rightPanelRef.current;
+            if (!el) return;
+            const targetStr = format(d, 'yyyy-MM-dd');
+            const idx = days.findIndex(day => format(day, 'yyyy-MM-dd') >= targetStr);
+            if (idx >= 0) el.scrollLeft = idx * CELL_WIDTH;
+          }, 50);
         }}
         onScrollToToday={scrollToToday}
       />
