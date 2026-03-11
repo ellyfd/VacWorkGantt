@@ -1116,18 +1116,14 @@ export default function GanttChart() {
         centerDate={visibleMonth}
         onCenterDateChange={(date) => {
           const d = new Date(date);
-          setStartDate(subDays(d, 180));
-          setEndDate(addDays(d, 180));
           setVisibleMonth(d);
-          initialScrollDone.current = false;
-          // 捲動到選定月份的第一天
-          setTimeout(() => {
-            const el = rightPanelRef.current;
-            if (!el) return;
-            const targetStr = format(d, 'yyyy-MM-dd');
-            const idx = days.findIndex(day => format(day, 'yyyy-MM-dd') >= targetStr);
-            if (idx >= 0) el.scrollLeft = idx * CELL_WIDTH;
-          }, 50);
+          // 只有目標月份超出現有範圍才延伸，不要每次都重建
+          const needLeft = d < addDays(startDate, 30);
+          const needRight = d > subDays(endDate, 30);
+          if (needLeft) setStartDate(subDays(d, 180));
+          if (needRight) setEndDate(addDays(d, 180));
+          // 用 ref 記錄待捲動的目標，等 days 重算完再跳
+          pendingScrollToDate.current = format(d, 'yyyy-MM-01');
         }}
         onScrollToToday={scrollToToday}
       />
