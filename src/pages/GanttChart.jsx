@@ -845,10 +845,20 @@ export default function GanttChart() {
   // 跳轉到今天
   const scrollToToday = () => {
     const today = new Date();
-    setStartDate(d => today < d ? subDays(today, 180) : d);
-    setEndDate(d => today > d ? addDays(today, 180) : d);
+    const todayStr = format(today, 'yyyy-MM-dd');
+    const el = rightPanelRef.current;
+    // 今天已在 days 範圍內：直接 scroll
+    const idx = days.findIndex(d => format(d, 'yyyy-MM-dd') === todayStr);
+    if (idx >= 0 && el) {
+      el.scrollLeft = idx * CELL_WIDTH - el.clientWidth / 2;
+      setVisibleMonth(today);
+      return;
+    }
+    // 今天不在範圍內：重建 timeline 再捲
+    setStartDate(subDays(today, 180));
+    setEndDate(addDays(today, 180));
     setVisibleMonth(today);
-    initialScrollDone.current = false;
+    pendingScrollToDate.current = todayStr;
   };
 
   // 跳轉到任務最早日期
