@@ -840,7 +840,7 @@ export default function GanttChart() {
       scrollExtendThrottleRef.current = now;
       setStartDate(d => subDays(d, 60));
     }
-  }, [CELL_WIDTH, isDragging]);
+  }, [CELL_WIDTH, isDragging, days]);
 
   // 跳轉到今天
   const scrollToToday = () => {
