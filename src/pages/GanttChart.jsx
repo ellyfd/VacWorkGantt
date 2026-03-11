@@ -799,6 +799,7 @@ export default function GanttChart() {
     const todayIndex = days.findIndex(d => isToday(d));
     if (todayIndex >= 0) {
       el.scrollLeft = todayIndex * CELL_WIDTH - el.clientWidth / 2;
+      setVisibleMonth(new Date());
       initialScrollDone.current = true;
     }
   }, [days, CELL_WIDTH]);
