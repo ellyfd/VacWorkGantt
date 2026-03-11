@@ -809,9 +809,19 @@ export default function GanttChart() {
   // 捲動時延伸 buffer + 更新 visibleMonth
   const handleRightScroll = React.useCallback((e) => {
     const el = e.currentTarget;
-    // 更新可見月份
-    const scrolledDays = Math.floor(el.scrollLeft / CELL_WIDTH);
-    
+    // 更新可見月份：取 viewport 中心的日期
+    const centerScrolled = Math.floor((el.scrollLeft + el.clientWidth / 2) / CELL_WIDTH);
+    if (centerScrolled >= 0 && centerScrolled < days.length) {
+      const centerDay = days[centerScrolled];
+      if (centerDay) {
+        setVisibleMonth(prev => {
+          const newMonth = format(centerDay, 'yyyy-MM');
+          const prevMonth = format(prev, 'yyyy-MM');
+          return newMonth !== prevMonth ? centerDay : prev;
+        });
+      }
+    }
+
     // 拖曳 bar 時不觸發無限滾動延伸，避免與 edge-scroll 互相干擾
     if (isDragging || edgeScrollRafRef.current) return;
 
