@@ -804,6 +804,19 @@ export default function GanttChart() {
     }
   }, [days, CELL_WIDTH]);
 
+  // 處理 pendingScrollToDate：等 days 重算後執行捲動
+  React.useEffect(() => {
+    const target = pendingScrollToDate.current;
+    if (!target || days.length === 0) return;
+    const el = rightPanelRef.current;
+    if (!el) return;
+    const idx = days.findIndex(d => format(d, 'yyyy-MM-dd') >= target);
+    if (idx >= 0) {
+      el.scrollLeft = idx * CELL_WIDTH;
+      pendingScrollToDate.current = null;
+    }
+  }, [days, CELL_WIDTH]);
+
   // 節流 ref
   const scrollExtendThrottleRef = useRef(0);
 
