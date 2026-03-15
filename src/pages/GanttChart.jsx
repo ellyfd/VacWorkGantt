@@ -765,15 +765,20 @@ export default function GanttChart() {
   // 初始化時捲到今天
   const initialScrollDone = useRef(false);
   React.useEffect(() => {
-    if (initialScrollDone.current) return;
-    const el = rightPanelRef.current;
-    if (!el || days.length === 0) return;
-    const todayIndex = days.findIndex(d => isToday(d));
-    if (todayIndex >= 0) {
-      el.scrollLeft = todayIndex * CELL_WIDTH - el.clientWidth / 2;
-      setVisibleMonth(new Date());
-      initialScrollDone.current = true;
-    }
+    if (initialScrollDone.current || days.length === 0) return;
+    const doScroll = () => {
+      const el = rightPanelRef.current;
+      if (!el) return;
+      const todayIndex = days.findIndex(d => isToday(d));
+      if (todayIndex >= 0) {
+        el.scrollLeft = todayIndex * CELL_WIDTH - el.clientWidth / 2;
+        setVisibleMonth(new Date());
+        initialScrollDone.current = true;
+      }
+    };
+    // 用 setTimeout 確保 DOM 已渲染完成
+    const timer = setTimeout(doScroll, 50);
+    return () => clearTimeout(timer);
   }, [days, CELL_WIDTH]);
 
   // 處理 pendingScrollToDate：等 days 重算後執行捲動
