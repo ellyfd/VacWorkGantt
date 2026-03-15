@@ -23,7 +23,6 @@ const settingsItems = [
   { name: 'PeopleManagement', label: '人員管理', icon: Users },
   { name: 'LeaveSettings', label: '休假設定', icon: CalendarClock },
   { name: 'ProjectSettings', label: '專案設定', icon: BarChart3 },
-  { name: 'DataImport', label: '資料匯入', icon: Upload },
   { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
 ];
 
@@ -87,6 +86,9 @@ export default function Layout({ children, currentPageName }) {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const [profileOpen, setProfileOpen] = useState(false);
+  const [editingDeputy, setEditingDeputy] = useState(false);
+  const [deputy1Id, setDeputy1Id] = useState('');
+  const [deputy2Id, setDeputy2Id] = useState('');
 
   const { data: leaveTypes = [] } = useQuery({
     queryKey: ['leaveTypes'],
@@ -130,6 +132,20 @@ export default function Layout({ children, currentPageName }) {
     const yearly = calcSummary(yearlyLeaveRecords);
     return { monthly: monthly.list, yearly: yearly.list, monthlyTotal: monthly.total, yearlyTotal: yearly.total };
   }, [yearlyLeaveRecords, leaveTypes, currentYear, currentMonth]);
+
+  const saveDeputyMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Employee.update(boundEmployee.id, {
+        deputy_1: deputy1Id || null,
+        deputy_2: deputy2Id || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['boundEmployee']);
+      queryClient.invalidateQueries(['employees']);
+      setEditingDeputy(false);
+    },
+  });
 
   // 所屬部門名稱
   const myDepartments = useMemo(() => {
@@ -581,10 +597,66 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-[11px] text-gray-400 mb-1">職務代理人</div>
-                <div className="text-sm font-medium text-gray-800">
-                  {deputyNames.length > 0 ? deputyNames.join('、') : '—'}
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[11px] text-gray-400">職務代理人</div>
+                  {!editingDeputy && (
+                    <button
+                      onClick={() => {
+                        setDeputy1Id(boundEmployee?.deputy_1 || '');
+                        setDeputy2Id(boundEmployee?.deputy_2 || '');
+                        setEditingDeputy(true);
+                      }}
+                      className="text-[11px] text-blue-500 hover:text-blue-700"
+                    >
+                      編輯
+                    </button>
+                  )}
                 </div>
+                {editingDeputy ? (
+                  <div className="space-y-2 mt-1">
+                    <Select value={deputy1Id} onValueChange={setDeputy1Id}>
+                      <SelectTrigger className="h-7 text-xs">
+                        <SelectValue placeholder="第一代理人" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>無</SelectItem>
+                        {employees.filter(e => e.id !== boundEmployee?.id && e.status === 'active').map(e => (
+                          <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={deputy2Id} onValueChange={setDeputy2Id}>
+                      <SelectTrigger className="h-7 text-xs">
+                        <SelectValue placeholder="第二代理人" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>無</SelectItem>
+                        {employees.filter(e => e.id !== boundEmployee?.id && e.status === 'active').map(e => (
+                          <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => saveDeputyMutation.mutate()}
+                        disabled={saveDeputyMutation.isPending}
+                        className="flex-1 text-xs py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        {saveDeputyMutation.isPending ? '儲存中...' : '儲存'}
+                      </button>
+                      <button
+                        onClick={() => setEditingDeputy(false)}
+                        className="flex-1 text-xs py-1 border border-gray-300 rounded hover:bg-gray-50"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm font-medium text-gray-800">
+                    {deputyNames.length > 0 ? deputyNames.join('、') : '—'}
+                  </div>
+                )}
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-[11px] text-gray-400 mb-1">狀態</div>

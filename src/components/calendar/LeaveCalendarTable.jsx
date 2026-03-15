@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo, useEffect } from 'react';
+import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react';
 import { format, getDaysInMonth, getDay } from "date-fns";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { GripVertical } from 'lucide-react';
@@ -91,8 +91,8 @@ export default function LeaveCalendarTable({
   onCellClickInRangeMode,
   onReorderEmployees,
 }) {
-  const [highlightedEmployeeId, setHighlightedEmployeeId] = React.useState(null);
-  const [highlightedDate, setHighlightedDate] = React.useState(null);
+  const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
+  const [highlightedDate, setHighlightedDate] = useState(null);
 
   const selectedLeaveTypeIdRef = useRef(selectedLeaveTypeId);
   useEffect(() => {
