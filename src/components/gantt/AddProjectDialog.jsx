@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const currentYear = new Date().getFullYear();
-const COLOR_OPTIONS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280'];
+const COLOR_OPTIONS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#ef4444','#ec4899','#64748b'];
 
 const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChange, projectFormData, setProjectFormData, projects, groups = [], ganttProjects = [], onConfirm, isLoading }) {
   const navigate = useNavigate();

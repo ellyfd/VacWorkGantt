@@ -91,9 +91,11 @@ const GanttRow = React.memo(function GanttRow({
             transform: 'translateY(-50%)',
             left,
             width: width === 'auto' ? undefined : width,
-            height: 24,
-            borderRadius: 6,
+            height: 22,
+            borderRadius: 4,
             backgroundColor: bgColor,
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -115,6 +117,7 @@ const GanttRow = React.memo(function GanttRow({
                 width: 12, height: 12,
                 transform: 'rotate(45deg)',
                 backgroundColor: task.is_important ? '#eab308' : projectColor,
+                border: '1px solid rgba(0,0,0,0.12)',
                 flexShrink: 0,
               }} />
               <span style={{ fontSize: 13, color: textColor, fontWeight: 500 }}>
@@ -202,11 +205,14 @@ const GanttRow = React.memo(function GanttRow({
                 borderRight: '1px solid #d1d5db',
                 borderLeft: props.isFirstOfMonth ? '2px solid #6b7280' : undefined,
                 backgroundColor: bgColor,
+                backgroundImage: props.bgPattern
+                  ? 'repeating-linear-gradient(135deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 4px)'
+                  : undefined,
                 position: 'relative',
               }}
             >
-              {props.isToday && <div className="absolute inset-0 bg-red-500/8 pointer-events-none" />}
-              {props.isToday && <div className="absolute left-1/2 -translate-x-px top-0 bottom-0 w-[2px] bg-red-500 pointer-events-none z-20" />}
+              {props.isToday && <div className="absolute inset-0 bg-blue-500/5 pointer-events-none" />}
+              {props.isToday && <div className="absolute left-1/2 -translate-x-px top-0 bottom-0 w-[2px] bg-blue-500/70 pointer-events-none z-20" />}
             </div>
           );
         })}
