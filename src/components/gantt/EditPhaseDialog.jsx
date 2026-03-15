@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Trash2 } from 'lucide-react';
 
-export default function EditPhaseDialog({
+const EditPhaseDialog = React.memo(function EditPhaseDialog({
   open,
   onOpenChange,
   phase,
@@ -93,4 +93,6 @@ export default function EditPhaseDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+export default EditPhaseDialog;

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
-export default function AddPhaseDialog({
+const AddPhaseDialog = React.memo(function AddPhaseDialog({
   open,
   onOpenChange,
   projectName,
@@ -68,4 +68,6 @@ export default function AddPhaseDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+export default AddPhaseDialog;

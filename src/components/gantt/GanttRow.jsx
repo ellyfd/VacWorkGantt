@@ -2,6 +2,13 @@ import React, { useMemo } from 'react';
 import { format, addDays, subDays } from 'date-fns';
 import { getContrastColor, getLightColor, normalizeDate } from '@/lib/ganttUtils';
 
+const dropIndicatorStyle = { position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', zIndex: 50 };
+const taskOverlayStyle = { position: 'absolute', inset: 0, pointerEvents: 'none' };
+const milestoneTextStyle = { fontSize: 13, fontWeight: 500 };
+const categoryStyle = { fontSize: 11, marginLeft: 4, opacity: 0.7 };
+const workingDaysStyle = { fontSize: 11, opacity: 0.8, marginLeft: 4 };
+const rollingContainerStyle = { position: 'relative', width: '100%', height: '100%', overflow: 'hidden' };
+
 const GanttRow = React.memo(function GanttRow({
   row,
   days,
@@ -113,7 +120,7 @@ const GanttRow = React.memo(function GanttRow({
               <span style={{ fontSize: 13, color: textColor, fontWeight: 500 }}>
                 {task.name}
                 {task.category && (
-                  <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.7 }}>({task.category})</span>
+                  <span style={categoryStyle}>({task.category})</span>
                 )}
               </span>
             </div>
@@ -125,14 +132,14 @@ const GanttRow = React.memo(function GanttRow({
                 <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.7 }}>({task.category})</span>
               )}
               {workingDays > 0 && (
-                <span style={{ fontSize: 11, opacity: 0.8, marginLeft: 4 }}>
+                <span style={workingDaysStyle}>
                   {workingDays}d
                 </span>
               )}
             </span>
           )}
           {task.time_type === 'rolling' && (
-            <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+            <div style={rollingContainerStyle}>
               <div style={{
                 position: 'absolute',
                 inset: 0,
@@ -142,7 +149,7 @@ const GanttRow = React.memo(function GanttRow({
               <span style={{ fontSize: 13, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
                 {task.name}
                 {task.category && (
-                  <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.7 }}>({task.category})</span>
+                  <span style={categoryStyle}>({task.category})</span>
                 )}
               </span>
             </div>
@@ -178,7 +185,7 @@ const GanttRow = React.memo(function GanttRow({
       }}
     >
       {dropTargetId && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', zIndex: 50 }} />
+        <div style={dropIndicatorStyle} />
       )}
       {/* 底層：格子背景 */}
       <div style={{ ...gridStyle, position: 'absolute', inset: 0 }}>
@@ -205,7 +212,7 @@ const GanttRow = React.memo(function GanttRow({
         })}
       </div>
       {/* 上層：Task bars */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      <div style={taskOverlayStyle}>
         {taskBars}
       </div>
     </div>

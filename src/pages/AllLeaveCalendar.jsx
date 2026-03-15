@@ -14,8 +14,6 @@ import {
 } from "@/components/ui/select";
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
-import CalendarSettings from '@/components/calendar/CalendarSettings';
-import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
 import { getLeavePeriod } from '@/lib/leaveUtils';
 
 export default function AllLeaveCalendar() {

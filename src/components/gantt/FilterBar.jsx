@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function FilterBar({
+const FilterBar = React.memo(function FilterBar({
   departments,
   groups,
   projects,
@@ -156,4 +156,6 @@ export default function FilterBar({
 
     </div>
   );
-}
+});
+
+export default FilterBar;
