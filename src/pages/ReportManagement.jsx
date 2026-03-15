@@ -100,7 +100,7 @@ export default function ReportManagement() {
     let totalLeaveHours = 0;
     filteredLeaveRecords.forEach(record => {
       const leaveType = leaveTypeMap.get(record.leave_type_id);
-      if (leaveType) totalLeaveHours += calculateLeaveHours(leaveType.name);
+      if (leaveType && !isTripLeave(leaveType.name)) totalLeaveHours += calculateLeaveHours(leaveType.name);
     });
 
     const actualWorkHours = totalStandardHours - totalLeaveHours;
