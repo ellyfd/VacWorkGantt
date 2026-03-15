@@ -25,8 +25,8 @@ export default function LeaveCalendarTable({
   onDeleteRangeLeave,
   onCellClickInRangeMode
 }) {
-  const [highlightedEmployeeId, setHighlightedEmployeeId] = React.useState(null);
-  const [highlightedDate, setHighlightedDate] = React.useState(null);
+  const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
+  const [highlightedDate, setHighlightedDate] = useState(null);
 
   const selectedLeaveTypeIdRef = useRef(selectedLeaveTypeId);
   useEffect(() => {
