@@ -29,12 +29,7 @@ import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 import { checkDeputyConflict, checkDeptLimit, buildWarningInfo } from '@/components/utils/leaveWarnings';
 import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
-
-const getLeavePeriod = (leaveTypeName) => {
-  if (['健檢', '上午休'].includes(leaveTypeName)) return 'AM';
-  if (['下午休'].includes(leaveTypeName)) return 'PM';
-  return 'full';
-};
+import { getLeavePeriod } from '@/lib/leaveUtils';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -151,11 +146,7 @@ export default function LeaveCalendar() {
       const currentEmployee = employeeMap[employeeId];
       
       const leaveType = leaveTypeMap[leaveTypeId];
-      console.log('leaveTypeId:', leaveTypeId);
-      console.log('leaveTypeMap keys:', Object.keys(leaveTypeMap));
-      console.log('currentLeaveType:', leaveType);
       const period = getLeavePeriod(leaveType?.name);
-      console.log('period:', period);
       const isBusinessTrip = leaveType?.name === '出差';
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period

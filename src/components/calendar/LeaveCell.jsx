@@ -1,11 +1,5 @@
 import React from 'react';
-
-// 假別期間判斷 - 也在 Page 層 mutation 中需要相同邏輯
-export const getLeavePeriod = (leaveTypeName) => {
-  if (['健檢', '上午休'].includes(leaveTypeName)) return 'AM';
-  if (['下午休'].includes(leaveTypeName)) return 'PM';
-  return 'full';
-};
+export { getLeavePeriod } from '@/lib/leaveUtils';
 
 function LeaveCell({ 
   fullRecord,

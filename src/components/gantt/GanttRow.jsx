@@ -1,30 +1,6 @@
 import React, { useMemo } from 'react';
 import { format, addDays, subDays } from 'date-fns';
-
-const getContrastColor = (hexColor) => {
-  if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.55 ? '#1f2937' : '#ffffff';
-};
-
-const getLightColor = (hexColor) => {
-  if (!hexColor || !hexColor.startsWith('#')) return '#bfdbfe';
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  const lr = Math.round(r + (255 - r) * 0.72);
-  const lg = Math.round(g + (255 - g) * 0.72);
-  const lb = Math.round(b + (255 - b) * 0.72);
-  return `rgb(${lr},${lg},${lb})`;
-};
-
-const normalizeDate = (dateStr) => {
-  if (!dateStr) return null;
-  return dateStr.split('T')[0];
-};
+import { getContrastColor, getLightColor, normalizeDate } from '@/lib/ganttUtils';
 
 const GanttRow = React.memo(function GanttRow({
   row,

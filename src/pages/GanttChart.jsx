@@ -49,34 +49,7 @@ import { useDialogState } from '@/components/hooks/useDialogState';
 import { useFormData } from '@/components/hooks/useFormData';
 import { useFilterState } from '@/components/hooks/useFilterState';
 import { useProjectCreation } from '@/components/hooks/useProjectCreation';
-
-// 根據背景色決定文字要用深色或淺色
-const getContrastColor = (hexColor) => {
-  if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.55 ? '#1f2937' : '#ffffff';
-};
-
-// 產生同色系淺色（用於 Rolling 延伸段）
-const getLightColor = (color) => {
-  if (!color) return '#bfdbfe';
-  // hsl() 格式：直接提高 lightness
-  const hslMatch = color.match(/hsl\((\d+),\s*(\d+)%,\s*([\d.]+)%\)/);
-  if (hslMatch) {
-    return `hsl(${hslMatch[1]}, ${hslMatch[2]}%, 82%)`;
-  }
-  if (!color.startsWith('#')) return '#bfdbfe';
-  const r = parseInt(color.slice(1, 3), 16);
-  const g = parseInt(color.slice(3, 5), 16);
-  const b = parseInt(color.slice(5, 7), 16);
-  const lr = Math.round(r + (255 - r) * 0.72);
-  const lg = Math.round(g + (255 - g) * 0.72);
-  const lb = Math.round(b + (255 - b) * 0.72);
-  return `rgb(${lr},${lg},${lb})`;
-};
+import { getContrastColor, getLightColor } from '@/lib/ganttUtils';
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
@@ -523,7 +496,6 @@ export default function GanttChart() {
 
   const getProjectColor = (ganttProject) => {
     const brand = projectMap[ganttProject.brand_id];
-    console.log('brand:', brand?.short_name, '| default_color:', brand?.default_color, '| group_id:', brand?.group_id);
     if (brand?.default_color) return brand.default_color;
 
     const group = groups.find(g => g.id === brand?.group_id);
