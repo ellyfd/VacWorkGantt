@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Upload } from 'lucide-react';
 
-export default function ImportScheduleDialog({
+const ImportScheduleDialog = React.memo(function ImportScheduleDialog({
   open,
   onOpenChange,
   scheduleFile,
@@ -57,4 +57,6 @@ export default function ImportScheduleDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+export default ImportScheduleDialog;

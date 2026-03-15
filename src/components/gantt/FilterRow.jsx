@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { X, Plus, Filter } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-export default function FilterRow({
+const FilterRow = React.memo(function FilterRow({
   departments,
   selectedDeptId,
   onSelectDept,
@@ -143,4 +143,6 @@ export default function FilterRow({
       </div>
     </div>
   );
-}
+});
+
+export default FilterRow;

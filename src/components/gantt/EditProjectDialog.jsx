@@ -12,7 +12,7 @@ const COLORS = [
   '#ef4444','#ec4899','#06b6d4','#6b7280'
 ];
 
-export default function EditProjectDialog({ 
+const EditProjectDialog = React.memo(function EditProjectDialog({
   open, onOpenChange, project, setProject, onSave,
   projectTasks, onUpdateTask, onDeleteTask, onCreateTask
 }) {
@@ -190,4 +190,6 @@ export default function EditProjectDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+export default EditProjectDialog;

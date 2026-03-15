@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const currentYear = new Date().getFullYear();
 const COLOR_OPTIONS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#6b7280'];
 
-export default function AddProjectDialog({ open, onOpenChange, projectFormData, setProjectFormData, projects, groups = [], ganttProjects = [], onConfirm, isLoading }) {
+const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChange, projectFormData, setProjectFormData, projects, groups = [], ganttProjects = [], onConfirm, isLoading }) {
   const navigate = useNavigate();
 
   const usedColors = new Set(ganttProjects.map(p => p.color).filter(Boolean));
@@ -167,4 +167,6 @@ export default function AddProjectDialog({ open, onOpenChange, projectFormData, 
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+export default AddProjectDialog;

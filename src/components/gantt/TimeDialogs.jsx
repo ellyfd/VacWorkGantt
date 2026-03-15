@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Diamond, ArrowRight, Repeat } from 'lucide-react';
 import { format } from 'date-fns';
 
-export function MilestoneDialog({
+export const MilestoneDialog = React.memo(function MilestoneDialog({
   open,
   onOpenChange,
   taskName,
@@ -48,9 +48,9 @@ export function MilestoneDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
 
-export function DurationDialog({
+export const DurationDialog = React.memo(function DurationDialog({
   open,
   onOpenChange,
   taskName,
@@ -110,9 +110,9 @@ export function DurationDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
 
-export function RollingDialog({
+export const RollingDialog = React.memo(function RollingDialog({
   open,
   onOpenChange,
   taskName,
@@ -160,4 +160,4 @@ export function RollingDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
