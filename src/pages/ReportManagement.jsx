@@ -97,7 +97,7 @@ export default function ReportManagement() {
     let totalLeaveHours = 0;
     filteredLeaveRecords.forEach(record => {
       const leaveType = leaveTypeMap.get(record.leave_type_id);
-      if (leaveType && leaveType.name !== '出差') totalLeaveHours += calculateLeaveHours(leaveType.name);
+      if (leaveType) totalLeaveHours += calculateLeaveHours(leaveType.name);
     });
 
     const actualWorkHours = totalStandardHours - totalLeaveHours;
@@ -222,7 +222,7 @@ export default function ReportManagement() {
         filteredLeaveRecords.forEach(record => {
           if (weekDays.has(record.date) && deptEmpIds.has(record.employee_id)) {
             const lt = leaveTypeMap.get(record.leave_type_id);
-            if (lt && lt.name !== '出差') leaveHours += calculateLeaveHours(lt.name);
+            if (lt) leaveHours += calculateLeaveHours(lt.name);
           }
         });
 
@@ -393,7 +393,7 @@ export default function ReportManagement() {
             <p>• 標準工作時間：每日 7.5 小時（9:00-18:00，扣除 1.5 小時午休）</p>
             <p>• 上午休：扣除 3 小時</p>
             <p>• 下午休：扣除 4.5 小時</p>
-            <p>• 全天休/病休：扣除 7.5 小時（出差不列入請假計算）</p>
+            <p>• 全天休/病休/出差：扣除 7.5 小時</p>
             <p>• 出席率 = 實際工作時數 ÷ 應工作時數 × 100%</p>
             <p>• 工作日計算已排除週末和假日</p>
           </div>
