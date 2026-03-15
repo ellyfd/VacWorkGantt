@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo, useEffect } from 'react';
 import { format, getDaysInMonth, getDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
