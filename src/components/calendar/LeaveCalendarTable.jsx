@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { format, getDaysInMonth, getDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
+import { useCellClickHandler } from '@/components/hooks/useCellClickHandler';
 
 import LeaveCell from "./LeaveCell";
 
@@ -89,26 +90,13 @@ export default function LeaveCalendarTable({
     return result;
   }, [departments, employees]);
 
-  const clickTimerRef = useRef(null);
-
-  const handleCellClick = useCallback((employeeId, date, records) => {
-    const targetRecord = records.full || records.AM || records.PM;
-
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-      clickTimerRef.current = null;
-      if (targetRecord && !rangeMode) onDeleteRangeLeave(targetRecord);
-      return;
-    }
-    clickTimerRef.current = setTimeout(() => {
-      clickTimerRef.current = null;
-      if (rangeMode && onCellClickInRangeMode) {
-        onCellClickInRangeMode(employeeId, date);
-      } else if (selectedLeaveTypeIdRef.current) {
-        onUpdateLeave(employeeId, date, selectedLeaveTypeIdRef.current);
-      }
-    }, 250);
-  }, [rangeMode, onCellClickInRangeMode, onUpdateLeave, onDeleteRangeLeave]);
+  const handleCellClick = useCellClickHandler({
+    rangeMode,
+    selectedLeaveTypeIdRef,
+    onSingleClick: onUpdateLeave,
+    onDoubleClick: onDeleteRangeLeave,
+    onRangeClick: onCellClickInRangeMode,
+  });
 
   const handleClearLeave = useCallback((recordId) => {
     if (!rangeMode) onDeleteLeave(recordId);
@@ -179,7 +167,7 @@ export default function LeaveCalendarTable({
                           dateRange={dateRange}
                           currentDate={d.date}
                           isHighlighted={highlightedEmployeeId === emp.id || highlightedDate === d.date}
-                          onSelectLeave={() => handleCellClick(emp.id, d.date, records)}
+                          onSelectLeave={() => handleCellClick(records, emp.id, d.date)}
                           onClearLeave={handleClearLeave}
                           onDoubleClickLeave={(record) => !rangeMode && onDeleteRangeLeave(record)}
                           onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}

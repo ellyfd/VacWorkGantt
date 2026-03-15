@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
+import { useCellClickHandler } from '@/components/hooks/useCellClickHandler';
 
 import LeaveCell from "./LeaveCell";
 import CalendarHeader from "./CalendarHeader";
@@ -72,25 +73,13 @@ export default function WeekCalendarTable({
     return leaveRecordMap.get(`${employeeId}_${date}`) || { full: null, AM: null, PM: null };
   }, [leaveRecordMap]);
 
-  const clickTimerRef = useRef(null);
-
-  const handleCellClick = useCallback((date, records) => {
-    const targetRecord = records.full || records.AM || records.PM;
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-      clickTimerRef.current = null;
-      if (targetRecord && !rangeMode) onDeleteRangeLeave(targetRecord);
-      return;
-    }
-    clickTimerRef.current = setTimeout(() => {
-      clickTimerRef.current = null;
-      if (rangeMode && onCellClickInRangeMode) {
-        onCellClickInRangeMode(date);
-      } else if (selectedLeaveTypeIdRef.current) {
-        onUpdateLeave(currentEmployee.id, date, selectedLeaveTypeIdRef.current);
-      }
-    }, 250);
-  }, [rangeMode, onCellClickInRangeMode, onUpdateLeave, onDeleteRangeLeave, currentEmployee?.id]);
+  const handleCellClickRaw = useCellClickHandler({
+    rangeMode,
+    selectedLeaveTypeIdRef,
+    onSingleClick: useCallback((date, leaveTypeId) => onUpdateLeave(currentEmployee.id, date, leaveTypeId), [onUpdateLeave, currentEmployee?.id]),
+    onDoubleClick: onDeleteRangeLeave,
+    onRangeClick: onCellClickInRangeMode,
+  });
 
   const handleClearLeave = useCallback((recordId) => {
     onDeleteLeave(recordId);
@@ -378,7 +367,7 @@ export default function WeekCalendarTable({
                         rangeMode={rangeMode}
                         dateRange={dateRange}
                         currentDate={day.date}
-                        onSelectLeave={() => handleCellClick(day.date, records)}
+                        onSelectLeave={() => handleCellClickRaw(records, day.date)}
                         onClearLeave={(recordId) => handleClearLeave(recordId)}
                         onDoubleClickLeave={(rec) => !rangeMode && onDeleteRangeLeave(rec)}
                         onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(day.date)}
