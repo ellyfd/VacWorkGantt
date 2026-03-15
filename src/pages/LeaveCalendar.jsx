@@ -31,6 +31,8 @@ import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components
 import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
 import { getLeavePeriod } from '@/lib/leaveUtils';
 import { useToast } from '@/components/ui/use-toast';
+import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -41,6 +43,7 @@ export default function LeaveCalendar() {
   const [deleteDialogData, setDeleteDialogData] = useState(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [confirmProps, confirm] = useConfirmDialog();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -174,8 +177,9 @@ export default function LeaveCalendar() {
             return emp?.name || '未知';
           }).join('、');
           
-          const confirmed = window.confirm(
-            `⚠️ 警告：職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
+          const confirmed = await confirm(
+            `職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`,
+            { title: '職代衝突警告', confirmText: '繼續請假', variant: 'destructive' }
           );
           if (!confirmed) throw new Error('取消請假');
         }
@@ -193,8 +197,9 @@ export default function LeaveCalendar() {
         });
         
         if (deptLimitInfo) {
-          const confirmed = window.confirm(
-            `⚠️ 警告：${date} 該部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門1/3人數 ${deptLimitInfo.deptLimit}），確定要繼續請假嗎？`
+          const confirmed = await confirm(
+            `${date} 該部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門 1/3 人數上限 ${deptLimitInfo.deptLimit}），確定要繼續？`,
+            { title: '部門請假超標警告', confirmText: '繼續請假', variant: 'destructive' }
           );
           if (!confirmed) throw new Error('取消請假');
         }
@@ -358,8 +363,9 @@ export default function LeaveCalendar() {
       }
       
       if (warnings.length > 0) {
-        const confirmed = window.confirm(
-          `⚠️ 警告：\n${warnings.join('\n')}\n\n確定要繼續請假嗎？`
+        const confirmed = await confirm(
+          warnings.join('\n'),
+          { title: '請假警告', confirmText: '繼續請假', variant: 'destructive' }
         );
         if (!confirmed) throw new Error('取消請假');
       }
@@ -602,19 +608,18 @@ export default function LeaveCalendar() {
             rangeLeavePending={rangeLeaveMutation.isPending}
           />
 
-          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="space-y-3">
+          <details className="mt-4 text-sm text-gray-600">
+            <summary className="cursor-pointer font-medium text-gray-500 hover:text-gray-700 text-sm">操作說明與假別圖例</summary>
+            <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
               <div>
-                <h4 className="text-xs font-semibold text-gray-700 mb-1">操作說明</h4>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• <span className="font-medium">選擇假別</span>：從下拉選單選擇要請的假別</li>
-                  <li>• <span className="font-medium">單天請假</span>：選好假別後，單擊格子填充</li>
-                  <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，在下方日曆選擇區間，按確定完成</li>
-                  <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                  <li>• <span className="font-medium">自動警示</span>：同職代衝突或部門超過1/3成員請假時會提醒</li>
+                <ul className="text-xs text-gray-600 space-y-1.5">
+                  <li>• <span className="font-medium">填入請假</span>：先從上方選擇假別，再點擊日曆中的日期即可填入</li>
+                  <li>• <span className="font-medium text-red-600">取消請假</span>：雙擊已填入的格子（連續假期會彈出確認視窗，可選擇取消單日或整段）</li>
+                  <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕進入區間模式，依序點選起始和結束日期</li>
+                  <li>• <span className="font-medium">自動警示</span>：職代衝突或部門超過 1/3 成員請假時，系統會跳出警告確認</li>
                 </ul>
               </div>
-              <div className="border-t border-gray-300 pt-3">
+              <div className="border-t border-gray-200 pt-3">
                 <h4 className="text-xs font-semibold text-gray-700 mb-2">假別圖例</h4>
                 <div className="flex flex-wrap gap-3">
                   {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
@@ -626,7 +631,7 @@ export default function LeaveCalendar() {
                 </div>
               </div>
             </div>
-          </div>
+          </details>
 
           {/* 刪除確認對話框 */}
           <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -663,6 +668,7 @@ export default function LeaveCalendar() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <ConfirmDialog {...confirmProps} />
           </div>
           </div>
           );

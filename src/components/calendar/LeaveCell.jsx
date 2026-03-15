@@ -67,12 +67,18 @@ function LeaveCell({
     return (
       <div className="w-full h-full p-[1px] sm:p-[2px]">
         <div
-          className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-all rounded-[2px] sm:rounded-sm text-[11px] sm:text-[12px] font-medium ${ringClass}`}
+          className={`w-full h-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-all rounded-[2px] sm:rounded-sm text-[11px] sm:text-[12px] font-medium group relative ${ringClass}`}
           style={{ backgroundColor: fullLeaveType.color, color: '#fff' }}
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
+          title="雙擊取消請假"
         >
           <span>{fullLeaveType.short_name}</span>
+          {!rangeMode && (
+            <span className="hidden group-hover:flex absolute inset-0 items-center justify-center bg-black/40 text-white text-[10px] rounded-[2px] sm:rounded-sm pointer-events-none">
+              雙擊取消
+            </span>
+          )}
         </div>
       </div>
     );
@@ -83,10 +89,16 @@ function LeaveCell({
     return (
       <div className={`w-full h-full p-[1px] sm:p-[2px] ${cellBgClass}`}>
         <div
-          className={`w-full h-full flex flex-col rounded-[2px] sm:rounded-sm overflow-hidden cursor-pointer ${ringClass}`}
+          className={`w-full h-full flex flex-col rounded-[2px] sm:rounded-sm overflow-hidden cursor-pointer group relative ${ringClass}`}
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
+          title="雙擊取消請假"
         >
+          {!rangeMode && (
+            <span className="hidden group-hover:flex absolute inset-0 items-center justify-center bg-black/40 text-white text-[10px] rounded-[2px] sm:rounded-sm pointer-events-none z-10">
+              雙擊取消
+            </span>
+          )}
           {/* 上半：AM */}
           <div
             className="flex-1 flex items-center justify-center text-[10px] sm:text-[11px] font-semibold hover:opacity-90 transition-all"

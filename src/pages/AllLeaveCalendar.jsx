@@ -16,6 +16,8 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
 import { useToast } from '@/components/ui/use-toast';
+import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function AllLeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -26,6 +28,7 @@ export default function AllLeaveCalendar() {
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [confirmProps, confirm] = useConfirmDialog();
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -120,13 +123,11 @@ export default function AllLeaveCalendar() {
             return emp?.name || '未知';
           }).join('、');
           
-          const confirmed = window.confirm(
-            `⚠️ 警告：職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`
+          const confirmed = await confirm(
+            `職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`,
+            { title: '職代衝突警告', confirmText: '繼續請假', variant: 'destructive' }
           );
-          
-          if (!confirmed) {
-            throw new Error('取消請假');
-          }
+          if (!confirmed) throw new Error('取消請假');
         }
       }
       
@@ -145,13 +146,11 @@ export default function AllLeaveCalendar() {
       const deptLimit = Math.floor(deptTotalMembers / 3);
 
       if (deptLeaves.length >= deptLimit) {
-        const confirmed = window.confirm(
-          `⚠️ 警告：${date} 該部門已有 ${deptLeaves.length} 人請假（超過部門1/3人數 ${deptLimit}），確定要繼續請假嗎？`
+        const confirmed = await confirm(
+          `${date} 該部門已有 ${deptLeaves.length} 人請假（超過部門 1/3 人數上限 ${deptLimit}），確定要繼續？`,
+          { title: '部門請假超標警告', confirmText: '繼續請假', variant: 'destructive' }
         );
-
-        if (!confirmed) {
-          throw new Error('取消請假');
-        }
+        if (!confirmed) throw new Error('取消請假');
       }
       }
       
@@ -407,13 +406,11 @@ export default function AllLeaveCalendar() {
       }
 
       if (warnings.length > 0) {
-        const confirmed = window.confirm(
-          `⚠️ 警告：\n${warnings.join('\n')}\n\n確定要繼續請假嗎？`
+        const confirmed = await confirm(
+          warnings.join('\n'),
+          { title: '請假警告', confirmText: '繼續請假', variant: 'destructive' }
         );
-
-        if (!confirmed) {
-          throw new Error('取消請假');
-        }
+        if (!confirmed) throw new Error('取消請假');
       }
 
       // 過濾掉已存在相同假別的日期，並計算每個日期的警示資訊
@@ -532,7 +529,7 @@ export default function AllLeaveCalendar() {
     deleteLeaveMutation.mutate(recordId);
   }, [deleteLeaveMutation]);
 
-  const handleDeleteRangeLeave = useCallback((record) => {
+  const handleDeleteRangeLeave = useCallback(async (record) => {
     if (!record) return;
 
     const sameTypeRecords = leaveRecords.filter(r => 
@@ -578,8 +575,9 @@ export default function AllLeaveCalendar() {
     if (rangeRecords.length > 1) {
       const startDate = rangeRecords[0].date;
       const endDate = rangeRecords[rangeRecords.length - 1].date;
-      const confirmed = window.confirm(
-        `確定要取消 ${startDate} 至 ${endDate} 共 ${rangeRecords.length} 天的請假嗎？`
+      const confirmed = await confirm(
+        `確定要取消 ${startDate} 至 ${endDate} 共 ${rangeRecords.length} 天的請假嗎？`,
+        { title: '取消連續請假', confirmText: '全部取消', variant: 'destructive' }
       );
       if (confirmed) {
         deleteRangeMutation.mutate(rangeRecords.map(r => r.id));
@@ -587,7 +585,7 @@ export default function AllLeaveCalendar() {
     } else {
       deleteLeaveMutation.mutate(record.id);
     }
-  }, [leaveRecords, leaveTypes, deleteRangeMutation, deleteLeaveMutation]);
+  }, [leaveRecords, leaveTypes, deleteRangeMutation, deleteLeaveMutation, confirm]);
 
   const handleRangeSubmit = async () => {
     if (!dateRange?.from || !dateRange?.to || !selectedLeaveTypeId || !dateRange?.employeeId) return;
@@ -807,17 +805,32 @@ export default function AllLeaveCalendar() {
 
                 {/* 區間選擇提示 */}
                 {rangeMode && (
-                  <p className="text-xs text-blue-600 leading-relaxed">
-                    {!dateRange.from && "📍 請在下方日曆點擊任一員工的格子選擇起始日期"}
-                    {dateRange.from && !dateRange.to && (() => {
+                  <div className="text-xs leading-relaxed space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${!dateRange.from ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-400 line-through'}`}>
+                        <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">1</span>
+                        點格子選員工和起始日
+                      </div>
+                      <span className="text-gray-300">→</span>
+                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${dateRange.from && !dateRange.to ? 'bg-blue-100 text-blue-700 font-medium' : !dateRange.from ? 'text-gray-400' : 'bg-gray-100 text-gray-400 line-through'}`}>
+                        <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">2</span>
+                        點同一列選結束日
+                      </div>
+                      <span className="text-gray-300">→</span>
+                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${dateRange.from && dateRange.to ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-400'}`}>
+                        <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">3</span>
+                        按 ✓ 確認
+                      </div>
+                    </div>
+                    {dateRange.from && (() => {
                       const emp = employees.find(e => e.id === dateRange.employeeId);
-                      return `📍 ${emp?.name} - 已選開始：${dateRange.from}，請繼續選擇結束日期`;
+                      return (
+                        <p className="text-gray-500 pl-1">
+                          {emp?.name}：{dateRange.from}{dateRange.to ? ` → ${dateRange.to}` : ' → ...'}
+                        </p>
+                      );
                     })()}
-                    {dateRange.from && dateRange.to && (() => {
-                      const emp = employees.find(e => e.id === dateRange.employeeId);
-                      return `✓ ${emp?.name} - 已選區間：${dateRange.from} 至 ${dateRange.to}，點擊 ✓ 確認`;
-                    })()}
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -846,20 +859,19 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">操作說明</h3>
-          <div className="space-y-3">
-            <div>
-              <ul className="text-xs text-gray-600 space-y-1">
-                <li>• <span className="font-medium">雙擊姓名或日期</span>：將該列或該欄 highlight 標記，方便查看</li>
-                <li>• <span className="font-medium">單擊格子</span>：選好假別後，單擊格子填充請假</li>
-                <li>• <span className="font-medium">雙擊格子</span>：取消請假（連續假期會一起取消）</li>
-                <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕，選擇員工和日期區間</li>
-              </ul>
-            </div>
+        <details className="mt-4 text-sm text-gray-600">
+          <summary className="cursor-pointer font-medium text-gray-500 hover:text-gray-700 text-sm">操作說明</summary>
+          <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <ul className="text-xs text-gray-600 space-y-1.5">
+              <li>• <span className="font-medium">填入請假</span>：先從上方選擇假別，再點擊表格中的空格即可填入</li>
+              <li>• <span className="font-medium text-red-600">取消請假</span>：雙擊已填入的格子（連續假期會彈出確認視窗，可選擇取消單日或整段）</li>
+              <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕進入區間模式，依序點選起始和結束日期</li>
+              <li>• <span className="font-medium">標記整列／欄</span>：雙擊左側姓名或上方日期，可高亮該列或該欄方便對照</li>
+            </ul>
           </div>
-        </div>
+        </details>
       </div>
+      <ConfirmDialog {...confirmProps} />
     </div>
   );
 }
