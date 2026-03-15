@@ -95,8 +95,8 @@ export default function LeaveCalendarTable({
   onReorderEmployees,
   onEmployeeClick,
 }) {
-  const [highlightedEmployeeId, setHighlightedEmployeeId] = React.useState(null);
-  const [highlightedDate, setHighlightedDate] = React.useState(null);
+  const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
+  const [highlightedDate, setHighlightedDate] = useState(null);
 
   const selectedLeaveTypeIdRef = useRef(selectedLeaveTypeId);
   useEffect(() => {
