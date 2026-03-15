@@ -769,9 +769,16 @@ export default function GanttChart() {
     const doScroll = () => {
       const el = rightPanelRef.current;
       if (!el) { requestAnimationFrame(doScroll); return; }
-      const todayIndex = days.findIndex(d => isToday(d));
-      if (todayIndex >= 0) {
-        el.scrollLeft = todayIndex * CELL_WIDTH - el.clientWidth / 2;
+      // 找今天，若今天被過濾（週末/假日+僅工作日），找最近的日期
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      let targetIndex = days.findIndex(d => isToday(d));
+      if (targetIndex < 0) {
+        // 找最接近今天的日期
+        targetIndex = days.findIndex(d => format(d, 'yyyy-MM-dd') >= todayStr);
+        if (targetIndex < 0) targetIndex = days.length - 1;
+      }
+      if (targetIndex >= 0) {
+        el.scrollLeft = targetIndex * CELL_WIDTH - el.clientWidth / 2;
         setVisibleMonth(new Date());
         initialScrollDone.current = true;
       }
