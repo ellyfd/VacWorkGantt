@@ -1678,15 +1678,18 @@ export default function GanttChart() {
         <summary className="cursor-pointer font-medium flex items-center gap-1.5 text-gray-500 hover:text-gray-700">
           <HelpCircle className="w-4 h-4" /> 操作說明
         </summary>
-        <ul className="mt-2 ml-4 space-y-1 list-disc">
-          <li><strong>新增開發季</strong>：點擊「＋ 新增」，選品牌與季節建立</li>
-          <li><strong>新增任務</strong>：點擊開發季列的 ＋，選樣品與時間類型</li>
-          <li><strong>編輯／刪除任務</strong>：點擊 bar 開啟對話框操作</li>
-          <li><strong>時間類型</strong>：◆ 里程碑（單日）、▬ 區間（起訖日）、▶ Rolling（持續延伸）</li>
-          <li><strong>篩選</strong>：點擊集團／品牌／部門標籤過濾；「僅工作日」可隱藏週末假日</li>
-          <li><strong>請假人數</strong>：點擊數字查看名單，連假顯示日期區間</li>
-          <li><strong>撤銷</strong>：Ctrl+Z（Mac ⌘Z）撤銷上一次時間變更</li>
-        </ul>
+        <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <ul className="text-xs text-gray-600 space-y-1.5">
+            <li>• <span className="font-medium">新增開發季</span>：點擊右上角「＋ 新增」，選擇品牌與季節</li>
+            <li>• <span className="font-medium">新增任務</span>：點擊開發季列最左側的 ＋ 按鈕，選擇樣品與時間類型</li>
+            <li>• <span className="font-medium">編輯／刪除任務</span>：點擊甘特圖上的色條（bar）開啟編輯對話框</li>
+            <li>• <span className="font-medium">時間類型</span>：◆ 里程碑（單日標記）、▬ 區間（起訖日）、▶ Rolling（持續延伸至今）</li>
+            <li>• <span className="font-medium">篩選</span>：點擊上方集團／品牌／部門標籤進行過濾；勾選「僅工作日」可隱藏週末與假日</li>
+            <li>• <span className="font-medium">請假人數</span>：下方數字列可點擊查看當日請假名單</li>
+            <li>• <span className="font-medium">撤銷操作</span>：Ctrl+Z（Mac: ⌘Z）可撤銷上一次時間變更</li>
+            <li>• <span className="font-medium">拖曳排序</span>：拖曳開發季列可調整顯示順序</li>
+          </ul>
+        </div>
       </details>
       </div>
     </TooltipProvider>

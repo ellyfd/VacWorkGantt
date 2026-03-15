@@ -915,20 +915,17 @@ export default function Dashboard() {
           return actualWarnings.length > 0;
         })() && (
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">說明</h3>
-            <div className="space-y-2 text-sm text-gray-600">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">警示類型說明</h3>
+            <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-start gap-2">
-                <span className="font-medium text-orange-600 flex-shrink-0">職代：</span>
-                <span>員工與其職務代理人在同一天請假（出差除外）</span>
+                <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-medium bg-orange-100 text-orange-700 flex-shrink-0">職代</span>
+                <span>員工與職務代理人同日請假</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-medium text-red-600 flex-shrink-0">超標：</span>
-                <span>該部門當天請假人數達到或超過部門總人數的 1/3（出差除外）</span>
+                <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700 flex-shrink-0">超標</span>
+                <span>部門當天請假人數達到或超過總人數 1/3</span>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-gray-500 flex-shrink-0">💡</span>
-                <span>出差不會觸發警示</span>
-              </div>
+              <p className="text-gray-400 text-[11px]">※ 出差不列入警示計算</p>
             </div>
             </div>
             )}

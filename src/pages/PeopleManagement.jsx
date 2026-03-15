@@ -4,6 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +35,8 @@ import { Plus, Pencil, Trash2, Loader2, Users, Building2, Upload, Download } fro
 export default function PeopleManagement() {
   const [activeTab, setActiveTab] = useState('employees');
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [confirmProps, confirm] = useConfirmDialog();
 
   // ============ EMPLOYEE STATE ============
   const [isEmployeeOpen, setIsEmployeeOpen] = useState(false);
@@ -210,7 +215,7 @@ export default function PeopleManagement() {
       const text = await file.text();
       const lines = text.split('\n').filter(line => line.trim());
       if (lines.length < 2) {
-        alert('檔案內容不正確');
+        toast({ title: '檔案內容不正確', variant: 'destructive' });
         return;
       }
 
@@ -219,7 +224,7 @@ export default function PeopleManagement() {
       const deptIdx = headers.indexOf('department_name');
 
       if (nameIdx === -1 || deptIdx === -1) {
-        alert('CSV 檔案必須包含 name 和 department_name 欄位');
+        toast({ title: 'CSV 格式錯誤', description: '必須包含 name 和 department_name 欄位', variant: 'destructive' });
         return;
       }
 
@@ -244,12 +249,12 @@ export default function PeopleManagement() {
       if (employeesToCreate.length > 0) {
         await base44.entities.Employee.bulkCreate(employeesToCreate);
         queryClient.invalidateQueries(['employees']);
-        alert(`成功匯入 ${employeesToCreate.length} 位員工`);
+        toast({ title: `成功匯入 ${employeesToCreate.length} 位員工` });
       } else {
-        alert('找不到符合的部門，請確認 CSV 中的部門名稱');
+        toast({ title: '匯入失敗', description: '找不到符合的部門，請確認 CSV 中的部門名稱', variant: 'destructive' });
       }
     } catch (error) {
-      alert('匯入失敗：' + error.message);
+      toast({ title: '匯入失敗', description: error.message, variant: 'destructive' });
     } finally {
       setIsUploading(false);
       event.target.value = '';
@@ -337,8 +342,11 @@ export default function PeopleManagement() {
     bulkUpdateEmployee.mutate(bulkEditData);
   };
 
-  const handleBulkDeleteEmps = () => {
-    const confirmed = window.confirm(`確定要刪除選中的 ${selectedEmployees.length} 位員工嗎？此操作無法撤銷。`);
+  const handleBulkDeleteEmps = async () => {
+    const confirmed = await confirm(
+      `確定要刪除選中的 ${selectedEmployees.length} 位員工嗎？此操作無法復原。`,
+      { title: '批量刪除員工', confirmText: '確定刪除', variant: 'destructive' }
+    );
     if (confirmed) {
       bulkDeleteEmployee.mutate();
     }
@@ -947,6 +955,7 @@ export default function PeopleManagement() {
           </TabsContent>
         </Tabs>
       </div>
+      <ConfirmDialog {...confirmProps} />
     </div>
   );
 }

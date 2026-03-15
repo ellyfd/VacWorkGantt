@@ -316,11 +316,27 @@ export default function WeekCalendarTable({
 
         {/* Range 模式提示 */}
         {rangeMode && (
-          <p className="text-xs text-blue-600 mb-3">
-            {!dateRange.from && "📍 請在下方日曆點擊選擇起始日期"}
-            {dateRange.from && !dateRange.to && `📍 已選開始：${dateRange.from} - 請選擇結束日期`}
-            {dateRange.from && dateRange.to && `✓ 已選區間：${dateRange.from} 至 ${dateRange.to} - 點擊左側按鈕確認`}
-          </p>
+          <div className="flex items-center gap-2 text-xs mb-3 px-1">
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${!dateRange.from ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-400 line-through'}`}>
+              <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">1</span>
+              選起始日
+            </div>
+            <span className="text-gray-300">→</span>
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${dateRange.from && !dateRange.to ? 'bg-blue-100 text-blue-700 font-medium' : !dateRange.from ? 'text-gray-400' : 'bg-gray-100 text-gray-400 line-through'}`}>
+              <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">2</span>
+              選結束日
+            </div>
+            <span className="text-gray-300">→</span>
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${dateRange.from && dateRange.to ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-400'}`}>
+              <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">3</span>
+              確認送出
+            </div>
+            {dateRange.from && (
+              <span className="ml-auto text-gray-500">
+                {dateRange.from}{dateRange.to ? ` → ${dateRange.to}` : ''}
+              </span>
+            )}
+          </div>
         )}
       </div>
       <div className="p-4 md:pt-0 md:px-4 md:pb-4">
