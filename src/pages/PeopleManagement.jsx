@@ -352,21 +352,9 @@ export default function PeopleManagement() {
     }
   };
 
-  const sortDebounceRef = useRef({});
   const deptSortDebounceRef = useRef({});
 
-  const handleSortOrderChange = useCallback((empId, deptId, newOrder) => {
-    const order = parseInt(newOrder);
-    if (isNaN(order)) return;
-    const key = `${empId}-${deptId}`;
-    clearTimeout(sortDebounceRef.current[key]);
-    sortDebounceRef.current[key] = setTimeout(async () => {
-      const emp = employees.find(e => e.id === empId);
-      const sortOrderByDept = { ...(emp?.sort_order_by_dept || {}), [deptId]: order };
-      await base44.entities.Employee.update(empId, { sort_order_by_dept: sortOrderByDept });
-      queryClient.invalidateQueries(['employees']);
-    }, 500);
-  }, [employees, queryClient]);
+
 
   const handleDeptSortOrderChange = useCallback((deptId, newOrder) => {
     const order = parseInt(newOrder);
@@ -704,7 +692,7 @@ export default function PeopleManagement() {
                       />
                     </TableHead>
                     <TableHead className="min-w-[100px] md:w-[15%]">姓名</TableHead>
-                    <TableHead className="min-w-[150px] md:w-[23%]">部門排序</TableHead>
+                    <TableHead className="min-w-[150px] md:w-[23%]">部門</TableHead>
                     <TableHead className="w-20 md:w-[10%]">狀態</TableHead>
                     <TableHead className="w-16 md:w-[17%]">編輯</TableHead>
                   </TableRow>
@@ -727,18 +715,9 @@ export default function PeopleManagement() {
                         </TableCell>
                         <TableCell className="font-medium">{emp.name}</TableCell>
                         <TableCell className="text-sm">
-                          <div className="space-y-1">
+                          <div className="flex flex-wrap gap-1">
                             {displayDepts.map((dept) => (
-                              <div key={dept.id} className="flex items-center gap-2">
-                                <span className="text-xs text-gray-700 min-w-[60px]">{dept.name}:</span>
-                                <Input
-                                  type="number"
-                                  value={emp.sort_order_by_dept?.[dept.id] ?? ''}
-                                  onChange={(e) => handleSortOrderChange(emp.id, dept.id, e.target.value)}
-                                  className="w-16 h-6 text-center text-xs"
-                                  min="1"
-                                />
-                              </div>
+                              <span key={dept.id} className="inline-flex px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded-full">{dept.name}</span>
                             ))}
                           </div>
                         </TableCell>

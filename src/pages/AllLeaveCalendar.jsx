@@ -12,6 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
@@ -25,6 +31,7 @@ export default function AllLeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
+  const [summaryEmployee, setSummaryEmployee] = useState(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -619,25 +626,66 @@ export default function AllLeaveCalendar() {
     });
   }, [rangeMode]);
 
-  const handleReorderEmployees = async (departmentId, sourceIndex, destinationIndex) => {
-    const deptEmployees = employees.filter(e => e.department_ids?.includes(departmentId));
-    const sourceEmp = deptEmployees[sourceIndex];
-    const destEmp = deptEmployees[destinationIndex];
-    
-    const sourceSortOrder = sourceEmp.sort_order ?? sourceIndex;
-    const destSortOrder = destEmp.sort_order ?? destinationIndex;
-    
-    await base44.entities.Employee.update(sourceEmp.id, { sort_order: destSortOrder });
-    await base44.entities.Employee.update(destEmp.id, { sort_order: sourceSortOrder });
-    
-    queryClient.invalidateQueries(['employees']);
-  };
-
-  const isLoading = loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
-
   const filteredDepartments = selectedDepartments.length > 0
     ? departments.filter(d => selectedDepartments.includes(d.id))
     : departments;
+
+  const handleReorderEmployees = useCallback(async (currentList, sourceIndex, destinationIndex) => {
+    // Reorder the list
+    const reordered = [...currentList];
+    const [moved] = reordered.splice(sourceIndex, 1);
+    reordered.splice(destinationIndex, 0, moved);
+
+    // Update sort_order_by_dept for all affected employees
+    // Use the first filtered department as context, or all departments the employees belong to
+    const updates = reordered.map((emp, idx) => {
+      const newSortByDept = { ...(emp.sort_order_by_dept || {}) };
+      // Update sort order for every department the employee belongs to (within filtered view)
+      const relevantDepts = filteredDepartments.length > 0 ? filteredDepartments : departments;
+      relevantDepts.forEach(dept => {
+        if (emp.department_ids?.includes(dept.id)) {
+          newSortByDept[dept.id] = idx + 1;
+        }
+      });
+      return { id: emp.id, sort_order_by_dept: newSortByDept };
+    });
+
+    // Optimistic update
+    queryClient.setQueryData(['employees'], (old) => {
+      if (!old) return old;
+      const updateMap = Object.fromEntries(updates.map(u => [u.id, u.sort_order_by_dept]));
+      return old.map(emp => updateMap[emp.id]
+        ? { ...emp, sort_order_by_dept: updateMap[emp.id] }
+        : emp
+      );
+    });
+
+    // Persist to backend
+    try {
+      await Promise.all(
+        updates.map(u => base44.entities.Employee.update(u.id, { sort_order_by_dept: u.sort_order_by_dept }))
+      );
+    } catch {
+      queryClient.invalidateQueries(['employees']);
+      toast({ title: '排序更新失敗', variant: 'destructive' });
+    }
+  }, [departments, filteredDepartments, queryClient, toast]);
+
+  // 計算員工當月請假小計
+  const getEmployeeLeaveSummary = useCallback((emp) => {
+    if (!emp || !leaveRecords) return [];
+    const empRecords = leaveRecords.filter(r => r.employee_id === emp.id);
+    const typeCounts = {};
+    empRecords.forEach(r => {
+      const lt = leaveTypes.find(t => t.id === r.leave_type_id);
+      if (!lt) return;
+      if (!typeCounts[lt.id]) typeCounts[lt.id] = { name: lt.name, short_name: lt.short_name, color: lt.color, count: 0 };
+      typeCounts[lt.id].count += (r.period === 'AM' || r.period === 'PM') ? 0.5 : 1;
+    });
+    return Object.values(typeCounts).sort((a, b) => b.count - a.count);
+  }, [leaveRecords, leaveTypes]);
+
+  const isLoading = loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;
 
   const currentEmployee = employees.find(emp => emp.user_emails?.includes(currentUser?.email));
 
@@ -855,6 +903,8 @@ export default function AllLeaveCalendar() {
             onDeleteLeave={handleDeleteLeave}
             onDeleteRangeLeave={handleDeleteRangeLeave}
             onCellClickInRangeMode={handleCellClickInRangeMode}
+            onReorderEmployees={handleReorderEmployees}
+            onEmployeeClick={setSummaryEmployee}
           />
           </div>
         </div>
@@ -866,12 +916,58 @@ export default function AllLeaveCalendar() {
               <li>• <span className="font-medium">填入請假</span>：先從上方選擇假別，再點擊表格中的空格即可填入</li>
               <li>• <span className="font-medium text-red-600">取消請假</span>：雙擊已填入的格子（連續假期會彈出確認視窗，可選擇取消單日或整段）</li>
               <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕進入區間模式，依序點選起始和結束日期</li>
+              <li>• <span className="font-medium">查看小計</span>：點擊左側姓名，可查看該員工當月請假小計</li>
+              <li>• <span className="font-medium">拖曳排序</span>：拖曳姓名左側的 ⠿ 圖示可調整員工顯示順序</li>
               <li>• <span className="font-medium">標記整列／欄</span>：雙擊左側姓名或上方日期，可高亮該列或該欄方便對照</li>
             </ul>
           </div>
         </details>
       </div>
       <ConfirmDialog {...confirmProps} />
+
+      {/* 員工請假小計 */}
+      <Dialog open={!!summaryEmployee} onOpenChange={(open) => !open && setSummaryEmployee(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {summaryEmployee?.name} 的請假小計
+              {summaryEmployee?.english_name && (
+                <span className="text-sm font-normal text-gray-500 ml-2">{summaryEmployee.english_name}</span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-gray-500 mb-2">
+            {currentDate.getMonth() === -1
+              ? `${currentDate.getFullYear()} 年度`
+              : `${currentDate.getFullYear()} 年 ${currentDate.getMonth() + 1} 月`
+            }
+          </div>
+          {summaryEmployee && (() => {
+            const summary = getEmployeeLeaveSummary(summaryEmployee);
+            const total = summary.reduce((s, item) => s + item.count, 0);
+            if (summary.length === 0) {
+              return <p className="text-sm text-gray-400 py-4 text-center">本期間無請假紀錄</p>;
+            }
+            return (
+              <div className="space-y-2">
+                {summary.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="text-sm font-medium text-gray-700">{item.name}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-800">{item.count} 天</span>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  <span className="text-sm font-semibold text-gray-700">合計</span>
+                  <span className="text-sm font-bold text-gray-900">{total} 天</span>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
