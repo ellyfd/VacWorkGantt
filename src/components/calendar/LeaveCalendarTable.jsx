@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { format, getDaysInMonth, getDay } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
 
 import LeaveCell from "./LeaveCell";
 
@@ -34,7 +35,7 @@ export default function LeaveCalendarTable({
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  const holidaySet = useMemo(() => new Set(holidays?.map(h => h.date) || []), [holidays]);
+  const holidaySet = useMemo(() => buildHolidaySet(holidays), [holidays]);
 
   const days = useMemo(() => month === -1
     ? Array.from({ length: 365 }, (_, i) => {
@@ -65,17 +66,7 @@ export default function LeaveCalendarTable({
   [year, month, currentDate, holidaySet]);
 
   // 一個 key 可存多筆（full / AM / PM）
-  const leaveRecordMap = useMemo(() => {
-    const map = new Map();
-    leaveRecords.forEach(r => {
-      console.log('record from API:', r.date, r.period);
-      const key = `${r.employee_id}_${r.date}`;
-      if (!map.has(key)) map.set(key, { full: null, AM: null, PM: null });
-      const period = r.period || 'full';
-      map.get(key)[period] = r;
-    });
-    return map;
-  }, [leaveRecords]);
+  const leaveRecordMap = useMemo(() => buildLeaveRecordMap(leaveRecords), [leaveRecords]);
 
   const getLeaveRecords = useCallback((employeeId, date) => {
     return leaveRecordMap.get(`${employeeId}_${date}`) || { full: null, AM: null, PM: null };

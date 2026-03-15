@@ -3,12 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-
-const getLeavePeriod = (leaveTypeName) => {
-  if (['健檢', '上午休'].includes(leaveTypeName)) return 'AM';
-  if (['下午休'].includes(leaveTypeName)) return 'PM';
-  return 'full';
-};
+import { getLeavePeriod } from '@/lib/leaveUtils';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 

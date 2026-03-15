@@ -58,7 +58,6 @@ export default function Dashboard() {
     queryKey: ['todayLeaves', selectedDate],
     queryFn: async () => {
       const records = await base44.entities.LeaveRecord.filter({ date: selectedDate });
-      console.log(`📅 ${selectedDate} 的請假記錄:`, records);
       return records;
     },
     staleTime: 0,
@@ -110,9 +109,6 @@ export default function Dashboard() {
       const emp = employees.find(e => e.id === leave.employee_id);
       return !emp;
     });
-    if (orphanLeaves.length > 0) {
-      console.log('⚠️ 找不到員工的請假記錄:', orphanLeaves);
-    }
   }, [todayLeaves, employees]);
 
   const filteredLeaves = todayLeaves.filter(leave => {

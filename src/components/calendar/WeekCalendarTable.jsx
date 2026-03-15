@@ -5,6 +5,7 @@ import { Loader2, CalendarRange } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
 
 import LeaveCell from "./LeaveCell";
 import CalendarHeader from "./CalendarHeader";
@@ -48,7 +49,7 @@ export default function WeekCalendarTable({
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  const holidaySet = useMemo(() => new Set(holidays?.map(h => h.date) || []), [holidays]);
+  const holidaySet = useMemo(() => buildHolidaySet(holidays), [holidays]);
 
   const allDays = useMemo(() => month === -1
     ? Array.from({ length: 365 }, (_, i) => {
@@ -65,16 +66,7 @@ export default function WeekCalendarTable({
       }),
   [year, month, holidaySet]);
 
-  const leaveRecordMap = useMemo(() => {
-    const map = new Map();
-    leaveRecords.forEach(r => {
-      const key = `${r.employee_id}_${r.date}`;
-      if (!map.has(key)) map.set(key, { full: null, AM: null, PM: null });
-      const period = r.period || 'full';
-      map.get(key)[period] = r;
-    });
-    return map;
-  }, [leaveRecords]);
+  const leaveRecordMap = useMemo(() => buildLeaveRecordMap(leaveRecords), [leaveRecords]);
 
   const getLeaveRecords = useCallback((employeeId, date) => {
     return leaveRecordMap.get(`${employeeId}_${date}`) || { full: null, AM: null, PM: null };

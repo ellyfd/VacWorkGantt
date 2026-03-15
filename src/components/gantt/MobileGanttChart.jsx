@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
+import { getContrastColor, normalizeDate, calculateWorkingDays } from '@/lib/ganttUtils';
 
 const ROW_HEIGHT = 28;
 const LABEL_WIDTH = 65;
@@ -184,20 +185,6 @@ export default function MobileGanttChart() {
   const getProjectColor = (ganttProject) => {
     const brand = projects.find(p => p.id === ganttProject.brand_id);
     return brand?.default_color || ganttProject.color || '#3b82f6';
-  };
-
-  const getContrastColor = (hexColor) => {
-    if (!hexColor || !hexColor.startsWith('#')) return '#ffffff';
-    const r = parseInt(hexColor.slice(1, 3), 16);
-    const g = parseInt(hexColor.slice(3, 5), 16);
-    const b = parseInt(hexColor.slice(5, 7), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.55 ? '#1f2937' : '#ffffff';
-  };
-
-  const normalizeDate = (dateStr) => {
-    if (!dateStr) return null;
-    return dateStr.split('T')[0];
   };
 
   const calculateWorkingDays = (startDate, endDate) => {

@@ -16,12 +16,7 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import CalendarSettings from '@/components/calendar/CalendarSettings';
 import RangeLeaveDialog from '@/components/calendar/RangeLeaveDialog';
-
-const getLeavePeriod = (leaveTypeName) => {
-  if (['健檢', '上午休'].includes(leaveTypeName)) return 'AM';
-  if (['下午休'].includes(leaveTypeName)) return 'PM';
-  return 'full';
-};
+import { getLeavePeriod } from '@/lib/leaveUtils';
 
 export default function AllLeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
