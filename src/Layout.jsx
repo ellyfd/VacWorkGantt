@@ -22,7 +22,6 @@ const settingsItems = [
   { name: 'PeopleManagement', label: '人員管理', icon: Users },
   { name: 'LeaveSettings', label: '休假設定', icon: CalendarClock },
   { name: 'ProjectSettings', label: '專案設定', icon: BarChart3 },
-  { name: 'DataImport', label: '資料匯入', icon: Upload },
   { name: 'ReportManagement', label: '報表管理', icon: BarChart3 },
 ];
 
