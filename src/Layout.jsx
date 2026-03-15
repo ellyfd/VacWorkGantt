@@ -86,6 +86,9 @@ export default function Layout({ children, currentPageName }) {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const [profileOpen, setProfileOpen] = useState(false);
+  const [editingDeputy, setEditingDeputy] = useState(false);
+  const [deputy1Id, setDeputy1Id] = useState('');
+  const [deputy2Id, setDeputy2Id] = useState('');
 
   const { data: leaveTypes = [] } = useQuery({
     queryKey: ['leaveTypes'],
