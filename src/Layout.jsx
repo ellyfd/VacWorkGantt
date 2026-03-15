@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
+import { format, endOfMonth } from 'date-fns';
 import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut, Settings, ChevronDown, ChevronRight, Bell, BarChart3, Upload, MoreHorizontal, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { base44 } from '@/api/base44Client';
@@ -85,6 +86,66 @@ export default function Layout({ children, currentPageName }) {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const { data: leaveTypes = [] } = useQuery({
+    queryKey: ['leaveTypes'],
+    queryFn: () => base44.entities.LeaveType.list('sort_order'),
+  });
+
+  // 個人請假紀錄：當月 + 當年
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  const { data: yearlyLeaveRecords = [] } = useQuery({
+    queryKey: ['myLeaveRecords', boundEmployee?.id, currentYear],
+    queryFn: () => base44.entities.LeaveRecord.filter({
+      employee_id: boundEmployee.id,
+      date: { $gte: `${currentYear}-01-01`, $lte: `${currentYear}-12-31` }
+    }),
+    enabled: !!boundEmployee?.id && profileOpen,
+  });
+
+  const myLeaveSummary = useMemo(() => {
+    if (!yearlyLeaveRecords.length || !leaveTypes.length) return { monthly: [], yearly: [], monthlyTotal: 0, yearlyTotal: 0 };
+
+    const monthStr = String(currentMonth + 1).padStart(2, '0');
+    const monthPrefix = `${currentYear}-${monthStr}`;
+
+    const calcSummary = (records) => {
+      const counts = {};
+      records.forEach(r => {
+        const lt = leaveTypes.find(t => t.id === r.leave_type_id);
+        if (!lt) return;
+        if (!counts[lt.id]) counts[lt.id] = { name: lt.name, short_name: lt.short_name, color: lt.color, count: 0 };
+        counts[lt.id].count += (r.period === 'AM' || r.period === 'PM') ? 0.5 : 1;
+      });
+      const list = Object.values(counts).sort((a, b) => b.count - a.count);
+      return { list, total: list.reduce((s, i) => s + i.count, 0) };
+    };
+
+    const monthlyRecords = yearlyLeaveRecords.filter(r => r.date.startsWith(monthPrefix));
+    const monthly = calcSummary(monthlyRecords);
+    const yearly = calcSummary(yearlyLeaveRecords);
+    return { monthly: monthly.list, yearly: yearly.list, monthlyTotal: monthly.total, yearlyTotal: yearly.total };
+  }, [yearlyLeaveRecords, leaveTypes, currentYear, currentMonth]);
+
+  // 所屬部門名稱
+  const myDepartments = useMemo(() => {
+    if (!boundEmployee?.department_ids?.length || !departments.length) return [];
+    return departments.filter(d => boundEmployee.department_ids.includes(d.id));
+  }, [boundEmployee, departments]);
+
+  // 職代名稱
+  const deputyNames = useMemo(() => {
+    if (!boundEmployee) return [];
+    return [boundEmployee.deputy_1, boundEmployee.deputy_2]
+      .filter(Boolean)
+      .map(id => employees.find(e => e.id === id)?.name)
+      .filter(Boolean);
+  }, [boundEmployee, employees]);
+
   useEffect(() => {
     if (currentUser && !loadingBoundEmployee && currentUser.role !== 'admin' && boundEmployee === null) {
       setShowBindDialog(true);
@@ -164,13 +225,16 @@ export default function Layout({ children, currentPageName }) {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col fixed h-full">
-        {/* User section */}
-        <div className="p-5 border-b border-gray-100">
+        {/* User section - clickable to open profile */}
+        <button
+          onClick={() => setProfileOpen(true)}
+          className="w-full p-5 border-b border-gray-100 hover:bg-gray-50 transition-colors text-left"
+        >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
               <UserCircle className="w-5 h-5 text-blue-600" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="text-sm font-semibold text-gray-800 truncate">
                 {boundEmployee?.name || currentUser?.email?.split('@')[0] || '使用者'}
               </div>
@@ -178,8 +242,9 @@ export default function Layout({ children, currentPageName }) {
                 {currentUser?.email || ''}
               </div>
             </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
           </div>
-        </div>
+        </button>
 
         <nav className="flex-1 p-3 flex flex-col overflow-y-auto">
           {/* Main nav */}
@@ -306,12 +371,15 @@ export default function Layout({ children, currentPageName }) {
                 <SheetTitle className="text-left">更多功能</SheetTitle>
               </SheetHeader>
               <div className="overflow-y-auto pb-6">
-                {/* User info */}
-                <div className="flex items-center gap-3 px-2 py-3 mb-2 bg-gray-50 rounded-lg">
+                {/* User info - clickable to open profile */}
+                <button
+                  onClick={() => { setMobileSheetOpen(false); setProfileOpen(true); }}
+                  className="w-full flex items-center gap-3 px-2 py-3 mb-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left"
+                >
                   <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <UserCircle className="w-5 h-5 text-blue-600" />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-gray-800 truncate">
                       {boundEmployee?.name || currentUser?.email?.split('@')[0] || '使用者'}
                     </div>
@@ -319,7 +387,8 @@ export default function Layout({ children, currentPageName }) {
                       {currentUser?.email || ''}
                     </div>
                   </div>
-                </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                </button>
 
                 {/* Gantt link */}
                 <Link
@@ -478,6 +547,116 @@ export default function Layout({ children, currentPageName }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 個人資料 Sheet */}
+      <Sheet open={profileOpen} onOpenChange={setProfileOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader className="pb-4">
+            <SheetTitle>個人資料</SheetTitle>
+          </SheetHeader>
+
+          {/* 基本資訊 */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <UserCircle className="w-8 h-8 text-blue-600" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-lg font-bold text-gray-900">
+                  {boundEmployee?.name || '未綁定'}
+                </div>
+                {boundEmployee?.english_name && (
+                  <div className="text-sm text-gray-500">{boundEmployee.english_name}</div>
+                )}
+                <div className="text-xs text-gray-400 mt-0.5">{currentUser?.email}</div>
+              </div>
+            </div>
+
+            {/* 個人資訊 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-[11px] text-gray-400 mb-1">部門</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {myDepartments.length > 0 ? myDepartments.map(d => d.name).join('、') : '—'}
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-[11px] text-gray-400 mb-1">職務代理人</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {deputyNames.length > 0 ? deputyNames.join('、') : '—'}
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-[11px] text-gray-400 mb-1">狀態</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {boundEmployee?.status === 'active' ? '在職' :
+                   boundEmployee?.status === 'parental_leave' ? '育嬰假' :
+                   boundEmployee?.status === 'hidden' ? '隱藏' :
+                   boundEmployee?.status === 'inactive' ? '離職' : '—'}
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-[11px] text-gray-400 mb-1">角色</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {currentUser?.role === 'admin' ? '管理員' : '一般使用者'}
+                </div>
+              </div>
+            </div>
+
+            {/* 當月請假小計 */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                {currentMonth + 1} 月請假小計
+              </h3>
+              {myLeaveSummary.monthly.length === 0 ? (
+                <p className="text-sm text-gray-400 py-3 text-center bg-gray-50 rounded-lg">本月無請假紀錄</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {myLeaveSummary.monthly.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-sm text-gray-700">{item.name}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-800">{item.count} 天</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between pt-1.5 px-3 border-t border-gray-200">
+                    <span className="text-sm font-semibold text-gray-700">小計</span>
+                    <span className="text-sm font-bold text-gray-900">{myLeaveSummary.monthlyTotal} 天</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 年度請假小計 */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                {currentYear} 年度累計
+              </h3>
+              {myLeaveSummary.yearly.length === 0 ? (
+                <p className="text-sm text-gray-400 py-3 text-center bg-gray-50 rounded-lg">本年度無請假紀錄</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {myLeaveSummary.yearly.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-sm text-gray-700">{item.name}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-800">{item.count} 天</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between pt-1.5 px-3 border-t border-gray-200">
+                    <span className="text-sm font-semibold text-gray-700">年度合計</span>
+                    <span className="text-sm font-bold text-gray-900">{myLeaveSummary.yearlyTotal} 天</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
