@@ -212,7 +212,6 @@ const GanttRow = React.memo(function GanttRow({
               }}
             >
               {props.isToday && <div className="absolute inset-0 bg-blue-400/15 pointer-events-none" />}
-              {props.isToday && <div className="absolute left-1/2 -translate-x-[1.5px] top-0 bottom-0 w-[3px] bg-blue-600/80 pointer-events-none z-20 rounded-sm" />}
             </div>
           );
         })}
