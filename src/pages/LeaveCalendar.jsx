@@ -30,6 +30,7 @@ import { checkDeputyConflict, checkDeptLimit, buildWarningInfo } from '@/compone
 import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function LeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -39,6 +40,7 @@ export default function LeaveCalendar() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogData, setDeleteDialogData] = useState(null);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -523,10 +525,20 @@ export default function LeaveCalendar() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <span className="text-gray-600">載入中...</span>
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-7 w-28 bg-gray-200 rounded animate-pulse" />
+          <div className="h-9 w-28 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="bg-white rounded-lg border border-gray-200 p-3">
+          <div className="h-5 w-40 bg-gray-100 rounded animate-pulse mb-3" />
+          {[1,2,3,4].map(i => (
+            <div key={i} className="flex gap-1 mb-1">
+              {Array.from({length: 7}, (_, j) => (
+                <div key={j} className="h-10 flex-1 bg-gray-50 rounded animate-pulse" />
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -582,7 +594,7 @@ export default function LeaveCalendar() {
             onDeleteRangeLeave={handleDeleteRangeLeave}
             onCellClickInRangeMode={handleCellClickInRangeMode}
             onRangeModeToggle={() => {
-              if (!selectedLeaveTypeId) { alert('請先選擇假別'); return; }
+              if (!selectedLeaveTypeId) { toast({ title: '請先選擇假別', variant: 'destructive' }); return; }
               setRangeMode(true);
             }}
             onRangeModeCancel={() => { setRangeMode(false); setDateRange({ from: undefined, to: undefined }); }}

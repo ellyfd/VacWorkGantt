@@ -15,6 +15,7 @@ import {
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function AllLeaveCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -24,6 +25,7 @@ export default function AllLeaveCalendar() {
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
 
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -643,10 +645,23 @@ export default function AllLeaveCalendar() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <span className="text-gray-600">載入中...</span>
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-7 w-32 bg-gray-200 rounded animate-pulse" />
+          <div className="h-9 w-28 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="flex gap-2 p-3 border-b border-gray-100">
+            {[1,2,3].map(i => <div key={i} className="h-8 w-16 bg-gray-100 rounded animate-pulse" />)}
+          </div>
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-gray-50">
+              <div className="h-4 w-16 bg-gray-100 rounded animate-pulse flex-shrink-0" />
+              {Array.from({length: 15}, (_, j) => (
+                <div key={j} className="h-8 w-7 bg-gray-50 rounded animate-pulse flex-shrink-0" />
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -751,7 +766,7 @@ export default function AllLeaveCalendar() {
                     <Button
                       onClick={() => {
                         if (!selectedLeaveTypeId) {
-                          alert('請先選擇假別');
+                          toast({ title: '請先選擇假別', variant: 'destructive' });
                           return;
                         }
                         setRangeMode(true);

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo } from 'react';
 import { format, getDaysInMonth, getDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
@@ -102,9 +102,16 @@ export default function LeaveCalendarTable({
     if (!rangeMode) onDeleteLeave(recordId);
   }, [rangeMode, onDeleteLeave]);
 
+  const scrollContainerRef = useRef(null);
+  const handleScroll = useCallback((e) => {
+    const el = e.target;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
+    el.parentElement?.classList.toggle('scrolled-end', atEnd);
+  }, []);
+
   return (
-    <div className="bg-white w-full">
-      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]">
+    <div className="bg-white w-full scroll-hint">
+      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)]" ref={scrollContainerRef} onScroll={handleScroll}>
         <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 70, 600)}px` }}>
           <thead className="sticky top-0 z-30">
             <tr className="bg-gray-50">
