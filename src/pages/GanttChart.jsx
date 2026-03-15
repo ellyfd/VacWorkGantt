@@ -417,9 +417,9 @@ export default function GanttChart() {
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
-    if (count <= 2) return { bg: '#fef9c3', text: '#854d0e', label: `${count}人` };
-    if (count <= 4) return { bg: '#ffedd5', text: '#9a3412', label: `${count}人` };
-    return { bg: '#fee2e2', text: '#991b1b', label: `${count}人`, bold: true };
+    if (count <= 2) return { bg: '#fef3c7', text: '#92400e', label: `${count}人` };
+    if (count <= 4) return { bg: '#fed7aa', text: '#9a3412', label: `${count}人` };
+    return { bg: '#fecaca', text: '#991b1b', label: `${count}人`, bold: true };
   };
 
   // 工作天數預先計算（移出 render，避免每次重新 loop）
@@ -474,7 +474,8 @@ export default function GanttChart() {
         isHoliday,
         isFirstOfMonth,
         isToday: isToday(day),
-        bgColor: (isWeekend || isHoliday) ? '#f3f4f6' : '#f9fafb',
+        bgColor: (isWeekend || isHoliday) ? '#f0f0f3' : '#fafafa',
+        bgPattern: (isWeekend || isHoliday),
       };
     });
     return map;
@@ -506,8 +507,8 @@ export default function GanttChart() {
       const idx = brandsInGroup.findIndex(p => p.id === brand?.id);
       const total = Math.max(brandsInGroup.length, 1);
       const hue = hashToHue(group.name);
-      const saturation = 45;
-      const lightness = 38 + (idx / total) * 18;
+      const saturation = 50;
+      const lightness = 42 + (idx / total) * 16;
       return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     }
 
@@ -1020,17 +1021,18 @@ export default function GanttChart() {
           className="flex items-center gap-2 px-3 relative"
           style={{
             height: ROW_HEIGHT,
-            backgroundColor: getProjectColor(row.data),
-            color: getContrastColor(getProjectColor(row.data)),
+            backgroundColor: '#ffffff',
+            color: '#1f2937',
+            borderLeft: `4px solid ${getProjectColor(row.data)}`,
           }}
         >
           {/* 進度條底層 */}
           {totalTasks > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-black/10">
-              <div className="h-full bg-white/40 transition-all" style={{ width: `${progressPct}%` }} />
+            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gray-200">
+              <div className="h-full transition-all" style={{ width: `${progressPct}%`, backgroundColor: getProjectColor(row.data), opacity: 0.5 }} />
             </div>
           )}
-          <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-40" />
+          <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-30 text-gray-400" />
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="truncate flex-1 font-semibold text-[14px]">{row.data.name}</span>
@@ -1042,7 +1044,7 @@ export default function GanttChart() {
               )}
             </TooltipContent>
           </Tooltip>
-          <div className="flex gap-1 flex-shrink-0 opacity-70">
+          <div className="flex gap-1 flex-shrink-0 text-gray-400">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -1050,20 +1052,20 @@ export default function GanttChart() {
                 setTaskFormData({ name: '', sample_id: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
                 setShowAddTaskDialog(true);
               }}
-              className="p-1 hover:bg-black/20 rounded"
+              className="p-1 hover:bg-gray-100 rounded"
               title="新增任務"
             >
               <Plus className="w-3 h-3" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setEditingProject(row.data); setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === row.data.id)); setShowEditProjectDialog(true); }}
-              className="p-1 hover:bg-black/20 rounded"
+              className="p-1 hover:bg-gray-100 rounded"
             >
               <Edit2 className="w-3 h-3" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: 'project', id: row.data.id, name: row.data.name }); }}
-              className="p-1 hover:bg-red-700/40 rounded"
+              className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-500"
             >
               <Trash2 className="w-3 h-3" />
             </button>
@@ -1198,7 +1200,7 @@ export default function GanttChart() {
                 </button>
               </div>
               <div
-                className="bg-white border-b border-gray-300 px-3 text-xs text-gray-500 flex items-center font-medium"
+                className="bg-slate-50 border-y-2 border-slate-200 px-3 text-xs text-slate-500 flex items-center font-medium tracking-wide"
                 style={{ height: LEAVE_HEADER_HEIGHT }}
               >
                 請假人數
@@ -1288,10 +1290,10 @@ export default function GanttChart() {
                         bottom: 0,
                         left: todayLeft,
                         width: 2,
-                        backgroundColor: '#ef4444',
+                        backgroundColor: '#3b82f6',
                         zIndex: 25,
                         pointerEvents: 'none',
-                        opacity: 0.7,
+                        opacity: 0.6,
                       }} />
                     );
                   })()}
@@ -1333,7 +1335,7 @@ export default function GanttChart() {
                         <div
                           key={day.toISOString()}
                           className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                            isToday(day) ? 'bg-orange-200 text-orange-800 font-bold border-t-2 border-orange-500' :
+                            isToday(day) ? 'bg-blue-100 text-blue-800 font-bold border-t-2 border-blue-500' :
                             (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
                             'bg-gray-100 text-gray-700'
                           }`}
@@ -1349,7 +1351,7 @@ export default function GanttChart() {
                   </div>
 
                   {/* 請假人數列 */}
-                  <div style={{ ...gridStyle, height: LEAVE_HEADER_HEIGHT, borderBottom: '1px solid #d1d5db', backgroundColor: '#f9fafb' }}>
+                  <div style={{ ...gridStyle, height: LEAVE_HEADER_HEIGHT, borderBottom: '2px solid #cbd5e1', borderTop: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
                     {days.map((day) => {
                       const dateStr = format(day, 'yyyy-MM-dd');
                       const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
