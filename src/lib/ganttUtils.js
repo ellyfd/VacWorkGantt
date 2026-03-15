@@ -31,6 +31,44 @@ export const getLightColor = (color) => {
 };
 
 /**
+ * 產生柔和的 bar 背景色（淡化）
+ */
+export const getSoftBarColor = (color) => {
+  if (!color) return '#e0e7ff';
+  const hslMatch = color.match(/hsl\((\d+),\s*(\d+)%,\s*([\d.]+)%\)/);
+  if (hslMatch) {
+    return `hsl(${hslMatch[1]}, ${Math.round(hslMatch[2] * 0.7)}%, 82%)`;
+  }
+  if (!color.startsWith('#')) return '#e0e7ff';
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
+  const lr = Math.round(r + (255 - r) * 0.65);
+  const lg = Math.round(g + (255 - g) * 0.65);
+  const lb = Math.round(b + (255 - b) * 0.65);
+  return `rgb(${lr},${lg},${lb})`;
+};
+
+/**
+ * 產生深色文字色（用於淡化 bar 上的文字）
+ */
+export const getDarkTextColor = (color) => {
+  if (!color) return '#1f2937';
+  const hslMatch = color.match(/hsl\((\d+),\s*(\d+)%,\s*([\d.]+)%\)/);
+  if (hslMatch) {
+    return `hsl(${hslMatch[1]}, ${Math.round(hslMatch[2] * 0.9)}%, 25%)`;
+  }
+  if (!color.startsWith('#')) return '#1f2937';
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
+  const dr = Math.round(r * 0.35);
+  const dg = Math.round(g * 0.35);
+  const db = Math.round(b * 0.35);
+  return `rgb(${dr},${dg},${db})`;
+};
+
+/**
  * 正規化日期字串，移除時間部分
  */
 export const normalizeDate = (dateStr) => {

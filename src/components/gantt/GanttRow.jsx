@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { format, addDays, subDays } from 'date-fns';
-import { getContrastColor, getLightColor, normalizeDate } from '@/lib/ganttUtils';
+import { getContrastColor, getLightColor, getSoftBarColor, getDarkTextColor, normalizeDate } from '@/lib/ganttUtils';
 
 const dropIndicatorStyle = { position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', zIndex: 50 };
 const taskOverlayStyle = { position: 'absolute', inset: 0, pointerEvents: 'none' };
@@ -32,7 +32,7 @@ const GanttRow = React.memo(function GanttRow({
   onDragEnd,
   onDragLeave,
 }) {
-  const textColor = getContrastColor(projectColor);
+  const textColor = getDarkTextColor(projectColor);
 
   // 找最近可見日期的 index
   const findVisibleIdx = (dateStr, direction = 'forward') => {
@@ -71,11 +71,11 @@ const GanttRow = React.memo(function GanttRow({
         if (endIdx < 0) return null;
         left = startIdx * CELL_WIDTH + 2;
         width = (endIdx - startIdx + 1) * CELL_WIDTH - 4;
-        bgColor = projectColor;
+        bgColor = getSoftBarColor(projectColor);
       } else if (task.time_type === 'rolling') {
         left = startIdx * CELL_WIDTH + 2;
         width = (days.length - startIdx) * CELL_WIDTH - 4;
-        bgColor = projectColor;
+        bgColor = getSoftBarColor(projectColor);
       } else {
         return null;
       }
@@ -94,8 +94,8 @@ const GanttRow = React.memo(function GanttRow({
             height: 22,
             borderRadius: 4,
             backgroundColor: bgColor,
-            border: '1px solid rgba(0,0,0,0.08)',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+            border: `1px solid ${projectColor}40`,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -120,7 +120,7 @@ const GanttRow = React.memo(function GanttRow({
                 border: '1px solid rgba(0,0,0,0.12)',
                 flexShrink: 0,
               }} />
-              <span style={{ fontSize: 13, color: textColor, fontWeight: 500 }}>
+              <span style={{ fontSize: 13, color: textColor, fontWeight: 600 }}>
                 {task.name}
                 {task.category && (
                   <span style={categoryStyle}>({task.category})</span>
@@ -129,10 +129,10 @@ const GanttRow = React.memo(function GanttRow({
             </div>
           )}
           {task.time_type === 'duration' && (
-            <span style={{ fontSize: 13, color: textColor, fontWeight: 500 }}>
+            <span style={{ fontSize: 13, color: textColor, fontWeight: 600 }}>
               {task.name}
               {task.category && (
-                <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.7 }}>({task.category})</span>
+                <span style={{ fontSize: 11, marginLeft: 4, opacity: 0.8 }}>({task.category})</span>
               )}
               {workingDays > 0 && (
                 <span style={workingDaysStyle}>
@@ -149,7 +149,7 @@ const GanttRow = React.memo(function GanttRow({
                 background: `linear-gradient(to right, ${getLightColor(projectColor)}, transparent)`,
                 pointerEvents: 'none',
               }} />
-              <span style={{ fontSize: 13, color: textColor, fontWeight: 500, position: 'relative', zIndex: 1 }}>
+              <span style={{ fontSize: 13, color: textColor, fontWeight: 600, position: 'relative', zIndex: 1 }}>
                 {task.name}
                 {task.category && (
                   <span style={categoryStyle}>({task.category})</span>
