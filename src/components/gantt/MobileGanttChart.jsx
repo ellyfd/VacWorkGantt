@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, BarChart3, List } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ export default function MobileGanttChart() {
   const [selectedDeptId, setSelectedDeptId] = useState('');
   const [selectedGroupSlug, setSelectedGroupSlug] = useState('');
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
+  const [viewMode, setViewMode] = useState('chart'); // 'chart' or 'list'
   const [editingTask, setEditingTask] = useState(null);
   const [editTaskName, setEditTaskName] = useState('');
   const [editTaskStartDate, setEditTaskStartDate] = useState('');
@@ -339,7 +340,7 @@ export default function MobileGanttChart() {
         })()}
       </div>
 
-      {/* 時間導航 */}
+      {/* 時間導航 + 視圖切換 */}
       <div className="flex items-center justify-between text-sm bg-white border border-gray-200 rounded px-3 py-2">
         <button onClick={() => setCurrentDate(new Date())} className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded">
           今天
@@ -351,9 +352,24 @@ export default function MobileGanttChart() {
         <button onClick={() => setCurrentDate(d => addDays(d, 14))} className="p-1 hover:bg-gray-100 rounded">
           <ChevronRight className="w-5 h-5" />
         </button>
+        <div className="flex border border-gray-200 rounded overflow-hidden ml-1">
+          <button
+            onClick={() => setViewMode('chart')}
+            className={`p-1.5 ${viewMode === 'chart' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:bg-gray-50'}`}
+          >
+            <BarChart3 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-1.5 ${viewMode === 'list' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:bg-gray-50'}`}
+          >
+            <List className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {filteredTasks.length > 0 ? (
+        viewMode === 'chart' ? (
         <Card className="overflow-hidden w-fit max-w-full">
           {/* 週期 header + 請假人數 */}
           <div>
@@ -504,6 +520,76 @@ export default function MobileGanttChart() {
             })}
           </div>
         </Card>
+        ) : (
+        /* 列表視圖 */
+        <div className="space-y-3">
+          {brandsWithTasks.map((brand) => {
+            const brandProjects = filteredProjects.filter(p => p.brand_id === brand.id);
+            const brandProjectIds = new Set(brandProjects.map(p => p.id));
+            const brandTasks = filteredTasks
+              .filter(t => brandProjectIds.has(t.gantt_project_id))
+              .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
+
+            if (brandTasks.length === 0) return null;
+
+            return (
+              <div key={brand.id}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: brand.default_color || '#3b82f6' }} />
+                  <span className="text-sm font-semibold text-gray-700">{brand.short_name}</span>
+                  <span className="text-xs text-gray-400">{brandTasks.length} 任務</span>
+                </div>
+                <div className="space-y-1.5">
+                  {brandTasks.map(task => {
+                    const proj = filteredProjects.find(p => p.id === task.gantt_project_id);
+                    const color = proj ? getProjectColor(proj) : '#ccc';
+                    const startStr = normalizeDate(task.start_date);
+                    const endStr = normalizeDate(task.end_date);
+                    const wd = task.time_type === 'duration' && startStr && endStr
+                      ? calculateWorkingDays(startStr, endStr) : 0;
+                    const dateLabel = task.time_type === 'milestone' && startStr
+                      ? format(new Date(startStr + 'T00:00:00'), 'M/d')
+                      : task.time_type === 'duration' && startStr && endStr
+                      ? `${format(new Date(startStr + 'T00:00:00'), 'M/d')} - ${format(new Date(endStr + 'T00:00:00'), 'M/d')}`
+                      : task.time_type === 'rolling' && startStr
+                      ? `${format(new Date(startStr + 'T00:00:00'), 'M/d')} →`
+                      : '未排程';
+
+                    return (
+                      <Card
+                        key={task.id}
+                        className="p-2.5 cursor-pointer active:scale-[0.98] transition-transform"
+                        onClick={() => handleOpenEditDialog(task)}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-medium text-gray-800 truncate">{task.name}</span>
+                              {task.time_type === 'milestone' && (
+                                <div className="w-2.5 h-2.5 rotate-45 flex-shrink-0" style={{ backgroundColor: task.is_important ? '#eab308' : color }} />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs text-gray-500">{dateLabel}</span>
+                              {wd > 0 && (
+                                <span className="text-xs text-gray-400 bg-gray-100 px-1 rounded">{wd}天</span>
+                              )}
+                              {proj && (
+                                <span className="text-xs text-gray-400">{proj.season || proj.name}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        )
       ) : (
         <div className="p-8 text-center text-gray-400 text-sm">
           篩選結果無任務
