@@ -133,6 +133,20 @@ export default function Layout({ children, currentPageName }) {
     return { monthly: monthly.list, yearly: yearly.list, monthlyTotal: monthly.total, yearlyTotal: yearly.total };
   }, [yearlyLeaveRecords, leaveTypes, currentYear, currentMonth]);
 
+  const saveDeputyMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Employee.update(boundEmployee.id, {
+        deputy_1: deputy1Id || null,
+        deputy_2: deputy2Id || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['boundEmployee']);
+      queryClient.invalidateQueries(['employees']);
+      setEditingDeputy(false);
+    },
+  });
+
   // 所屬部門名稱
   const myDepartments = useMemo(() => {
     if (!boundEmployee?.department_ids?.length || !departments.length) return [];
