@@ -1289,11 +1289,13 @@ export default function GanttChart() {
                         top: 0,
                         bottom: 0,
                         left: todayLeft,
-                        width: 2,
-                        backgroundColor: '#3b82f6',
+                        width: 3,
+                        backgroundColor: '#2563eb',
                         zIndex: 25,
                         pointerEvents: 'none',
-                        opacity: 0.6,
+                        opacity: 0.85,
+                        borderRadius: 1,
+                        boxShadow: '0 0 6px rgba(37,99,235,0.4)',
                       }} />
                     );
                   })()}
@@ -1335,7 +1337,7 @@ export default function GanttChart() {
                         <div
                           key={day.toISOString()}
                           className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                            isToday(day) ? 'bg-blue-100 text-blue-800 font-bold border-t-2 border-blue-500' :
+                            isToday(day) ? 'bg-blue-200 text-blue-900 font-bold border-t-[3px] border-blue-600 ring-1 ring-inset ring-blue-300' :
                             (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
                             'bg-gray-100 text-gray-700'
                           }`}
