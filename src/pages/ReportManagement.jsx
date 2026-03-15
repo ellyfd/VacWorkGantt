@@ -97,7 +97,7 @@ export default function ReportManagement() {
     let totalLeaveHours = 0;
     filteredLeaveRecords.forEach(record => {
       const leaveType = leaveTypeMap.get(record.leave_type_id);
-      if (leaveType) totalLeaveHours += calculateLeaveHours(leaveType.name);
+      if (leaveType && leaveType.name !== '出差') totalLeaveHours += calculateLeaveHours(leaveType.name);
     });
 
     const actualWorkHours = totalStandardHours - totalLeaveHours;
@@ -222,7 +222,7 @@ export default function ReportManagement() {
         filteredLeaveRecords.forEach(record => {
           if (weekDays.has(record.date) && deptEmpIds.has(record.employee_id)) {
             const lt = leaveTypeMap.get(record.leave_type_id);
-            if (lt) leaveHours += calculateLeaveHours(lt.name);
+            if (lt && lt.name !== '出差') leaveHours += calculateLeaveHours(lt.name);
           }
         });
 
