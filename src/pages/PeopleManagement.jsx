@@ -80,23 +80,45 @@ export default function PeopleManagement() {
   });
 
   const updateEmployee = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Employee.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      if (data.status === 'inactive') {
+        await clearDeputyReferences(id);
+      }
+      return base44.entities.Employee.update(id, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['employees']);
       handleCloseEmployeeDialog();
     },
   });
 
+  const clearDeputyReferences = async (removedId) => {
+    const affectedEmployees = employees.filter(
+      e => e.deputy_1 === removedId || e.deputy_2 === removedId
+    );
+    await Promise.all(affectedEmployees.map(e => {
+      const updates = {};
+      if (e.deputy_1 === removedId) updates.deputy_1 = '';
+      if (e.deputy_2 === removedId) updates.deputy_2 = '';
+      return base44.entities.Employee.update(e.id, updates);
+    }));
+  };
+
   const deleteEmployee = useMutation({
-    mutationFn: (id) => base44.entities.Employee.delete(id),
+    mutationFn: async (id) => {
+      await clearDeputyReferences(id);
+      return base44.entities.Employee.delete(id);
+    },
     onSuccess: () => queryClient.invalidateQueries(['employees']),
   });
 
   const bulkUpdateEmployee = useMutation({
     mutationFn: async (updates) => {
+      if (updates.status === 'inactive') {
+        await Promise.all(selectedEmployees.map(empId => clearDeputyReferences(empId)));
+      }
       await Promise.all(
         selectedEmployees.map(empId => {
-          const emp = employees.find(e => e.id === empId);
           const updateData = {};
           if (updates.department_ids && updates.department_ids.length > 0) updateData.department_ids = updates.department_ids;
           if (updates.status) updateData.status = updates.status;
@@ -114,6 +136,7 @@ export default function PeopleManagement() {
 
   const bulkDeleteEmployee = useMutation({
     mutationFn: async () => {
+      await Promise.all(selectedEmployees.map(empId => clearDeputyReferences(empId)));
       await Promise.all(selectedEmployees.map(empId => base44.entities.Employee.delete(empId)));
     },
     onSuccess: () => {
@@ -518,7 +541,7 @@ export default function PeopleManagement() {
                           <SelectContent>
                             <SelectItem value={null}>無</SelectItem>
                             {employeeFormData.department_ids.length > 0 && employees
-                              .filter(e => e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id)
+                              .filter(e => e.status === 'active' && e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id)
                               .map((emp) => (
                                 <SelectItem key={emp.id} value={emp.id}>
                                   {emp.name}
@@ -539,7 +562,7 @@ export default function PeopleManagement() {
                           <SelectContent>
                             <SelectItem value={null}>無</SelectItem>
                             {employeeFormData.department_ids.length > 0 && employees
-                              .filter(e => e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id && e.id !== employeeFormData.deputy_1)
+                              .filter(e => e.status === 'active' && e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id && e.id !== employeeFormData.deputy_1)
                               .map((emp) => (
                                 <SelectItem key={emp.id} value={emp.id}>
                                   {emp.name}

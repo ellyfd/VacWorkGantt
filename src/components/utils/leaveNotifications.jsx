@@ -44,7 +44,7 @@ export async function sendLeaveNotification({
   const sendNotif = async (email, message) => {
     const oldNotifications = await base44.entities.Notification.filter({
       recipient_email: email,
-      message: { $regex: date }
+      message: { $regex: `${emp?.name}.*${date}` }
     });
     await Promise.all(oldNotifications.map(n => base44.entities.Notification.delete(n.id)));
 
@@ -99,7 +99,7 @@ export async function sendRangeDeleteNotification({
   const sendNotif = async (email, message) => {
     await base44.entities.Notification.create({
       recipient_email: email,
-      type: 'leave_created',
+      type: 'leave_deleted',
       message,
       related_entity_type: 'LeaveRecord'
     });
