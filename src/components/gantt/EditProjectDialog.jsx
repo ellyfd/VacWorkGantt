@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus } from 'lucide-react';
+import { format } from 'date-fns';
+import { calculateWorkingDays, normalizeDate } from '@/lib/ganttUtils';
 
 const COLORS = [
   '#3b82f6','#8b5cf6','#10b981','#f59e0b',
@@ -67,12 +69,30 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                 {projectTasks.length === 0 && (
                   <p className="text-xs text-gray-400 py-2 text-center">尚無任務</p>
                 )}
-                {projectTasks.map(task => (
+                {projectTasks.map(task => {
+                  const startStr = normalizeDate(task.start_date);
+                  const endStr = normalizeDate(task.end_date);
+                  const workDays = task.time_type === 'duration' && startStr && endStr
+                    ? calculateWorkingDays(startStr, endStr) : 0;
+                  const dateLabel = task.time_type === 'milestone' && startStr
+                    ? format(new Date(startStr + 'T00:00:00'), 'M/d')
+                    : task.time_type === 'duration' && startStr && endStr
+                    ? `${format(new Date(startStr + 'T00:00:00'), 'M/d')} - ${format(new Date(endStr + 'T00:00:00'), 'M/d')}`
+                    : task.time_type === 'rolling' && startStr
+                    ? `${format(new Date(startStr + 'T00:00:00'), 'M/d')} →`
+                    : null;
+
+                  return (
                    <div key={task.id} className="space-y-2 p-3 border rounded-lg bg-gray-50">
-                     {/* 第一行：顏色點 + 名稱 + 刪除 */}
+                     {/* 第一行：顏色點 + 名稱 + 工作天數 + 刪除 */}
                      <div className="flex items-center gap-2">
                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color || '#3b82f6' }} />
                        <span className="flex-1 h-8 text-sm flex items-center">{task.name}</span>
+                       {workDays > 0 && (
+                         <span className="text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded flex-shrink-0">
+                           {workDays} 工作天
+                         </span>
+                       )}
                        <button
                          onClick={() => onDeleteTask(task.id)}
                          className="p-1 hover:bg-red-100 rounded text-red-500"
@@ -80,6 +100,22 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                          <Trash2 className="w-3.5 h-3.5" />
                        </button>
                      </div>
+
+                    {/* Mini timeline bar */}
+                    {dateLabel && (
+                      <div className="pl-4 flex items-center gap-2">
+                        <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden relative">
+                          {task.time_type === 'milestone' ? (
+                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rotate-45" style={{ backgroundColor: task.is_important ? '#eab308' : (project.color || '#3b82f6') }} />
+                          ) : task.time_type === 'rolling' ? (
+                            <div className="h-full rounded-full" style={{ backgroundColor: project.color || '#3b82f6', width: '60%', opacity: 0.6 }} />
+                          ) : (
+                            <div className="h-full rounded-full" style={{ backgroundColor: project.color || '#3b82f6' }} />
+                          )}
+                        </div>
+                        <span className="text-[11px] text-gray-500 flex-shrink-0 whitespace-nowrap">{dateLabel}</span>
+                      </div>
+                    )}
 
                     {/* 第二行：時間類型（獨立一行） */}
                     <div className="pl-4">
@@ -156,7 +192,8 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* 新增任務 */}

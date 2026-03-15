@@ -762,13 +762,13 @@ export default function GanttChart() {
     };
   }, []);
 
-  // 初始化時捲到今天
+  // 初始化時捲到今天（使用 rAF 確保 DOM 已渲染）
   const initialScrollDone = useRef(false);
   React.useEffect(() => {
     if (initialScrollDone.current || days.length === 0) return;
     const doScroll = () => {
       const el = rightPanelRef.current;
-      if (!el) return;
+      if (!el) { requestAnimationFrame(doScroll); return; }
       const todayIndex = days.findIndex(d => isToday(d));
       if (todayIndex >= 0) {
         el.scrollLeft = todayIndex * CELL_WIDTH - el.clientWidth / 2;
@@ -776,9 +776,7 @@ export default function GanttChart() {
         initialScrollDone.current = true;
       }
     };
-    // 用 setTimeout 確保 DOM 已渲染完成
-    const timer = setTimeout(doScroll, 50);
-    return () => clearTimeout(timer);
+    requestAnimationFrame(doScroll);
   }, [days, CELL_WIDTH]);
 
   // 處理 pendingScrollToDate：等 days 重算後執行捲動
@@ -1007,21 +1005,35 @@ export default function GanttChart() {
   const renderLeftCell = useCallback((row) => {
     if (row.type === 'project') {
       const projectTasks = tasksByProjectId[row.data.id] ?? [];
+      const tasksWithTime = projectTasks.filter(t => t.start_date).length;
+      const totalTasks = projectTasks.length;
+      const progressPct = totalTasks > 0 ? Math.round((tasksWithTime / totalTasks) * 100) : 0;
       return (
         <div
-          className="flex items-center gap-2 px-3"
+          className="flex items-center gap-2 px-3 relative"
           style={{
             height: ROW_HEIGHT,
             backgroundColor: getProjectColor(row.data),
             color: getContrastColor(getProjectColor(row.data)),
           }}
         >
+          {/* 進度條底層 */}
+          {totalTasks > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-black/10">
+              <div className="h-full bg-white/40 transition-all" style={{ width: `${progressPct}%` }} />
+            </div>
+          )}
           <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-40" />
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="truncate flex-1 font-semibold text-[14px]">{row.data.name}</span>
             </TooltipTrigger>
-            <TooltipContent side="right">{row.data.name}</TooltipContent>
+            <TooltipContent side="right">
+              <div>{row.data.name}</div>
+              {totalTasks > 0 && (
+                <div className="text-xs opacity-70">{tasksWithTime}/{totalTasks} 已排程</div>
+              )}
+            </TooltipContent>
           </Tooltip>
           <div className="flex gap-1 flex-shrink-0 opacity-70">
             <button
@@ -1256,7 +1268,26 @@ export default function GanttChart() {
             {(() => {
               const totalWidth = days.length * CELL_WIDTH;
               return (
-                <div style={{ width: totalWidth }}>
+                <div style={{ width: totalWidth, position: 'relative' }}>
+                  {/* 全高今日線 */}
+                  {(() => {
+                    const todayIdx = days.findIndex(d => isToday(d));
+                    if (todayIdx < 0) return null;
+                    const todayLeft = todayIdx * CELL_WIDTH + CELL_WIDTH / 2;
+                    return (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        bottom: 0,
+                        left: todayLeft,
+                        width: 2,
+                        backgroundColor: '#ef4444',
+                        zIndex: 25,
+                        pointerEvents: 'none',
+                        opacity: 0.7,
+                      }} />
+                    );
+                  })()}
                   {/* 月份 header */}
                           {(() => {
                             const monthGroups = [];
