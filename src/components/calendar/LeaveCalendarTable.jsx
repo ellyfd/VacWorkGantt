@@ -15,7 +15,7 @@ function EmployeeRow({
   setHighlightedEmployeeId, setHighlightedDate,
   currentEmployeeId, rangeMode, selectedEmployeeId, dateRange,
   handleCellClick, handleClearLeave, onDeleteRangeLeave, onCellClickInRangeMode,
-  onEmployeeClick, dragHandleProps,
+  dragHandleProps,
 }) {
   const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
 
@@ -26,7 +26,7 @@ function EmployeeRow({
           setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
           setHighlightedDate(null);
         }}
-        className={`sticky left-0 z-10 px-1 py-1 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap border-r border-b border-gray-200 select-none ${
+        className={`sticky left-0 z-10 px-1 py-1 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
           highlightedEmployeeId === emp.id ? 'bg-amber-100' :
           isCurrentUser ? 'bg-amber-50' : 'bg-white'
         }`}
@@ -37,11 +37,8 @@ function EmployeeRow({
               <GripVertical className="w-3.5 h-3.5" />
             </span>
           )}
-          <div
-            className="leading-[1.1] min-w-0 cursor-pointer group"
-            onClick={() => onEmployeeClick?.(emp)}
-          >
-            <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">{emp.name}</div>
+          <div className="leading-[1.1] min-w-0">
+            <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
             {emp.english_name && (
               <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
             )}
@@ -93,7 +90,6 @@ export default function LeaveCalendarTable({
   onDeleteRangeLeave,
   onCellClickInRangeMode,
   onReorderEmployees,
-  onEmployeeClick,
 }) {
   const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
   const [highlightedDate, setHighlightedDate] = useState(null);
@@ -192,7 +188,6 @@ export default function LeaveCalendarTable({
     setHighlightedEmployeeId, setHighlightedDate,
     currentEmployeeId, rangeMode, selectedEmployeeId, dateRange,
     handleCellClick, handleClearLeave, onDeleteRangeLeave, onCellClickInRangeMode,
-    onEmployeeClick,
   };
 
   return (
