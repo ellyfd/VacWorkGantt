@@ -225,7 +225,7 @@ export default function ReportManagement() {
         filteredLeaveRecords.forEach(record => {
           if (weekDays.has(record.date) && deptEmpIds.has(record.employee_id)) {
             const lt = leaveTypeMap.get(record.leave_type_id);
-            if (lt) leaveHours += calculateLeaveHours(lt.name);
+            if (lt && !isTripLeave(lt.name)) leaveHours += calculateLeaveHours(lt.name);
           }
         });
 
