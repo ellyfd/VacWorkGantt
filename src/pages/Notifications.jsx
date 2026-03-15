@@ -3,9 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Bell, Loader2, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function Notifications() {
   const queryClient = useQueryClient();
+  const [confirmProps, confirm] = useConfirmDialog();
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -96,10 +99,9 @@ export default function Notifications() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => {
-                  if (window.confirm('確定要清空所有通知嗎？')) {
-                    deleteAllMutation.mutate();
-                  }
+                onClick={async () => {
+                  const ok = await confirm('確定要清空所有通知嗎？此操作無法復原。', { title: '清空通知', variant: 'destructive', confirmText: '清空全部' });
+                  if (ok) deleteAllMutation.mutate();
                 }}
                 disabled={deleteAllMutation.isPending}
                 className="text-red-600 hover:text-red-700"
@@ -167,6 +169,7 @@ export default function Notifications() {
           )}
         </div>
       </div>
+      <ConfirmDialog {...confirmProps} />
     </div>
   );
 }

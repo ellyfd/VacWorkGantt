@@ -101,6 +101,16 @@ button:focus-visible {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Semantic status colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 9%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -135,6 +145,15 @@ button:focus-visible {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Semantic status colors (dark) */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 9%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -155,4 +174,30 @@ button:focus-visible {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Mobile safe area for bottom tab bar */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Horizontal scroll indicator for mobile tables */
+.scroll-hint {
+  position: relative;
+}
+.scroll-hint::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,0.06));
+  pointer-events: none;
+  z-index: 5;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+.scroll-hint.scrolled-end::after {
+  opacity: 0;
 }

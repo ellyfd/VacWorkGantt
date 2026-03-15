@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
   TableBody,
@@ -30,10 +31,21 @@ export default function Dashboard() {
   const [cleanDialogOpen, setCleanDialogOpen] = useState(false);
   const [scanDialogOpen, setScanDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+  });
+
+  const { data: boundEmployee } = useQuery({
+    queryKey: ['boundEmployee', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return null;
+      const allEmps = await base44.entities.Employee.list();
+      return allEmps.find(e => e.user_emails?.includes(currentUser.email)) || null;
+    },
+    enabled: !!currentUser?.email,
   });
 
   const { data: departments = [] } = useQuery({
@@ -103,20 +115,9 @@ export default function Dashboard() {
     ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
     : employees;
 
-  // 調試：檢查是否有找不到員工的請假記錄
-  React.useEffect(() => {
-    const orphanLeaves = todayLeaves.filter(leave => {
-      const emp = employees.find(e => e.id === leave.employee_id);
-      return !emp;
-    });
-  }, [todayLeaves, employees]);
-
   const filteredLeaves = todayLeaves.filter(leave => {
     const emp = employees.find(e => e.id === leave.employee_id);
-    if (!emp) {
-      console.warn('找不到員工ID:', leave.employee_id, '的請假記錄:', leave);
-      return false;
-    }
+    if (!emp) return false;
     if (selectedDepartments.length === 0) return true;
     return emp.department_ids?.some(deptId => selectedDepartments.includes(deptId));
   });
@@ -186,7 +187,7 @@ export default function Dashboard() {
       });
 
       if (duplicatesToDelete.length === 0) {
-        alert('沒有發現重複的記錄');
+        toast({ title: '沒有發現重複的記錄' });
       } else {
         // 批量刪除重複記錄
         await Promise.all(
@@ -198,10 +199,10 @@ export default function Dashboard() {
         queryClient.invalidateQueries(['leaveRecords']);
         queryClient.invalidateQueries(['allLeaveRecords']);
 
-        alert(`成功清理 ${duplicatesToDelete.length} 筆重複記錄`);
+        toast({ title: `成功清理 ${duplicatesToDelete.length} 筆重複記錄` });
       }
     } catch (error) {
-      alert('清理失敗：' + error.message);
+      toast({ title: '清理失敗', description: error.message, variant: 'destructive' });
     } finally {
       setIsCleaningDuplicates(false);
     }
@@ -273,9 +274,9 @@ export default function Dashboard() {
       queryClient.invalidateQueries(['leaveRecords']);
       queryClient.invalidateQueries(['allLeaveRecords']);
 
-      alert(`掃描完成！共更新 ${updatedCount} 筆記錄的警示資訊。`);
+      toast({ title: `掃描完成`, description: `共更新 ${updatedCount} 筆記錄的警示資訊` });
     } catch (error) {
-      alert('掃描失敗：' + error.message);
+      toast({ title: '掃描失敗', description: error.message, variant: 'destructive' });
     } finally {
       setIsScanningWarnings(false);
     }
@@ -285,8 +286,25 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+          <div className="h-4 w-64 bg-gray-100 rounded animate-pulse mb-6" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                <div className="h-4 w-20 bg-gray-100 rounded animate-pulse mb-3" />
+                <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="h-5 w-32 bg-gray-200 rounded animate-pulse mb-4" />
+            {[1,2,3].map(i => (
+              <div key={i} className="h-10 bg-gray-50 rounded animate-pulse mb-2" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -295,8 +313,23 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-0">儀表板</h1>
-          <div className="flex items-center gap-2 md:absolute md:top-6 md:right-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+            {(() => {
+              const hour = new Date().getHours();
+              const greeting = hour < 12 ? '早安' : hour < 18 ? '午安' : '晚安';
+              const name = boundEmployee?.name || currentUser?.email?.split('@')[0] || '';
+              return name ? `${greeting}，${name}！` : greeting;
+            })()}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1 mb-4 md:mb-0">
+            {format(new Date(selectedDate), 'yyyy年MM月dd日 (EEEE)', { locale: zhTW })}
+            {isNonWorkingDay && (
+              <span className="ml-2 text-xs px-2 py-0.5 bg-red-50 text-red-600 rounded-full">
+                {isHoliday ? (holidayInfo?.name || '假日') : '週末'}
+              </span>
+            )}
+          </p>
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="icon"
@@ -402,40 +435,53 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {isHoliday && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 font-medium">
-              🎉 {holidayInfo.name} ({holidayInfo.type === 'national' ? '國定假日' : '公司特別假'})
-            </p>
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">應到人數</div>
-              <div className="text-2xl font-bold text-gray-800">{totalEmployees}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">實到人數</div>
-              <div className="text-2xl font-bold text-green-600">{actualAttendance}</div>
-              <div className="text-xs text-gray-400 mt-0.5">出勤率 {attendanceRate}%</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">請假人數</div>
-              <div className="text-2xl font-bold text-orange-600">{totalOnLeave}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xs text-gray-500 mb-1">未到人數</div>
-              <div className="text-2xl font-bold text-red-600">{totalOnLeave}</div>
-              <div className="text-xs text-gray-400 mt-0.5">
-                {Object.entries(leaveByType).map(([type, count], idx) => (
-                  <span key={type}>
-                    {type}:{count}
-                    {idx < Object.entries(leaveByType).length - 1 && ' | '}
-                  </span>
-                ))}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                <Users className="w-4 h-4 text-gray-600" />
               </div>
+              <span className="text-xs text-gray-500">應到人數</span>
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{totalEmployees}</div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+              </div>
+              <span className="text-xs text-gray-500">出勤率</span>
+            </div>
+            <div className="text-2xl font-bold text-green-600">{attendanceRate}%</div>
+            <div className="text-xs text-gray-400 mt-0.5">{actualAttendance} 人出勤</div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                <CalendarIcon className="w-4 h-4 text-amber-600" />
+              </div>
+              <span className="text-xs text-gray-500">請假人數</span>
+            </div>
+            <div className="text-2xl font-bold text-amber-600">{totalOnLeave}</div>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                <CalendarIcon className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="text-xs text-gray-500">假別分佈</span>
+            </div>
+            <div className="text-xs text-gray-600 space-y-0.5">
+              {Object.entries(leaveByType).length > 0 ? (
+                Object.entries(leaveByType).map(([type, count]) => (
+                  <div key={type} className="flex justify-between">
+                    <span>{type}</span>
+                    <span className="font-semibold">{count}</span>
+                  </div>
+                ))
+              ) : (
+                <span className="text-gray-400">無請假</span>
+              )}
             </div>
           </div>
         </div>
