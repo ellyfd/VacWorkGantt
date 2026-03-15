@@ -54,6 +54,9 @@ export default function ReportManagement() {
   const leaveTypeMap = useMemo(() => new Map(leaveTypes.map(lt => [lt.id, lt])), [leaveTypes]);
   const employeeMap = useMemo(() => new Map(employees.map(e => [e.id, e])), [employees]);
 
+  // 判斷是否為出差（出差不計入請假）
+  const isTripLeave = useCallback((leaveTypeName) => leaveTypeName === '出差', []);
+
   // 計算請假扣除時數
   const calculateLeaveHours = useCallback((leaveTypeName) => {
     if (leaveTypeName.includes('上午')) return 3;
