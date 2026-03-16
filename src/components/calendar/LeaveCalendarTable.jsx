@@ -9,7 +9,7 @@ import LeaveCell from "./LeaveCell";
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 /* ── Dimensions ── */
-const NAME_COL_W = 90;
+const NAME_COL_W = 70;
 const DAY_COL_W = 42;
 const HEADER_H = 44;
 const ROW_H = 40;
