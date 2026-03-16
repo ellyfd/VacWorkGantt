@@ -693,10 +693,10 @@ export default function AllLeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 pt-5 pb-10 sm:p-6 sm:pb-10">
-      <div className="w-full">
+    <div className="h-[100dvh] md:h-screen bg-gray-50 px-4 pt-5 pb-20 sm:px-6 sm:pt-6 md:pb-0 flex flex-col overflow-hidden">
+      <div className="w-full flex flex-col flex-1 min-h-0">
         {/* 標題和日期選擇器 */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800">全部排休</h1>
           <div className="md:hidden">
             <CalendarHeader 
@@ -706,7 +706,7 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="mb-4 space-y-3">
+        <div className="mb-3 space-y-3 flex-shrink-0">
           <div className="bg-white border border-gray-200 rounded-lg p-3">
             <div className="space-y-3">
               {/* 部門選擇和日期選擇器 - 桌面版水平並排 */}
@@ -864,7 +864,7 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <div className="flex-1 min-h-0 rounded-lg border border-gray-200 overflow-hidden">
             <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
@@ -884,19 +884,6 @@ export default function AllLeaveCalendar() {
             onReorderEmployees={handleReorderEmployees}
           />
         </div>
-
-        <details className="mt-4 text-sm text-gray-600">
-          <summary className="cursor-pointer font-medium text-gray-500 hover:text-gray-700 text-sm">操作說明</summary>
-          <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <ul className="text-xs text-gray-600 space-y-1.5">
-              <li>• <span className="font-medium">填入請假</span>：先從上方選擇假別，再點擊表格中的空格即可填入</li>
-              <li>• <span className="font-medium text-red-600">取消請假</span>：雙擊已填入的格子（連續假期會彈出確認視窗，可選擇取消單日或整段）</li>
-              <li>• <span className="font-medium">區間請假</span>：選好假別後，點擊 📅 按鈕進入區間模式，依序點選起始和結束日期</li>
-              <li>• <span className="font-medium">拖曳排序</span>：拖曳姓名左側的 ⠿ 圖示可調整員工顯示順序</li>
-              <li>• <span className="font-medium">標記整列／欄</span>：雙擊左側姓名或上方日期，可高亮該列或該欄方便對照</li>
-            </ul>
-          </div>
-        </details>
       </div>
       <ConfirmDialog {...confirmProps} />
     </div>
