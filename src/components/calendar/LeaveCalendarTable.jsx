@@ -257,57 +257,61 @@ export default function LeaveCalendarTable({
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="relative w-full flex-1 min-h-0 flex flex-col">
-        {/* Single scroll container — both axes */}
-        <div
-          ref={scrollRef}
-          className="flex-1 min-h-0 overflow-auto"
-        >
-          <table style={{ ...tableStyle, width: tableWidth }}>
-            {/* ── Sticky header ── */}
-            <thead>
-              <tr>
-                <th
-                  className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
-                  style={stickyCornerStyle}
-                >
-                  姓名
-                </th>
-                {days.map((d, idx) => {
-                  const isToday = d.date === today;
-                  return (
+        {/* Droppable on scroll container so placeholder <div> is outside <tbody> (valid HTML) */}
+        <Droppable droppableId="employee-rows" type="EMPLOYEE">
+          {(droppableProvided) => (
+            <div
+              ref={(el) => {
+                scrollRef.current = el;
+                droppableProvided.innerRef(el);
+              }}
+              className="flex-1 min-h-0 overflow-auto"
+              {...droppableProvided.droppableProps}
+            >
+              <table style={{ ...tableStyle, width: tableWidth }}>
+                {/* ── Sticky header ── */}
+                <thead>
+                  <tr>
                     <th
-                      key={idx}
-                      onDoubleClick={() => {
-                        setHighlightedDate(highlightedDate === d.date ? null : d.date);
-                        setHighlightedEmployeeId(null);
-                      }}
-                      className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 h-9 cursor-pointer select-none shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
-                        isToday ? 'bg-amber-100' :
-                        d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
-                        highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
-                      }`}
-                      style={{
-                        ...stickyHeaderCellStyle,
-                        width: DAY_COL_W,
-                        minWidth: DAY_COL_W,
-                        background: isToday ? '#fef3c7'
-                          : (d.isHoliday || d.isWeekend) ? '#fef2f2'
-                          : highlightedDate === d.date ? '#fef3c7'
-                          : '#f9fafb',
-                      }}
+                      className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
+                      style={stickyCornerStyle}
                     >
-                      <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                      <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
+                      姓名
                     </th>
-                  );
-                })}
-              </tr>
-            </thead>
+                    {days.map((d, idx) => {
+                      const isToday = d.date === today;
+                      return (
+                        <th
+                          key={idx}
+                          onDoubleClick={() => {
+                            setHighlightedDate(highlightedDate === d.date ? null : d.date);
+                            setHighlightedEmployeeId(null);
+                          }}
+                          className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 h-9 cursor-pointer select-none shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
+                            isToday ? 'bg-amber-100' :
+                            d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
+                            highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
+                          }`}
+                          style={{
+                            ...stickyHeaderCellStyle,
+                            width: DAY_COL_W,
+                            minWidth: DAY_COL_W,
+                            background: isToday ? '#fef3c7'
+                              : (d.isHoliday || d.isWeekend) ? '#fef2f2'
+                              : highlightedDate === d.date ? '#fef3c7'
+                              : '#f9fafb',
+                          }}
+                        >
+                          <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                          <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
 
-            {/* ── Body rows ── */}
-            <Droppable droppableId="employee-rows" type="EMPLOYEE">
-              {(droppableProvided) => (
-                <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
+                {/* ── Body rows ── */}
+                <tbody>
                   {employeesToShow.map((emp, index) => (
                     <Draggable key={emp.id} draggableId={emp.id} index={index}>
                       {(draggableProvided, snapshot) => {
@@ -329,12 +333,12 @@ export default function LeaveCalendarTable({
                       }}
                     </Draggable>
                   ))}
-                  {droppableProvided.placeholder}
                 </tbody>
-              )}
-            </Droppable>
-          </table>
-        </div>
+              </table>
+              {droppableProvided.placeholder}
+            </div>
+          )}
+        </Droppable>
 
         {/* Right-edge fade overlay */}
         <div className="absolute top-0 right-0 bottom-0 w-6 pointer-events-none bg-gradient-to-r from-transparent to-black/[0.06] z-10 transition-opacity scroll-fade" />
