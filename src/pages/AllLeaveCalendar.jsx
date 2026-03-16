@@ -854,7 +854,7 @@ export default function AllLeaveCalendar() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 rounded-lg border border-gray-200 flex flex-col">
+        <div className="flex-1 min-h-0 relative rounded-lg border border-gray-200">
             <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
