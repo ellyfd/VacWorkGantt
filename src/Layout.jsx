@@ -359,10 +359,10 @@ export default function Layout({ children, currentPageName }) {
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className="w-6 h-6" />
+                <Icon className="w-5 h-5" />
                 <span className="text-xs font-medium">{item.label}</span>
                 {item.name === 'Notifications' && unreadCount > 0 && (
-                  <span className="absolute top-1 left-1/2 ml-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center px-1">
+                  <span className="absolute top-1.5 left-1/2 ml-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center px-0.5">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
@@ -378,7 +378,7 @@ export default function Layout({ children, currentPageName }) {
                 }`}
                 aria-label="更多選項"
               >
-                <MoreHorizontal className="w-6 h-6" />
+                <MoreHorizontal className="w-5 h-5" />
                 <span className="text-xs font-medium">更多</span>
               </button>
             </SheetTrigger>
