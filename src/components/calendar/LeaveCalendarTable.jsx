@@ -4,8 +4,6 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { GripVertical } from 'lucide-react';
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
 import { useCellClickHandler } from '@/components/hooks/useCellClickHandler';
-import { useIsMobile } from '@/hooks/use-mobile';
-
 import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
@@ -148,7 +146,6 @@ export default function LeaveCalendarTable({
   onCellClickInRangeMode,
   onReorderEmployees,
 }) {
-  const isMobile = useIsMobile();
   const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
   const [highlightedDate, setHighlightedDate] = useState(null);
 
@@ -263,6 +260,7 @@ export default function LeaveCalendarTable({
         <div
           ref={scrollRef}
           className="flex-1 min-h-0 overflow-auto"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <table style={{ ...tableStyle, width: tableWidth }}>
             {/* ── Sticky header ── */}
@@ -307,22 +305,6 @@ export default function LeaveCalendarTable({
             </thead>
 
             {/* ── Body rows ── */}
-            {isMobile ? (
-              <tbody>
-                {employeesToShow.map((emp) => (
-                  <tr
-                    key={emp.id}
-                    className={highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'}
-                  >
-                    <EmployeeRow
-                      emp={emp}
-                      {...rowProps}
-                      dragHandleProps={null}
-                    />
-                  </tr>
-                ))}
-              </tbody>
-            ) : (
             <Droppable droppableId="employee-rows" type="EMPLOYEE">
               {(droppableProvided) => (
                 <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
@@ -353,7 +335,6 @@ export default function LeaveCalendarTable({
                 </tbody>
               )}
             </Droppable>
-            )}
           </table>
         </div>
 
