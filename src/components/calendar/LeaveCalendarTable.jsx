@@ -219,7 +219,7 @@ export default function LeaveCalendarTable({
   const handleScroll = useCallback((e) => {
     const el = e.target;
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-    el.closest('.scroll-hint')?.classList.toggle('scrolled-end', atEnd);
+    el.classList.toggle('scrolled-end', atEnd);
   }, []);
 
   const handleDragEnd = useCallback((result) => {
@@ -242,9 +242,8 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="w-full h-full scroll-hint">
         <div
-          className="w-full h-full overflow-auto"
+          className="w-full h-full overflow-auto scroll-hint"
           ref={scrollContainerRef}
           onScroll={handleScroll}
         >
@@ -319,7 +318,6 @@ export default function LeaveCalendarTable({
             </Droppable>
           </table>
         </div>
-      </div>
     </DragDropContext>
   );
 }
