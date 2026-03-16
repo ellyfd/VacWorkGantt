@@ -14,35 +14,53 @@ const NAME_COL_W = 110;
 const DAY_COL_W = 42;
 
 /*
- * Layout strategy (robust — no position:sticky):
+ * Layout strategy — single scroll container + CSS position:sticky
  *
- * ┌──────────────────────────────────────────────┐
- * │ Header table (non-scrolling, overflow:hidden) │  ← synced horizontally
- * ├──────────────────────────────────────────────┤
- * │ Body table   (overflow-x:auto, overflow-y:auto)│  ← user scrolls here
- * └──────────────────────────────────────────────┘
+ * ┌──────────────────────────────────────────────────┐
+ * │ Single <div overflow:auto>                        │
+ * │  ┌─────────────────────────────────────────────┐  │
+ * │  │ <table>                                     │  │
+ * │  │  <thead> sticky top:0                       │  │
+ * │  │  <tbody> scrollable rows (drag-and-drop)    │  │
+ * │  └─────────────────────────────────────────────┘  │
+ * └──────────────────────────────────────────────────┘
  *
- * - Name column in both header & body uses translateX(var(--sl)) to freeze.
- * - Scrolling the body sets --sl on the wrapper AND scrolls the header div.
+ * - Header row: position:sticky; top:0  → stays visible during vertical scroll
+ * - Name column: position:sticky; left:0 → stays visible during horizontal scroll
+ * - Corner cell (姓名): sticky top+left  → always visible
+ * - Zero JavaScript scroll sync needed — browser handles everything natively.
  */
 
-const frozenHeaderCellStyle = {
-  position: 'relative',
-  zIndex: 10,
+const stickyCornerStyle = {
+  position: 'sticky',
+  left: 0,
+  top: 0,
+  zIndex: 30,
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  transform: 'translateX(var(--sl, 0px))',
 };
 
-const frozenBodyCellStyle = (bg) => ({
-  position: 'relative',
+const stickyHeaderCellStyle = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 20,
+};
+
+const stickyNameCellStyle = (bg) => ({
+  position: 'sticky',
+  left: 0,
   zIndex: 10,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  transform: 'translateX(var(--sl, 0px))',
 });
+
+const tableStyle = {
+  borderCollapse: 'separate',
+  borderSpacing: 0,
+  tableLayout: 'fixed',
+};
 
 function EmployeeRow({
   emp, days, getLeaveRecords, leaveTypes,
@@ -64,8 +82,8 @@ function EmployeeRow({
           setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
           setHighlightedDate(null);
         }}
-        className="px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none"
-        style={frozenBodyCellStyle(bg)}
+        className="px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
+        style={stickyNameCellStyle(bg)}
       >
         <div className="flex items-center gap-0.5">
           {dragHandleProps && (
@@ -110,12 +128,6 @@ function EmployeeRow({
     </>
   );
 }
-
-const tableStyle = {
-  borderCollapse: 'separate',
-  borderSpacing: 0,
-  tableLayout: 'fixed',
-};
 
 export default function LeaveCalendarTable({
   currentDate,
@@ -212,35 +224,19 @@ export default function LeaveCalendarTable({
     if (!rangeMode) onDeleteLeave(recordId);
   }, [rangeMode, onDeleteLeave]);
 
-  const bodyRef = useRef(null);
+  const scrollRef = useRef(null);
 
   const tableWidth = days.length * DAY_COL_W + NAME_COL_W;
 
   // Auto-scroll to today's column on mount / month change
   useEffect(() => {
-    const body = bodyRef.current;
-    if (!body) return;
+    const el = scrollRef.current;
+    if (!el) return;
     const todayIdx = days.findIndex(d => d.date === today);
     if (todayIdx === -1) return;
     const scrollTarget = Math.max(0, todayIdx * DAY_COL_W - 16);
-    body.scrollLeft = scrollTarget;
-    // Set --sl on wrapper (programmatic scrollLeft doesn't fire onScroll)
-    const wrapper = body.closest('[data-table-wrapper]');
-    if (wrapper) wrapper.style.setProperty('--sl', `${scrollTarget}px`);
+    el.scrollLeft = scrollTarget;
   }, [days, today]);
-
-  // Scroll handler: set --sl on the wrapper so BOTH header and body pick it up
-  const handleBodyScroll = useCallback((e) => {
-    const el = e.target;
-    const sl = el.scrollLeft;
-    // Set --sl on the shared wrapper — both header and body inherit it
-    const wrapper = el.closest('[data-table-wrapper]');
-    if (wrapper) wrapper.style.setProperty('--sl', `${sl}px`);
-    // Update fade indicator
-    const atEnd = sl + el.clientWidth >= el.scrollWidth - 8;
-    const fade = wrapper?.querySelector('.scroll-fade');
-    if (fade) fade.style.opacity = atEnd ? '0' : '1';
-  }, []);
 
   const handleDragEnd = useCallback((result) => {
     if (!result.destination || result.source.index === result.destination.index) return;
@@ -260,19 +256,19 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="relative w-full flex-1 min-h-0 flex flex-col" data-table-wrapper style={{ '--sl': '0px' }}>
-        {/* ── Fixed header (never scrolls vertically) ── */}
+      <div className="relative w-full flex-1 min-h-0 flex flex-col">
+        {/* Single scroll container — both axes */}
         <div
-          className="flex-shrink-0 overflow-hidden"
+          ref={scrollRef}
+          className="flex-1 min-h-0 overflow-auto"
         >
-          {/* Table uses translateX(-sl) to simulate horizontal scroll;
-              name cell uses translateX(+sl) to cancel and stay frozen. */}
-          <table style={{ ...tableStyle, width: tableWidth, transform: 'translateX(calc(-1 * var(--sl, 0px)))' }}>
+          <table style={{ ...tableStyle, width: tableWidth }}>
+            {/* ── Sticky header ── */}
             <thead>
               <tr>
                 <th
                   className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
-                  style={frozenHeaderCellStyle}
+                  style={stickyCornerStyle}
                 >
                   姓名
                 </th>
@@ -291,6 +287,7 @@ export default function LeaveCalendarTable({
                         highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                       }`}
                       style={{
+                        ...stickyHeaderCellStyle,
                         width: DAY_COL_W,
                         minWidth: DAY_COL_W,
                         background: isToday ? '#fef3c7'
@@ -306,25 +303,8 @@ export default function LeaveCalendarTable({
                 })}
               </tr>
             </thead>
-          </table>
-        </div>
 
-        {/* ── Scrollable body ── */}
-        <div
-          ref={bodyRef}
-          className="flex-1 min-h-0 overflow-auto"
-          onScroll={handleBodyScroll}
-        >
-          <table style={{ ...tableStyle, width: tableWidth }}>
-            <tbody>
-              {/* Invisible colgroup-like first row to lock column widths */}
-              <tr className="h-0" aria-hidden="true" style={{ visibility: 'collapse' }}>
-                <td style={{ width: NAME_COL_W, minWidth: NAME_COL_W, padding: 0, border: 'none' }} />
-                {days.map((_, idx) => (
-                  <td key={idx} style={{ width: DAY_COL_W, minWidth: DAY_COL_W, padding: 0, border: 'none' }} />
-                ))}
-              </tr>
-            </tbody>
+            {/* ── Body rows ── */}
             <Droppable droppableId="employee-rows" type="EMPLOYEE">
               {(droppableProvided) => (
                 <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
