@@ -9,7 +9,7 @@ import LeaveCell from "./LeaveCell";
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 /* ── Dimensions ── */
-const NAME_COL_W = 110;
+const NAME_COL_W = 90;
 const DAY_COL_W = 42;
 const HEADER_H = 44;
 const ROW_H = 40;
@@ -255,7 +255,7 @@ export default function LeaveCalendarTable({
                           </div>
                           {emp.english_name && (
                             <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">
-                              {emp.english_name}
+                              {emp.english_name.split(' ')[0]}
                             </div>
                           )}
                         </div>
