@@ -49,7 +49,7 @@ function EmployeeRow({
         const records = getLeaveRecords(emp.id, d.date);
         const isToday = d.date === today;
         return (
-          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-11 min-w-[32px] md:min-w-[42px] ${isToday ? 'bg-amber-50' : ''}`}>
+          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[32px] md:min-w-[42px] ${isToday ? 'bg-amber-50' : ''}`}>
             <LeaveCell
               fullRecord={records.full}
               amRecord={records.AM}
@@ -211,8 +211,8 @@ export default function LeaveCalendarTable({
   };
 
   return (
-    <div className="bg-white w-full scroll-hint">
-      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] md:max-h-[calc(100vh-200px)] max-md:max-h-[calc(100dvh-340px)]" ref={scrollContainerRef} onScroll={handleScroll}>
+    <div className="bg-white w-full h-full scroll-hint">
+      <div className="overflow-x-auto overflow-y-auto h-full" ref={scrollContainerRef} onScroll={handleScroll}>
         <DragDropContext onDragEnd={handleDragEnd}>
           <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 70, 600)}px` }}>
             <thead className="sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
