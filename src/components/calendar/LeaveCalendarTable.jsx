@@ -219,7 +219,9 @@ export default function LeaveCalendarTable({
   const handleScroll = useCallback((e) => {
     const el = e.target;
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-    el.classList.toggle('scrolled-end', atEnd);
+    // Toggle fade overlay sibling
+    const fade = el.parentElement?.querySelector('.scroll-fade');
+    if (fade) fade.style.opacity = atEnd ? '0' : '1';
   }, []);
 
   const handleDragEnd = useCallback((result) => {
@@ -242,8 +244,9 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="relative w-full flex-1 min-h-0">
         <div
-          className="w-full h-full overflow-auto scroll-hint"
+          className="absolute inset-0 overflow-auto"
           ref={scrollContainerRef}
           onScroll={handleScroll}
         >
@@ -327,6 +330,9 @@ export default function LeaveCalendarTable({
             </Droppable>
           </table>
         </div>
+        {/* Right-edge fade overlay — outside scroll container so no position:relative on it */}
+        <div className="absolute top-0 right-0 bottom-0 w-6 pointer-events-none bg-gradient-to-r from-transparent to-black/[0.06] z-10 transition-opacity scroll-fade" />
+      </div>
     </DragDropContext>
   );
 }
