@@ -693,7 +693,7 @@ export default function AllLeaveCalendar() {
   }
 
   return (
-    <div className="h-[100dvh] md:h-screen bg-gray-50 px-4 pt-3 pb-20 sm:px-6 sm:pt-4 md:pb-0 flex flex-col" style={{ overflow: 'clip' }}>
+    <div className="h-[100svh] md:h-screen bg-gray-50 px-4 pt-3 pb-20 sm:px-6 sm:pt-4 md:pb-0 flex flex-col overflow-hidden">
       <div className="w-full flex flex-col flex-1 min-h-0">
         {/* 標題和日期選擇器 */}
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
@@ -854,7 +854,7 @@ export default function AllLeaveCalendar() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 rounded-lg border border-gray-200 flex flex-col" style={{ overflow: 'clip' }}>
+        <div className="flex-1 min-h-0 rounded-lg border border-gray-200 flex flex-col">
             <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
