@@ -30,9 +30,10 @@ const DAY_COL_W = 42;
  * - Zero JavaScript scroll sync needed — browser handles everything natively.
  */
 
-/* Sticky styles live on <div> inside <td>/<th>, NOT on the cell itself.
- * Safari has a layout-drift bug when sticky is on <td> + horizontal scroll. */
-const stickyCornerDivStyle = {
+/* Sticky MUST be on <td>/<th> for horizontal freeze to work.
+ * A <div> inside <td> can't stick because it's constrained by the <td>.
+ * translateZ(0) forces GPU layer to prevent Safari repaint gap. */
+const stickyCornerStyle = {
   position: 'sticky',
   left: 0,
   top: 0,
@@ -40,10 +41,6 @@ const stickyCornerDivStyle = {
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  height: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  padding: 8,
   transform: 'translateZ(0)',
 };
 
@@ -53,17 +50,13 @@ const stickyHeaderCellStyle = {
   zIndex: 20,
 };
 
-const stickyNameDivStyle = (bg) => ({
+const stickyNameCellStyle = (bg) => ({
   position: 'sticky',
   left: 0,
   zIndex: 20,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  height: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  padding: 4,
   transform: 'translateZ(0)',
 });
 
@@ -88,27 +81,25 @@ function EmployeeRow({
 
   return (
     <>
-      <td className="p-0 border-r border-b border-gray-200" style={{ width: NAME_COL_W, minWidth: NAME_COL_W }}>
-        <div
-          onDoubleClick={() => {
-            setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
-            setHighlightedDate(null);
-          }}
-          className="whitespace-nowrap cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
-          style={stickyNameDivStyle(bg)}
-        >
-          <div className="flex items-center gap-0.5">
-            {dragHandleProps && (
-              <span {...dragHandleProps} className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none">
-                <GripVertical className="w-3.5 h-3.5" />
-              </span>
+      <td
+        onDoubleClick={() => {
+          setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
+          setHighlightedDate(null);
+        }}
+        className="px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
+        style={stickyNameCellStyle(bg)}
+      >
+        <div className="flex items-center gap-0.5">
+          {dragHandleProps && (
+            <span {...dragHandleProps} className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none">
+              <GripVertical className="w-3.5 h-3.5" />
+            </span>
+          )}
+          <div className="leading-[1.1] min-w-0">
+            <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
+            {emp.english_name && (
+              <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
             )}
-            <div className="leading-[1.1] min-w-0">
-              <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
-              {emp.english_name && (
-                <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
-              )}
-            </div>
           </div>
         </div>
       </td>
@@ -245,10 +236,20 @@ export default function LeaveCalendarTable({
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+
+    // Reset scroll first — prevents iOS Safari from starting mid-table
+    el.scrollLeft = 0;
+
     const todayIdx = days.findIndex(d => d.date === today);
     if (todayIdx === -1) return;
-    const scrollTarget = Math.max(0, todayIdx * DAY_COL_W - 16);
-    el.scrollLeft = scrollTarget;
+
+    // Use actual DOM offset instead of calculated position
+    const ths = el.querySelectorAll('thead th');
+    const todayTh = ths[todayIdx + 1]; // +1 because first th is 姓名
+    if (todayTh) {
+      const scrollTarget = todayTh.offsetLeft - NAME_COL_W - 16;
+      el.scrollLeft = Math.max(0, scrollTarget);
+    }
   }, [days, today]);
 
   const handleDragEnd = useCallback((result) => {
@@ -280,13 +281,11 @@ export default function LeaveCalendarTable({
             {/* ── Sticky header ── */}
             <thead>
               <tr>
-                <th className="p-0 border-r border-b border-gray-200" style={{ width: NAME_COL_W, minWidth: NAME_COL_W }}>
-                  <div
-                    className="text-left text-xs font-semibold text-gray-600 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
-                    style={stickyCornerDivStyle}
-                  >
-                    姓名
-                  </div>
+                <th
+                  className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
+                  style={stickyCornerStyle}
+                >
+                  姓名
                 </th>
                 {days.map((d, idx) => {
                   const isToday = d.date === today;
