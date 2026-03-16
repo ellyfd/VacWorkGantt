@@ -30,7 +30,9 @@ const DAY_COL_W = 42;
  * - Zero JavaScript scroll sync needed — browser handles everything natively.
  */
 
-const stickyCornerStyle = {
+/* Sticky styles live on <div> inside <td>/<th>, NOT on the cell itself.
+ * Safari has a layout-drift bug when sticky is on <td> + horizontal scroll. */
+const stickyCornerDivStyle = {
   position: 'sticky',
   left: 0,
   top: 0,
@@ -38,7 +40,7 @@ const stickyCornerStyle = {
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  contain: 'paint',
+  height: '100%',
 };
 
 const stickyHeaderCellStyle = {
@@ -47,14 +49,14 @@ const stickyHeaderCellStyle = {
   zIndex: 20,
 };
 
-const stickyNameCellStyle = (bg) => ({
+const stickyNameDivStyle = (bg) => ({
   position: 'sticky',
   left: 0,
   zIndex: 10,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  contain: 'paint',
+  height: '100%',
 });
 
 const tableStyle = {
@@ -78,25 +80,27 @@ function EmployeeRow({
 
   return (
     <>
-      <td
-        onDoubleClick={() => {
-          setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
-          setHighlightedDate(null);
-        }}
-        className="px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
-        style={stickyNameCellStyle(bg)}
-      >
-        <div className="flex items-center gap-0.5">
-          {dragHandleProps && (
-            <span {...dragHandleProps} className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none">
-              <GripVertical className="w-3.5 h-3.5" />
-            </span>
-          )}
-          <div className="leading-[1.1] min-w-0">
-            <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
-            {emp.english_name && (
-              <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
+      <td className="p-0 border-r border-b border-gray-200" style={{ width: NAME_COL_W, minWidth: NAME_COL_W }}>
+        <div
+          onDoubleClick={() => {
+            setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
+            setHighlightedDate(null);
+          }}
+          className="px-1 py-1 whitespace-nowrap cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
+          style={stickyNameDivStyle(bg)}
+        >
+          <div className="flex items-center gap-0.5">
+            {dragHandleProps && (
+              <span {...dragHandleProps} className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none">
+                <GripVertical className="w-3.5 h-3.5" />
+              </span>
             )}
+            <div className="leading-[1.1] min-w-0">
+              <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
+              {emp.english_name && (
+                <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
+              )}
+            </div>
           </div>
         </div>
       </td>
@@ -268,11 +272,13 @@ export default function LeaveCalendarTable({
             {/* ── Sticky header ── */}
             <thead>
               <tr>
-                <th
-                  className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
-                  style={stickyCornerStyle}
-                >
-                  姓名
+                <th className="p-0 border-r border-b border-gray-200" style={{ width: NAME_COL_W, minWidth: NAME_COL_W }}>
+                  <div
+                    className="px-2 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
+                    style={stickyCornerDivStyle}
+                  >
+                    姓名
+                  </div>
                 </th>
                 {days.map((d, idx) => {
                   const isToday = d.date === today;
