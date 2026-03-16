@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format, endOfMonth } from 'date-fns';
-import { Loader2, CalendarRange, Building2 } from 'lucide-react';
+import { Loader2, CalendarRange } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,13 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerClose,
-} from "@/components/ui/drawer";
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
@@ -32,7 +25,6 @@ export default function AllLeaveCalendar() {
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined, employeeId: undefined });
-  const [deptDrawerOpen, setDeptDrawerOpen] = useState(false);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -703,110 +695,41 @@ export default function AllLeaveCalendar() {
   return (
     <div className="h-[100dvh] md:h-screen bg-gray-50 px-4 pt-3 pb-20 sm:px-6 sm:pt-4 md:pb-0 flex flex-col overflow-hidden">
       <div className="w-full flex flex-col flex-1 min-h-0">
-        {/* 第一行：標題 + 年月 + 部門按鈕 */}
-        <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-          <h1 className="text-lg font-bold text-gray-800 flex-shrink-0">全部排休</h1>
-          <div className="flex-1">
+        {/* 標題和日期選擇器 */}
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+          <h1 className="text-lg md:text-2xl font-bold text-gray-800">全部排休</h1>
+          <div className="md:hidden">
             <CalendarHeader
               currentDate={currentDate}
               onDateChange={setCurrentDate}
             />
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="flex-shrink-0 h-8 w-8 relative"
-            onClick={() => setDeptDrawerOpen(true)}
-          >
-            <Building2 className="h-4 w-4" />
-            {selectedDepartments.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center">
-                {selectedDepartments.length}
-              </span>
-            )}
-          </Button>
         </div>
 
-        {/* 第二行：假別選擇 + 區間按鈕 */}
-        <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-          <Select
-            value={selectedLeaveTypeId || ''}
-            onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
-            disabled={rangeMode}
-          >
-            <SelectTrigger className="flex-1 h-8 text-sm">
-              <SelectValue placeholder="選擇假別" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>不選擇</SelectItem>
-              {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
-                <SelectItem key={lt.id} value={lt.id}>
-                  {lt.name}
-                </SelectItem>
+        <div className="mb-2 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+          {/* 部門選擇 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-gray-700 flex-shrink-0">部門：</span>
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
+              {departments.map((dept) => (
+                <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(dept.id)}
+                    onChange={() => {
+                      if (selectedDepartments.includes(dept.id)) {
+                        setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                      } else {
+                        setSelectedDepartments([...selectedDepartments, dept.id]);
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-gray-700">{dept.name}</span>
+                </label>
               ))}
-            </SelectContent>
-          </Select>
-
-          {!rangeMode ? (
-            <Button
-              onClick={() => {
-                if (!selectedLeaveTypeId) {
-                  toast({ title: '請先選擇假別', variant: 'destructive' });
-                  return;
-                }
-                setRangeMode(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 flex-shrink-0 h-8 w-8"
-              size="icon"
-            >
-              <CalendarRange className="h-4 w-4" />
-            </Button>
-          ) : (
-            <div className="flex gap-1.5">
-              <Button
-                onClick={() => {
-                  setRangeMode(false);
-                  setDateRange({ from: undefined, to: undefined, employeeId: undefined });
-                }}
-                variant="outline"
-                size="icon"
-                className="flex-shrink-0 h-8 w-8"
-              >
-                ✕
-              </Button>
-              <Button
-                onClick={handleRangeSubmit}
-                disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
-                className="bg-green-600 hover:bg-green-700 flex-shrink-0 h-8 w-8"
-                size="icon"
-              >
-                {rangeLeaveMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  '✓'
-                )}
-              </Button>
             </div>
-          )}
-        </div>
-
-        {/* 區間模式提示（精簡版） */}
-        {rangeMode && (
-          <div className="flex items-center gap-2 mb-2 flex-shrink-0 text-xs text-gray-500">
-            {dateRange.from ? (() => {
-              const emp = employees.find(e => e.id === dateRange.employeeId);
-              return <span>{emp?.name}：{dateRange.from}{dateRange.to ? ` → ${dateRange.to}` : ' → 選結束日'}</span>;
-            })() : <span>點格子選員工和起始日</span>}
-          </div>
-        )}
-
-        {/* 部門篩選 Drawer */}
-        <Drawer open={deptDrawerOpen} onOpenChange={setDeptDrawerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>選擇部門</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-6 space-y-2">
+            <div className="flex sm:hidden gap-2 flex-wrap">
               {departments.map((dept) => (
                 <button
                   key={dept.id}
@@ -817,30 +740,119 @@ export default function AllLeaveCalendar() {
                       setSelectedDepartments([...selectedDepartments, dept.id]);
                     }
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors text-sm font-medium ${
+                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                     selectedDepartments.includes(dept.id)
-                      ? 'bg-blue-50 text-blue-700 border-blue-300'
-                      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300'
                   }`}
                 >
                   {dept.name}
                 </button>
               ))}
-              <div className="pt-2 flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setSelectedDepartments([])}
-                >
-                  全部顯示
-                </Button>
-                <DrawerClose asChild>
-                  <Button className="flex-1">確定</Button>
-                </DrawerClose>
-              </div>
             </div>
-          </DrawerContent>
-        </Drawer>
+
+            {/* 日期選擇器 - 桌面版右對齊 */}
+            <div className="hidden md:flex flex-shrink-0 ml-auto">
+              <CalendarHeader
+                currentDate={currentDate}
+                onDateChange={setCurrentDate}
+              />
+            </div>
+          </div>
+
+          {/* 假別選擇和區間按鈕 */}
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedLeaveTypeId || ''}
+              onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+              disabled={rangeMode}
+            >
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="選擇假別" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>不選擇</SelectItem>
+                {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
+                  <SelectItem key={lt.id} value={lt.id}>
+                    {lt.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {!rangeMode ? (
+              <Button
+                onClick={() => {
+                  if (!selectedLeaveTypeId) {
+                    toast({ title: '請先選擇假別', variant: 'destructive' });
+                    return;
+                  }
+                  setRangeMode(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
+                size="icon"
+              >
+                <CalendarRange className="h-5 w-5" />
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setRangeMode(false);
+                    setDateRange({ from: undefined, to: undefined, employeeId: undefined });
+                  }}
+                  variant="outline"
+                  size="icon"
+                  className="flex-shrink-0"
+                >
+                  ✕
+                </Button>
+                <Button
+                  onClick={handleRangeSubmit}
+                  disabled={!dateRange?.from || !dateRange?.to || rangeLeaveMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700 flex-shrink-0"
+                  size="icon"
+                >
+                  {rangeLeaveMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    '✓'
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* 區間選擇提示 */}
+          {rangeMode && (
+            <div className="text-xs leading-relaxed space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${!dateRange.from ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-gray-100 text-gray-400 line-through'}`}>
+                  <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">1</span>
+                  點格子選員工和起始日
+                </div>
+                <span className="text-gray-300">→</span>
+                <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${dateRange.from && !dateRange.to ? 'bg-blue-100 text-blue-700 font-medium' : !dateRange.from ? 'text-gray-400' : 'bg-gray-100 text-gray-400 line-through'}`}>
+                  <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">2</span>
+                  點同一列選結束日
+                </div>
+                <span className="text-gray-300">→</span>
+                <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${dateRange.from && dateRange.to ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-400'}`}>
+                  <span className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center text-[10px] no-underline">3</span>
+                  按 ✓ 確認
+                </div>
+              </div>
+              {dateRange.from && (() => {
+                const emp = employees.find(e => e.id === dateRange.employeeId);
+                return (
+                  <p className="text-gray-500 pl-1">
+                    {emp?.name}：{dateRange.from}{dateRange.to ? ` → ${dateRange.to}` : ' → ...'}
+                  </p>
+                );
+              })()}
+            </div>
+          )}
+        </div>
 
         <div className="flex-1 min-h-0 rounded-lg border border-gray-200 overflow-hidden">
             <LeaveCalendarTable

@@ -262,7 +262,7 @@ export default function LeaveCalendarTable({
                       )}
                     </Draggable>
                   ))}
-                  {droppableProvided.placeholder}
+                  <tr style={{ display: 'none' }}><td>{droppableProvided.placeholder}</td></tr>
                 </tbody>
               )}
             </Droppable>
