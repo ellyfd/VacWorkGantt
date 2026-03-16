@@ -30,7 +30,7 @@ function EmployeeRow({
           highlightedEmployeeId === emp.id ? 'bg-amber-100' :
           isCurrentUser ? 'bg-amber-50' : 'bg-white'
         }`}
-        style={{ width: 110, minWidth: 110, maxWidth: 140 }}
+        style={{ minWidth: 110, willChange: 'transform' }}
       >
         <div className="flex items-center gap-0.5">
           {dragHandleProps && (
@@ -50,7 +50,7 @@ function EmployeeRow({
         const records = getLeaveRecords(emp.id, d.date);
         const isToday = d.date === today;
         return (
-          <td key={idx} style={{ width: 42 }} className={`p-0 border-r border-b border-gray-200 h-10 ${isToday ? 'bg-amber-50' : ''}`}>
+          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 ${isToday ? 'bg-amber-50' : ''}`}>
             <LeaveCell
               fullRecord={records.full}
               amRecord={records.AM}
@@ -216,9 +216,13 @@ export default function LeaveCalendarTable({
       <div className="bg-white w-full h-full relative scroll-hint">
         <div className="absolute inset-0 overflow-x-auto overflow-y-auto" ref={scrollContainerRef} onScroll={handleScroll}>
           <table className="border-separate" style={{ borderSpacing: 0, minWidth: `${Math.max(days.length * 42 + 110, 600)}px` }}>
+            <colgroup>
+              <col style={{ width: 110 }} />
+              {days.map((_, idx) => <col key={idx} style={{ width: 42 }} />)}
+            </colgroup>
             <thead className="sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
               <tr className="bg-gray-50">
-                <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap" style={{ width: 110, minWidth: 110, maxWidth: 140 }}>
+                <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap" style={{ minWidth: 110, willChange: 'transform' }}>
                   姓名
                 </th>
                 {days.map((d, idx) => {
@@ -230,7 +234,6 @@ export default function LeaveCalendarTable({
                       setHighlightedDate(highlightedDate === d.date ? null : d.date);
                       setHighlightedEmployeeId(null);
                     }}
-                    style={{ width: 42 }}
                     className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 h-9 cursor-pointer select-none relative ${
                       isToday ? 'bg-amber-100' :
                       d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
