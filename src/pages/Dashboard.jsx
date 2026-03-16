@@ -141,8 +141,8 @@ export default function Dashboard() {
 
   const activeEmployees = filteredEmployees.filter(emp => emp.status === 'active');
   
-  // 計算實際請假人數（包含上午休、下午休、全天休）
-  const totalOnLeave = filteredLeaves.length;
+  // 計算實際請假人數（同一人多筆紀錄只算一人）
+  const totalOnLeave = new Set(filteredLeaves.map(r => r.employee_id)).size;
   
   // 檢查是否為週末或假日
   const selectedDateObj = new Date(selectedDate + 'T00:00:00');
