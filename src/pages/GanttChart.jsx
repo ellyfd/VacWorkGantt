@@ -446,6 +446,7 @@ export default function GanttChart() {
   const gridStyle = useMemo(() => ({
     display: 'grid',
     gridTemplateColumns: `repeat(${days.length}, ${CELL_WIDTH}px)`,
+    minWidth: days.length * CELL_WIDTH,
   }), [days.length, CELL_WIDTH]);
 
   // ── More Lookup Maps（employeeMap、tasksByProjectId 等）────────
@@ -733,10 +734,12 @@ export default function GanttChart() {
     prevStartDateRef.current = startDate;
   }, [days.length, CELL_WIDTH, startDate]);
 
-  // 同步垂直滾動：左側 panel ↔ 右側 body
+  // 同步垂直滾動：左側 panel（只有 rows）↔ 右側 panel（headers + rows）
+  // 右側 headers 高度偏移量
+  const RIGHT_HEADER_OFFSET = MONTH_HEADER_HEIGHT + DATE_HEADER_HEIGHT + LEAVE_HEADER_HEIGHT;
   React.useEffect(() => {
     const left = leftPanelRef.current;
-    const right = rightBodyRef.current;
+    const right = rightPanelRef.current;
     if (!left || !right) return;
 
     let isSyncing = false;
@@ -744,13 +747,13 @@ export default function GanttChart() {
     const onLeft = () => {
       if (isSyncing) return;
       isSyncing = true;
-      right.scrollTop = left.scrollTop;
+      right.scrollTop = left.scrollTop + RIGHT_HEADER_OFFSET;
       isSyncing = false;
     };
     const onRight = () => {
       if (isSyncing) return;
       isSyncing = true;
-      left.scrollTop = right.scrollTop;
+      left.scrollTop = Math.max(0, right.scrollTop - RIGHT_HEADER_OFFSET);
       isSyncing = false;
     };
 
@@ -761,7 +764,7 @@ export default function GanttChart() {
       left.removeEventListener('scroll', onLeft);
       right.removeEventListener('scroll', onRight);
     };
-  }, []);
+  }, [RIGHT_HEADER_OFFSET]);
 
   // 初始化時捲到今天（使用 rAF 確保 DOM 已渲染）
   const initialScrollDone = useRef(false);
@@ -1272,12 +1275,12 @@ export default function GanttChart() {
             </div>
 
           {/* Right Panel */}
-          <div className="flex-1 overflow-x-auto" data-gantt-scroll ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
+          <div className="flex-1 overflow-x-auto overflow-y-auto" style={{ maxHeight: `calc(100vh - ${440 - MONTH_HEADER_HEIGHT - DATE_HEADER_HEIGHT - LEAVE_HEADER_HEIGHT}px)` }} data-gantt-scroll ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
             {/* 所有列共用同一個 grid track，完全對齊 */}
             {(() => {
               const totalWidth = days.length * CELL_WIDTH;
               return (
-                <div style={{ width: totalWidth, position: 'relative' }}>
+                <div style={{ width: totalWidth, minWidth: totalWidth, position: 'relative' }}>
                   {/* 全高今日線 */}
                   {(() => {
                     const todayIdx = days.findIndex(d => isToday(d));
@@ -1396,9 +1399,7 @@ export default function GanttChart() {
 
                   {/* rows */}
                   <div
-                    className="overflow-y-auto"
                     ref={rightBodyRef}
-                    style={{ maxHeight: 'calc(100vh - 440px)' }}
                   >
                     {visibleRows.map((row) => (
                       <GanttRow
