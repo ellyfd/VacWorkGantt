@@ -693,7 +693,7 @@ export default function AllLeaveCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 pb-8 sm:p-6">
+    <div className="min-h-screen bg-gray-50 px-4 pt-5 pb-10 sm:p-6 sm:pb-10">
       <div className="w-full">
         {/* 標題和日期選擇器 */}
         <div className="flex items-center justify-between mb-6">
