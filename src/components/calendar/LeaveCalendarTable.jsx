@@ -26,10 +26,11 @@ function EmployeeRow({
           setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
           setHighlightedDate(null);
         }}
-        className={`sticky left-0 z-10 px-1 py-1 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
+        className={`sticky left-0 z-10 px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
           highlightedEmployeeId === emp.id ? 'bg-amber-100' :
           isCurrentUser ? 'bg-amber-50' : 'bg-white'
         }`}
+        style={{ width: 110, minWidth: 110, maxWidth: 140 }}
       >
         <div className="flex items-center gap-0.5">
           {dragHandleProps && (
@@ -214,10 +215,10 @@ export default function LeaveCalendarTable({
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="bg-white w-full h-full relative scroll-hint">
         <div className="absolute inset-0 overflow-x-auto overflow-y-auto" ref={scrollContainerRef} onScroll={handleScroll}>
-          <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 70, 600)}px` }}>
+          <table className="border-collapse" style={{ minWidth: `${Math.max(days.length * 28 + 70, 600)}px` }}>
             <thead className="sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
               <tr className="bg-gray-50">
-                <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap">
+                <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap" style={{ width: 110, minWidth: 110, maxWidth: 140 }}>
                   姓名
                 </th>
                 {days.map((d, idx) => {
