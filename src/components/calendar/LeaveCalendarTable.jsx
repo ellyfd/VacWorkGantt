@@ -13,25 +13,27 @@ const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 const NAME_COL_W = 110;
 
 /*
- * CSS-variable driven frozen positioning (no position:sticky needed).
- * The scroll handler sets --sl (scrollLeft) and --st (scrollTop) on the
- * container.  Header cells translate by both X+Y, body name cells by X only.
+ * Frozen positioning strategy:
+ * - Header row: position:sticky top:0 keeps it pinned vertically.
+ * - Name column (header + body): translateX(var(--sl)) keeps it pinned horizontally.
+ * - The scroll handler sets --sl (scrollLeft) on the container.
  */
 const frozenHeaderStyle = {
-  position: 'relative',
+  position: 'sticky',
+  top: 0,
   zIndex: 40,
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  transform: 'translate(var(--sl, 0px), var(--st, 0px))',
+  transform: 'translateX(var(--sl, 0px))',
 };
 
 const dateHeaderStyle = {
-  position: 'relative',
+  position: 'sticky',
+  top: 0,
   zIndex: 30,
   width: 42,
   minWidth: 42,
-  transform: 'translateY(var(--st, 0px))',
 };
 
 const frozenCellStyle = (bg) => ({
@@ -221,11 +223,10 @@ export default function LeaveCalendarTable({
     }
   }, [days, today]);
 
-  // Scroll handler: update CSS variables --sl and --st for frozen column/header (no re-render)
+  // Scroll handler: update CSS variable --sl for frozen column transform (no re-render)
   const handleScroll = useCallback((e) => {
     const el = e.target;
     el.style.setProperty('--sl', `${el.scrollLeft}px`);
-    el.style.setProperty('--st', `${el.scrollTop}px`);
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
     const fade = el.parentElement?.querySelector('.scroll-fade');
     if (fade) fade.style.opacity = atEnd ? '0' : '1';
@@ -256,7 +257,7 @@ export default function LeaveCalendarTable({
           className="absolute inset-0 overflow-auto"
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          style={{ '--sl': '0px', '--st': '0px' }}
+          style={{ '--sl': '0px' }}
         >
           <table
             style={{
