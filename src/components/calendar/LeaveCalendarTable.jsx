@@ -238,6 +238,29 @@ export default function LeaveCalendarTable({
     el.scrollLeft = scrollTarget;
   }, [days, today]);
 
+  // Strip transform from <tr> set by @hello-pangea/dnd (breaks position:sticky).
+  // The library manipulates DOM directly via ref, so React-level fixes don't work.
+  // MutationObserver catches and removes transform immediately.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const strip = () => {
+      el.querySelectorAll('tr[data-rfd-draggable-id]').forEach(tr => {
+        if (!tr.classList.contains('dragging') && tr.style.transform) {
+          tr.style.removeProperty('transform');
+        }
+      });
+    };
+
+    strip(); // clean initial state
+
+    const observer = new MutationObserver(strip);
+    observer.observe(el, { attributes: true, attributeFilter: ['style'], subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
+
   const handleDragEnd = useCallback((result) => {
     if (!result.destination || result.source.index === result.destination.index) return;
     if (onReorderEmployees) {
