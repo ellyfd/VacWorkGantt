@@ -317,7 +317,7 @@ export default function LeaveCalendarTable({
                         ref={draggableProvided.innerRef}
                         {...cleanDraggableProps}
                         style={snapshot.isDragging ? draggableProvided.draggableProps.style : undefined}
-                        className={`${highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'} ${snapshot.isDragging ? '!bg-blue-50 shadow-lg' : ''}`}
+                        className={`${highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'} ${snapshot.isDragging ? 'dragging !bg-blue-50 shadow-lg' : ''}`}
                       >
                         <EmployeeRow
                           emp={emp}

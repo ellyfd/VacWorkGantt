@@ -201,3 +201,10 @@ button:focus-visible {
 .scroll-hint.scrolled-end::after {
   opacity: 0;
 }
+
+/* Fix: @hello-pangea/dnd sets transform on <tr> via DOM ref, bypassing React.
+   Any transform (even translate(0,0)) on <tr> breaks position:sticky on child <td>.
+   Use !important to override direct DOM manipulation. Only allow during active drag. */
+tr[data-rfd-draggable-id]:not(.dragging) {
+  transform: none !important;
+}
