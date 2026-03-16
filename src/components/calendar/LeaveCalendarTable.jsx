@@ -256,10 +256,10 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      {/* Single scroll container — h-full fills the parent border container directly */}
+      {/* Scroll container — absolute inset-0 fills parent (h-full fails on iOS Safari flex children) */}
       <div
         ref={scrollRef}
-        className="w-full h-full overflow-auto"
+        className="absolute inset-0 overflow-auto"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <table style={{ ...tableStyle, width: tableWidth }}>
