@@ -213,8 +213,8 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="bg-white w-full h-full relative scroll-hint">
-        <div className="absolute inset-0 overflow-x-auto overflow-y-auto" ref={scrollContainerRef} onScroll={handleScroll}>
+      <div className="bg-white w-full h-full relative scroll-hint overflow-y-auto">
+        <div className="overflow-x-auto" ref={scrollContainerRef} onScroll={handleScroll}>
           <table className="border-collapse" style={{ minWidth: `${Math.max(days.length * 28 + 70, 600)}px` }}>
             <thead className="sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
               <tr className="bg-gray-50">
