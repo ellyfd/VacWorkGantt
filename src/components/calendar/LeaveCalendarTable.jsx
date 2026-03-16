@@ -58,6 +58,7 @@ function EmployeeRow({
               isWeekend={d.isWeekend}
               isHoliday={d.isHoliday}
               isCurrentUser={isCurrentUser}
+              isToday={isToday}
               rangeMode={rangeMode && selectedEmployeeId === emp.id}
               dateRange={dateRange}
               currentDate={d.date}

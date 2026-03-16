@@ -1,7 +1,7 @@
 import React from 'react';
 export { getLeavePeriod } from '@/lib/leaveUtils';
 
-function LeaveCell({ 
+function LeaveCell({
   fullRecord,
   amRecord,
   pmRecord,
@@ -12,6 +12,7 @@ function LeaveCell({
   isWeekend,
   isHoliday,
   isCurrentUser = false,
+  isToday = false,
   rangeMode = false,
   dateRange = { from: undefined, to: undefined },
   currentDate,
@@ -29,7 +30,7 @@ function LeaveCell({
     ? 'bg-gray-50'
     : isHighlighted
     ? 'bg-amber-50'
-    : isCurrentUser
+    : (isCurrentUser || isToday)
     ? 'bg-amber-50'
     : 'bg-white';
 
