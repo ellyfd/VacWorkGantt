@@ -49,7 +49,8 @@ function EmployeeRow({
         const records = getLeaveRecords(emp.id, d.date);
         const isToday = d.date === today;
         return (
-          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px] ${isToday ? 'bg-blue-50/60' : ''}`}>
+          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px] relative ${isToday ? 'bg-amber-50/60' : ''}`}>
+            {isToday && <div className="absolute inset-0 border-2 border-amber-400 pointer-events-none z-[5]" />}
             <LeaveCell
               fullRecord={records.full}
               amRecord={records.AM}
@@ -229,13 +230,13 @@ export default function LeaveCalendarTable({
                       setHighlightedEmployeeId(null);
                     }}
                     className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-8 cursor-pointer select-none relative ${
-                      isToday ? 'bg-blue-100 ring-2 ring-inset ring-blue-500' :
+                      isToday ? 'bg-amber-100 ring-2 ring-inset ring-amber-400' :
                       d.isHoliday || d.isWeekend ? 'bg-gray-100 text-red-500' :
                       highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                     }`}
                   >
-                    <div className={`text-[13px] font-medium ${isToday ? 'text-blue-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                    <div className={`text-[10px] ${isToday ? 'text-blue-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
+                    <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                    <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
                   </th>
                   );
                 })}
