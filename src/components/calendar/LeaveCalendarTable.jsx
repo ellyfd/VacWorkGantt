@@ -49,8 +49,7 @@ function EmployeeRow({
         const records = getLeaveRecords(emp.id, d.date);
         const isToday = d.date === today;
         return (
-          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px] relative ${isToday ? 'bg-amber-50/60' : ''}`}>
-            {isToday && <div className="absolute inset-0 border-2 border-amber-400 pointer-events-none z-[5]" />}
+          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px] ${isToday ? 'bg-amber-50' : ''}`}>
             <LeaveCell
               fullRecord={records.full}
               amRecord={records.AM}
@@ -230,7 +229,7 @@ export default function LeaveCalendarTable({
                       setHighlightedEmployeeId(null);
                     }}
                     className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-8 cursor-pointer select-none relative ${
-                      isToday ? 'bg-amber-100 ring-2 ring-inset ring-amber-400' :
+                      isToday ? 'bg-amber-100' :
                       d.isHoliday || d.isWeekend ? 'bg-gray-100 text-red-500' :
                       highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                     }`}
