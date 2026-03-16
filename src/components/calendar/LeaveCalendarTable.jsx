@@ -49,7 +49,7 @@ function EmployeeRow({
         const records = getLeaveRecords(emp.id, d.date);
         const isToday = d.date === today;
         return (
-          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[32px] md:min-w-[42px] ${isToday ? 'bg-amber-50' : ''}`}>
+          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px] ${isToday ? 'bg-amber-50' : ''}`}>
             <LeaveCell
               fullRecord={records.full}
               amRecord={records.AM}
@@ -211,8 +211,8 @@ export default function LeaveCalendarTable({
   };
 
   return (
-    <div className="bg-white w-full h-full scroll-hint">
-      <div className="overflow-x-auto overflow-y-auto h-full" ref={scrollContainerRef} onScroll={handleScroll}>
+    <div className="bg-white w-full h-full relative scroll-hint">
+      <div className="absolute inset-0 overflow-x-auto overflow-y-auto" ref={scrollContainerRef} onScroll={handleScroll}>
         <DragDropContext onDragEnd={handleDragEnd}>
           <table className="border-collapse w-full" style={{ minWidth: `${Math.max(days.length * 28 + 70, 600)}px` }}>
             <thead className="sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
@@ -229,7 +229,7 @@ export default function LeaveCalendarTable({
                       setHighlightedDate(highlightedDate === d.date ? null : d.date);
                       setHighlightedEmployeeId(null);
                     }}
-                    className={`px-0.5 py-1 text-center border-r border-b border-gray-200 min-w-[32px] md:min-w-[42px] h-9 cursor-pointer select-none relative ${
+                    className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-9 cursor-pointer select-none relative ${
                       isToday ? 'bg-amber-100' :
                       d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
                       highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
