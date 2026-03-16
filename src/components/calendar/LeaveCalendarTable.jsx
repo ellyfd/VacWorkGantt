@@ -297,10 +297,18 @@ export default function LeaveCalendarTable({
                 <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
                   {employeesToShow.map((emp, index) => (
                     <Draggable key={emp.id} draggableId={emp.id} index={index}>
-                      {(draggableProvided, snapshot) => (
+                      {(draggableProvided, snapshot) => {
+                        // @hello-pangea/dnd sets transform on <tr> which
+                        // creates a containing block and breaks position:sticky
+                        // on child <td>. Clear it when not actively dragging.
+                        const draggableStyle = snapshot.isDragging
+                          ? draggableProvided.draggableProps.style
+                          : { ...draggableProvided.draggableProps.style, transform: 'none' };
+                        return (
                         <tr
                           ref={draggableProvided.innerRef}
                           {...draggableProvided.draggableProps}
+                          style={draggableStyle}
                           className={`${highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'} ${snapshot.isDragging ? '!bg-blue-50 shadow-lg' : ''}`}
                         >
                           <EmployeeRow
@@ -309,7 +317,8 @@ export default function LeaveCalendarTable({
                             dragHandleProps={draggableProvided.dragHandleProps}
                           />
                         </tr>
-                      )}
+                        );
+                      }}
                     </Draggable>
                   ))}
                   <tr style={{ display: 'none' }}><td>{droppableProvided.placeholder}</td></tr>
