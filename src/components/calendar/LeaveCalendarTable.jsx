@@ -30,18 +30,16 @@ const DAY_COL_W = 42;
  * - Zero JavaScript scroll sync needed — browser handles everything natively.
  */
 
-/* Sticky MUST be on <td>/<th> for horizontal freeze to work.
- * A <div> inside <td> can't stick because it's constrained by the <td>.
- * translateZ(0) forces GPU layer to prevent Safari repaint gap. */
+/* Sticky on <td>/<th> — no transform allowed on sticky cells or ancestors.
+ * transform (even translateZ(0)) creates a new containing block and breaks sticky. */
 const stickyCornerStyle = {
   position: 'sticky',
   left: 0,
   top: 0,
-  zIndex: 40,
+  zIndex: 30,
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  transform: 'translateZ(0)',
 };
 
 const stickyHeaderCellStyle = {
@@ -53,11 +51,10 @@ const stickyHeaderCellStyle = {
 const stickyNameCellStyle = (bg) => ({
   position: 'sticky',
   left: 0,
-  zIndex: 20,
+  zIndex: 10,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  transform: 'translateZ(0)',
 });
 
 const tableStyle = {
@@ -151,6 +148,9 @@ export default function LeaveCalendarTable({
   onCellClickInRangeMode,
   onReorderEmployees,
 }) {
+  const [isMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
   const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
   const [highlightedDate, setHighlightedDate] = useState(null);
 
@@ -320,36 +320,52 @@ export default function LeaveCalendarTable({
             </thead>
 
             {/* ── Body rows ── */}
-            <Droppable droppableId="employee-rows" type="EMPLOYEE">
-              {(droppableProvided) => (
-                <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
-                  {employeesToShow.map((emp, index) => (
-                    <Draggable key={emp.id} draggableId={emp.id} index={index}>
-                      {(draggableProvided, snapshot) => {
-                        const draggableStyle = snapshot.isDragging
-                          ? draggableProvided.draggableProps.style
-                          : { ...draggableProvided.draggableProps.style, transform: 'none' };
-                        return (
-                        <tr
-                          ref={draggableProvided.innerRef}
-                          {...draggableProvided.draggableProps}
-                          style={draggableStyle}
-                          className={`${highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'} ${snapshot.isDragging ? '!bg-blue-50 shadow-lg' : ''}`}
-                        >
-                          <EmployeeRow
-                            emp={emp}
-                            {...rowProps}
-                            dragHandleProps={draggableProvided.dragHandleProps}
-                          />
-                        </tr>
-                        );
-                      }}
-                    </Draggable>
-                  ))}
-                  {droppableProvided.placeholder}
-                </tbody>
-              )}
-            </Droppable>
+            {/* Mobile: no DnD wrapper → sticky left:0 works.
+                Desktop: Draggable on <tr> injects transform → sticky breaks,
+                but desktop doesn't need frozen columns (wide viewport). */}
+            {isMobile ? (
+              <tbody>
+                {employeesToShow.map((emp) => (
+                  <tr
+                    key={emp.id}
+                    className={highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'}
+                  >
+                    <EmployeeRow emp={emp} {...rowProps} dragHandleProps={null} />
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
+              <Droppable droppableId="employee-rows" type="EMPLOYEE">
+                {(droppableProvided) => (
+                  <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
+                    {employeesToShow.map((emp, index) => (
+                      <Draggable key={emp.id} draggableId={emp.id} index={index}>
+                        {(draggableProvided, snapshot) => {
+                          const draggableStyle = snapshot.isDragging
+                            ? draggableProvided.draggableProps.style
+                            : { ...draggableProvided.draggableProps.style, transform: 'none' };
+                          return (
+                          <tr
+                            ref={draggableProvided.innerRef}
+                            {...draggableProvided.draggableProps}
+                            style={draggableStyle}
+                            className={`${highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'} ${snapshot.isDragging ? '!bg-blue-50 shadow-lg' : ''}`}
+                          >
+                            <EmployeeRow
+                              emp={emp}
+                              {...rowProps}
+                              dragHandleProps={draggableProvided.dragHandleProps}
+                            />
+                          </tr>
+                          );
+                        }}
+                      </Draggable>
+                    ))}
+                    {droppableProvided.placeholder}
+                  </tbody>
+                )}
+              </Droppable>
+            )}
           </table>
         </div>
 
