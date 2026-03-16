@@ -52,12 +52,12 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handlePrevMonth}
-          className="h-8 w-8"
+          className="h-10 w-10 md:h-8 md:w-8"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[80px] md:w-[85px] h-8 text-sm">
+          <SelectTrigger className="w-[80px] md:w-[85px] h-10 md:h-8 text-sm">
             <SelectValue>
               <span className="md:hidden">{currentYear}</span>
               <span className="hidden md:inline">{currentYear}年</span>
@@ -73,7 +73,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           </SelectContent>
         </Select>
         <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-          <SelectTrigger className="w-[60px] md:w-[75px] h-8 text-sm">
+          <SelectTrigger className="w-[60px] md:w-[75px] h-10 md:h-8 text-sm">
             <SelectValue>
               <span className="md:hidden">{currentMonth === -1 ? '全年' : currentMonth + 1}</span>
               <span className="hidden md:inline">{currentMonth === -1 ? '全年' : `${currentMonth + 1}月`}</span>
@@ -93,7 +93,7 @@ export default function CalendarHeader({ currentDate, onDateChange }) {
           variant="outline"
           size="icon"
           onClick={handleNextMonth}
-          className="h-8 w-8"
+          className="h-10 w-10 md:h-8 md:w-8"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
