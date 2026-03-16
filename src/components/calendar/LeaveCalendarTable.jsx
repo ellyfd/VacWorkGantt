@@ -4,130 +4,15 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { GripVertical } from 'lucide-react';
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
 import { useCellClickHandler } from '@/components/hooks/useCellClickHandler';
-
 import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
-/* ── Column widths ── */
+/* ── Dimensions ── */
 const NAME_COL_W = 110;
 const DAY_COL_W = 42;
-
-/*
- * Layout strategy — single scroll container + CSS position:sticky
- *
- * ┌──────────────────────────────────────────────────┐
- * │ Single <div overflow:auto>                        │
- * │  ┌─────────────────────────────────────────────┐  │
- * │  │ <table>                                     │  │
- * │  │  <thead> sticky top:0                       │  │
- * │  │  <tbody> scrollable rows (drag-and-drop)    │  │
- * │  └─────────────────────────────────────────────┘  │
- * └──────────────────────────────────────────────────┘
- *
- * - Header row: position:sticky; top:0  → stays visible during vertical scroll
- * - Name column: position:sticky; left:0 → stays visible during horizontal scroll
- * - Corner cell (姓名): sticky top+left  → always visible
- * - Zero JavaScript scroll sync needed — browser handles everything natively.
- */
-
-const stickyCornerStyle = {
-  position: 'sticky',
-  left: 0,
-  top: 0,
-  zIndex: 30,
-  background: '#f9fafb',
-  width: NAME_COL_W,
-  minWidth: NAME_COL_W,
-};
-
-const stickyHeaderCellStyle = {
-  position: 'sticky',
-  top: 0,
-  zIndex: 20,
-};
-
-const stickyNameCellStyle = (bg) => ({
-  position: 'sticky',
-  left: 0,
-  zIndex: 10,
-  background: bg,
-  width: NAME_COL_W,
-  minWidth: NAME_COL_W,
-});
-
-const tableStyle = {
-  borderCollapse: 'separate',
-  borderSpacing: 0,
-  tableLayout: 'fixed',
-};
-
-function EmployeeRow({
-  emp, days, getLeaveRecords, leaveTypes,
-  highlightedEmployeeId, highlightedDate,
-  setHighlightedEmployeeId, setHighlightedDate,
-  currentEmployeeId, rangeMode, selectedEmployeeId, dateRange,
-  handleCellClick, handleClearLeave, onDeleteRangeLeave, onCellClickInRangeMode,
-  dragHandleProps, today,
-}) {
-  const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
-  const bg = highlightedEmployeeId === emp.id ? '#fef3c7'  // amber-100
-    : isCurrentUser ? '#fffbeb'  // amber-50
-    : '#ffffff';
-
-  return (
-    <>
-      <td
-        onDoubleClick={() => {
-          setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
-          setHighlightedDate(null);
-        }}
-        className="px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
-        style={stickyNameCellStyle(bg)}
-      >
-        <div className="flex items-center gap-0.5">
-          {dragHandleProps && (
-            <span {...dragHandleProps} className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none">
-              <GripVertical className="w-3.5 h-3.5" />
-            </span>
-          )}
-          <div className="leading-[1.1] min-w-0">
-            <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">{emp.name}</div>
-            {emp.english_name && (
-              <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">{emp.english_name}</div>
-            )}
-          </div>
-        </div>
-      </td>
-      {days.map((d, idx) => {
-        const records = getLeaveRecords(emp.id, d.date);
-        const isToday = d.date === today;
-        return (
-          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 ${isToday ? 'bg-amber-50' : ''}`} style={{ width: DAY_COL_W, minWidth: DAY_COL_W }}>
-            <LeaveCell
-              fullRecord={records.full}
-              amRecord={records.AM}
-              pmRecord={records.PM}
-              leaveTypes={leaveTypes}
-              isWeekend={d.isWeekend}
-              isHoliday={d.isHoliday}
-              isCurrentUser={isCurrentUser}
-              isToday={isToday}
-              rangeMode={rangeMode && selectedEmployeeId === emp.id}
-              dateRange={dateRange}
-              currentDate={d.date}
-              isHighlighted={highlightedEmployeeId === emp.id || highlightedDate === d.date}
-              onSelectLeave={() => handleCellClick(records, emp.id, d.date)}
-              onClearLeave={handleClearLeave}
-              onDoubleClickLeave={(record) => !rangeMode && onDeleteRangeLeave(record)}
-              onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
-            />
-          </td>
-        );
-      })}
-    </>
-  );
-}
+const HEADER_H = 44;
+const ROW_H = 52;
 
 export default function LeaveCalendarTable({
   currentDate,
@@ -224,43 +109,6 @@ export default function LeaveCalendarTable({
     if (!rangeMode) onDeleteLeave(recordId);
   }, [rangeMode, onDeleteLeave]);
 
-  const scrollRef = useRef(null);
-
-  const tableWidth = days.length * DAY_COL_W + NAME_COL_W;
-
-  // Auto-scroll to today's column on mount / month change
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const todayIdx = days.findIndex(d => d.date === today);
-    if (todayIdx === -1) return;
-    const scrollTarget = Math.max(0, todayIdx * DAY_COL_W - 16);
-    el.scrollLeft = scrollTarget;
-  }, [days, today]);
-
-  // Strip transform from <tr> set by @hello-pangea/dnd (breaks position:sticky).
-  // The library manipulates DOM directly via ref, so React-level fixes don't work.
-  // MutationObserver catches and removes transform immediately.
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const strip = () => {
-      el.querySelectorAll('tr[data-rfd-draggable-id]').forEach(tr => {
-        if (!tr.classList.contains('dragging') && tr.style.transform) {
-          tr.style.removeProperty('transform');
-        }
-      });
-    };
-
-    strip(); // clean initial state
-
-    const observer = new MutationObserver(strip);
-    observer.observe(el, { attributes: true, attributeFilter: ['style'], subtree: true });
-
-    return () => observer.disconnect();
-  }, []);
-
   const handleDragEnd = useCallback((result) => {
     if (!result.destination || result.source.index === result.destination.index) return;
     if (onReorderEmployees) {
@@ -268,99 +116,216 @@ export default function LeaveCalendarTable({
     }
   }, [onReorderEmployees, employeesToShow]);
 
-  const rowProps = {
-    days, getLeaveRecords, leaveTypes,
-    highlightedEmployeeId, highlightedDate,
-    setHighlightedEmployeeId, setHighlightedDate,
-    currentEmployeeId, rangeMode, selectedEmployeeId, dateRange,
-    handleCellClick, handleClearLeave, onDeleteRangeLeave, onCellClickInRangeMode,
-    today,
-  };
+  /* ── Scroll sync refs ── */
+  const headerScrollRef = useRef(null);
+  const namesScrollRef = useRef(null);
+  const bodyScrollRef = useRef(null);
+  const isSyncing = useRef(false);
+
+  const syncFromBody = useCallback(() => {
+    if (isSyncing.current) return;
+    isSyncing.current = true;
+    const body = bodyScrollRef.current;
+    if (body) {
+      if (headerScrollRef.current) headerScrollRef.current.scrollLeft = body.scrollLeft;
+      if (namesScrollRef.current) namesScrollRef.current.scrollTop = body.scrollTop;
+    }
+    isSyncing.current = false;
+  }, []);
+
+  // Auto-scroll to today
+  useEffect(() => {
+    const body = bodyScrollRef.current;
+    if (!body) return;
+    const todayIdx = days.findIndex(d => d.date === today);
+    if (todayIdx === -1) return;
+    body.scrollLeft = Math.max(0, todayIdx * DAY_COL_W - 16);
+    syncFromBody();
+  }, [days, today, syncFromBody]);
+
+  const dataWidth = days.length * DAY_COL_W;
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      {/* Scroll container — absolute inset-0 fills parent (h-full fails on iOS Safari flex children) */}
+    <div
+      className="absolute inset-0"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `${NAME_COL_W}px 1fr`,
+        gridTemplateRows: `${HEADER_H}px 1fr`,
+      }}
+    >
+      {/* ═══ Top-left corner: 姓名 ═══ */}
       <div
-        ref={scrollRef}
-        className="absolute inset-0 overflow-auto"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        className="bg-gray-50 border-r border-b border-gray-200 flex items-center px-2 shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
+        style={{ zIndex: 30 }}
       >
-        <table style={{ ...tableStyle, width: tableWidth }}>
-          {/* ── Sticky header ── */}
-          <thead>
-            <tr>
-              <th
-                className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
-                style={stickyCornerStyle}
-              >
-                姓名
-              </th>
-              {days.map((d, idx) => {
-                const isToday = d.date === today;
-                return (
-                  <th
-                    key={idx}
-                    onDoubleClick={() => {
-                      setHighlightedDate(highlightedDate === d.date ? null : d.date);
-                      setHighlightedEmployeeId(null);
-                    }}
-                    className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 h-9 cursor-pointer select-none shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
-                      isToday ? 'bg-amber-100' :
-                      d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
-                      highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
-                    }`}
-                    style={{
-                      ...stickyHeaderCellStyle,
-                      width: DAY_COL_W,
-                      minWidth: DAY_COL_W,
-                      background: isToday ? '#fef3c7'
-                        : (d.isHoliday || d.isWeekend) ? '#fef2f2'
-                        : highlightedDate === d.date ? '#fef3c7'
-                        : '#f9fafb',
-                    }}
-                  >
-                    <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                    <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-
-          {/* ── Body rows ── */}
-          <Droppable droppableId="employee-rows" type="EMPLOYEE">
-            {(droppableProvided) => (
-              <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
-                {employeesToShow.map((emp, index) => (
-                  <Draggable key={emp.id} draggableId={emp.id} index={index}>
-                    {(draggableProvided, snapshot) => {
-                      const { style: _dragStyle, ...cleanDraggableProps } = draggableProvided.draggableProps;
-                      return (
-                      <tr
-                        ref={draggableProvided.innerRef}
-                        {...cleanDraggableProps}
-                        style={snapshot.isDragging ? draggableProvided.draggableProps.style : undefined}
-                        className={`${highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'} ${snapshot.isDragging ? 'dragging !bg-blue-50 shadow-lg' : ''}`}
-                      >
-                        <EmployeeRow
-                          emp={emp}
-                          {...rowProps}
-                          dragHandleProps={draggableProvided.dragHandleProps}
-                        />
-                      </tr>
-                      );
-                    }}
-                  </Draggable>
-                ))}
-                {droppableProvided.placeholder}
-              </tbody>
-            )}
-          </Droppable>
-        </table>
+        <span className="text-xs font-semibold text-gray-600">姓名</span>
       </div>
 
-      {/* Right-edge fade overlay — positioned relative to parent border container */}
-      <div className="absolute top-0 right-0 bottom-0 w-6 pointer-events-none bg-gradient-to-r from-transparent to-black/[0.06] z-10 transition-opacity scroll-fade" />
-    </DragDropContext>
+      {/* ═══ Top-right: date headers (synced horizontal scroll) ═══ */}
+      <div
+        ref={headerScrollRef}
+        className="overflow-hidden border-b border-gray-200 bg-gray-50"
+        style={{ zIndex: 20 }}
+      >
+        <div className="flex" style={{ width: dataWidth }}>
+          {days.map((d, idx) => {
+            const isToday = d.date === today;
+            return (
+              <div
+                key={idx}
+                onDoubleClick={() => {
+                  setHighlightedDate(highlightedDate === d.date ? null : d.date);
+                  setHighlightedEmployeeId(null);
+                }}
+                className={`flex flex-col items-center justify-center border-r border-gray-200 cursor-pointer select-none ${
+                  isToday ? 'bg-amber-100' :
+                  d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
+                  highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
+                }`}
+                style={{
+                  width: DAY_COL_W,
+                  minWidth: DAY_COL_W,
+                  height: HEADER_H,
+                  background: isToday ? '#fef3c7'
+                    : (d.isHoliday || d.isWeekend) ? '#fef2f2'
+                    : highlightedDate === d.date ? '#fef3c7'
+                    : '#f9fafb',
+                }}
+              >
+                <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>
+                  {d.month ? `${d.month}/${d.day}` : d.day}
+                </div>
+                <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>
+                  {isToday ? '今' : d.weekday}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ═══ Bottom-left: name column with drag-and-drop (synced vertical scroll) ═══ */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="employee-rows" type="EMPLOYEE">
+          {(droppableProvided) => (
+            <div
+              ref={(el) => {
+                namesScrollRef.current = el;
+                droppableProvided.innerRef(el);
+              }}
+              className="overflow-hidden border-r border-gray-200 bg-white shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
+              style={{ zIndex: 10 }}
+              {...droppableProvided.droppableProps}
+            >
+              {employeesToShow.map((emp, index) => {
+                const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
+                const bg = highlightedEmployeeId === emp.id ? '#fef3c7'
+                  : isCurrentUser ? '#fffbeb'
+                  : '#ffffff';
+
+                return (
+                  <Draggable key={emp.id} draggableId={emp.id} index={index}>
+                    {(draggableProvided, snapshot) => (
+                      <div
+                        ref={draggableProvided.innerRef}
+                        {...draggableProvided.draggableProps}
+                        style={{
+                          height: ROW_H,
+                          background: snapshot.isDragging ? '#eff6ff' : bg,
+                          ...draggableProvided.draggableProps.style,
+                        }}
+                        className={`flex items-center gap-0.5 px-1 border-b border-gray-200 ${
+                          snapshot.isDragging ? 'shadow-lg' : ''
+                        }`}
+                        onDoubleClick={() => {
+                          setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
+                          setHighlightedDate(null);
+                        }}
+                      >
+                        <span
+                          {...draggableProvided.dragHandleProps}
+                          className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
+                        >
+                          <GripVertical className="w-3.5 h-3.5" />
+                        </span>
+                        <div className="leading-[1.1] min-w-0">
+                          <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">
+                            {emp.name}
+                          </div>
+                          {emp.english_name && (
+                            <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">
+                              {emp.english_name}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {droppableProvided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+
+      {/* ═══ Bottom-right: data cells (scrollable both axes) ═══ */}
+      <div
+        ref={bodyScrollRef}
+        className="overflow-auto"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+        onScroll={syncFromBody}
+      >
+        <div style={{ width: dataWidth }}>
+          {employeesToShow.map((emp) => {
+            const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
+            const rowHighlighted = highlightedEmployeeId === emp.id;
+
+            return (
+              <div
+                key={emp.id}
+                className="flex"
+                style={{
+                  height: ROW_H,
+                  background: rowHighlighted ? '#fef3c7' : isCurrentUser ? '#fffbeb' : undefined,
+                }}
+              >
+                {days.map((d, idx) => {
+                  const records = getLeaveRecords(emp.id, d.date);
+                  const isToday = d.date === today;
+                  return (
+                    <div
+                      key={idx}
+                      className={`border-r border-b border-gray-200 ${isToday ? 'bg-amber-50' : ''}`}
+                      style={{ width: DAY_COL_W, minWidth: DAY_COL_W, height: ROW_H }}
+                    >
+                      <LeaveCell
+                        fullRecord={records.full}
+                        amRecord={records.AM}
+                        pmRecord={records.PM}
+                        leaveTypes={leaveTypes}
+                        isWeekend={d.isWeekend}
+                        isHoliday={d.isHoliday}
+                        isCurrentUser={isCurrentUser}
+                        isToday={isToday}
+                        rangeMode={rangeMode && selectedEmployeeId === emp.id}
+                        dateRange={dateRange}
+                        currentDate={d.date}
+                        isHighlighted={rowHighlighted || highlightedDate === d.date}
+                        onSelectLeave={() => handleCellClick(records, emp.id, d.date)}
+                        onClearLeave={handleClearLeave}
+                        onDoubleClickLeave={(record) => !rangeMode && onDeleteRangeLeave(record)}
+                        onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
