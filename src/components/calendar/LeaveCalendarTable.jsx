@@ -276,7 +276,7 @@ export default function LeaveCalendarTable({
           className="flex-1 min-h-0 overflow-x-auto overflow-y-auto"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <table style={{ ...tableStyle, minWidth: tableWidth }}>
+          <table style={{ ...tableStyle, width: 'max-content', minWidth: tableWidth }}>
             {/* ── Sticky header ── */}
             <thead>
               <tr>
