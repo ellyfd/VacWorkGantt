@@ -36,11 +36,15 @@ const stickyCornerDivStyle = {
   position: 'sticky',
   left: 0,
   top: 0,
-  zIndex: 30,
+  zIndex: 40,
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
   height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  padding: 8,
+  transform: 'translateZ(0)',
 };
 
 const stickyHeaderCellStyle = {
@@ -52,11 +56,15 @@ const stickyHeaderCellStyle = {
 const stickyNameDivStyle = (bg) => ({
   position: 'sticky',
   left: 0,
-  zIndex: 10,
+  zIndex: 20,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
   height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  padding: 4,
+  transform: 'translateZ(0)',
 });
 
 const tableStyle = {
@@ -86,7 +94,7 @@ function EmployeeRow({
             setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
             setHighlightedDate(null);
           }}
-          className="px-1 py-1 whitespace-nowrap cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
+          className="whitespace-nowrap cursor-pointer select-none shadow-[2px_0_3px_rgba(0,0,0,0.06)]"
           style={stickyNameDivStyle(bg)}
         >
           <div className="flex items-center gap-0.5">
@@ -274,7 +282,7 @@ export default function LeaveCalendarTable({
               <tr>
                 <th className="p-0 border-r border-b border-gray-200" style={{ width: NAME_COL_W, minWidth: NAME_COL_W }}>
                   <div
-                    className="px-2 py-2 text-left text-xs font-semibold text-gray-600 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
+                    className="text-left text-xs font-semibold text-gray-600 whitespace-nowrap shadow-[2px_1px_3px_rgba(0,0,0,0.08)]"
                     style={stickyCornerDivStyle}
                   >
                     姓名
