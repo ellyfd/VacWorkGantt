@@ -9,34 +9,28 @@ import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
-/* ── 固定姓名欄的 inline style（不用 Tailwind sticky） ── */
+/* ── 固定姓名欄 ── */
 const NAME_COL_W = 110;
 
+/* Transform-based frozen cell: uses CSS variable --sl set by scroll handler */
 const frozenHeaderStyle = {
   position: 'sticky',
-  left: 0,
-  zIndex: 40,          // 最高：header + 凍結
+  top: 0,
+  zIndex: 40,
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
+  transform: 'translateX(var(--sl, 0px))',
 };
 
 const frozenCellStyle = (bg) => ({
-  position: 'sticky',
-  left: 0,
-  zIndex: 20,          // 高於一般 body cell
+  position: 'relative',
+  zIndex: 20,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
+  transform: 'translateX(var(--sl, 0px))',
 });
-
-const dateHeaderStyle = {
-  position: 'sticky',
-  top: 0,
-  zIndex: 30,          // header 行，高於 body frozen
-  width: 42,
-  minWidth: 42,
-};
 
 function EmployeeRow({
   emp, days, getLeaveRecords, leaveTypes,
@@ -216,10 +210,11 @@ export default function LeaveCalendarTable({
     }
   }, [days, today]);
 
+  // Scroll handler: update CSS variable --sl for frozen column transform (no re-render)
   const handleScroll = useCallback((e) => {
     const el = e.target;
+    el.style.setProperty('--sl', `${el.scrollLeft}px`);
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-    // Toggle fade overlay sibling
     const fade = el.parentElement?.querySelector('.scroll-fade');
     if (fade) fade.style.opacity = atEnd ? '0' : '1';
   }, []);
@@ -249,6 +244,7 @@ export default function LeaveCalendarTable({
           className="absolute inset-0 overflow-auto"
           ref={scrollContainerRef}
           onScroll={handleScroll}
+          style={{ '--sl': '0px' }}
         >
           <table
             style={{
@@ -262,7 +258,7 @@ export default function LeaveCalendarTable({
               <tr>
                 <th
                   className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                  style={{ ...frozenHeaderStyle, top: 0 }}
+                  style={frozenHeaderStyle}
                 >
                   姓名
                 </th>
@@ -281,7 +277,11 @@ export default function LeaveCalendarTable({
                         highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                       }`}
                       style={{
-                        ...dateHeaderStyle,
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 30,
+                        width: 42,
+                        minWidth: 42,
                         background: isToday ? '#fef3c7'
                           : (d.isHoliday || d.isWeekend) ? '#fef2f2'
                           : highlightedDate === d.date ? '#fef3c7'
