@@ -212,7 +212,6 @@ export default function LeaveCalendarTable({
     if (!rangeMode) onDeleteLeave(recordId);
   }, [rangeMode, onDeleteLeave]);
 
-  const headerRef = useRef(null);
   const bodyRef = useRef(null);
 
   const tableWidth = days.length * DAY_COL_W + NAME_COL_W;
@@ -225,28 +224,20 @@ export default function LeaveCalendarTable({
     if (todayIdx === -1) return;
     const scrollTarget = Math.max(0, todayIdx * DAY_COL_W - 16);
     body.scrollLeft = scrollTarget;
-    // Sync header immediately (programmatic scrollLeft doesn't fire onScroll)
-    if (headerRef.current) {
-      headerRef.current.scrollLeft = scrollTarget;
-      headerRef.current.style.setProperty('--sl', `${scrollTarget}px`);
-    }
-    body.style.setProperty('--sl', `${scrollTarget}px`);
+    // Set --sl on wrapper (programmatic scrollLeft doesn't fire onScroll)
+    const wrapper = body.closest('[data-table-wrapper]');
+    if (wrapper) wrapper.style.setProperty('--sl', `${scrollTarget}px`);
   }, [days, today]);
 
-  // Scroll handler: sync header horizontal scroll + update --sl for frozen column
+  // Scroll handler: set --sl on the wrapper so BOTH header and body pick it up
   const handleBodyScroll = useCallback((e) => {
     const el = e.target;
     const sl = el.scrollLeft;
-    // Sync header: set scrollLeft AND --sl for the frozen name cell
-    if (headerRef.current) {
-      headerRef.current.scrollLeft = sl;
-      headerRef.current.style.setProperty('--sl', `${sl}px`);
-    }
-    // Update CSS variable for frozen name column in body
-    el.style.setProperty('--sl', `${sl}px`);
+    // Set --sl on the shared wrapper — both header and body inherit it
+    const wrapper = el.closest('[data-table-wrapper]');
+    if (wrapper) wrapper.style.setProperty('--sl', `${sl}px`);
     // Update fade indicator
     const atEnd = sl + el.clientWidth >= el.scrollWidth - 8;
-    const wrapper = el.closest('[data-table-wrapper]');
     const fade = wrapper?.querySelector('.scroll-fade');
     if (fade) fade.style.opacity = atEnd ? '0' : '1';
   }, []);
@@ -269,14 +260,14 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="relative w-full flex-1 min-h-0 flex flex-col" data-table-wrapper>
+      <div className="relative w-full flex-1 min-h-0 flex flex-col" data-table-wrapper style={{ '--sl': '0px' }}>
         {/* ── Fixed header (never scrolls vertically) ── */}
         <div
-          ref={headerRef}
           className="flex-shrink-0 overflow-hidden"
-          style={{ '--sl': '0px' }}
         >
-          <table style={{ ...tableStyle, width: tableWidth }}>
+          {/* Table uses translateX(-sl) to simulate horizontal scroll;
+              name cell uses translateX(+sl) to cancel and stay frozen. */}
+          <table style={{ ...tableStyle, width: tableWidth, transform: 'translateX(calc(-1 * var(--sl, 0px)))' }}>
             <thead>
               <tr>
                 <th
@@ -323,7 +314,6 @@ export default function LeaveCalendarTable({
           ref={bodyRef}
           className="flex-1 min-h-0 overflow-auto"
           onScroll={handleBodyScroll}
-          style={{ '--sl': '0px' }}
         >
           <table style={{ ...tableStyle, width: tableWidth }}>
             <tbody>
