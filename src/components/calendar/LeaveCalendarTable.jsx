@@ -4,6 +4,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { GripVertical } from 'lucide-react';
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
 import { useCellClickHandler } from '@/components/hooks/useCellClickHandler';
+
 import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
@@ -12,17 +13,32 @@ const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 const NAME_COL_W = 110;
 const DAY_COL_W = 42;
 
-/* ── Point 3: Sticky styles with maxWidth + boxSizing ── */
+/*
+ * Layout strategy — single scroll container + CSS position:sticky
+ *
+ * ┌──────────────────────────────────────────────────┐
+ * │ Single <div overflow:auto>                        │
+ * │  ┌─────────────────────────────────────────────┐  │
+ * │  │ <table>                                     │  │
+ * │  │  <thead> sticky top:0                       │  │
+ * │  │  <tbody> scrollable rows (drag-and-drop)    │  │
+ * │  └─────────────────────────────────────────────┘  │
+ * └──────────────────────────────────────────────────┘
+ *
+ * - Header row: position:sticky; top:0  → stays visible during vertical scroll
+ * - Name column: position:sticky; left:0 → stays visible during horizontal scroll
+ * - Corner cell (姓名): sticky top+left  → always visible
+ * - Zero JavaScript scroll sync needed — browser handles everything natively.
+ */
+
 const stickyCornerStyle = {
   position: 'sticky',
   left: 0,
   top: 0,
-  zIndex: 40,
+  zIndex: 30,
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  maxWidth: NAME_COL_W,
-  boxSizing: 'border-box',
 };
 
 const stickyHeaderCellStyle = {
@@ -34,15 +50,12 @@ const stickyHeaderCellStyle = {
 const stickyNameCellStyle = (bg) => ({
   position: 'sticky',
   left: 0,
-  zIndex: 20,
+  zIndex: 10,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
-  maxWidth: NAME_COL_W,
-  boxSizing: 'border-box',
 });
 
-/* ── Point 5: Table style ── */
 const tableStyle = {
   borderCollapse: 'separate',
   borderSpacing: 0,
@@ -64,7 +77,6 @@ function EmployeeRow({
 
   return (
     <>
-      {/* Point 2: sticky on <td>, drag only on the grip handle inside */}
       <td
         onDoubleClick={() => {
           setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
@@ -220,18 +232,10 @@ export default function LeaveCalendarTable({
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-
-    el.scrollLeft = 0;
-
     const todayIdx = days.findIndex(d => d.date === today);
     if (todayIdx === -1) return;
-
-    const ths = el.querySelectorAll('thead th');
-    const todayTh = ths[todayIdx + 1];
-    if (todayTh) {
-      const scrollTarget = todayTh.offsetLeft - NAME_COL_W - 16;
-      el.scrollLeft = Math.max(0, scrollTarget);
-    }
+    const scrollTarget = Math.max(0, todayIdx * DAY_COL_W - 16);
+    el.scrollLeft = scrollTarget;
   }, [days, today]);
 
   const handleDragEnd = useCallback((result) => {
@@ -252,16 +256,14 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      {/* Point 5: flex-1 min-h-0 on outer wrapper */}
       <div className="relative w-full flex-1 min-h-0 flex flex-col">
-        {/* Point 4: scroll container — overflow-x-auto overflow-y-auto, no hidden/clip */}
+        {/* Single scroll container — both axes */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-x-auto overflow-y-auto"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="flex-1 min-h-0 overflow-auto"
         >
-          {/* Point 5: table width fixed, tableLayout fixed */}
           <table style={{ ...tableStyle, width: tableWidth }}>
+            {/* ── Sticky header ── */}
             <thead>
               <tr>
                 <th
@@ -302,18 +304,18 @@ export default function LeaveCalendarTable({
               </tr>
             </thead>
 
-            {/* Point 1 & 2: <tr> is NOT draggable. Draggable only provides
-                dragHandleProps for the grip icon. <tr> has NO style from DnD,
-                so no transform → sticky left:0 works on all devices. */}
+            {/* ── Body rows ── */}
             <Droppable droppableId="employee-rows" type="EMPLOYEE">
               {(droppableProvided) => (
                 <tbody ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
                   {employeesToShow.map((emp, index) => (
                     <Draggable key={emp.id} draggableId={emp.id} index={index}>
-                      {(draggableProvided, snapshot) => (
+                      {(draggableProvided, snapshot) => {
+                        const { style: _dragStyle, ...cleanDraggableProps } = draggableProvided.draggableProps;
+                        return (
                         <tr
                           ref={draggableProvided.innerRef}
-                          {...draggableProvided.draggableProps}
+                          {...cleanDraggableProps}
                           style={snapshot.isDragging ? draggableProvided.draggableProps.style : undefined}
                           className={`${highlightedEmployeeId === emp.id ? 'bg-blue-50' : 'hover:bg-gray-50/50'} ${snapshot.isDragging ? '!bg-blue-50 shadow-lg' : ''}`}
                         >
@@ -323,7 +325,8 @@ export default function LeaveCalendarTable({
                             dragHandleProps={draggableProvided.dragHandleProps}
                           />
                         </tr>
-                      )}
+                        );
+                      }}
                     </Draggable>
                   ))}
                   {droppableProvided.placeholder}
