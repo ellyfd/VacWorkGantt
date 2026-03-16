@@ -38,6 +38,7 @@ const stickyCornerStyle = {
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
+  contain: 'paint',
 };
 
 const stickyHeaderCellStyle = {
@@ -53,6 +54,7 @@ const stickyNameCellStyle = (bg) => ({
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
+  contain: 'paint',
 });
 
 const tableStyle = {
@@ -259,10 +261,10 @@ export default function LeaveCalendarTable({
         {/* Single scroll container — both axes */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-auto"
+          className="flex-1 min-h-0 overflow-x-auto overflow-y-auto"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <table style={{ ...tableStyle, width: tableWidth }}>
+          <table style={{ ...tableStyle, minWidth: tableWidth }}>
             {/* ── Sticky header ── */}
             <thead>
               <tr>
