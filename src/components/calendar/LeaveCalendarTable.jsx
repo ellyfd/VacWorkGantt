@@ -9,34 +9,39 @@ import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
-/* ── 固定姓名欄的 inline style（不用 Tailwind sticky） ── */
+/* ── 固定姓名欄 ── */
 const NAME_COL_W = 110;
 
+/*
+ * CSS-variable driven frozen positioning (no position:sticky needed).
+ * The scroll handler sets --sl (scrollLeft) and --st (scrollTop) on the
+ * container.  Header cells translate by both X+Y, body name cells by X only.
+ */
 const frozenHeaderStyle = {
-  position: 'sticky',
-  left: 0,
-  zIndex: 40,          // 最高：header + 凍結
+  position: 'relative',
+  zIndex: 40,
   background: '#f9fafb',
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
+  transform: 'translate(var(--sl, 0px), var(--st, 0px))',
+};
+
+const dateHeaderStyle = {
+  position: 'relative',
+  zIndex: 30,
+  width: 42,
+  minWidth: 42,
+  transform: 'translateY(var(--st, 0px))',
 };
 
 const frozenCellStyle = (bg) => ({
-  position: 'sticky',
-  left: 0,
-  zIndex: 20,          // 高於一般 body cell
+  position: 'relative',
+  zIndex: 20,
   background: bg,
   width: NAME_COL_W,
   minWidth: NAME_COL_W,
+  transform: 'translateX(var(--sl, 0px))',
 });
-
-const dateHeaderStyle = {
-  position: 'sticky',
-  top: 0,
-  zIndex: 30,          // header 行，高於 body frozen
-  width: 42,
-  minWidth: 42,
-};
 
 function EmployeeRow({
   emp, days, getLeaveRecords, leaveTypes,
@@ -216,10 +221,14 @@ export default function LeaveCalendarTable({
     }
   }, [days, today]);
 
+  // Scroll handler: update CSS variables --sl and --st for frozen column/header (no re-render)
   const handleScroll = useCallback((e) => {
     const el = e.target;
+    el.style.setProperty('--sl', `${el.scrollLeft}px`);
+    el.style.setProperty('--st', `${el.scrollTop}px`);
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-    el.classList.toggle('scrolled-end', atEnd);
+    const fade = el.parentElement?.querySelector('.scroll-fade');
+    if (fade) fade.style.opacity = atEnd ? '0' : '1';
   }, []);
 
   const handleDragEnd = useCallback((result) => {
@@ -242,10 +251,12 @@ export default function LeaveCalendarTable({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="relative w-full flex-1 min-h-0">
         <div
-          className="w-full h-full overflow-auto scroll-hint"
+          className="absolute inset-0 overflow-auto"
           ref={scrollContainerRef}
           onScroll={handleScroll}
+          style={{ '--sl': '0px', '--st': '0px' }}
         >
           <table
             style={{
@@ -259,7 +270,7 @@ export default function LeaveCalendarTable({
               <tr>
                 <th
                   className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                  style={{ ...frozenHeaderStyle, top: 0 }}
+                  style={frozenHeaderStyle}
                 >
                   姓名
                 </th>
@@ -327,6 +338,9 @@ export default function LeaveCalendarTable({
             </Droppable>
           </table>
         </div>
+        {/* Right-edge fade overlay — outside scroll container so no position:relative on it */}
+        <div className="absolute top-0 right-0 bottom-0 w-6 pointer-events-none bg-gradient-to-r from-transparent to-black/[0.06] z-10 transition-opacity scroll-fade" />
+      </div>
     </DragDropContext>
   );
 }

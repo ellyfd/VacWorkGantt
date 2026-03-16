@@ -183,7 +183,7 @@ button:focus-visible {
 
 /* Horizontal scroll indicator for mobile tables */
 .scroll-hint {
-  position: relative;
+  /* intentionally no position:relative — it breaks sticky on descendants */
 }
 .scroll-hint::after {
   content: '';
