@@ -9,9 +9,33 @@ import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
-const frozenStyle = {
-  transform: 'translateX(var(--sx, 0px))',
-  willChange: 'transform',
+/* ── 固定姓名欄的 inline style（不用 Tailwind sticky） ── */
+const NAME_COL_W = 110;
+
+const frozenHeaderStyle = {
+  position: 'sticky',
+  left: 0,
+  zIndex: 40,          // 最高：header + 凍結
+  background: '#f9fafb',
+  width: NAME_COL_W,
+  minWidth: NAME_COL_W,
+};
+
+const frozenCellStyle = (bg) => ({
+  position: 'sticky',
+  left: 0,
+  zIndex: 20,          // 高於一般 body cell
+  background: bg,
+  width: NAME_COL_W,
+  minWidth: NAME_COL_W,
+});
+
+const dateHeaderStyle = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 30,          // header 行，高於 body frozen
+  width: 42,
+  minWidth: 42,
 };
 
 function EmployeeRow({
@@ -23,6 +47,9 @@ function EmployeeRow({
   dragHandleProps, today,
 }) {
   const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
+  const bg = highlightedEmployeeId === emp.id ? '#fef3c7'  // amber-100
+    : isCurrentUser ? '#fffbeb'  // amber-50
+    : '#ffffff';
 
   return (
     <>
@@ -31,11 +58,8 @@ function EmployeeRow({
           setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
           setHighlightedDate(null);
         }}
-        className={`px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
-          highlightedEmployeeId === emp.id ? 'bg-amber-100' :
-          isCurrentUser ? 'bg-amber-50' : 'bg-white'
-        }`}
-        style={{ ...frozenStyle, width: 110, minWidth: 110, zIndex: 20 }}
+        className="px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none"
+        style={frozenCellStyle(bg)}
       >
         <div className="flex items-center gap-0.5">
           {dragHandleProps && (
@@ -55,7 +79,7 @@ function EmployeeRow({
         const records = getLeaveRecords(emp.id, d.date);
         const isToday = d.date === today;
         return (
-          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 ${isToday ? 'bg-amber-50' : ''}`}>
+          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 ${isToday ? 'bg-amber-50' : ''}`} style={{ width: 42, minWidth: 42 }}>
             <LeaveCell
               fullRecord={records.full}
               amRecord={records.AM}
@@ -141,7 +165,6 @@ export default function LeaveCalendarTable({
       }),
   [year, month, currentDate, holidaySet]);
 
-  // 一個 key 可存多筆（full / AM / PM）
   const leaveRecordMap = useMemo(() => buildLeaveRecordMap(leaveRecords), [leaveRecords]);
 
   const getLeaveRecords = useCallback((employeeId, date) => {
@@ -186,20 +209,17 @@ export default function LeaveCalendarTable({
     const todayIdx = days.findIndex(d => d.date === today);
     if (todayIdx === -1) return;
     const ths = container.querySelectorAll('thead th');
-    const todayTh = ths[todayIdx + 1]; // +1 for the "姓名" column
+    const todayTh = ths[todayIdx + 1];
     if (todayTh) {
-      const nameColWidth = 110;
-      const scrollTarget = todayTh.offsetLeft - nameColWidth - 16;
+      const scrollTarget = todayTh.offsetLeft - NAME_COL_W - 16;
       container.scrollLeft = Math.max(0, scrollTarget);
     }
   }, [days, today]);
 
   const handleScroll = useCallback((e) => {
     const el = e.target;
-    // Update CSS variable for frozen column transform
-    el.style.setProperty('--sx', `${el.scrollLeft}px`);
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-    el.parentElement?.classList.toggle('scrolled-end', atEnd);
+    el.closest('.scroll-hint')?.classList.toggle('scrolled-end', atEnd);
   }, []);
 
   const handleDragEnd = useCallback((result) => {
@@ -218,42 +238,57 @@ export default function LeaveCalendarTable({
     today,
   };
 
+  const tableWidth = days.length * 42 + NAME_COL_W;
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="bg-white w-full h-full relative scroll-hint">
+      <div className="w-full h-full scroll-hint">
         <div
-          className="absolute inset-0 overflow-auto"
+          className="w-full h-full overflow-auto"
           ref={scrollContainerRef}
           onScroll={handleScroll}
         >
-          <table className="border-separate" style={{ borderSpacing: 0, minWidth: `${Math.max(days.length * 42 + 110, 600)}px` }}>
-            <thead className="sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
-              <tr className="bg-gray-50">
+          <table
+            style={{
+              borderCollapse: 'separate',
+              borderSpacing: 0,
+              width: tableWidth,
+              tableLayout: 'fixed',
+            }}
+          >
+            <thead>
+              <tr>
                 <th
-                  className="bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap"
-                  style={{ ...frozenStyle, width: 110, minWidth: 110, zIndex: 10 }}
+                  className="px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                  style={{ ...frozenHeaderStyle, top: 0 }}
                 >
                   姓名
                 </th>
                 {days.map((d, idx) => {
                   const isToday = d.date === today;
                   return (
-                  <th
-                    key={idx}
-                    onDoubleClick={() => {
-                      setHighlightedDate(highlightedDate === d.date ? null : d.date);
-                      setHighlightedEmployeeId(null);
-                    }}
-                    className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 h-9 cursor-pointer select-none relative ${
-                      isToday ? 'bg-amber-100' :
-                      d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
-                      highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
-                    }`}
-                    style={{ width: 42 }}
-                  >
-                    <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                    <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
-                  </th>
+                    <th
+                      key={idx}
+                      onDoubleClick={() => {
+                        setHighlightedDate(highlightedDate === d.date ? null : d.date);
+                        setHighlightedEmployeeId(null);
+                      }}
+                      className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 h-9 cursor-pointer select-none shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${
+                        isToday ? 'bg-amber-100' :
+                        d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
+                        highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
+                      }`}
+                      style={{
+                        ...dateHeaderStyle,
+                        background: isToday ? '#fef3c7'
+                          : (d.isHoliday || d.isWeekend) ? '#fef2f2'
+                          : highlightedDate === d.date ? '#fef3c7'
+                          : '#f9fafb',
+                      }}
+                    >
+                      <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                      <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
+                    </th>
                   );
                 })}
               </tr>
