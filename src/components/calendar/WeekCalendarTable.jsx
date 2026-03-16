@@ -39,7 +39,7 @@ export default function WeekCalendarTable({
     selectedLeaveTypeIdRef.current = selectedLeaveTypeId;
   }, [selectedLeaveTypeId]);
 
-  if (!currentEmployee || !currentDepartments || currentDepartments.length === 0) {
+  if (!currentEmployee) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
         <p className="text-gray-500">請先設定您的個人資料</p>
