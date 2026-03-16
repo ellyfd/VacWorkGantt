@@ -15,7 +15,7 @@ function EmployeeRow({
   setHighlightedEmployeeId, setHighlightedDate,
   currentEmployeeId, rangeMode, selectedEmployeeId, dateRange,
   handleCellClick, handleClearLeave, onDeleteRangeLeave, onCellClickInRangeMode,
-  dragHandleProps,
+  dragHandleProps, today,
 }) {
   const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
 
@@ -47,8 +47,10 @@ function EmployeeRow({
       </td>
       {days.map((d, idx) => {
         const records = getLeaveRecords(emp.id, d.date);
+        const isToday = d.date === today;
         return (
-          <td key={idx} className="p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px]">
+          <td key={idx} className={`p-0 border-r border-b border-gray-200 h-10 min-w-[28px] md:min-w-[42px] relative ${isToday ? 'bg-amber-50/60' : ''}`}>
+            {isToday && <div className="absolute inset-0 border-2 border-amber-400 pointer-events-none z-[5]" />}
             <LeaveCell
               fullRecord={records.full}
               amRecord={records.AM}
@@ -99,6 +101,7 @@ export default function LeaveCalendarTable({
     selectedLeaveTypeIdRef.current = selectedLeaveTypeId;
   }, [selectedLeaveTypeId]);
 
+  const today = format(new Date(), 'yyyy-MM-dd');
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -169,6 +172,22 @@ export default function LeaveCalendarTable({
   }, [rangeMode, onDeleteLeave]);
 
   const scrollContainerRef = useRef(null);
+
+  // Auto-scroll to today's column on mount / month change
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const todayIdx = days.findIndex(d => d.date === today);
+    if (todayIdx === -1) return;
+    const ths = container.querySelectorAll('thead th');
+    const todayTh = ths[todayIdx + 1]; // +1 for the "姓名" column
+    if (todayTh) {
+      const nameColWidth = ths[0]?.offsetWidth || 90;
+      const scrollTarget = todayTh.offsetLeft - nameColWidth - 16;
+      container.scrollLeft = Math.max(0, scrollTarget);
+    }
+  }, [days, today]);
+
   const handleScroll = useCallback((e) => {
     const el = e.target;
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
@@ -188,6 +207,7 @@ export default function LeaveCalendarTable({
     setHighlightedEmployeeId, setHighlightedDate,
     currentEmployeeId, rangeMode, selectedEmployeeId, dateRange,
     handleCellClick, handleClearLeave, onDeleteRangeLeave, onCellClickInRangeMode,
+    today,
   };
 
   return (
@@ -200,22 +220,26 @@ export default function LeaveCalendarTable({
                 <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 w-auto min-w-[90px] max-w-[140px] whitespace-nowrap">
                   姓名
                 </th>
-                {days.map((d, idx) => (
+                {days.map((d, idx) => {
+                  const isToday = d.date === today;
+                  return (
                   <th
                     key={idx}
                     onDoubleClick={() => {
                       setHighlightedDate(highlightedDate === d.date ? null : d.date);
                       setHighlightedEmployeeId(null);
                     }}
-                    className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-8 cursor-pointer select-none ${
+                    className={`px-0.5 py-0.5 text-center border-r border-b border-gray-200 min-w-[28px] md:min-w-[42px] h-8 cursor-pointer select-none relative ${
+                      isToday ? 'bg-amber-100 ring-2 ring-inset ring-amber-400' :
                       d.isHoliday || d.isWeekend ? 'bg-gray-100 text-red-500' :
                       highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                     }`}
                   >
-                    <div className="text-[13px] font-medium text-gray-800">{d.month ? `${d.month}/${d.day}` : d.day}</div>
-                    <div className="text-[10px] text-gray-400">{d.weekday}</div>
+                    <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
+                    <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
                   </th>
-                ))}
+                  );
+                })}
               </tr>
             </thead>
             <Droppable droppableId="employee-rows" type="EMPLOYEE">
