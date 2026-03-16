@@ -9,6 +9,11 @@ import LeaveCell from "./LeaveCell";
 
 const WEEKDAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
+const frozenStyle = {
+  transform: 'translateX(var(--sx, 0px))',
+  willChange: 'transform',
+};
+
 function EmployeeRow({
   emp, days, getLeaveRecords, leaveTypes,
   highlightedEmployeeId, highlightedDate,
@@ -26,11 +31,11 @@ function EmployeeRow({
           setHighlightedEmployeeId(highlightedEmployeeId === emp.id ? null : emp.id);
           setHighlightedDate(null);
         }}
-        className={`sticky left-0 z-10 px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
+        className={`px-1 py-1 whitespace-nowrap border-r border-b border-gray-200 cursor-pointer select-none ${
           highlightedEmployeeId === emp.id ? 'bg-amber-100' :
           isCurrentUser ? 'bg-amber-50' : 'bg-white'
         }`}
-        style={{ minWidth: 110, willChange: 'transform' }}
+        style={{ ...frozenStyle, width: 110, minWidth: 110, zIndex: 20 }}
       >
         <div className="flex items-center gap-0.5">
           {dragHandleProps && (
@@ -183,7 +188,7 @@ export default function LeaveCalendarTable({
     const ths = container.querySelectorAll('thead th');
     const todayTh = ths[todayIdx + 1]; // +1 for the "姓名" column
     if (todayTh) {
-      const nameColWidth = ths[0]?.offsetWidth || 90;
+      const nameColWidth = 110;
       const scrollTarget = todayTh.offsetLeft - nameColWidth - 16;
       container.scrollLeft = Math.max(0, scrollTarget);
     }
@@ -191,6 +196,8 @@ export default function LeaveCalendarTable({
 
   const handleScroll = useCallback((e) => {
     const el = e.target;
+    // Update CSS variable for frozen column transform
+    el.style.setProperty('--sx', `${el.scrollLeft}px`);
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
     el.parentElement?.classList.toggle('scrolled-end', atEnd);
   }, []);
@@ -214,15 +221,18 @@ export default function LeaveCalendarTable({
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="bg-white w-full h-full relative scroll-hint">
-        <div className="absolute inset-0 overflow-x-auto overflow-y-auto" ref={scrollContainerRef} onScroll={handleScroll}>
+        <div
+          className="absolute inset-0 overflow-auto"
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+        >
           <table className="border-separate" style={{ borderSpacing: 0, minWidth: `${Math.max(days.length * 42 + 110, 600)}px` }}>
-            <colgroup>
-              <col style={{ width: 110 }} />
-              {days.map((_, idx) => <col key={idx} style={{ width: 42 }} />)}
-            </colgroup>
             <thead className="sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
               <tr className="bg-gray-50">
-                <th className="sticky left-0 z-40 bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap" style={{ minWidth: 110, willChange: 'transform' }}>
+                <th
+                  className="bg-gray-50 px-2 py-2 text-left text-xs font-semibold text-gray-600 border-r border-b border-gray-200 whitespace-nowrap"
+                  style={{ ...frozenStyle, width: 110, minWidth: 110, zIndex: 10 }}
+                >
                   姓名
                 </th>
                 {days.map((d, idx) => {
@@ -239,6 +249,7 @@ export default function LeaveCalendarTable({
                       d.isHoliday || d.isWeekend ? 'bg-red-50 text-red-500' :
                       highlightedDate === d.date ? 'bg-amber-100' : 'text-gray-600'
                     }`}
+                    style={{ width: 42 }}
                   >
                     <div className={`text-[13px] font-medium ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>{d.month ? `${d.month}/${d.day}` : d.day}</div>
                     <div className={`text-[10px] ${isToday ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>{isToday ? '今' : d.weekday}</div>
