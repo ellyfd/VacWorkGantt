@@ -864,8 +864,7 @@ export default function AllLeaveCalendar() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200">
-          <div className="overflow-x-auto">
+        <div className="rounded-lg border border-gray-200 overflow-hidden">
             <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
@@ -884,7 +883,6 @@ export default function AllLeaveCalendar() {
             onCellClickInRangeMode={handleCellClickInRangeMode}
             onReorderEmployees={handleReorderEmployees}
           />
-          </div>
         </div>
 
         <details className="mt-4 text-sm text-gray-600">
