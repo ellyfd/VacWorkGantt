@@ -31,7 +31,7 @@ const mobileTabItems = [
   { name: 'Dashboard', label: '首頁', icon: Home },
   { name: 'LeaveCalendar', label: '我的排休', icon: CalendarClock },
   { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
-  { name: 'Notifications', label: '通知', icon: Bell },
+  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3 },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -361,11 +361,6 @@ export default function Layout({ children, currentPageName }) {
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-xs font-medium">{item.label}</span>
-                {item.name === 'Notifications' && unreadCount > 0 && (
-                  <span className="absolute top-1.5 left-1/2 ml-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center px-0.5">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )}
               </Link>
             );
           })}
@@ -373,13 +368,18 @@ export default function Layout({ children, currentPageName }) {
           <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
             <SheetTrigger asChild>
               <button
-                className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors ${
-                  isSettingsPage || currentPageName === 'GanttManagement' ? 'text-blue-600' : 'text-gray-500'
+                className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors relative ${
+                  isSettingsPage || currentPageName === 'Notifications' ? 'text-blue-600' : 'text-gray-500'
                 }`}
                 aria-label="更多選項"
               >
                 <MoreHorizontal className="w-5 h-5" />
                 <span className="text-xs font-medium">更多</span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 left-1/2 ml-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center px-0.5">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </button>
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh]">
@@ -406,18 +406,23 @@ export default function Layout({ children, currentPageName }) {
                   <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 </button>
 
-                {/* Gantt link */}
+                {/* Notifications link */}
                 <Link
-                  to={createPageUrl('GanttManagement')}
+                  to={createPageUrl('Notifications')}
                   onClick={() => setMobileSheetOpen(false)}
                   className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${
-                    currentPageName === 'GanttManagement'
+                    currentPageName === 'Notifications'
                       ? 'bg-blue-50 text-blue-600 font-medium'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <BarChart3 className="w-5 h-5" />
-                  <span className="text-sm">專案甘特圖</span>
+                  <Bell className="w-5 h-5" />
+                  <span className="text-sm">通知</span>
+                  {unreadCount > 0 && (
+                    <span className="ml-auto min-w-[20px] h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
 
                 {/* Settings section */}
