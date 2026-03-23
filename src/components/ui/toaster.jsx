@@ -13,9 +13,10 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(function ({ id, title, description, action, onOpenChange, ...props }) {
+        const handleDismiss = () => onOpenChange?.(false);
         return (
-          <Toast key={id} {...props}>
+          <Toast key={id} onClick={handleDismiss} style={{ cursor: 'pointer' }} {...props}>
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (
@@ -23,7 +24,7 @@ export function Toaster() {
               )}
             </div>
             {action}
-            <ToastClose />
+            <ToastClose onClick={(e) => { e.stopPropagation(); handleDismiss(); }} />
           </Toast>
         );
       })}
