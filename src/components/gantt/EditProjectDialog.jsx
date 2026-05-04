@@ -1,18 +1,14 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Trash2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { calculateWorkingDays, normalizeDate } from '@/lib/ganttUtils';
-
-const COLORS = [
-  '#3b82f6','#8b5cf6','#10b981','#f59e0b',
-  '#ef4444','#ec4899','#06b6d4','#6b7280'
-];
 
 const EditProjectDialog = React.memo(function EditProjectDialog({
   open, onOpenChange, project, setProject, onSave,
@@ -20,6 +16,7 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
 }) {
   const navigate = useNavigate();
   const [newTaskName, setNewTaskName] = React.useState('');
+  const projectColor = project?.color || '#3b82f6';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -28,46 +25,46 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
           <DialogTitle>編輯開發季</DialogTitle>
         </DialogHeader>
         {project && (
-          <div className="space-y-5 py-2">
-
-            {/* 名稱 */}
+          <div className="space-y-3 py-1">
+            {/* 名稱 + 顏色 */}
             <div>
-              <Label>開發季名稱</Label>
-              <Input
-                value={project.name}
-                onChange={(e) => setProject({ ...project, name: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-
-            {/* 顏色 - 唯讀 */}
-            <div>
-              <Label>顏色</Label>
-              <div className="mt-2 flex items-center gap-3">
-                <div
-                  className="w-8 h-8 rounded-full border-2 border-white shadow"
-                  style={{ backgroundColor: project?.color || '#3b82f6' }}
+              <Label className="text-xs text-gray-600">開發季名稱</Label>
+              <div className="mt-1 flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenChange(false);
+                        navigate('/ProjectSettings?tab=projects');
+                      }}
+                      className="w-9 h-9 rounded-md border border-gray-200 flex-shrink-0 hover:ring-2 hover:ring-blue-300 transition"
+                      style={{ backgroundColor: projectColor }}
+                      aria-label="顏色由品牌設定決定，點此修改"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>顏色由品牌設定決定，點此修改</TooltipContent>
+                </Tooltip>
+                <Input
+                  value={project.name}
+                  onChange={(e) => setProject({ ...project, name: e.target.value })}
+                  className="flex-1"
                 />
-                <span className="text-sm text-gray-400">顏色由品牌設定決定</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onOpenChange(false);
-                    navigate('/ProjectSettings?tab=projects');
-                  }}
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  前往修改 →
-                </button>
               </div>
             </div>
 
             {/* 任務列表 */}
             <div>
-              <Label className="mb-2 block">任務列表</Label>
-              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+              <div className="flex items-baseline justify-between mb-1.5">
+                <Label className="text-xs text-gray-600">任務列表</Label>
+                {projectTasks.length > 0 && (
+                  <span className="text-[10px] text-gray-400">{projectTasks.length} 項</span>
+                )}
+              </div>
+
+              <div className="space-y-1.5 max-h-[340px] overflow-y-auto pr-1">
                 {projectTasks.length === 0 && (
-                  <p className="text-xs text-gray-400 py-2 text-center">尚無任務</p>
+                  <p className="text-xs text-gray-400 py-4 text-center">尚無任務</p>
                 )}
                 {projectTasks.map(task => {
                   const startStr = normalizeDate(task.start_date);
@@ -77,127 +74,102 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                   const dateLabel = task.time_type === 'milestone' && startStr
                     ? format(new Date(startStr + 'T00:00:00'), 'M/d')
                     : task.time_type === 'duration' && startStr && endStr
-                    ? `${format(new Date(startStr + 'T00:00:00'), 'M/d')} - ${format(new Date(endStr + 'T00:00:00'), 'M/d')}`
+                    ? `${format(new Date(startStr + 'T00:00:00'), 'M/d')}–${format(new Date(endStr + 'T00:00:00'), 'M/d')}`
                     : task.time_type === 'rolling' && startStr
                     ? `${format(new Date(startStr + 'T00:00:00'), 'M/d')} →`
                     : null;
 
                   return (
-                   <div key={task.id} className="space-y-2 p-3 border rounded-lg bg-gray-50">
-                     {/* 第一行：顏色點 + 名稱 + 工作天數 + 刪除 */}
-                     <div className="flex items-center gap-2">
-                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color || '#3b82f6' }} />
-                       <span className="flex-1 h-8 text-sm flex items-center">{task.name}</span>
-                       {workDays > 0 && (
-                         <span className="text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded flex-shrink-0">
-                           {workDays} 工作天
-                         </span>
-                       )}
-                       <button
-                         onClick={() => onDeleteTask(task.id)}
-                         className="p-1 hover:bg-red-100 rounded text-red-500"
-                       >
-                         <Trash2 className="w-3.5 h-3.5" />
-                       </button>
-                     </div>
-
-                    {/* Mini timeline bar */}
-                    {dateLabel && (
-                      <div className="pl-4 flex items-center gap-2">
-                        <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden relative">
-                          {task.time_type === 'milestone' ? (
-                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rotate-45" style={{ backgroundColor: task.is_important ? '#eab308' : (project.color || '#3b82f6') }} />
-                          ) : task.time_type === 'rolling' ? (
-                            <div className="h-full rounded-full" style={{ backgroundColor: project.color || '#3b82f6', width: '60%', opacity: 0.6 }} />
-                          ) : (
-                            <div className="h-full rounded-full" style={{ backgroundColor: project.color || '#3b82f6' }} />
-                          )}
-                        </div>
-                        <span className="text-[11px] text-gray-500 flex-shrink-0 whitespace-nowrap">{dateLabel}</span>
+                    <div key={task.id} className="flex flex-col gap-1.5 px-2.5 py-2 border rounded-md bg-gray-50/60">
+                      {/* 第一行：點 + 名稱 + 日期標籤 + 工作天 + 刪除 */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: projectColor }} />
+                        <span className="flex-1 text-sm truncate">{task.name}</span>
+                        {dateLabel && (
+                          <span className="text-[11px] text-gray-500 whitespace-nowrap flex-shrink-0">{dateLabel}</span>
+                        )}
+                        {workDays > 0 && (
+                          <span className="text-[10px] text-gray-600 bg-gray-200 px-1.5 py-0.5 rounded flex-shrink-0">
+                            {workDays}d
+                          </span>
+                        )}
+                        <button
+                          onClick={() => onDeleteTask(task.id)}
+                          className="p-0.5 hover:bg-red-100 rounded text-red-500 flex-shrink-0"
+                          aria-label="刪除任務"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                    )}
 
-                    {/* 第二行：時間類型（獨立一行） */}
-                    <div className="pl-4">
-                      <Select
-                        value={task.time_type || ''}
-                        onValueChange={(val) =>
-                          onUpdateTask(task.id, {
-                            ...task,
-                            time_type: val,
-                            start_date: '',
-                            end_date: '',
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-7 text-xs w-full">
-                          <SelectValue placeholder="不設定時間" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={null}>不設定</SelectItem>
-                          <SelectItem value="milestone">◆ 里程碑</SelectItem>
-                          <SelectItem value="duration">▬ 區間</SelectItem>
-                          <SelectItem value="rolling">▶ Rolling</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {/* 第二行：時間類型 + 日期 */}
+                      <div className="flex items-center gap-1.5">
+                        <Select
+                          value={task.time_type || ''}
+                          onValueChange={(val) =>
+                            onUpdateTask(task.id, {
+                              ...task,
+                              time_type: val,
+                              start_date: '',
+                              end_date: '',
+                            })
+                          }
+                        >
+                          <SelectTrigger className="h-7 text-xs w-28 flex-shrink-0">
+                            <SelectValue placeholder="不設定" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={null}>不設定</SelectItem>
+                            <SelectItem value="milestone">◆ 里程碑</SelectItem>
+                            <SelectItem value="duration">▬ 區間</SelectItem>
+                            <SelectItem value="rolling">▶ Rolling</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {task.time_type === 'milestone' && (
+                          <Input
+                            type="date"
+                            value={task.start_date || ''}
+                            onChange={(e) => onUpdateTask(task.id, { ...task, start_date: e.target.value })}
+                            className="h-7 text-xs flex-1 min-w-0"
+                          />
+                        )}
+
+                        {task.time_type === 'duration' && (
+                          <>
+                            <Input
+                              type="date"
+                              value={task.start_date || ''}
+                              onChange={(e) => onUpdateTask(task.id, { ...task, start_date: e.target.value })}
+                              className="h-7 text-xs flex-1 min-w-0 px-1.5"
+                            />
+                            <span className="text-gray-400 text-xs flex-shrink-0">~</span>
+                            <Input
+                              type="date"
+                              value={task.end_date || ''}
+                              min={task.start_date}
+                              onChange={(e) => onUpdateTask(task.id, { ...task, end_date: e.target.value })}
+                              className="h-7 text-xs flex-1 min-w-0 px-1.5"
+                            />
+                          </>
+                        )}
+
+                        {task.time_type === 'rolling' && (
+                          <Input
+                            type="date"
+                            value={task.start_date || ''}
+                            onChange={(e) => onUpdateTask(task.id, { ...task, start_date: e.target.value })}
+                            className="h-7 text-xs flex-1 min-w-0"
+                          />
+                        )}
+                      </div>
                     </div>
-
-                    {/* 第三行：日期欄位（依類型顯示） */}
-                    {task.time_type === 'milestone' && (
-                      <div className="pl-4">
-                        <Input
-                          type="date"
-                          value={task.start_date || ''}
-                          onChange={(e) =>
-                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
-                          }
-                          className="h-7 text-xs w-full"
-                        />
-                      </div>
-                    )}
-
-                    {task.time_type === 'duration' && (
-                      <div className="pl-4 flex items-center gap-2">
-                        <Input
-                          type="date"
-                          value={task.start_date || ''}
-                          onChange={(e) =>
-                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
-                          }
-                          className="h-7 text-xs flex-1"
-                        />
-                        <span className="text-gray-400 text-xs flex-shrink-0">～</span>
-                        <Input
-                          type="date"
-                          value={task.end_date || ''}
-                          min={task.start_date}
-                          onChange={(e) =>
-                            onUpdateTask(task.id, { ...task, end_date: e.target.value })
-                          }
-                          className="h-7 text-xs flex-1"
-                        />
-                      </div>
-                    )}
-
-                    {task.time_type === 'rolling' && (
-                      <div className="pl-4">
-                        <Input
-                          type="date"
-                          value={task.start_date || ''}
-                          onChange={(e) =>
-                            onUpdateTask(task.id, { ...task, start_date: e.target.value })
-                          }
-                          className="h-7 text-xs w-full"
-                        />
-                      </div>
-                    )}
-                  </div>
                   );
                 })}
               </div>
 
               {/* 新增任務 */}
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-1.5 mt-2">
                 <Input
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
@@ -210,7 +182,9 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                     }
                   }}
                 />
-                <Button size="sm" variant="outline"
+                <Button
+                  size="sm"
+                  variant="outline"
                   disabled={!newTaskName.trim()}
                   onClick={() => { onCreateTask(newTaskName.trim()); setNewTaskName(''); }}
                 >
