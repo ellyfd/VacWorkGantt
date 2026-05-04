@@ -48,6 +48,7 @@ import { useDragState } from '@/components/hooks/useDragState';
 import { useDialogState } from '@/components/hooks/useDialogState';
 import { useFormData } from '@/components/hooks/useFormData';
 import { useFilterState } from '@/components/hooks/useFilterState';
+import { useArchivedProjects } from '@/components/hooks/useArchivedProjects';
 import { useProjectCreation } from '@/components/hooks/useProjectCreation';
 import { getContrastColor, getLightColor } from '@/lib/ganttUtils';
 
@@ -70,6 +71,7 @@ export default function GanttChart() {
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, deleteConfirm, setDeleteConfirm } = useDialogState();
   const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
   const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays, archivedFilter, setArchivedFilter } = useFilterState();
+  const { archivedMap, archive: archiveProject, restore: restoreProject } = useArchivedProjects();
   const [archiveConfirm, setArchiveConfirm] = useState(null);
   const { creatingProjectId, setCreatingProjectId, scheduleFile, setScheduleFile, isAnalyzingSchedule, setIsAnalyzingSchedule } = useProjectCreation();
 
@@ -317,9 +319,11 @@ export default function GanttChart() {
   // 建立統一的 rows 陣列（兩層：project + phase，任務直接畫在 phase 列上）
   const rows = useMemo(() => {
     return ganttProjects.map(project => ({
-      type: 'project', data: project, id: `project-${project.id}`
+      type: 'project',
+      data: { ...project, archived_at: archivedMap[project.id] ?? project.archived_at ?? null },
+      id: `project-${project.id}`,
     }));
-  }, [ganttProjects]);
+  }, [ganttProjects, archivedMap]);
 
   // 計算 makalotGroup
   const makalotGroup = useMemo(() => {
@@ -1806,14 +1810,11 @@ export default function GanttChart() {
             <AlertDialogAction
               onClick={() => {
                 if (!archiveConfirm) return;
-                updateGanttProject.mutate({
-                  id: archiveConfirm.id,
-                  data: {
-                    archived_at: archiveConfirm.action === 'restore'
-                      ? null
-                      : new Date().toISOString(),
-                  },
-                });
+                if (archiveConfirm.action === 'restore') {
+                  restoreProject(archiveConfirm.id);
+                } else {
+                  archiveProject(archiveConfirm.id);
+                }
                 setArchiveConfirm(null);
               }}
             >
