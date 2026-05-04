@@ -1068,12 +1068,25 @@ export default function GanttChart() {
           <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-30 text-gray-400" />
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="truncate flex-1 font-semibold text-[14px] flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const latest = projectTasks.reduce((acc, t) => {
+                    const d = t.end_date || t.start_date;
+                    return d && (!acc || d > acc) ? d : acc;
+                  }, null);
+                  if (latest) setPendingScrollToDate(latest);
+                }}
+                disabled={tasksWithTime === 0}
+                className="truncate flex-1 font-semibold text-[14px] flex items-center gap-1.5 text-left enabled:cursor-pointer enabled:hover:underline disabled:cursor-default"
+                title={tasksWithTime > 0 ? '跳至此 season 最新項目' : undefined}
+              >
                 {row.data.name}
                 {isArchived && (
                   <span className="px-1.5 py-px rounded text-[10px] font-medium bg-gray-300 text-gray-700">已歸檔</span>
                 )}
-              </span>
+              </button>
             </TooltipTrigger>
             <TooltipContent side="right">
               <div>{row.data.name}</div>
