@@ -1072,11 +1072,25 @@ export default function GanttChart() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  const latest = projectTasks.reduce((acc, t) => {
+                  const latestTask = projectTasks.reduce((acc, t) => {
                     const d = t.end_date || t.start_date;
-                    return d && (!acc || d > acc) ? d : acc;
+                    if (!d) return acc;
+                    const accDate = acc && (acc.end_date || acc.start_date);
+                    return !accDate || d > accDate ? t : acc;
                   }, null);
-                  if (latest) setPendingScrollToDate(latest);
+                  if (!latestTask) return;
+                  const start = latestTask.start_date;
+                  const end = latestTask.end_date || start;
+                  if (!start) return;
+                  const midMs = (new Date(start).getTime() + new Date(end).getTime()) / 2;
+                  const midStr = format(new Date(midMs), 'yyyy-MM-dd');
+                  const idx = days.findIndex(d => format(d, 'yyyy-MM-dd') >= midStr);
+                  const el = rightPanelRef.current;
+                  if (el && idx >= 0) {
+                    el.scrollLeft = idx * CELL_WIDTH - el.clientWidth / 2 + CELL_WIDTH / 2;
+                  } else {
+                    setPendingScrollToDate(midStr);
+                  }
                 }}
                 disabled={tasksWithTime === 0}
                 className="truncate flex-1 font-semibold text-[14px] flex items-center gap-1.5 text-left enabled:cursor-pointer enabled:hover:underline disabled:cursor-default"
