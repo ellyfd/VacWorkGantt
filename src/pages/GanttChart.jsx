@@ -1852,23 +1852,25 @@ export default function GanttChart() {
       </AlertDialog>
 
       {/* 操作說明 */}
-      <details className="mt-4 text-sm text-gray-600">
-        <summary className="cursor-pointer font-medium flex items-center gap-1.5 text-gray-500 hover:text-gray-700">
+      <div className="mt-4 text-sm text-gray-600">
+        <div className="font-medium flex items-center gap-1.5 text-gray-500 mb-2">
           <HelpCircle className="w-4 h-4" /> 操作說明
-        </summary>
-        <div className="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        </div>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <ul className="text-xs text-gray-600 space-y-1.5">
             <li>• <span className="font-medium">新增開發季</span>：點擊右上角「＋ 新增」，選擇品牌與季節</li>
             <li>• <span className="font-medium">新增任務</span>：點擊開發季列最左側的 ＋ 按鈕，選擇樣品與時間類型</li>
-            <li>• <span className="font-medium">編輯／刪除任務</span>：點擊甘特圖上的色條（bar）開啟編輯對話框</li>
+            <li>• <span className="font-medium">編輯任務</span>：點擊甘特圖上的色條（bar）開啟編輯對話框，或點開發季的 ✎ 編輯整季任務</li>
             <li>• <span className="font-medium">時間類型</span>：◆ 里程碑（單日標記）、▬ 區間（起訖日）、▶ Rolling（持續延伸至今）</li>
+            <li>• <span className="font-medium">跳至最新項目</span>：點擊開發季名稱，時間軸自動捲動到該季最晚任務的中點</li>
+            <li>• <span className="font-medium">歸檔／還原</span>：點擊開發季的 🗄 圖示可歸檔；上方狀態列切換「進行中／已歸檔／全部」</li>
             <li>• <span className="font-medium">篩選</span>：點擊上方集團／品牌／部門標籤進行過濾；勾選「僅工作日」可隱藏週末與假日</li>
             <li>• <span className="font-medium">請假人數</span>：下方數字列可點擊查看當日請假名單</li>
             <li>• <span className="font-medium">撤銷操作</span>：Ctrl+Z（Mac: ⌘Z）可撤銷上一次時間變更</li>
             <li>• <span className="font-medium">拖曳排序</span>：拖曳開發季列可調整顯示順序</li>
           </ul>
         </div>
-      </details>
+      </div>
       </div>
     </TooltipProvider>
       );
