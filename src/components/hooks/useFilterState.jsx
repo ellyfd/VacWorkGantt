@@ -5,6 +5,7 @@ export function useFilterState() {
   const [selectedGroupSlug, setSelectedGroupSlug] = useState(null);
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
   const [hideHolidays, setHideHolidays] = useState(true);
+  const [archivedFilter, setArchivedFilter] = useState('active');
 
   // 从 localStorage 恢复筛选状态
   useEffect(() => {
@@ -18,6 +19,7 @@ export function useFilterState() {
         if (filters.hideHolidays !== undefined) {
           setHideHolidays(filters.hideHolidays);
         }
+        if (filters.archivedFilter) setArchivedFilter(filters.archivedFilter);
       } catch (e) {
         // ignore
       }
@@ -29,6 +31,7 @@ export function useFilterState() {
     setSelectedGroupSlug(null);
     setSelectedBrandIds([]);
     setHideHolidays(false);
+    setArchivedFilter('active');
     localStorage.removeItem('gantt-filters');
   };
 
@@ -37,6 +40,7 @@ export function useFilterState() {
     selectedGroupSlug, setSelectedGroupSlug,
     selectedBrandIds, setSelectedBrandIds,
     hideHolidays, setHideHolidays,
+    archivedFilter, setArchivedFilter,
     clearFilters,
   };
 }

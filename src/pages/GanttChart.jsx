@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Plus, Edit2, Trash2, GripVertical, HelpCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, GripVertical, HelpCircle, Archive, ArchiveRestore } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { addDays, subDays, format, eachDayOfInterval, isToday, getDay } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
@@ -69,7 +69,8 @@ export default function GanttChart() {
   const { isDragging, setIsDragging, dragTaskId, setDragTaskId, dragStart, setDragStart, dragEnd, setDragEnd } = useDragState();
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, deleteConfirm, setDeleteConfirm } = useDialogState();
   const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
-  const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays } = useFilterState();
+  const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays, archivedFilter, setArchivedFilter } = useFilterState();
+  const [archiveConfirm, setArchiveConfirm] = useState(null);
   const { creatingProjectId, setCreatingProjectId, scheduleFile, setScheduleFile, isAnalyzingSchedule, setIsAnalyzingSchedule } = useProjectCreation();
 
   // Scroll refs
@@ -404,6 +405,11 @@ export default function GanttChart() {
     return projects.filter(p => p.group_id === selectedGroupSlug);
   }, [projects, selectedGroupSlug]);
 
+  const archivedCount = useMemo(
+    () => rows.filter(r => r.data.archived_at).length,
+    [rows]
+  );
+
   const visibleRows = useMemo(() => {
     return rows.filter(row => {
       if (selectedGroupSlug) {
@@ -411,9 +417,12 @@ export default function GanttChart() {
         if (brand?.group_id !== selectedGroupSlug) return false;
       }
       if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(row.data.brand_id)) return false;
+      const isArchived = !!row.data.archived_at;
+      if (archivedFilter === 'active' && isArchived) return false;
+      if (archivedFilter === 'archived' && !isArchived) return false;
       return true;
     });
-  }, [rows, selectedGroupSlug, selectedBrandIds, projectMap]);
+  }, [rows, selectedGroupSlug, selectedBrandIds, projectMap, archivedFilter]);
 
   const getLeaveCountStyle = (count) => {
     if (!count) return null;
@@ -1019,14 +1028,16 @@ export default function GanttChart() {
       const tasksWithTime = projectTasks.filter(t => t.start_date).length;
       const totalTasks = projectTasks.length;
       const progressPct = totalTasks > 0 ? Math.round((tasksWithTime / totalTasks) * 100) : 0;
+      const isArchived = !!row.data.archived_at;
       return (
         <div
           className="flex items-center gap-2 px-3 relative"
           style={{
             height: ROW_HEIGHT,
-            backgroundColor: '#ffffff',
-            color: '#1f2937',
+            backgroundColor: isArchived ? '#f3f4f6' : '#ffffff',
+            color: isArchived ? '#6b7280' : '#1f2937',
             borderLeft: `4px solid ${getProjectColor(row.data)}`,
+            opacity: isArchived ? 0.7 : 1,
           }}
         >
           {/* 進度條底層 */}
@@ -1038,12 +1049,20 @@ export default function GanttChart() {
           <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-30 text-gray-400" />
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="truncate flex-1 font-semibold text-[14px]">{row.data.name}</span>
+              <span className="truncate flex-1 font-semibold text-[14px] flex items-center gap-1.5">
+                {row.data.name}
+                {isArchived && (
+                  <span className="px-1.5 py-px rounded text-[10px] font-medium bg-gray-300 text-gray-700">已歸檔</span>
+                )}
+              </span>
             </TooltipTrigger>
             <TooltipContent side="right">
               <div>{row.data.name}</div>
               {totalTasks > 0 && (
                 <div className="text-xs opacity-70">{tasksWithTime}/{totalTasks} 已排程</div>
+              )}
+              {isArchived && row.data.archived_at && (
+                <div className="text-xs opacity-70">歸檔於 {String(row.data.archived_at).slice(0, 10)}</div>
               )}
             </TooltipContent>
           </Tooltip>
@@ -1051,24 +1070,51 @@ export default function GanttChart() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                if (isArchived) return;
                 setCreatingProjectIdSync(row.data.id);
                 setTaskFormData({ name: '', sample_id: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
                 setShowAddTaskDialog(true);
               }}
-              className="p-1 hover:bg-gray-100 rounded"
-              title="新增任務"
+              disabled={isArchived}
+              className={`p-1 rounded ${isArchived ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+              title={isArchived ? '已歸檔，無法新增任務' : '新增任務'}
             >
               <Plus className="w-3 h-3" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); setEditingProject(row.data); setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === row.data.id)); setShowEditProjectDialog(true); }}
-              className="p-1 hover:bg-gray-100 rounded"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isArchived) return;
+                setEditingProject(row.data);
+                setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === row.data.id));
+                setShowEditProjectDialog(true);
+              }}
+              disabled={isArchived}
+              className={`p-1 rounded ${isArchived ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+              title={isArchived ? '已歸檔，無法編輯' : '編輯'}
             >
               <Edit2 className="w-3 h-3" />
             </button>
             <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setArchiveConfirm({
+                  id: row.data.id,
+                  name: row.data.name,
+                  action: isArchived ? 'restore' : 'archive',
+                });
+              }}
+              className="p-1 hover:bg-gray-100 rounded"
+              title={isArchived ? '還原此 season' : '歸檔此 season'}
+            >
+              {isArchived
+                ? <ArchiveRestore className="w-3 h-3" />
+                : <Archive className="w-3 h-3" />}
+            </button>
+            <button
               onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: 'project', id: row.data.id, name: row.data.name }); }}
               className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-500"
+              title="刪除"
             >
               <Trash2 className="w-3 h-3" />
             </button>
@@ -1171,6 +1217,9 @@ export default function GanttChart() {
         onBrandChange={setSelectedBrandIds}
         hideHolidays={hideHolidays}
         onHideHolidaysChange={setHideHolidays}
+        archivedFilter={archivedFilter}
+        onArchivedFilterChange={setArchivedFilter}
+        archivedCount={archivedCount}
         visibleRowCount={visibleRows.length}
         totalRowCount={rows.length}
       />
@@ -1419,7 +1468,12 @@ export default function GanttChart() {
                         gridStyle={gridStyle}
                         CELL_WIDTH={CELL_WIDTH}
                         ROW_HEIGHT={ROW_HEIGHT}
-                        onEditTask={(task) => { setEditingTask({ ...task }); setShowEditTaskDialog(true); }}
+                        isArchived={!!row.data.archived_at}
+                        onEditTask={(task) => {
+                          if (row.data.archived_at) return;
+                          setEditingTask({ ...task });
+                          setShowEditTaskDialog(true);
+                        }}
                         onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
                         onDragOver={(e) => handleProjectDragOver(e, row.data.id)}
                         onDrop={(e) => handleProjectDrop(e, row.data.id)}
@@ -1716,6 +1770,39 @@ export default function GanttChart() {
               }}
             >
               確定刪除
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog open={!!archiveConfirm} onOpenChange={(open) => !open && setArchiveConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogTitle>
+            {archiveConfirm?.action === 'restore' ? '還原此 season？' : '歸檔此 season？'}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {archiveConfirm?.action === 'restore'
+              ? `「${archiveConfirm?.name}」將還原為進行中,並重新顯示在預設列表。`
+              : `「${archiveConfirm?.name}」將從預設列表隱藏,可在「已歸檔」分頁還原。任務資料不會被刪除。`}
+          </AlertDialogDescription>
+          <div className="flex justify-end gap-3">
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!archiveConfirm) return;
+                updateGanttProject.mutate({
+                  id: archiveConfirm.id,
+                  data: {
+                    archived_at: archiveConfirm.action === 'restore'
+                      ? null
+                      : new Date().toISOString(),
+                  },
+                });
+                setArchiveConfirm(null);
+              }}
+            >
+              {archiveConfirm?.action === 'restore' ? '確定還原' : '確定歸檔'}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

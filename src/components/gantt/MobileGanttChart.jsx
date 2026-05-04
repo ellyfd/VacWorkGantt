@@ -104,6 +104,7 @@ export default function MobileGanttChart() {
   // 篩選
   const filteredProjects = useMemo(() => {
     return ganttProjects.filter(proj => {
+      if (proj.archived_at) return false;
       if (selectedGroupSlug) {
         const brand = projects.find(p => p.id === proj.brand_id);
         if (brand?.group_id !== selectedGroupSlug) return false;
