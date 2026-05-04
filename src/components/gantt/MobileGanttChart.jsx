@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { getContrastColor, normalizeDate, calculateWorkingDays } from '@/lib/ganttUtils';
+import { useArchivedProjects } from '@/components/hooks/useArchivedProjects';
 
 const ROW_HEIGHT = 28;
 const LABEL_WIDTH = 65;
@@ -31,6 +32,7 @@ export default function MobileGanttChart() {
   const [editTaskStartDate, setEditTaskStartDate] = useState('');
   const [editTaskEndDate, setEditTaskEndDate] = useState('');
   const queryClient = useQueryClient();
+  const { archivedMap } = useArchivedProjects();
 
   // Fetch data
   const { data: ganttProjects = [] } = useQuery({
@@ -104,7 +106,7 @@ export default function MobileGanttChart() {
   // 篩選
   const filteredProjects = useMemo(() => {
     return ganttProjects.filter(proj => {
-      if (proj.archived_at) return false;
+      if (archivedMap[proj.id] || proj.archived_at) return false;
       if (selectedGroupSlug) {
         const brand = projects.find(p => p.id === proj.brand_id);
         if (brand?.group_id !== selectedGroupSlug) return false;
@@ -112,7 +114,7 @@ export default function MobileGanttChart() {
       if (selectedBrandIds.length > 0 && !selectedBrandIds.includes(proj.brand_id)) return false;
       return true;
     });
-  }, [ganttProjects, selectedGroupSlug, selectedBrandIds, projects]);
+  }, [ganttProjects, selectedGroupSlug, selectedBrandIds, projects, archivedMap]);
 
   // 篩選後的 tasks（所有匹配 project）
   const filteredTasks = useMemo(() => {
