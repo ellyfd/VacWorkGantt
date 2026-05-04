@@ -163,7 +163,22 @@ export default function GanttChart() {
 
   const updateGanttProject = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GanttProject.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries(['ganttProjects']),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries(['ganttProjects']);
+      const previous = queryClient.getQueryData(['ganttProjects']);
+      queryClient.setQueryData(['ganttProjects'], old =>
+        (old || []).map(p => (p.id === id ? { ...p, ...data } : p))
+      );
+      return { previous };
+    },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['ganttProjects'], ctx.previous);
+      console.error('[GanttProject.update] failed:', err);
+    },
+    onSuccess: (result) => {
+      console.log('[GanttProject.update] response:', result);
+      queryClient.invalidateQueries(['ganttProjects']);
+    },
   });
 
   const deleteGanttProject = useMutation({
