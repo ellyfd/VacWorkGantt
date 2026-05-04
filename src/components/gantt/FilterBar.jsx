@@ -12,6 +12,9 @@ const FilterBar = React.memo(function FilterBar({
   onBrandChange,
   hideHolidays,
   onHideHolidaysChange,
+  archivedFilter,
+  onArchivedFilterChange,
+  archivedCount,
   visibleRowCount,
   totalRowCount,
 }) {
@@ -98,6 +101,33 @@ const FilterBar = React.memo(function FilterBar({
         >
           {hideHolidays ? '✓ 僅工作日' : '僅工作日'}
         </button>
+
+        {/* 分隔線 */}
+        <div className="w-px h-4 bg-gray-300" />
+
+        {/* 歸檔狀態 - 三段式 Pill */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-gray-500 whitespace-nowrap font-medium">狀態</span>
+          <div className="flex gap-1">
+            {[
+              { value: 'active', label: '進行中' },
+              { value: 'archived', label: `已歸檔${archivedCount ? ` (${archivedCount})` : ''}` },
+              { value: 'all', label: '全部' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => onArchivedFilterChange(opt.value)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  archivedFilter === opt.value
+                    ? 'bg-gray-800 text-white border-gray-800'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* 篩選提示 */}
         <span className="text-xs text-gray-400 ml-1">

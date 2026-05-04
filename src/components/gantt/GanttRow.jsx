@@ -25,6 +25,7 @@ const GanttRow = React.memo(function GanttRow({
   gridStyle,
   CELL_WIDTH,
   ROW_HEIGHT,
+  isArchived,
   onEditTask,
   onDragStart,
   onDragOver,
@@ -185,6 +186,8 @@ const GanttRow = React.memo(function GanttRow({
         height: ROW_HEIGHT,
         cursor: 'move',
         userSelect: 'none',
+        opacity: isArchived ? 0.5 : 1,
+        filter: isArchived ? 'grayscale(0.4)' : undefined,
       }}
     >
       {dropTargetId && (
