@@ -62,12 +62,11 @@ export default function GanttChart() {
   // 無限捲動：真正的 window 模型（只延伸邊界，不重建整條 timeline）
   const [startDate, setStartDate] = useState(() => subDays(new Date(), 180));
   const [endDate, setEndDate] = useState(() => addDays(new Date(), 180));
-  const rightPanelContainerRef = useRef(null);
-  
+
   // 使用 custom hooks
   const { isDragging, setIsDragging, dragTaskId, setDragTaskId, dragStart, setDragStart, dragEnd, setDragEnd } = useDragState();
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, deleteConfirm, setDeleteConfirm } = useDialogState();
-  const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
+  const { projectFormData, setProjectFormData, taskFormData, setTaskFormData } = useFormData();
   const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays, archivedFilter, setArchivedFilter } = useFilterState();
   const { archivedMap, archive: archiveProject, restore: restoreProject } = useArchivedProjects();
   const [archiveConfirm, setArchiveConfirm] = useState(null);
@@ -175,8 +174,7 @@ export default function GanttChart() {
       if (ctx?.previous) queryClient.setQueryData(['ganttProjects'], ctx.previous);
       console.error('[GanttProject.update] failed:', err);
     },
-    onSuccess: (result) => {
-      console.log('[GanttProject.update] response:', result);
+    onSuccess: () => {
       queryClient.invalidateQueries(['ganttProjects']);
     },
   });
@@ -324,11 +322,6 @@ export default function GanttChart() {
       id: `project-${project.id}`,
     }));
   }, [ganttProjects, archivedMap]);
-
-  // 計算 makalotGroup
-  const makalotGroup = useMemo(() => {
-    return groups.find(g => g.name.toLowerCase() === 'makalot');
-  }, [groups]);
 
   // ── More Lookup Maps（定義早：employeeMap 需要在 filteredLeaveRecords 前面）
   const employeeMap = useMemo(() =>
@@ -1372,7 +1365,7 @@ export default function GanttChart() {
             </div>
 
           {/* Right Panel */}
-          <div className="flex-1 overflow-x-auto overflow-y-auto" style={{ maxHeight: `calc(100vh - ${440 - MONTH_HEADER_HEIGHT - DATE_HEADER_HEIGHT - LEAVE_HEADER_HEIGHT}px)` }} data-gantt-scroll ref={(el) => { rightPanelRef.current = el; rightPanelContainerRef.current = el; }} onScroll={handleRightScroll}>
+          <div className="flex-1 overflow-x-auto overflow-y-auto" style={{ maxHeight: `calc(100vh - ${440 - MONTH_HEADER_HEIGHT - DATE_HEADER_HEIGHT - LEAVE_HEADER_HEIGHT}px)` }} data-gantt-scroll ref={rightPanelRef} onScroll={handleRightScroll}>
             {/* 所有列共用同一個 grid track，完全對齊 */}
             {(() => {
               const totalWidth = days.length * CELL_WIDTH;

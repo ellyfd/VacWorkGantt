@@ -115,14 +115,6 @@ export default function LeaveCalendar() {
     [leaveTypes]
   );
 
-  const leaveByDateEmpKey = React.useMemo(() => {
-    const map = {};
-    leaveRecords.forEach(r => {
-      map[`${r.date}_${currentEmployee?.id}`] = r;
-    });
-    return map;
-  }, [leaveRecords, currentEmployee?.id]);
-
   const queryKey = [currentDate.getFullYear(), currentDate.getMonth(), currentEmployee?.id];
 
   const { data: allLeaveRecords = [] } = useQuery({
