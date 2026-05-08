@@ -40,17 +40,12 @@ export async function sendLeaveNotification({
   const { emp, adminEmails, deputyEmails } = getNotificationRecipients(employees, employeeId);
   const leaveTypeName = leaveTypes.find(lt => lt.id === leaveTypeId)?.name || '未知假別';
   const verb = action === 'create' ? '新增了' : '取消了';
+  const notifType = action === 'create' ? 'leave_created' : 'leave_deleted';
 
   const sendNotif = async (email, message) => {
-    const oldNotifications = await base44.entities.Notification.filter({
-      recipient_email: email,
-      message: { $regex: `${emp?.name}.*${date}` }
-    });
-    await Promise.all(oldNotifications.map(n => base44.entities.Notification.delete(n.id)));
-
     const notifData = {
       recipient_email: email,
-      type: 'leave_created',
+      type: notifType,
       message
     };
 
