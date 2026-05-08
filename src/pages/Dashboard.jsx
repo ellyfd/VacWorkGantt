@@ -21,6 +21,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// 分批執行 async 操作，避免一次塞數百個請求給後端。
+async function runInBatches(items, fn, batchSize = 10) {
+  for (let i = 0; i < items.length; i += batchSize) {
+    await Promise.all(items.slice(i, i + batchSize).map(fn));
+  }
+}
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -200,9 +206,10 @@ export default function Dashboard() {
       if (duplicatesToDelete.length === 0) {
         toast({ title: '沒有發現重複的記錄' });
       } else {
-        // 批量刪除重複記錄
-        await Promise.all(
-          duplicatesToDelete.map(id => base44.entities.LeaveRecord.delete(id))
+        toast({ title: `找到 ${duplicatesToDelete.length} 筆重複記錄，開始清理...` });
+        await runInBatches(
+          duplicatesToDelete,
+          (id) => base44.entities.LeaveRecord.delete(id),
         );
 
         // 重新載入資料
@@ -283,8 +290,20 @@ export default function Dashboard() {
         return null;
       }).filter(Boolean);
 
-      await Promise.all(updates.map(u => base44.entities.LeaveRecord.update(u.id, { warning_type: u.warning_type, warning_details: u.warning_details })));
       updatedCount = updates.length;
+      if (updatedCount === 0) {
+        toast({ title: '掃描完成', description: '所有記錄的警示資訊都已是最新' });
+        return;
+      }
+
+      toast({ title: `找到 ${updatedCount} 筆需要同步，開始處理...` });
+      await runInBatches(
+        updates,
+        (u) => base44.entities.LeaveRecord.update(u.id, {
+          warning_type: u.warning_type,
+          warning_details: u.warning_details,
+        }),
+      );
 
       // 重新載入資料
       queryClient.invalidateQueries(['todayLeaves']);
@@ -292,7 +311,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries(['leaveRecords']);
       queryClient.invalidateQueries(['allLeaveRecords']);
 
-      toast({ title: `掃描完成`, description: `共更新 ${updatedCount} 筆記錄的警示資訊` });
+      toast({ title: '掃描完成', description: `共更新 ${updatedCount} 筆記錄的警示資訊` });
     } catch (error) {
       toast({ title: '掃描失敗', description: error.message, variant: 'destructive' });
     } finally {
