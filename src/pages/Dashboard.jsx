@@ -259,7 +259,14 @@ export default function Dashboard() {
           }
         }
 
-        if (warningTypes.length > 0 && (!record.warning_type || record.warning_type.length === 0)) {
+        // 結果與目前 DB 狀態不同就同步（包含警示消失需要清空的情況）
+        const prevTypes = (record.warning_type || []).slice().sort();
+        const newTypes = warningTypes.slice().sort();
+        const typesChanged =
+          prevTypes.length !== newTypes.length ||
+          prevTypes.some((t, i) => t !== newTypes[i]);
+
+        if (typesChanged) {
           return { id: record.id, warning_type: warningTypes, warning_details: warningDetails };
         }
         return null;
