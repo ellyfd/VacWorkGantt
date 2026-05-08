@@ -1030,9 +1030,11 @@ export default function GanttChart() {
     const updatedItems = reorderedItems.map((item, idx) => ({ ...item, sort_order: idx }));
     queryClient.setQueryData(['ganttProjects'], updatedItems);
 
-    // ③ 批次更新所有受影響項目的 sort_order（修正 DB 與 cache 不一致問題）
+    // 只 PATCH 位置真的變動的項目（包含舊資料 sort_order 不一致時的一次性回填）
     reorderedItems.forEach((item, idx) => {
-      updateSortOrder.mutate({ id: item.id, entityType: 'project', sortOrder: idx });
+      if (item.sort_order !== idx) {
+        updateSortOrder.mutate({ id: item.id, entityType: 'project', sortOrder: idx });
+      }
     });
   };
 
