@@ -34,6 +34,9 @@ const mobileTabItems = [
   { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3 },
 ];
 
+// Radix Select disallows empty/null values; use a sentinel for "no deputy".
+const DEPUTY_NONE = '__none__';
+
 export default function Layout({ children, currentPageName }) {
   const [showBindDialog, setShowBindDialog] = useState(false);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
@@ -619,23 +622,29 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 {editingDeputy ? (
                   <div className="space-y-2 mt-1">
-                    <Select value={deputy1Id} onValueChange={setDeputy1Id}>
+                    <Select
+                      value={deputy1Id || DEPUTY_NONE}
+                      onValueChange={(v) => setDeputy1Id(v === DEPUTY_NONE ? '' : v)}
+                    >
                       <SelectTrigger className="h-7 text-xs">
                         <SelectValue placeholder="第一代理人" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>無</SelectItem>
+                        <SelectItem value={DEPUTY_NONE}>無</SelectItem>
                         {employees.filter(e => e.id !== boundEmployee?.id && e.status === 'active').map(e => (
                           <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={deputy2Id} onValueChange={setDeputy2Id}>
+                    <Select
+                      value={deputy2Id || DEPUTY_NONE}
+                      onValueChange={(v) => setDeputy2Id(v === DEPUTY_NONE ? '' : v)}
+                    >
                       <SelectTrigger className="h-7 text-xs">
                         <SelectValue placeholder="第二代理人" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>無</SelectItem>
+                        <SelectItem value={DEPUTY_NONE}>無</SelectItem>
                         {employees.filter(e => e.id !== boundEmployee?.id && e.status === 'active').map(e => (
                           <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                         ))}

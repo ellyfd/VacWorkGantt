@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
@@ -95,28 +95,39 @@ export default function Dashboard() {
     enabled: false, // 只在需要時手動觸發
   });
 
-  const getEmployeeName = (empId) => {
-    const emp = employees.find(e => e.id === empId);
-    return emp ? emp.name : '-';
-  };
+  // O(1) 查詢 maps，取代 render 路徑上的 array.find
+  const employeeMap = useMemo(
+    () => Object.fromEntries(employees.map(e => [e.id, e])),
+    [employees]
+  );
+  const departmentMap = useMemo(
+    () => Object.fromEntries(departments.map(d => [d.id, d])),
+    [departments]
+  );
+  const leaveTypeMap = useMemo(
+    () => Object.fromEntries(leaveTypes.map(lt => [lt.id, lt])),
+    [leaveTypes]
+  );
+
+  const getEmployeeName = (empId) => employeeMap[empId]?.name || '-';
 
   const getDepartmentName = (empId) => {
-    const emp = employees.find(e => e.id === empId);
-    if (!emp) return '-';
-    const depts = departments.filter(d => emp.department_ids?.includes(d.id));
-    return depts.length > 0 ? depts.map(d => d.name).join(', ') : '-';
+    const emp = employeeMap[empId];
+    if (!emp?.department_ids?.length) return '-';
+    const names = emp.department_ids
+      .map(id => departmentMap[id]?.name)
+      .filter(Boolean);
+    return names.length > 0 ? names.join(', ') : '-';
   };
 
-  const getLeaveType = (typeId) => {
-    return leaveTypes.find(lt => lt.id === typeId);
-  };
+  const getLeaveType = (typeId) => leaveTypeMap[typeId];
 
   const filteredEmployees = selectedDepartments.length > 0
     ? employees.filter(emp => emp.department_ids?.some(deptId => selectedDepartments.includes(deptId)))
     : employees;
 
   const filteredLeaves = todayLeaves.filter(leave => {
-    const emp = employees.find(e => e.id === leave.employee_id);
+    const emp = employeeMap[leave.employee_id];
     if (!emp) return false;
     if (selectedDepartments.length === 0) return true;
     return emp.department_ids?.some(deptId => selectedDepartments.includes(deptId));
@@ -124,10 +135,10 @@ export default function Dashboard() {
 
   const leavesByDept = {};
   filteredLeaves.forEach(leave => {
-    const emp = employees.find(e => e.id === leave.employee_id);
+    const emp = employeeMap[leave.employee_id];
     if (emp && emp.department_ids) {
       emp.department_ids.forEach(deptId => {
-        const dept = departments.find(d => d.id === deptId);
+        const dept = departmentMap[deptId];
         const deptName = dept ? dept.name : '未分類';
         if (!leavesByDept[deptName]) {
           leavesByDept[deptName] = [];
@@ -259,7 +270,14 @@ export default function Dashboard() {
           }
         }
 
-        if (warningTypes.length > 0 && (!record.warning_type || record.warning_type.length === 0)) {
+        // 結果與目前 DB 狀態不同就同步（包含警示消失需要清空的情況）
+        const prevTypes = (record.warning_type || []).slice().sort();
+        const newTypes = warningTypes.slice().sort();
+        const typesChanged =
+          prevTypes.length !== newTypes.length ||
+          prevTypes.some((t, i) => t !== newTypes[i]);
+
+        if (typesChanged) {
           return { id: record.id, warning_type: warningTypes, warning_details: warningDetails };
         }
         return null;
@@ -536,7 +554,7 @@ export default function Dashboard() {
                         employees: []
                       };
                     }
-                    const emp = employees.find(e => e.id === leave.employee_id);
+                    const emp = employeeMap[leave.employee_id];
                     if (emp) {
                       acc[typeId].employees.push(emp.name);
                     }
@@ -578,7 +596,7 @@ export default function Dashboard() {
             const lt = getLeaveType(r.leave_type_id);
             if (lt?.name === '出差') return false;
 
-            const emp = employees.find(e => e.id === r.employee_id);
+            const emp = employeeMap[r.employee_id];
             if (!emp) return false;
 
             // 部門篩選
@@ -603,7 +621,7 @@ export default function Dashboard() {
             let hasDeptOverLimit = false;
             const deptLeaves = todayLeaves.filter(lr => {
               if (lr.employee_id === r.employee_id) return false;
-              const e = employees.find(e => e.id === lr.employee_id);
+              const e = employeeMap[lr.employee_id];
               const lrType = getLeaveType(lr.leave_type_id);
               return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
             });
@@ -660,7 +678,7 @@ export default function Dashboard() {
                     const lt = getLeaveType(r.leave_type_id);
                     if (lt?.name === '出差') return false;
 
-                    const emp = employees.find(e => e.id === r.employee_id);
+                    const emp = employeeMap[r.employee_id];
                     if (!emp) return false;
 
                     // 部門篩選
@@ -684,7 +702,7 @@ export default function Dashboard() {
                     let hasDeptOverLimit = false;
                     const deptLeaves = todayLeaves.filter(lr => {
                       if (lr.employee_id === r.employee_id) return false;
-                      const e = employees.find(e => e.id === lr.employee_id);
+                      const e = employeeMap[lr.employee_id];
                       const lrType = getLeaveType(lr.leave_type_id);
                       return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
                     });
@@ -697,7 +715,7 @@ export default function Dashboard() {
 
                     return hasDeputyConflict || hasDeptOverLimit;
                   }).map((record) => {
-                    const employee = employees.find(e => e.id === record.employee_id);
+                    const employee = employeeMap[record.employee_id];
                     const leaveType = getLeaveType(record.leave_type_id);
 
                     const warningTypes = record.warning_type || [];
@@ -712,7 +730,7 @@ export default function Dashboard() {
                         return deputies.includes(lr.employee_id) && lr.date === record.date && lrType?.name !== '出差';
                       });
                       return deputyConflicts.map(dc => {
-                        const dep = employees.find(e => e.id === dc.employee_id);
+                        const dep = employeeMap[dc.employee_id];
                         const lt = getLeaveType(dc.leave_type_id);
                         return { name: dep?.name || '未知', leaveType: lt?.name || '未知' };
                       });
@@ -786,7 +804,7 @@ export default function Dashboard() {
                 const lt = getLeaveType(r.leave_type_id);
                 if (lt?.name === '出差') return false;
 
-                const emp = employees.find(e => e.id === r.employee_id);
+                const emp = employeeMap[r.employee_id];
                 if (!emp) return false;
 
                 // 部門篩選
@@ -810,7 +828,7 @@ export default function Dashboard() {
                 let hasDeptOverLimit = false;
                 const deptLeaves = todayLeaves.filter(lr => {
                   if (lr.employee_id === r.employee_id) return false;
-                  const e = employees.find(e => e.id === lr.employee_id);
+                  const e = employeeMap[lr.employee_id];
                   const lrType = getLeaveType(lr.leave_type_id);
                   return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
                 });
@@ -823,7 +841,7 @@ export default function Dashboard() {
 
                 return hasDeputyConflict || hasDeptOverLimit;
               }).map((record) => {
-                const employee = employees.find(e => e.id === record.employee_id);
+                const employee = employeeMap[record.employee_id];
                 const leaveType = getLeaveType(record.leave_type_id);
 
                 const warningTypes = record.warning_type || [];
@@ -838,7 +856,7 @@ export default function Dashboard() {
                     return deputies.includes(lr.employee_id) && lr.date === record.date && lrType?.name !== '出差';
                   });
                   return deputyConflicts.map(dc => {
-                    const dep = employees.find(e => e.id === dc.employee_id);
+                    const dep = employeeMap[dc.employee_id];
                     const lt = getLeaveType(dc.leave_type_id);
                     return { name: dep?.name || '未知', leaveType: lt?.name || '未知' };
                   });
@@ -882,7 +900,7 @@ export default function Dashboard() {
             const lt = getLeaveType(r.leave_type_id);
             if (lt?.name === '出差') return false;
 
-            const emp = employees.find(e => e.id === r.employee_id);
+            const emp = employeeMap[r.employee_id];
             if (!emp) return false;
 
             let hasDeputyConflict = false;
@@ -898,7 +916,7 @@ export default function Dashboard() {
             let hasDeptOverLimit = false;
             const deptLeaves = todayLeaves.filter(lr => {
               if (lr.employee_id === r.employee_id) return false;
-              const e = employees.find(e => e.id === lr.employee_id);
+              const e = employeeMap[lr.employee_id];
               const lrType = getLeaveType(lr.leave_type_id);
               return e?.department_ids?.some(deptId => emp?.department_ids?.includes(deptId)) && lr.date === r.date && lrType?.name !== '出差';
             });

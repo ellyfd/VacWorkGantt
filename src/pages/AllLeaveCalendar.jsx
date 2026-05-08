@@ -15,6 +15,8 @@ import {
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import { checkDeputyConflict, checkDeptLimit, buildWarningInfo } from '@/components/utils/leaveWarnings';
+import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -99,149 +101,74 @@ export default function AllLeaveCalendar() {
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
       const currentEmployee = employeeMap[employeeId];
       const currentLeaveType = leaveTypeMap[leaveTypeId];
-      const isBusinessTrip = currentLeaveType?.name === '出差';
       const period = getLeavePeriod(currentLeaveType?.name);
 
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period
       );
-      
+
       if (existing && existing.leave_type_id === leaveTypeId) {
         return existing;
       }
 
-      if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-        const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-        const conflicts = leaveRecords.filter(r => {
-          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-          return deputies.includes(r.employee_id) && r.date === date && rLeaveType?.name !== '出差';
-        });
-        
-        if (conflicts.length > 0) {
-          const conflictNames = conflicts.map(c => {
-            const emp = employees.find(e => e.id === c.employee_id);
-            return emp?.name || '未知';
-          }).join('、');
-          
-          const confirmed = await confirm(
-            `職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`,
-            { title: '職代衝突警告', confirmText: '繼續請假', variant: 'destructive' }
-          );
-          if (!confirmed) throw new Error('取消請假');
-        }
-      }
-      
-      // 檢查部門人數限制（排除出差）
-      if (!isBusinessTrip) {
-      const deptLeaves = leaveRecords.filter(r => {
-        if (r.employee_id === employeeId) return false;
-        const emp = employees.find(e => e.id === r.employee_id);
-        const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date && rLeaveType?.name !== '出差';
+      // 職代衝突確認
+      const deputyConflicts = checkDeputyConflict({
+        employee: currentEmployee, date, leaveTypes, leaveTypeId,
+        allLeaveRecords: leaveRecords, employees,
       });
-      const deptTotalMembers = employees.filter(e => 
-        e.status === 'active' && 
-        e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-      ).length;
-      const deptLimit = Math.floor(deptTotalMembers / 3);
-
-      if (deptLeaves.length >= deptLimit) {
+      if (deputyConflicts.length > 0) {
+        const conflictNames = deputyConflicts
+          .map(c => employeeMap[c.employee_id]?.name || '未知').join('、');
         const confirmed = await confirm(
-          `${date} 該部門已有 ${deptLeaves.length} 人請假（超過部門 1/3 人數上限 ${deptLimit}），確定要繼續？`,
+          `職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`,
+          { title: '職代衝突警告', confirmText: '繼續請假', variant: 'destructive' }
+        );
+        if (!confirmed) throw new Error('取消請假');
+      }
+
+      // 部門人數上限確認
+      const deptLimitInfo = checkDeptLimit({
+        employee: currentEmployee, date, leaveTypeId, leaveTypes,
+        allLeaveRecords: leaveRecords, employees,
+      });
+      if (deptLimitInfo) {
+        const confirmed = await confirm(
+          `${date} 該部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門 1/3 人數上限 ${deptLimitInfo.deptLimit}），確定要繼續？`,
           { title: '部門請假超標警告', confirmText: '繼續請假', variant: 'destructive' }
         );
         if (!confirmed) throw new Error('取消請假');
       }
-      }
-      
-      // 計算警示資訊
-      const warningTypes = [];
-      const warningDetails = {};
-      
-      // 職代衝突警示（排除出差）
-      if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-        const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-        const deputyConflicts = leaveRecords.filter(r => {
-          const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-          return deputies.includes(r.employee_id) && r.date === date && rLeaveType?.name !== '出差';
-        });
-        
-        if (deputyConflicts.length > 0) {
-          warningTypes.push('deputy_conflict');
-          warningDetails.deputy_conflicts = deputyConflicts.map(c => {
-            const emp = employees.find(e => e.id === c.employee_id);
-            const lt = leaveTypes.find(l => l.id === c.leave_type_id);
-            return {
-              employee_id: c.employee_id,
-              employee_name: emp?.name || '未知',
-              leave_type: lt?.name || '未知'
-            };
-          });
-        }
-      }
-      
-      // 部門人數警示（排除出差）
-      if (!isBusinessTrip) {
-      const deptLeaves = leaveRecords.filter(r => {
-        if (r.employee_id === employeeId) return false;
-        const emp = employees.find(e => e.id === r.employee_id);
-        const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-        return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === date && rLeaveType?.name !== '出差';
+
+      const { warningTypes, warningDetails } = buildWarningInfo({
+        employee: currentEmployee, date, leaveTypeId, leaveTypes,
+        allLeaveRecords: leaveRecords, employees,
       });
-      const deptTotalMembers = employees.filter(e => 
-        e.status === 'active' && 
-        e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-      ).length;
-      const deptLimit = Math.floor(deptTotalMembers / 3);
-      
-      if (deptLeaves.length >= deptLimit) {
-        warningTypes.push('department_over_limit');
-        warningDetails.department_info = {
-          total_members: deptTotalMembers,
-          leave_count: deptLeaves.length + 1,
-          limit: deptLimit,
-          percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
-        };
-      }
-      }
-      
+      const warningPayload = warningTypes.length > 0
+        ? { warning_type: warningTypes, warning_details: warningDetails }
+        : { warning_type: undefined, warning_details: undefined };
+
       if (existing) {
         return base44.entities.LeaveRecord.update(existing.id, {
           leave_type_id: leaveTypeId,
           period,
-          warning_type: warningTypes.length > 0 ? warningTypes : undefined,
-          warning_details: warningTypes.length > 0 ? warningDetails : undefined
+          ...warningPayload,
         });
-      } else {
-        const newRecord = await base44.entities.LeaveRecord.create({
-          employee_id: employeeId,
-          date: date,
-          leave_type_id: leaveTypeId,
-          period,
-          warning_type: warningTypes.length > 0 ? warningTypes : undefined,
-          warning_details: warningTypes.length > 0 ? warningDetails : undefined
-        });
-
-        // 發送通知（並行）
-        const emp = employees.find(e => e.id === employeeId);
-        const leaveTypeName = leaveTypes.find(lt => lt.id === leaveTypeId)?.name || '未知假別';
-
-        const sendNotif = async (email, message) => {
-          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_created', message, related_entity_id: newRecord.id, related_entity_type: 'LeaveRecord' });
-        };
-
-        const adminEmails = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0).flatMap(e => e.user_emails);
-        const deputyEmails = (emp?.deputy_1 || emp?.deputy_2)
-          ? [emp.deputy_1, emp.deputy_2].filter(Boolean).flatMap(depId => employees.find(e => e.id === depId)?.user_emails || [])
-          : [];
-
-        await Promise.all([
-          ...adminEmails.map(email => sendNotif(email, `${emp?.name || '未知員工'} 新增了 ${date} 的 ${leaveTypeName}`)),
-          ...deputyEmails.map(email => sendNotif(email, `您的職務代理人 ${emp.name} 新增了 ${date} 的 ${leaveTypeName}`)),
-        ]);
-
-        return newRecord;
       }
+
+      const newRecord = await base44.entities.LeaveRecord.create({
+        employee_id: employeeId,
+        date,
+        leave_type_id: leaveTypeId,
+        period,
+        ...warningPayload,
+      });
+
+      await sendLeaveNotification({
+        employees, employeeId, date, leaveTypeId, leaveTypes,
+        action: 'create', relatedRecord: newRecord,
+      });
+
+      return newRecord;
     },
     onMutate: async ({ employeeId, date, leaveTypeId }) => {
       await queryClient.cancelQueries(['leaveRecords']);
@@ -281,22 +208,17 @@ export default function AllLeaveCalendar() {
     mutationFn: async (recordId) => {
       const record = leaveRecords.find(r => r.id === recordId);
       await base44.entities.LeaveRecord.delete(recordId);
-      
+
       if (record) {
-        const emp = employees.find(e => e.id === record.employee_id);
-        const leaveTypeName = leaveTypes.find(lt => lt.id === record.leave_type_id)?.name || '未知假別';
-        
-        const sendNotif = async (email, message) => {
-          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_deleted', message, related_entity_type: 'LeaveRecord' });
-        };
-        const adminEmails = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0).flatMap(e => e.user_emails);
-        const deputyEmails = (emp?.deputy_1 || emp?.deputy_2)
-          ? [emp.deputy_1, emp.deputy_2].filter(Boolean).flatMap(depId => employees.find(e => e.id === depId)?.user_emails || [])
-          : [];
-        await Promise.all([
-          ...adminEmails.map(email => sendNotif(email, `${emp?.name || '未知員工'} 取消了 ${record.date} 的 ${leaveTypeName}`)),
-          ...deputyEmails.map(email => sendNotif(email, `您的職務代理人 ${emp.name} 取消了 ${record.date} 的 ${leaveTypeName}`)),
-        ]);
+        await sendLeaveNotification({
+          employees,
+          employeeId: record.employee_id,
+          date: record.date,
+          leaveTypeId: record.leave_type_id,
+          leaveTypes,
+          action: 'delete',
+          relatedRecord: record,
+        });
       }
     },
     onSuccess: () => {
@@ -308,28 +230,16 @@ export default function AllLeaveCalendar() {
     mutationFn: async (recordIds) => {
       const recordsToDelete = leaveRecords.filter(r => recordIds.includes(r.id));
       await Promise.all(recordIds.map(id => base44.entities.LeaveRecord.delete(id)));
-      
-      // 合併通知：取消 N 天的假別
+
       if (recordsToDelete.length > 0) {
         const firstRecord = recordsToDelete[0];
-        const emp = employees.find(e => e.id === firstRecord.employee_id);
-        const leaveTypeName = leaveTypes.find(lt => lt.id === firstRecord.leave_type_id)?.name || '未知假別';
-        const dates = [...new Set(recordsToDelete.map(r => r.date))].sort();
-        const msgSuffix = dates.length === 1
-          ? `${dates[0]} 的 ${leaveTypeName}`
-          : `${dates[0]} 至 ${dates[dates.length - 1]} 共 ${dates.length} 天的 ${leaveTypeName}`;
-
-        const sendNotif = async (email, message) => {
-          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_deleted', message, related_entity_type: 'LeaveRecord' });
-        };
-        const adminEmails = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0).flatMap(e => e.user_emails);
-        const deputyEmails = (emp?.deputy_1 || emp?.deputy_2)
-          ? [emp.deputy_1, emp.deputy_2].filter(Boolean).flatMap(depId => employees.find(e => e.id === depId)?.user_emails || [])
-          : [];
-        await Promise.all([
-          ...adminEmails.map(email => sendNotif(email, `${emp?.name || '未知員工'} 取消了 ${msgSuffix}`)),
-          ...deputyEmails.map(email => sendNotif(email, `您的職務代理人 ${emp.name} 取消了 ${msgSuffix}`)),
-        ]);
+        await sendRangeDeleteNotification({
+          employees,
+          employeeId: firstRecord.employee_id,
+          dates: recordsToDelete.map(r => r.date),
+          leaveTypeId: firstRecord.leave_type_id,
+          leaveTypes,
+        });
       }
     },
     onSuccess: () => {
@@ -342,62 +252,39 @@ export default function AllLeaveCalendar() {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const currentEmployee = employeeMap[employeeId];
-
       const leaveType = leaveTypeMap[leaveTypeId];
       const isBusinessTrip = leaveType?.name === '出差';
 
-      const deptTotalMembers = !isBusinessTrip
-        ? employees.filter(e =>
-            e.status === 'active' &&
-            e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-          ).length
-        : 0;
-      const deptLimit = !isBusinessTrip ? Math.floor(deptTotalMembers / 3) : 0;
-
-      const warnings = [];
+      // 收集需要的日期（出差含週末/假日，其餘僅工作日）
       const dates = [];
-
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = format(d, 'yyyy-MM-dd');
-        const dayOfWeek = d.getDay();
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const dow = d.getDay();
+        const isWeekend = dow === 0 || dow === 6;
         const isHoliday = holidays?.some(h => h.date === dateStr);
-
-        if (!isBusinessTrip && (isWeekend || isHoliday)) {
-          continue;
-        }
-
+        if (!isBusinessTrip && (isWeekend || isHoliday)) continue;
         dates.push(dateStr);
+      }
 
-        if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-          const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-          const conflicts = leaveRecords.filter(r => {
-            const rLeaveType = leaveTypeMap[r.leave_type_id];
-            return deputies.includes(r.employee_id) && r.date === dateStr && rLeaveType?.name !== '出差';
-          });
-
-          if (conflicts.length > 0) {
-            const conflictNames = conflicts.map(c => {
-              const emp = employeeMap[c.employee_id];
-              return emp?.name || '未知';
-            }).join('、');
-            warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
-          }
+      // 整段一次彙整警示訊息給使用者確認
+      const warnings = [];
+      for (const dateStr of dates) {
+        const deputyConflicts = checkDeputyConflict({
+          employee: currentEmployee, date: dateStr, leaveTypes, leaveTypeId,
+          allLeaveRecords: leaveRecords, employees,
+        });
+        if (deputyConflicts.length > 0) {
+          const conflictNames = deputyConflicts
+            .map(c => employeeMap[c.employee_id]?.name || '未知').join('、');
+          warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
         }
-        
-        if (!isBusinessTrip) {
-          const deptLeaves = leaveRecords.filter(r => {
-            if (r.employee_id === employeeId) return false;
-            const emp = employeeMap[r.employee_id];
-            const rLeaveType = leaveTypeMap[r.leave_type_id];
-            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-              && r.date === dateStr
-              && rLeaveType?.name !== '出差';
-          });
 
-          if (deptLeaves.length >= deptLimit) {
-            warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（達到1/3人數 ${deptLimit}）`);
-          }
+        const deptLimitInfo = checkDeptLimit({
+          employee: currentEmployee, date: dateStr, leaveTypeId, leaveTypes,
+          allLeaveRecords: leaveRecords, employees,
+        });
+        if (deptLimitInfo) {
+          warnings.push(`${dateStr}: 部門已有 ${deptLimitInfo.deptLeaves} 人請假（達到1/3人數 ${deptLimitInfo.deptLimit}）`);
         }
       }
 
@@ -409,76 +296,29 @@ export default function AllLeaveCalendar() {
         if (!confirmed) throw new Error('取消請假');
       }
 
-      // 過濾掉已存在相同假別的日期，並計算每個日期的警示資訊
+      // 過濾掉已存在的相同假別日期，並逐日計算 warning_type/details
       const recordsToCreate = [];
       for (const dateStr of dates) {
         const existing = leaveRecords.find(
           r => r.employee_id === employeeId && r.date === dateStr && r.leave_type_id === leaveTypeId
         );
-        if (!existing) {
-          const warningTypes = [];
-          const warningDetails = {};
-          
-          // 職代衝突警示（排除出差）
-          if (!isBusinessTrip && (currentEmployee?.deputy_1 || currentEmployee?.deputy_2)) {
-            const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-            const deputyConflicts = leaveRecords.filter(r => {
-              const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-              return deputies.includes(r.employee_id) && r.date === dateStr && rLeaveType?.name !== '出差';
-            });
-            
-            if (deputyConflicts.length > 0) {
-              warningTypes.push('deputy_conflict');
-              warningDetails.deputy_conflicts = deputyConflicts.map(c => {
-                const emp = employees.find(e => e.id === c.employee_id);
-                const lt = leaveTypes.find(l => l.id === c.leave_type_id);
-                return {
-                  employee_id: c.employee_id,
-                  employee_name: emp?.name || '未知',
-                  leave_type: lt?.name || '未知'
-                };
-              });
-            }
-          }
-          
-          // 部門人數警示（排除出差）
-          if (!isBusinessTrip) {
-          const deptLeaves = leaveRecords.filter(r => {
-            if (r.employee_id === employeeId) return false;
-            const emp = employees.find(e => e.id === r.employee_id);
-            const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-            return emp?.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId)) && r.date === dateStr && rLeaveType?.name !== '出差';
-          });
-          const deptTotalMembers = employees.filter(e => 
-            e.status === 'active' && 
-            e.department_ids?.some(deptId => currentEmployee?.department_ids?.includes(deptId))
-          ).length;
-          const deptLimit = Math.floor(deptTotalMembers / 3);
+        if (existing) continue;
 
-          if (deptLeaves.length >= deptLimit) {
-            warningTypes.push('department_over_limit');
-            warningDetails.department_info = {
-              total_members: deptTotalMembers,
-              leave_count: deptLeaves.length + 1,
-              limit: deptLimit,
-              percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100)
-            };
-          }
-          }
-          
-          recordsToCreate.push({
-            employee_id: employeeId,
-            date: dateStr,
-            leave_type_id: leaveTypeId,
-            warning_type: warningTypes.length > 0 ? warningTypes : undefined,
-            warning_details: warningTypes.length > 0 ? warningDetails : undefined
-          });
-        }
+        const { warningTypes, warningDetails } = buildWarningInfo({
+          employee: currentEmployee, date: dateStr, leaveTypeId, leaveTypes,
+          allLeaveRecords: leaveRecords, employees,
+        });
+
+        recordsToCreate.push({
+          employee_id: employeeId,
+          date: dateStr,
+          leave_type_id: leaveTypeId,
+          warning_type: warningTypes.length > 0 ? warningTypes : undefined,
+          warning_details: warningTypes.length > 0 ? warningDetails : undefined,
+        });
       }
-      
-      if (recordsToCreate.length === 0) {
-        return [];
-      }
+
+      if (recordsToCreate.length === 0) return [];
 
       return base44.entities.LeaveRecord.bulkCreate(recordsToCreate);
       },
