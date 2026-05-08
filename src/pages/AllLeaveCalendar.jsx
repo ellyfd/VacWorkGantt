@@ -257,7 +257,7 @@ export default function AllLeaveCalendar() {
           );
         }
         return [...(old || []), {
-          id: `temp-${Date.now()}`,
+          id: `temp-${crypto.randomUUID()}`,
           employee_id: employeeId,
           date,
           leave_type_id: leaveTypeId,

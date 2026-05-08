@@ -233,7 +233,7 @@ export default function GanttChart() {
       const previous = queryClient.getQueryData(['ganttTasks']);
       queryClient.setQueryData(['ganttTasks'], old => [
         ...(old || []),
-        { ...newTaskData, id: `temp-${Date.now()}` }
+        { ...newTaskData, id: `temp-${crypto.randomUUID()}` }
       ]);
       return { previous };
     },
