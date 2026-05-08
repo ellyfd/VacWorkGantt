@@ -227,8 +227,6 @@ export default function AllLeaveCalendar() {
         const leaveTypeName = leaveTypes.find(lt => lt.id === leaveTypeId)?.name || '未知假別';
 
         const sendNotif = async (email, message) => {
-          const oldNotifications = await base44.entities.Notification.filter({ recipient_email: email, message: { $regex: date } });
-          await Promise.all(oldNotifications.map(n => base44.entities.Notification.delete(n.id)));
           await base44.entities.Notification.create({ recipient_email: email, type: 'leave_created', message, related_entity_id: newRecord.id, related_entity_type: 'LeaveRecord' });
         };
 
@@ -289,9 +287,7 @@ export default function AllLeaveCalendar() {
         const leaveTypeName = leaveTypes.find(lt => lt.id === record.leave_type_id)?.name || '未知假別';
         
         const sendNotif = async (email, message) => {
-          const oldNotifications = await base44.entities.Notification.filter({ recipient_email: email, message: { $regex: record.date } });
-          await Promise.all(oldNotifications.map(n => base44.entities.Notification.delete(n.id)));
-          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_created', message, related_entity_type: 'LeaveRecord' });
+          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_deleted', message, related_entity_type: 'LeaveRecord' });
         };
         const adminEmails = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0).flatMap(e => e.user_emails);
         const deputyEmails = (emp?.deputy_1 || emp?.deputy_2)
@@ -324,7 +320,7 @@ export default function AllLeaveCalendar() {
           : `${dates[0]} 至 ${dates[dates.length - 1]} 共 ${dates.length} 天的 ${leaveTypeName}`;
 
         const sendNotif = async (email, message) => {
-          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_created', message, related_entity_type: 'LeaveRecord' });
+          await base44.entities.Notification.create({ recipient_email: email, type: 'leave_deleted', message, related_entity_type: 'LeaveRecord' });
         };
         const adminEmails = employees.filter(e => e.role === 'admin' && e.user_emails?.length > 0).flatMap(e => e.user_emails);
         const deputyEmails = (emp?.deputy_1 || emp?.deputy_2)

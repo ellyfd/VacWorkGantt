@@ -43,7 +43,6 @@ import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gan
 import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 import TimeNavigation from '@/components/gantt/TimeNavigation';
 import FilterBar from '@/components/gantt/FilterBar';
-import { useSelectionState } from '@/components/hooks/useSelectionState';
 import { useDragState } from '@/components/hooks/useDragState';
 import { useDialogState } from '@/components/hooks/useDialogState';
 import { useFormData } from '@/components/hooks/useFormData';
@@ -66,7 +65,6 @@ export default function GanttChart() {
   const rightPanelContainerRef = useRef(null);
   
   // 使用 custom hooks
-  const { clearSelection } = useSelectionState();
   const { isDragging, setIsDragging, dragTaskId, setDragTaskId, dragStart, setDragStart, dragEnd, setDragEnd } = useDragState();
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, deleteConfirm, setDeleteConfirm } = useDialogState();
   const { projectFormData, setProjectFormData, taskFormData, setTaskFormData, selectedSamples, setSelectedSamples } = useFormData();
@@ -286,7 +284,9 @@ export default function GanttChart() {
     mutationFn: ({ id, data }) => base44.entities.GanttTask.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['ganttTasks']);
-      clearSelection();
+      setSelectedTaskId(null);
+      setFirstDate(null);
+      setSecondDate(null);
     },
   });
 
@@ -1040,8 +1040,8 @@ export default function GanttChart() {
     draggedProjectIdRef.current = null;
   };
 
-  // 渲染左側單元格（memoized）
-  const renderLeftCell = useCallback((row) => {
+  // 渲染左側單元格
+  const renderLeftCell = (row) => {
     if (row.type === 'project') {
       const projectTasks = tasksByProjectId[row.data.id] ?? [];
       const tasksWithTime = projectTasks.filter(t => t.start_date).length;
@@ -1168,7 +1168,7 @@ export default function GanttChart() {
         </div>
       );
     }
-  });
+  };
 
 
 
