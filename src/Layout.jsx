@@ -83,7 +83,8 @@ export default function Layout({ children, currentPageName }) {
       }, '-created_date', 50);
     },
     enabled: !!currentUser?.email,
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 
   const unreadCount = notifications.filter(n => !n.is_read).length;

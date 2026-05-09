@@ -1,58 +1,61 @@
 /**
+ * 共同建立 leaveType / employee 的 Map，避免在迴圈內 array.find。
+ * 內部函式，不對外 export。
+ */
+function buildMaps(leaveTypes, employees) {
+  return {
+    leaveTypeMap: new Map(leaveTypes.map(lt => [lt.id, lt])),
+    employeeMap: new Map(employees.map(e => [e.id, e])),
+  };
+}
+
+/**
  * 檢查職代衝突
- * @param {Object} params
- * @param {Object} params.employee - 當前員工
- * @param {string} params.date - 請假日期
- * @param {Array} params.leaveTypes - 所有假別列表
- * @param {string} params.leaveTypeId - 當前假別ID
- * @param {Array} params.allLeaveRecords - 所有請假記錄
- * @param {Array} params.employees - 所有員工列表
  * @returns {Array} 衝突的請假記錄
  */
-export function checkDeputyConflict({ employee, date, leaveTypes, leaveTypeId, allLeaveRecords, employees }) {
-  const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
-  if (leaveType?.name === '出差') return [];
-  
-  const deputies = [employee?.deputy_1, employee?.deputy_2].filter(Boolean);
-  if (deputies.length === 0) return [];
-  
+export function checkDeputyConflict({ employee, date, leaveTypes, leaveTypeId, allLeaveRecords, employees: _employees }) {
+  const leaveTypeMap = new Map(leaveTypes.map(lt => [lt.id, lt]));
+  const currentLeaveType = leaveTypeMap.get(leaveTypeId);
+  if (currentLeaveType?.name === '出差') return [];
+
+  const deputies = new Set(
+    [employee?.deputy_1, employee?.deputy_2].filter(Boolean)
+  );
+  if (deputies.size === 0) return [];
+
   return allLeaveRecords.filter(r => {
-    const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-    return deputies.includes(r.employee_id) && r.date === date && rLeaveType?.name !== '出差';
+    if (!deputies.has(r.employee_id) || r.date !== date) return false;
+    return leaveTypeMap.get(r.leave_type_id)?.name !== '出差';
   });
 }
 
 /**
  * 檢查部門人數限制
- * @param {Object} params
- * @param {Object} params.employee - 當前員工
- * @param {string} params.date - 請假日期
- * @param {string} params.leaveTypeId - 當前假別ID
- * @param {Array} params.leaveTypes - 所有假別列表
- * @param {Array} params.allLeaveRecords - 所有請假記錄
- * @param {Array} params.employees - 所有員工列表
- * @returns {Object|null} { deptLeaves, deptLimit, deptTotalMembers } 或 null（未超過）
+ * @returns {Object|null} { deptLeaves, deptLimit, deptTotalMembers } 或 null
  */
 export function checkDeptLimit({ employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees }) {
-  const leaveType = leaveTypes.find(lt => lt.id === leaveTypeId);
-  if (leaveType?.name === '出差') return null;
-  
-  // 計算部門總人數（只算一次）
-  const deptTotalMembers = employees.filter(e =>
-    e.status === 'active' &&
-    e.department_ids?.some(deptId => employee?.department_ids?.includes(deptId))
+  const { leaveTypeMap, employeeMap } = buildMaps(leaveTypes, employees);
+  const currentLeaveType = leaveTypeMap.get(leaveTypeId);
+  if (currentLeaveType?.name === '出差') return null;
+
+  const myDeptIds = new Set(employee?.department_ids || []);
+  if (myDeptIds.size === 0) return null;
+
+  const sharesDept = (deptIds) =>
+    deptIds?.some(id => myDeptIds.has(id)) || false;
+
+  const deptTotalMembers = employees.filter(
+    e => e.status === 'active' && sharesDept(e.department_ids)
   ).length;
   const deptLimit = Math.floor(deptTotalMembers / 3);
-  
+
   const deptLeaves = allLeaveRecords.filter(r => {
-    if (r.employee_id === employee.id) return false;
-    const emp = employees.find(e => e.id === r.employee_id);
-    const rLeaveType = leaveTypes.find(lt => lt.id === r.leave_type_id);
-    return emp?.department_ids?.some(deptId => employee?.department_ids?.includes(deptId))
-      && r.date === date
-      && rLeaveType?.name !== '出差';
+    if (r.employee_id === employee.id || r.date !== date) return false;
+    const emp = employeeMap.get(r.employee_id);
+    if (!sharesDept(emp?.department_ids)) return false;
+    return leaveTypeMap.get(r.leave_type_id)?.name !== '出差';
   });
-  
+
   if (deptLeaves.length >= deptLimit) {
     return { deptLeaves: deptLeaves.length, deptLimit, deptTotalMembers };
   }
@@ -61,45 +64,39 @@ export function checkDeptLimit({ employee, date, leaveTypeId, leaveTypes, allLea
 
 /**
  * 建立警示資訊
- * @param {Object} params
- * @param {Object} params.employee - 當前員工
- * @param {string} params.date - 請假日期
- * @param {string} params.leaveTypeId - 當前假別ID
- * @param {Array} params.leaveTypes - 所有假別列表
- * @param {Array} params.allLeaveRecords - 所有請假記錄
- * @param {Array} params.employees - 所有員工列表
  * @returns {Object} { warningTypes: [], warningDetails: {} }
  */
 export function buildWarningInfo({ employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees }) {
+  const { leaveTypeMap, employeeMap } = buildMaps(leaveTypes, employees);
   const warningTypes = [];
   const warningDetails = {};
-  
-  // 職代衝突警示
-  const deputyConflicts = checkDeputyConflict({ employee, date, leaveTypes, leaveTypeId, allLeaveRecords, employees });
+
+  const deputyConflicts = checkDeputyConflict({
+    employee, date, leaveTypes, leaveTypeId, allLeaveRecords, employees,
+  });
   if (deputyConflicts.length > 0) {
     warningTypes.push('deputy_conflict');
-    warningDetails.deputy_conflicts = deputyConflicts.map(c => {
-      const emp = employees.find(e => e.id === c.employee_id);
-      const lt = leaveTypes.find(l => l.id === c.leave_type_id);
-      return {
-        employee_id: c.employee_id,
-        employee_name: emp?.name || '未知',
-        leave_type: lt?.name || '未知'
-      };
-    });
+    warningDetails.deputy_conflicts = deputyConflicts.map(c => ({
+      employee_id: c.employee_id,
+      employee_name: employeeMap.get(c.employee_id)?.name || '未知',
+      leave_type: leaveTypeMap.get(c.leave_type_id)?.name || '未知',
+    }));
   }
-  
-  // 部門人數限制警示
-  const deptLimitInfo = checkDeptLimit({ employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees });
+
+  const deptLimitInfo = checkDeptLimit({
+    employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees,
+  });
   if (deptLimitInfo) {
     warningTypes.push('department_over_limit');
     warningDetails.department_info = {
       total_members: deptLimitInfo.deptTotalMembers,
       leave_count: deptLimitInfo.deptLeaves + 1,
       limit: deptLimitInfo.deptLimit,
-      percentage: Math.round((deptLimitInfo.deptLeaves + 1) / deptLimitInfo.deptTotalMembers * 100)
+      percentage: Math.round(
+        (deptLimitInfo.deptLeaves + 1) / deptLimitInfo.deptTotalMembers * 100
+      ),
     };
   }
-  
+
   return { warningTypes, warningDetails };
 }
