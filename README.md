@@ -16,7 +16,7 @@
 
 VacWorkGantt 把這些散落的資訊收進一個介面：
 
-- 個人排假、半日假、補休一鍵完成，當月／年度小計即時呈現。
+- 個人排假、半日假、區段請假一鍵完成，當月／年度小計即時呈現。
 - 全公司、跨部門的休假一張表攤開，主管一眼掌握當日人力。
 - 專案甘特圖直接疊上每日請假人數與名單，**排任務前就能看到誰不在**。
 
@@ -35,6 +35,7 @@ VacWorkGantt 把這些散落的資訊收進一個介面：
 - **職務代理人**：個人資料側欄可設定第一、第二代理人，請假時自動通知。
 - **當月小計、年度累計**：每個假別休了幾天、總共幾天，側邊面板秒看。
 - **衝突提醒**：與代理人同日請假、或同部門人力低於下限時即時跳出警示。
+- **樂觀更新**：點下去畫面立刻反映，後端寫入失敗會自動回滾。
 
 > 💡 結合假別顏色與 AM/PM 標記，一眼就能分辨自己當天是上午、下午還是整天休。
 
@@ -50,6 +51,7 @@ VacWorkGantt 把這些散落的資訊收進一個介面：
 - **部門 / 假別篩選**：只看研發部、只看特休、或同時看兩者皆可。
 - **月 / 年度切換**：可以縮放到當月明細，也可以看整年度的休假分佈。
 - **管理員直接編輯**：管理員可代為新增、刪除、區段刪除請假，所有動作都會發通知給當事人與代理人。
+- **批次新建**：區段請假採 `bulkCreate`，一次寫入整段。
 - **儀表板加值**：搭配「儀表板（Dashboard）」可以挑任一日期，看當天請假名單、人數與假別分佈。
 
 > 💡 主管不用再去群組問「明天誰在？」，打開全部排休直接圈出空缺。
@@ -65,6 +67,7 @@ VacWorkGantt 把這些散落的資訊收進一個介面：
 - **無限捲動的時間軸**：以「天」為單位的網格，向左向右皆可延伸，不需翻頁。
 - **多種任務形態**：里程碑（Milestone）、區段任務（Duration）、滾動延伸（Rolling）一次滿足專案規劃需求。
 - **拖曳調整工期**：直接在甘特圖上拖曳起訖點，搭配樂觀更新（Optimistic Update）瞬間生效。
+- **撤銷支援**：時間變更可用 Ctrl+Z（Mac: ⌘Z）一鍵還原（最多 50 步）。
 - **季別 / 標籤 / 部門篩選**：依季節、品牌、樣品、部門收斂視野；過期季節可封存（Archive）並隨時還原。
 - **匯入排程**：上傳檔案，由 LLM 解析成任務草稿，再人工微調。
 - **行動裝置最佳化**：手機自動切換成 `MobileGanttChart`，移動中也能查專案。
@@ -85,8 +88,8 @@ VacWorkGantt 把這些散落的資訊收進一個介面：
 
 | 模組 | 重點 |
 | ---- | ---- |
-| **儀表板（Dashboard）** | 任意日期的當日請假名單、警示偵測、重複資料清理工具。 |
-| **通知中心（Notifications）** | 請假新增 / 刪除自動通知管理員與職代，未讀數量即時顯示在側邊欄。 |
+| **儀表板（Dashboard）** | 任意日期的當日請假名單、警示偵測、管理員工具（清理重複資料、補掃警示）。 |
+| **通知中心（Notifications）** | 請假新增 / 刪除自動通知管理員與職代，未讀數量即時顯示在側邊欄（每分鐘輪詢、有快取門檻）。 |
 | **人員管理（PeopleManagement）** | 員工、部門、職稱、群組與多帳號綁定（一個員工可綁多個 email）。 |
 | **休假設定（LeaveSettings）** | 假別、顏色、年資規則、額度設定。 |
 | **專案設定（ProjectSettings）** | 專案分類、品牌標籤、樣品與權限。 |
@@ -103,14 +106,15 @@ VacWorkGantt 把這些散落的資訊收進一個介面：
 - **顏色即語言**：每個假別、每個專案都有自己的色票。系統內建對比色、淡化色、深色文字色的工具函式，確保不同背景下都讀得清楚。
 - **通知不打擾，但不漏接**：請假動作只通知「該知道的人」（管理員 + 當事人 + 兩位職代），未讀數量集中在通知中心一處。
 - **管理員可干預，但留痕**：所有代為操作的請假都會走通知流程，責任歸屬明確。
+- **共用商業邏輯**：職代衝突檢查、部門 1/3 上限、警示資訊建立全部抽到 helper（`leaveWarnings.jsx`）；通知扇出抽到 `leaveNotifications.jsx`。`LeaveCalendar` 與 `AllLeaveCalendar` 走同一份程式碼，未來修改一次就好。
 
 ---
 
 ## 技術棧
 
-- **前端**：React 18 + Vite 6 + JSX（`checkJs` 開啟）
+- **前端**：React 18 + Vite 6 + JSX（`checkJs` 開啟、`<React.StrictMode>` 啟用）
 - **路由**：react-router-dom 6（頁面自動註冊於 `src/pages.config.js`）
-- **資料層**：@tanstack/react-query（單一 QueryClient，集中快取鍵）
+- **資料層**：@tanstack/react-query（單一 QueryClient，`refetchOnWindowFocus: false`、集中快取鍵）
 - **後端 SDK**：[@base44/sdk](https://www.npmjs.com/package/@base44/sdk)
 - **UI**：Tailwind CSS + shadcn/ui（new-york style）+ Radix UI + lucide-react
 - **表單**：react-hook-form + zod
@@ -160,18 +164,18 @@ src/
 │   ├── gantt/        # 甘特圖元件（含 MobileGanttChart）
 │   ├── ui/           # shadcn/ui 基礎元件（自動生成，請勿手改）
 │   ├── hooks/        # 元件層 hooks
-│   └── utils/        # 業務工具（通知、警示、區段刪除）
+│   └── utils/        # 業務工具（leaveWarnings、leaveNotifications、leaveRangeDelete）
 ├── hooks/            # 全域 hooks（useIsMobile）
 ├── lib/              # AuthContext、ganttUtils、leaveUtils、query-client、app-params
 ├── pages/            # 頁面（自動註冊）
 ├── utils/            # createPageUrl 等小工具
 ├── App.jsx           # AuthProvider → QueryClient → Router
 ├── Layout.jsx        # 桌機側邊欄 + 手機底部 Tab
-├── main.jsx          # 進入點
+├── main.jsx          # 進入點（含 StrictMode）
 └── pages.config.js   # 自動產生，僅 mainPage 可手動修改
 ```
 
-詳細的開發守則、查詢鍵、領域規則請見 [`CLAUDE.md`](./CLAUDE.md)。
+詳細的開發守則、查詢鍵、領域規則、踩雷點請見 [`CLAUDE.md`](./CLAUDE.md)。
 
 ---
 
@@ -179,6 +183,9 @@ src/
 
 此專案以 [Base44](https://base44.com) 作為後端服務，前端為標準 Vite 靜態網站，
 建置產物位於 `dist/`，可部署至 Vercel、Netlify、Cloudflare Pages 或任何靜態主機。
+
+> ⚠️ 樂觀更新使用 `crypto.randomUUID()` 產生暫時 ID，需要 secure context（HTTPS 或 localhost）。
+> 生產環境 HTTPS 與本機 dev 都沒問題；若部署到自架 IP+HTTP，需要補 polyfill。
 
 ---
 

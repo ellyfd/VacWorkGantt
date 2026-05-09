@@ -34,7 +34,9 @@ npm run typecheck    # tsc against jsconfig.json (checkJs)
 ```
 
 There is no test runner configured. Verify changes with `lint`, `typecheck`,
-and manual browser testing via `npm run dev`.
+and manual browser testing via `npm run dev`. `<React.StrictMode>` is **on**
+in `main.jsx`, so dev mode double-invokes effects/render — keep effect cleanup
+correct or you'll see warnings.
 
 ## Repository layout
 
@@ -42,19 +44,18 @@ and manual browser testing via `npm run dev`.
 src/
 ├── api/                 # Base44 SDK wrappers — DO NOT add business logic here
 │   ├── base44Client.js  # createClient() singleton
-│   ├── entities.js      # Re-exports of base44.entities (largely unused; pages use base44.entities.* directly)
-│   └── integrations.js  # InvokeLLM, SendEmail, UploadFile, etc.
+│   ├── entities.js      # Re-exports of base44.entities (mostly unused; pages use base44.entities.* directly)
+│   └── integrations.js  # InvokeLLM, SendEmail, UploadFile, etc. (also mostly unused; callers reach into base44.integrations.Core)
 ├── assets/              # static assets
 ├── components/
-│   ├── calendar/        # leave calendar table & cells
-│   ├── dashboard/       # dashboard widgets
-│   ├── gantt/           # Gantt chart pieces (rows, dialogs, mobile view, filter/time nav)
-│   ├── hooks/           # feature-level hooks (useDialogState, useFilterState, useArchivedProjects, ...)
+│   ├── calendar/        # leave calendar table & cells (CalendarHeader, LeaveCalendarTable, LeaveCell, WeekCalendarTable)
+│   ├── dashboard/       # dashboard widgets (LeaveStatistics)
+│   ├── gantt/           # Gantt chart pieces (GanttRow, dialogs, MobileGanttChart, FilterBar, TimeNavigation, ImportScheduleDialog, TimeDialogs)
+│   ├── hooks/           # feature-level hooks
 │   ├── ui/              # shadcn/ui primitives (generated; avoid manual edits)
-│   ├── utils/           # shared business helpers (leaveNotifications, leaveWarnings, leaveRangeDelete)
+│   ├── utils/           # shared business helpers
 │   ├── ConfirmDialog.jsx        # use with useConfirmDialog instead of window.confirm
-│   ├── ProtectedRoute.jsx
-│   └── UserNotRegisteredError.jsx
+│   └── UserNotRegisteredError.jsx  # error screen for authError.type === 'user_not_registered'
 ├── hooks/               # global hooks (useIsMobile)
 ├── lib/
 │   ├── AuthContext.jsx          # AuthProvider + useAuth
@@ -70,7 +71,7 @@ src/
 ├── utils/index.ts       # createPageUrl()
 ├── App.jsx              # AuthProvider → QueryClient → Router → Routes
 ├── Layout.jsx           # sidebar + mobile bottom-tab shell, profile sheet
-├── main.jsx
+├── main.jsx             # ReactDOM.createRoot + <React.StrictMode>
 ├── pages.config.js      # AUTO-GENERATED — only `mainPage` is hand-editable
 └── index.css            # Tailwind layers + shadcn HSL theme variables
 ```
@@ -78,6 +79,24 @@ src/
 Path alias `@/*` → `./src/*` (configured in `jsconfig.json`, `vite.config.js`,
 and `components.json`). Always import via `@/...`, never relative paths
 that climb out of `src/`.
+
+### Hooks under `src/components/hooks/`
+
+- `useArchivedProjects` — Gantt season archive state, persisted in `localStorage` (`gantt-archived-projects`).
+- `useCellClickHandler` — single/double click discrimination on calendar cells.
+- `useConfirmDialog` — `[dialogProps, confirm]` API; `confirm(msg, opts)` returns `Promise<boolean>`.
+- `useDialogState` — central state for the many GanttChart dialogs.
+- `useDragState` — `isDragging / dragTaskId / dragStart / dragEnd`.
+- `useFilterState` — Gantt filter state, persisted in `localStorage` (`gantt-filters`).
+- `useFormData` — Gantt project / task form state.
+- `useOptimisticTaskUpdate` — wraps `GanttTask.update` with optimistic cache write + rollback on error.
+- `useProjectCreation` — temp state for the "new season" flow (creating project id, schedule file, etc.).
+
+### Shared business helpers under `src/components/utils/`
+
+- `leaveWarnings.jsx` — `checkDeputyConflict`, `checkDeptLimit`, `buildWarningInfo`. Internally builds Map+Set lookups so calling them in a loop (e.g., 30-day range mutation) is linear, not quadratic. **Use these instead of inlining the deputy / dept-1/3 logic.**
+- `leaveNotifications.jsx` — `sendLeaveNotification({ action: 'create' | 'delete', ... })` and `sendRangeDeleteNotification`. Both fan out to admins + the requester's deputies. **Use these for all leave-record mutations** so notification type (`leave_created` / `leave_deleted`) and message format stay consistent.
+- `leaveRangeDelete.jsx` — `buildDeleteRange` for double-click-to-delete-consecutive-leave UX.
 
 ## Routing conventions
 
@@ -91,6 +110,8 @@ that climb out of `src/`.
   stay in sync.
 - All routes are wrapped by `Layout.jsx` (top-level sidebar + mobile bottom
   tab bar). A `*` catch-all renders `PageNotFound`.
+- There is no `<ProtectedRoute>` component; auth gating happens once in
+  `App.jsx` based on `useAuth()`.
 
 ## Auth model
 
@@ -108,16 +129,17 @@ that climb out of `src/`.
   `currentUser.email` against `employee.user_emails`.
 - `currentUser.role === 'admin'` gates admin features. Don't gate on hardcoded
   emails.
+- `authError.type === 'user_not_registered'` renders `UserNotRegisteredError`
+  (a real card with "切換帳號" action that calls `logout()`).
 
 ## Base44 entity usage
 
-Entities used across the app (see uppercase calls to `base44.entities.X`):
+Entities used across the app (uppercase calls to `base44.entities.X`):
 
 - `Employee`, `Department`, `Group` (人員/部門/群組)
 - `LeaveType`, `LeaveRecord`, `Holiday` (休假/假別/國定假日)
 - `GanttProject`, `GanttTask`, `Project`, `Sample` (專案/任務/樣品)
-- `Notification` (站內通知)
-- `Query` (re-exported via `src/api/entities.js`)
+- `Notification` (站內通知; types are `'leave_created'` and `'leave_deleted'`)
 
 Common patterns:
 
@@ -138,6 +160,9 @@ base44.entities.LeaveRecord.filter({
   date: { $gte: '2026-01-01', $lte: '2026-12-31' },
 })
 
+// Bulk create (used by AllLeaveCalendar.rangeLeaveMutation)
+base44.entities.LeaveRecord.bulkCreate([...])
+
 // Mutations
 base44.entities.Employee.update(id, { user_emails: [...] })
 ```
@@ -145,10 +170,10 @@ base44.entities.Employee.update(id, { user_emails: [...] })
 Auth helpers: `base44.auth.me()`, `base44.auth.logout(returnUrl?)`,
 `base44.auth.redirectToLogin(returnUrl)`.
 
-Integrations (`src/api/integrations.js`): `InvokeLLM`, `SendEmail`, `SendSMS`,
-`UploadFile`, `GenerateImage`, `ExtractDataFromUploadedFile`. Use the named
-re-exports rather than reaching into `base44.integrations.Core` directly when
-adding new call sites.
+Integrations live on `base44.integrations.Core` (`InvokeLLM`, `SendEmail`,
+`SendSMS`, `UploadFile`, `GenerateImage`, `ExtractDataFromUploadedFile`).
+`src/api/integrations.js` re-exports them but is largely unused — most
+callers go through `base44.integrations.Core.X` directly.
 
 ## React Query conventions
 
@@ -156,19 +181,28 @@ adding new call sites.
 - Query keys are typically `[name]` or `[name, ...deps]`. Examples in use:
   `['currentUser']`, `['employees']`, `['departments']`, `['leaveTypes']`,
   `['boundEmployee', email]`, `['notifications', email]`,
-  `['todayLeaves', date]`, `['myLeaveRecords', empId, year]`. Reuse these
-  exact keys when reading the same data so caches hit; invalidate by base name
-  after mutations (e.g., `queryClient.invalidateQueries(['boundEmployee'])`).
+  `['todayLeaves', date]`, `['myLeaveRecords', empId, year]`,
+  `['leaveRecords', year, month, empId?]`, `['ganttProjects']`,
+  `['ganttTasks']`, `['holidays']`. Reuse these exact keys when reading the
+  same data so caches hit; invalidate by base name after mutations
+  (e.g., `queryClient.invalidateQueries(['boundEmployee'])`).
 - Gate dependent queries with `enabled: !!dep`.
-- Notifications poll via `refetchInterval: 30000` in `Layout.jsx`.
+- Notifications poll via `refetchInterval: 60000` + `staleTime: 30000` in
+  `Layout.jsx`. If you change either, factor in the per-tab × per-user
+  request cost.
 - For optimistic updates on Gantt mutations, see
-  `src/components/hooks/useOptimisticTaskUpdate.jsx`.
+  `src/components/hooks/useOptimisticTaskUpdate.jsx`. For optimistic temp
+  rows, use `crypto.randomUUID()` (Date.now()-based ids collide on rapid
+  clicks).
 
 ## UI conventions
 
 - **shadcn/ui**: import primitives from `@/components/ui/*`. Style is
   "new-york", icon library is `lucide-react`. Keep `tsx: false` (this project
   is JSX, not TSX).
+- **Radix Select**: `<SelectItem value="">` and `<SelectItem value={null}>`
+  are forbidden. Use a sentinel string (e.g. `"__none__"`) and normalize on
+  change. See the deputy pickers in `Layout.jsx` for the pattern.
 - **Tailwind**: prefer the semantic tokens defined in `src/index.css`
   (`bg-background`, `text-foreground`, `border-border`, `bg-card`,
   `text-muted-foreground`, `success`, `warning`, `info`, etc.) over raw
@@ -197,19 +231,30 @@ adding new call sites.
 
 - **Leave periods** (`getLeavePeriod` in `lib/leaveUtils.js`): leave types
   named `健檢` or `上午休` → AM, `下午休` → PM, anything else → full day.
-  Half-day leaves count 0.5 and full days count 1 in summaries.
+  This is hard-coded against the leave-type **name** — renaming a leave
+  type in `LeaveSettings` will silently break period detection. See the
+  long-tail items below.
 - **Working days**: `calculateWorkingDays(start, end)` (`lib/ganttUtils.js`)
   excludes Sat/Sun; it does **not** account for `Holiday` records — pull those
   separately when needed.
 - **Color contrast**: use `getContrastColor` / `getLightColor` /
   `getSoftBarColor` / `getDarkTextColor` from `lib/ganttUtils.js` for
   project/leave color theming so accessibility stays consistent.
-- **Notifications**: when creating/deleting a `LeaveRecord`, send a
-  `Notification` via `sendLeaveNotification` (`components/utils/leaveNotifications.jsx`)
-  — it fans out to admins and the requester's deputies.
+- **Notifications**: when creating/deleting a `LeaveRecord`, send via
+  `sendLeaveNotification` / `sendRangeDeleteNotification`
+  (`components/utils/leaveNotifications.jsx`). Both fan out to admins
+  and the requester's deputies. The helper sets the right `type` based on
+  the action (`leave_created` / `leave_deleted`); don't reinvent inline.
+- **Warning detection** (deputy conflict / dept 1/3 cap): use
+  `checkDeputyConflict`, `checkDeptLimit`, `buildWarningInfo`
+  (`components/utils/leaveWarnings.jsx`). They build maps internally so
+  calling them in a 30-day loop stays linear.
 - **Season archive state** is persisted in localStorage (see
-  `useArchivedProjects` and recent commits) — preserve that behavior when
-  touching Gantt season UI.
+  `useArchivedProjects`) — preserve that behavior when touching Gantt season UI.
+- **Batch writes**: when fanning out N updates / deletes (e.g., admin tools
+  in `Dashboard.handleCleanDuplicates / handleScanWarnings`), pipe through
+  `runInBatches(items, fn, 10)` instead of `Promise.all(...)`. The backend
+  doesn't enjoy 500 simultaneous PATCHes.
 
 ## Lint & type-check scope
 
@@ -233,6 +278,9 @@ adding new call sites.
   `src/components/utils/`.
 - Avoid duplicating queries — if `Layout.jsx` already fetches `employees`,
   `departments`, `leaveTypes`, etc. with a known key, reuse the same key.
+- For lookup-heavy render paths, build `Map` once via `useMemo` instead of
+  `array.find` per item. See `Dashboard.jsx`'s `employeeMap / departmentMap /
+  leaveTypeMap` for the pattern.
 - Don't edit `src/pages.config.js` by hand except for `mainPage`. New pages
   are picked up automatically.
 
@@ -241,22 +289,45 @@ adding new call sites.
 - Default branch: `main`. Feature branches use `claude/<topic>-<slug>` naming
   (per recent history). Merges land via PRs (`Merge pull request #N from ...`)
   with conventional-commit-style subjects: `feat:`, `fix:`, `docs:`, `style:`,
-  `chore:`. Match this style for new commits.
+  `chore:`, `refactor:`, `perf:`. Match this style for new commits.
 - This session's working branch is `claude/add-claude-documentation-0BIub`
   (per task instructions). Push to that branch only.
 
 ## Things to be careful about
 
 - `src/pages.config.js` is auto-generated — touching imports there will be
-  overwritten.
+  overwritten next time the generator runs.
 - `@hello-pangea/dnd` sets a `transform` on `<tr>` elements that breaks
   `position: sticky` on child `<td>`. `index.css` includes a `!important`
   override for non-dragging rows; don't remove it.
-- `src/components/UserNotRegisteredError.jsx` is currently a no-op placeholder
-  (returns `null`) but is still referenced from `App.jsx` and
-  `ProtectedRoute.jsx` — leave the file/exports in place even if rewriting.
+- `crypto.randomUUID()` requires a secure context (HTTPS or localhost).
+  Production HTTPS and Vite's `http://localhost` dev server both qualify;
+  custom-IP HTTP environments would need a polyfill.
 - The dev server suppresses Vite warnings (`logLevel: 'error'`); enable
   `--logLevel info` locally if you suspect a missing dep.
 - No `.env` is committed; the app falls back to URL params for `app_id` /
   `server_url` / `access_token`. For local dev, copy a working URL from the
   Base44 editor or set `VITE_BASE44_APP_ID` and `VITE_BASE44_BACKEND_URL`.
+- `<React.StrictMode>` is on, so dev double-invokes effects. Effects without
+  proper cleanup will warn or fire twice — fix the underlying effect rather
+  than disabling StrictMode.
+
+## Known long-tail items (worth fixing eventually)
+
+These aren't bugs in the "system explodes" sense, but they're traps for
+future work — flag them when you touch nearby code:
+
+- **`getLeavePeriod` is name-keyed**: renaming `健檢` / `上午休` / `下午休`
+  in `LeaveSettings` silently breaks AM/PM detection. The proper fix is a
+  `period` field on `LeaveType` plus a one-shot migration; would need
+  backend coordination.
+- **`GanttChart.jsx` is 1800+ lines**: state, effects, rendering, dialogs
+  all in one file. Splitting into `GanttHeader / GanttLeftPanel / GanttBody
+  / GanttDialogs` (each `React.memo`) is the biggest perf lever still on
+  the table.
+- **`GanttRow` lacks `React.memo`**: drag-induced re-renders propagate to
+  every row. Memoizing with stable cell-prop maps would localize updates.
+- **Range mutation uses helpers but rebuilds maps per call**: each
+  `checkDeputyConflict / checkDeptLimit / buildWarningInfo` call rebuilds
+  the leaveType / employee Map internally. For very large ranges, accepting
+  prebuilt maps as optional params would shave another constant factor.
