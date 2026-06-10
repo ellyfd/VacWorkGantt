@@ -56,14 +56,36 @@
 - `leaves` 的「假別文字」會去 `legend` 找顏色；找不到就用內建預設色。
 - 想換月份，改 `year` / `month` 即可；想多月，先各做一份 JSON、用 `?data=` 切換。
 
-## 維護方式
+## 資料分兩塊
 
-- **開發處自己維護**：直接編輯 `data.json`（或之後改成讀他們的 Google Sheet 匯出檔）。
-- **DPC 那段自動帶入**：之後可加一支排程，把 Base44 裡 DPC 的休假匯出成這個 JSON 的
-  「3D team（DPC）」區塊，定時覆蓋上傳，達到自動同步（此步驟尚未實作）。
+- `data.json` → **開發處自己維護**（他們的部門）。**不要**在這裡寫 DPC。
+- `dpc.json` → **由 GitHub Actions 自動同步**（只有 DPC＝3D team 這段）。
+- 網頁同時讀這兩個檔並合併，所以自動的永遠不會蓋掉開發處手填的。
+
+## DPC 即時同步設定（GitHub Actions）
+
+排程 `.github/workflows/sync-dpc.yml` 會每 ~10 分鐘讀 Base44 的 DPC 休假、
+產生 `dpc.json` 並提交，GitHub Pages 隨即更新（near-realtime）。
+
+設定步驟（在這個新 repo）：
+1. 到 repo 的 **Settings → Secrets and variables → Actions → New repository secret**。
+2. 新增一個 Secret：
+   - Name：`BASE44_API_KEY`
+   - Value：你的 Base44 api_key
+3. （選填）若部門名稱或 API 位址不同，改 `scripts/build-dpc.mjs` 最上面的預設，
+   或在 workflow 的 `env:` 覆蓋（`DPC_DEPT_NAME`、`BASE44_API_URL`…）。
+4. 到 **Actions** 分頁手動執行一次 `Sync DPC leave` 驗證，成功後會產生 `dpc.json`。
+
+> ⚠️ 這個 Secret 必須放在 **GitHub repo** 裡（GitHub Actions 只讀得到 GitHub 的 Secret）。
+> Base44 後台自己的「Secret」是給 Base44 後端用的，**放那裡 GitHub Actions 讀不到**。
+
+> 🔐 **安全**：該 api_key 具完整權限（可改/刪資料）。請只放進 GitHub Secret，
+> 絕不要寫進任何檔案或公開出去；若曾外流，請到 Base44 重新產生（rotate）一把。
 
 ## 目前範圍與限制
 
-- **唯讀**：此頁只呈現，不能在頁面上請假/修改（要改去改 `data.json`）。
+- **唯讀**：此頁只呈現，不能在頁面上請假/修改。
 - 任何拿到網址的人都看得到內容，請只在內部流通。
-- 與 Base44 完全脫鉤：不需登入、不需帳號。
+  （若要更嚴，建議用 Cloudflare Pages + Access 加一道存取控制。）
+- 開發處端：不需登入、不需 Base44 帳號。資料是後端排程抓好放成靜態檔，
+  api_key 只存在 GitHub Actions、不會出現在網頁。

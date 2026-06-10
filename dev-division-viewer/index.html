@@ -100,9 +100,19 @@ function pad(n){ return String(n).padStart(2,'0'); }
 function dateStr(y,m,d){ return `${y}-${pad(m)}-${pad(d)}`; }
 function daysInMonth(y,m){ return new Date(y, m, 0).getDate(); }
 
-function getDataUrl(){
-  const p = new URLSearchParams(location.search).get('data');
-  return p || './data.json';
+function getUrl(param, def){
+  return new URLSearchParams(location.search).get(param) || def;
+}
+
+// 把自動同步的 DPC 區塊合併進開發處的靜態資料。
+function mergeDpc(base, dpc){
+  if (!dpc) return base;
+  base.legend = { ...(dpc.legend || {}), ...(base.legend || {}) };
+  base.holidays = [...new Set([...(base.holidays || []), ...(dpc.holidays || [])])];
+  const name = dpc.department_name || '3D team（DPC）';
+  base.departments = (base.departments || []).filter(d => d.name !== name);
+  base.departments.push({ name, members: dpc.members || [] });
+  return base;
 }
 
 function buildDays(year, month){
@@ -175,16 +185,30 @@ function render(data){
 }
 
 async function load(){
-  const url = getDataUrl();
+  const dataUrl = getUrl('data', './data.json');
+  const dpcUrl = getUrl('dpc', './dpc.json');
   try {
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(dataUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    render(data);
+
+    // DPC 即時資料為選用：拿不到就略過，不影響其他部門顯示。
+    let dpc = null;
+    try {
+      const r2 = await fetch(dpcUrl, { cache: 'no-store' });
+      if (r2.ok) dpc = await r2.json();
+    } catch (_) { /* ignore */ }
+
+    render(mergeDpc(data, dpc));
+
+    if (dpc && dpc.updated_at) {
+      document.getElementById('footer').textContent =
+        `DPC 即時資料更新：${new Date(dpc.updated_at).toLocaleString('zh-TW')}`;
+    }
   } catch (e) {
     const s = document.getElementById('status');
     s.className = 'status err';
-    s.textContent = `讀取資料失敗（${url}）：${e.message}`;
+    s.textContent = `讀取資料失敗（${dataUrl}）：${e.message}`;
   }
 }
 load();

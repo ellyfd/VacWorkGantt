@@ -26,24 +26,7 @@
         { "name": "陳慧芬", "code": "" },
         { "name": "李育儒", "code": "張嘉芸", "leaves": { "2026-12-17": "休", "2026-12-18": "休" } }
       ]
-    },
-    {
-      "name": "3D team（DPC）",
-      "members": [
-        { "name": "程麗如", "code": "Karen", "leaves": { "2026-12-12": "午休" } },
-        { "name": "經國媛", "code": "Adia" },
-        { "name": "簡伯容", "code": "Karen", "leaves": { "2026-12-12": "病" } },
-        { "name": "朱家霖", "code": "Jan" },
-        { "name": "葉馨憶", "code": "Tinley", "leaves": { "2026-12-22": "休", "2026-12-23": "休", "2026-12-24": "休" } },
-        { "name": "洪捷", "code": "Sixian", "leaves": { "2026-12-07": "休", "2026-12-08": "休" } },
-        { "name": "朱英石", "code": "Rock", "leaves": { "2026-12-01": "休" } },
-        { "name": "王元亭", "code": "Tinley" },
-        { "name": "吳思耀", "code": "Sixian" },
-        { "name": "黃韋蓁", "code": "Jean" },
-        { "name": "宋妍蓉", "code": "Yota" },
-        { "name": "涂雅珍", "code": "Yota" },
-        { "name": "林孝萊", "code": "Rou" }
-      ]
     }
-  ]
+  ],
+  "_note": "DPC（3D team）那段不要寫在這裡——它由 dpc.json 自動同步、網頁會自動合併進來。"
 }
