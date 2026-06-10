@@ -50,6 +50,7 @@
 import AllLeaveCalendar from './pages/AllLeaveCalendar';
 import Dashboard from './pages/Dashboard';
 import DataImport from './pages/DataImport';
+import DevDivisionLeave from './pages/DevDivisionLeave';
 import GanttChart from './pages/GanttChart';
 import GanttManagement from './pages/GanttManagement';
 import LeaveCalendar from './pages/LeaveCalendar';
@@ -66,6 +67,7 @@ export const PAGES = {
     "AllLeaveCalendar": AllLeaveCalendar,
     "Dashboard": Dashboard,
     "DataImport": DataImport,
+    "DevDivisionLeave": DevDivisionLeave,
     "GanttChart": GanttChart,
     "GanttManagement": GanttManagement,
     "LeaveCalendar": LeaveCalendar,
