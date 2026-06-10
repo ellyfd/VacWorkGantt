@@ -84,6 +84,12 @@ export default function AllLeaveCalendar() {
     },
   });
 
+  // 全部排休僅顯示在職人員：排除離職(inactive)、育嬰假(parental_leave)、隱藏(hidden)
+  const visibleEmployees = React.useMemo(() =>
+    employees.filter(e => !['inactive', 'parental_leave', 'hidden'].includes(e.status)),
+    [employees]
+  );
+
   // 預建 Map 用於 O(1) 查詢
   const employeeMap = React.useMemo(() =>
     Object.fromEntries(employees.map(e => [e.id, e])),
@@ -694,7 +700,7 @@ export default function AllLeaveCalendar() {
             <LeaveCalendarTable
             currentDate={currentDate}
             departments={filteredDepartments}
-            employees={employees}
+            employees={visibleEmployees}
             leaveRecords={leaveRecords}
             leaveTypes={leaveTypes}
             holidays={holidays}
