@@ -1,0 +1,40 @@
+{
+  "name": "Sample",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "\u6a23\u54c1\u540d\u7a31"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "\u6a23\u54c1\u5168\u540d"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "\u6a23\u54c1\u7e2e\u5beb"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "\u95dc\u806f\u7684\u54c1\u724cID\uff08Project entity\uff09"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0,
+      "description": "\u6392\u5e8f\u9806\u5e8f"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active",
+      "description": "\u72c0\u614b"
+    }
+  },
+  "required": [
+    "name",
+    "project_id"
+  ]
+}

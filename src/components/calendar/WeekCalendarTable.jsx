@@ -39,14 +39,6 @@ export default function WeekCalendarTable({
     selectedLeaveTypeIdRef.current = selectedLeaveTypeId;
   }, [selectedLeaveTypeId]);
 
-  if (!currentEmployee) {
-    return (
-      <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-        <p className="text-gray-500">請先設定您的個人資料</p>
-      </div>
-    );
-  }
-
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -73,10 +65,15 @@ export default function WeekCalendarTable({
     return leaveRecordMap.get(`${employeeId}_${date}`) || { full: null, AM: null, PM: null };
   }, [leaveRecordMap]);
 
+  const onSingleClickStable = useCallback(
+    (date, leaveTypeId) => onUpdateLeave(currentEmployee?.id, date, leaveTypeId),
+    [onUpdateLeave, currentEmployee?.id]
+  );
+
   const handleCellClickRaw = useCellClickHandler({
     rangeMode,
     selectedLeaveTypeIdRef,
-    onSingleClick: useCallback((date, leaveTypeId) => onUpdateLeave(currentEmployee.id, date, leaveTypeId), [onUpdateLeave, currentEmployee?.id]),
+    onSingleClick: onSingleClickStable,
     onDoubleClick: onDeleteRangeLeave,
     onRangeClick: onCellClickInRangeMode,
   });
@@ -126,6 +123,14 @@ export default function WeekCalendarTable({
     }
     return result;
   }, [allDays]);
+
+  if (!currentEmployee) {
+    return (
+      <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+        <p className="text-gray-500">請先設定您的個人資料</p>
+      </div>
+    );
+  }
 
   const today = format(new Date(), 'yyyy-MM-dd');
 

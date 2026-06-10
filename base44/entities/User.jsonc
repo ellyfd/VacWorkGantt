@@ -1,0 +1,18 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "department_id": {
+      "type": "string",
+      "description": "\u6240\u5c6c\u90e8\u9580ID"
+    },
+    "employee_id": {
+      "type": "string",
+      "description": "\u5c0d\u61c9\u7684\u54e1\u5de5ID"
+    }
+  },
+  "required": [
+    "department_id",
+    "employee_id"
+  ]
+}

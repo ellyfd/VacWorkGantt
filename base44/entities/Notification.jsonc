@@ -1,0 +1,41 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "\u6536\u4ef6\u4ebaemail"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "leave_created",
+        "holiday_added",
+        "holiday_removed"
+      ],
+      "description": "\u901a\u77e5\u985e\u578b"
+    },
+    "message": {
+      "type": "string",
+      "description": "\u901a\u77e5\u5167\u5bb9"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u662f\u5426\u5df2\u8b80"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "\u76f8\u95dc\u5be6\u9ad4ID"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "description": "\u76f8\u95dc\u5be6\u9ad4\u985e\u578b"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type",
+    "message"
+  ]
+}

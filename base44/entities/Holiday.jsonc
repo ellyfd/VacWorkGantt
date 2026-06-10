@@ -1,0 +1,28 @@
+{
+  "name": "Holiday",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "\u5047\u65e5\u65e5\u671f"
+    },
+    "name": {
+      "type": "string",
+      "description": "\u5047\u65e5\u540d\u7a31"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "national",
+        "company"
+      ],
+      "description": "\u5047\u65e5\u985e\u578b\uff1anational=\u570b\u5b9a\u5047\u65e5, company=\u516c\u53f8\u7279\u5225\u5047"
+    }
+  },
+  "required": [
+    "date",
+    "name",
+    "type"
+  ]
+}

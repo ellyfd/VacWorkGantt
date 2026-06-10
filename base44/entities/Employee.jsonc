@@ -1,0 +1,64 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "\u54e1\u5de5\u59d3\u540d"
+    },
+    "english_name": {
+      "type": "string",
+      "description": "\u82f1\u6587\u540d\u5b57"
+    },
+    "deputy_1": {
+      "type": "string",
+      "description": "\u7b2c\u4e00\u9806\u4f4d\u8077\u4ee3\u54e1\u5de5ID"
+    },
+    "deputy_2": {
+      "type": "string",
+      "description": "\u7b2c\u4e8c\u9806\u4f4d\u8077\u4ee3\u54e1\u5de5ID"
+    },
+    "department_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u6240\u5c6c\u90e8\u9580ID\u5217\u8868"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "parental_leave",
+        "hidden"
+      ],
+      "default": "active",
+      "description": "\u5728\u8077\u72c0\u614b\uff1aactive=\u5728\u8077, inactive=\u96e2\u8077, parental_leave=\u80b2\u5b30\u5047, hidden=\u96b1\u85cf"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user",
+      "description": "\u7cfb\u7d71\u89d2\u8272\uff1aadmin=\u7ba1\u7406\u54e1, user=\u4e00\u822c\u4f7f\u7528\u8005"
+    },
+    "sort_order_by_dept": {
+      "type": "object",
+      "description": "\u5404\u90e8\u9580\u7684\u6392\u5e8f\u9806\u5e8f\uff0ckey\u70ba\u90e8\u9580ID\uff0cvalue\u70ba\u6392\u5e8f\u6578\u5b57"
+    },
+    "user_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u7d81\u5b9a\u7684\u767b\u5165\u5e33\u865femail\u5217\u8868"
+    }
+  },
+  "required": [
+    "name",
+    "department_ids"
+  ]
+}
