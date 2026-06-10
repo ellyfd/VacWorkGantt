@@ -1,10 +1,9 @@
-# 開發處休假系統（Cloudflare 版）— 第 1 階段
+# 開發處休假系統（Cloudflare 版）
 
-把資料從「靜態 JSON」升級成真正的資料庫（Cloudflare **D1**），由 **Worker** 提供 API，
-網頁（沿用 `dev-division-viewer/index.html`）改成讀這支 API。
+把資料從「靜態 JSON」升級成真正的資料庫（Cloudflare **D1**），由 **Worker** 提供 API。
 
-> 這是第 1 階段：**只做「讀」**（看月曆）。新增/修改、登入、各人請假、儀表板、
-> 人員/部門/休假設定管理，會在後續階段加上。
+- 全部排休（讀）：沿用 `dev-division-viewer/index.html`，以 `?data=` 指向 `/api/calendar`。
+- **我的排休（各人請假/改假）**：`me.html`（裝置綁定登入，無密碼）。
 
 ## 一次性部署步驟
 
@@ -41,6 +40,20 @@ npx wrangler deploy
 ```
 
 （之後階段會把網頁正式改成預設讀 API、加上管理介面，就不必帶參數。）
+
+## 我的排休（me.html）
+
+各人自己請假/改假的頁面，用「裝置綁定」識別身分（無密碼）：
+第一次開 → 選自己的名字 → 之後這台裝置免再選。
+
+開啟方式（把 `me.html` 也放到 Pages，並指定 Worker 網址）：
+```
+.../me.html?api=https://dev-division-api.<你的子網域>.workers.dev
+```
+或直接編輯 `me.html` 最上面的 `API_BASE` 常數，填入你的 Worker 網址。
+
+> ⚠️ 無密碼：任何拿到連結的人都能選任一名字綁成該員工。屬內部低風險用途；
+> 若日後要更嚴，可在 Cloudflare 端加 Access（門口一次性 PIN）。
 
 ## 結構說明
 
