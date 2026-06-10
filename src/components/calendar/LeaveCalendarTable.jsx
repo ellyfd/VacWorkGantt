@@ -121,6 +121,7 @@ export default function LeaveCalendarTable({
   const namesScrollRef = useRef(null);
   const bodyScrollRef = useRef(null);
   const isSyncing = useRef(false);
+  const touchStart = useRef({ x: 0, y: 0 });
 
   const syncFromBody = useCallback(() => {
     if (isSyncing.current) return;
@@ -131,6 +132,47 @@ export default function LeaveCalendarTable({
       if (namesScrollRef.current) namesScrollRef.current.scrollTop = body.scrollTop;
     }
     isSyncing.current = false;
+  }, []);
+
+  // 攔截 iOS 邊界回彈：在捲到邊界又繼續往外拉時擋掉 overscroll，
+  // 避免資料區被「拉開」露出空白、並與表頭/姓名欄錯位。
+  // 注意：需用原生監聽器並設定 passive:false，preventDefault 才有效。
+  useEffect(() => {
+    const el = bodyScrollRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e) => {
+      const t = e.touches[0];
+      touchStart.current = { x: t.clientX, y: t.clientY };
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - touchStart.current.x;
+      const dy = t.clientY - touchStart.current.y;
+
+      const maxLeft = el.scrollWidth - el.clientWidth;
+      const maxTop = el.scrollHeight - el.clientHeight;
+      const atLeft = el.scrollLeft <= 0;
+      const atRight = el.scrollLeft >= maxLeft - 1;
+      const atTop = el.scrollTop <= 0;
+      const atBottom = el.scrollTop >= maxTop - 1;
+
+      // 以主要移動方向判斷該軸是否越界
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if ((atLeft && dx > 0) || (atRight && dx < 0)) e.preventDefault();
+      } else {
+        if ((atTop && dy > 0) || (atBottom && dy < 0)) e.preventDefault();
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
   }, []);
 
   // Auto-scroll to today
