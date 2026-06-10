@@ -2,9 +2,8 @@ name = "dev-division-api"
 main = "worker/index.js"
 compatibility_date = "2024-09-01"
 
-# 部署前先建立 D1，再把產生的 database_id 填進來：
-#   npx wrangler d1 create dev_division
+# 已對接你帳號既有的 D1 資料庫 dpc-hub（已建好資料表與範例資料）。
 [[d1_databases]]
 binding = "DB"
-database_name = "dev_division"
-database_id = "在這裡填入 wrangler d1 create 之後給的 id"
+database_name = "dpc-hub"
+database_id = "33f69061-a17d-431d-8105-343cadd695dc"
