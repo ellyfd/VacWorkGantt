@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>開發處休假表</title>
+<style>
+  :root { --line:#e5e7eb; --muted:#6b7280; --bg:#f8fafc; --head:#f1f5f9; --weekend:#f3f4f6; --holiday:#fff1f2; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Noto Sans TC", system-ui, -apple-system, "Microsoft JhengHei", sans-serif; color:#111827; background:var(--bg); }
+  header { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:14px 18px; background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:30; }
+  h1 { font-size:18px; margin:0; }
+  .nav { display:flex; align-items:center; gap:6px; }
+  .nav button { width:34px; height:34px; border:1px solid var(--line); background:#fff; border-radius:8px; cursor:pointer; font-size:16px; line-height:1; }
+  .nav button:hover { background:var(--head); }
+  .ym { min-width:120px; text-align:center; font-weight:600; font-size:15px; }
+  .legend { display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; align-items:center; }
+  .legend .item { display:flex; align-items:center; gap:5px; font-size:13px; color:var(--muted); }
+  .legend .swatch { width:14px; height:14px; border-radius:4px; display:inline-block; }
+  .updated { font-size:12px; color:var(--muted); }
+  .wrap { overflow:auto; max-height:calc(100vh - 60px); }
+  table { border-collapse:separate; border-spacing:0; font-size:13px; }
+  th, td { border-bottom:1px solid var(--line); border-right:1px solid var(--line); text-align:center; white-space:nowrap; }
+  thead th { position:sticky; top:0; background:var(--head); z-index:20; padding:6px 4px; }
+  .col-name { position:sticky; left:0; z-index:25; background:#fff; text-align:left; padding:6px 12px; min-width:140px; border-right:2px solid var(--line); }
+  thead .col-name { z-index:26; background:var(--head); }
+  .day { width:34px; min-width:34px; padding:4px 0; }
+  .dow { font-size:11px; color:var(--muted); font-weight:400; }
+  .weekend { background:var(--weekend); }
+  .holiday { background:var(--holiday); }
+  .dept td { background:#eef2ff; font-weight:700; text-align:left; padding:6px 12px; color:#3730a3; position:sticky; left:0; }
+  tbody .col-name { font-weight:600; }
+  .sub { color:var(--muted); font-weight:400; font-size:12px; }
+  .cell { height:30px; }
+  .cell.on { color:#fff; font-weight:700; }
+  .cell.half { background:linear-gradient(135deg, var(--c) 0 50%, transparent 50% 100%); color:#111827; }
+  .state { padding:40px; text-align:center; color:var(--muted); }
+  .err { color:#b91c1c; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">開發處休假表</h1>
+  <div class="nav">
+    <button id="prev" title="上個月">‹</button>
+    <div class="ym" id="ym">—</div>
+    <button id="next" title="下個月">›</button>
+    <button id="today" title="回到本月" style="width:auto;padding:0 10px;font-size:13px;">本月</button>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="updated" id="updated"></div>
+</header>
+
+<div class="wrap" id="wrap">
+  <div class="state" id="state">載入中…</div>
+</div>
+
+<script>
+// API 位置：可用 ?api=... 覆蓋，預設為正式 Worker
+const API = new URLSearchParams(location.search).get('api')
+  || 'https://workforcemanagement.ellyfd.workers.dev';
+
+const DOW = ['日','一','二','三','四','五','六'];
+const pad = (n) => String(n).padStart(2, '0');
+
+const now = new Date();
+let year = now.getFullYear();
+let month = now.getMonth() + 1; // 1-12
+
+const el = (id) => document.getElementById(id);
+
+async function load() {
+  el('state').textContent = '載入中…';
+  el('state').className = 'state';
+  try {
+    const res = await fetch(`${API}/api/calendar?year=${year}&month=${month}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    render(data);
+  } catch (e) {
+    el('wrap').innerHTML = `<div class="state err">讀取失敗：${e.message}<br><small>API：${API}</small></div>`;
+  }
+}
+
+function render(data) {
+  year = data.year; month = data.month;
+  el('title').textContent = data.title || '開發處休假表';
+  el('ym').textContent = `${year} 年 ${month} 月`;
+  el('updated').textContent = data.updated_at
+    ? '更新：' + new Date(data.updated_at).toLocaleString('zh-TW') : '';
+
+  // 圖例
+  const legend = data.legend || {};
+  el('legend').innerHTML = Object.entries(legend)
+    .map(([name, color]) => `<span class="item"><span class="swatch" style="background:${color}"></span>${name}</span>`)
+    .join('');
+
+  const days = new Date(year, month, 0).getDate();
+  const holidays = new Set(data.holidays || []);
+  const dows = [];
+  for (let d = 1; d <= days; d++) dows.push(new Date(year, month - 1, d).getDay());
+
+  // 表頭
+  let head = '<tr><th class="col-name">人員</th>';
+  for (let d = 1; d <= days; d++) {
+    const wknd = dows[d-1] === 0 || dows[d-1] === 6;
+    const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+    const hol = holidays.has(dateStr);
+    head += `<th class="day ${wknd?'weekend':''} ${hol?'holiday':''}">${d}<div class="dow">${DOW[dows[d-1]]}</div></th>`;
+  }
+  head += '</tr>';
+
+  // 內容
+  const colspan = days + 1;
+  let body = '';
+  let total = 0;
+  for (const dept of (data.departments || [])) {
+    body += `<tr class="dept"><td colspan="${colspan}">${dept.name}</td></tr>`;
+    for (const m of dept.members) {
+      total++;
+      body += `<tr><td class="col-name">${m.name}${m.code?` <span class="sub">${m.code}</span>`:''}</td>`;
+      for (let d = 1; d <= days; d++) {
+        const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+        const wknd = dows[d-1] === 0 || dows[d-1] === 6;
+        const hol = holidays.has(dateStr);
+        const lv = m.leaves ? m.leaves[dateStr] : null;
+        if (lv) {
+          const color = legend[lv] || '#64748b';
+          const half = lv.includes('午') || lv.includes('健');
+          if (half) {
+            body += `<td class="cell half" style="--c:${color}" title="${lv}">${lv}</td>`;
+          } else {
+            body += `<td class="cell on" style="background:${color}" title="${lv}">${lv}</td>`;
+          }
+        } else {
+          body += `<td class="cell ${wknd?'weekend':''} ${hol?'holiday':''}"></td>`;
+        }
+      }
+      body += '</tr>';
+    }
+  }
+  if (total === 0) body = `<tr><td colspan="${colspan}" class="state">本月沒有資料</td></tr>`;
+
+  el('wrap').innerHTML = `<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+
+function shift(delta) {
+  month += delta;
+  if (month < 1) { month = 12; year--; }
+  if (month > 12) { month = 1; year++; }
+  load();
+}
+el('prev').onclick = () => shift(-1);
+el('next').onclick = () => shift(1);
+el('today').onclick = () => { year = now.getFullYear(); month = now.getMonth() + 1; load(); };
+
+load();
+</script>
+</body>
+</html>
