@@ -10,12 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { isDevDivisionUser } from '@/lib/access';
 
 const navItems = [
   { name: 'Dashboard', label: '儀表板', icon: Home },
   { name: 'LeaveCalendar', label: '我的排休', icon: CalendarClock },
   { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
-  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3 },
+  { name: 'DevDivisionLeave', label: '開發處排休', icon: Calendar, devOnly: true },
+  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3, hideForDev: true },
   { name: 'Notifications', label: '通知', icon: Bell },
 ];
 
@@ -31,8 +33,19 @@ const mobileTabItems = [
   { name: 'Dashboard', label: '首頁', icon: Home },
   { name: 'LeaveCalendar', label: '我的排休', icon: CalendarClock },
   { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
-  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3 },
+  { name: 'DevDivisionLeave', label: '開發處排休', icon: Calendar, devOnly: true },
+  { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3, hideForDev: true },
 ];
+
+// 依使用者是否為開發處身分過濾導覽項目：
+// 開發處只看開發處排休、且不顯示甘特圖；其他人不顯示開發處排休項目。
+function filterNavByRole(items, isDev) {
+  return items.filter((item) => {
+    if (item.devOnly && !isDev) return false;
+    if (item.hideForDev && isDev) return false;
+    return true;
+  });
+}
 
 // Radix Select disallows empty/null values; use a sentinel for "no deputy".
 const DEPUTY_NONE = '__none__';
@@ -241,6 +254,13 @@ export default function Layout({ children, currentPageName }) {
 
   const isSettingsPage = settingsItems.some(item => item.name === currentPageName);
 
+  const isDev = useMemo(
+    () => isDevDivisionUser(boundEmployee, departments),
+    [boundEmployee, departments]
+  );
+  const visibleNavItems = useMemo(() => filterNavByRole(navItems, isDev), [isDev]);
+  const visibleMobileTabItems = useMemo(() => filterNavByRole(mobileTabItems, isDev), [isDev]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar */}
@@ -273,7 +293,7 @@ export default function Layout({ children, currentPageName }) {
               主要功能
             </div>
             <ul className="space-y-0.5">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const isActive = currentPageName === item.name;
                 const Icon = item.icon;
                 return (
@@ -350,7 +370,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Mobile Bottom Tab Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] z-50 safe-area-bottom">
         <nav className="flex items-stretch h-[68px]">
-          {mobileTabItems.map((item) => {
+          {visibleMobileTabItems.map((item) => {
             const isActive = currentPageName === item.name;
             const Icon = item.icon;
             return (

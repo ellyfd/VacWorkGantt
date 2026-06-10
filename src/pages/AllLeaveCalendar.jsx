@@ -21,7 +21,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
-export default function AllLeaveCalendar() {
+export default function AllLeaveCalendar({
+  restrictDepartmentNames = null,
+  hideDepartmentSelector = false,
+  pageTitle = '全部排休',
+} = {}) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
@@ -461,9 +465,14 @@ export default function AllLeaveCalendar() {
     });
   }, [rangeMode]);
 
-  const filteredDepartments = selectedDepartments.length > 0
-    ? departments.filter(d => selectedDepartments.includes(d.id))
+  // 可限定只顯示特定部門（例如開發處頁面鎖定 DPC）
+  const scopedDepartments = restrictDepartmentNames
+    ? departments.filter(d => restrictDepartmentNames.includes(d.name))
     : departments;
+
+  const filteredDepartments = selectedDepartments.length > 0
+    ? scopedDepartments.filter(d => selectedDepartments.includes(d.id))
+    : scopedDepartments;
 
   const handleReorderEmployees = useCallback(async (currentList, sourceIndex, destinationIndex) => {
     // Reorder the list
@@ -539,7 +548,7 @@ export default function AllLeaveCalendar() {
       <div className="w-full flex flex-col flex-1 min-h-0">
         {/* 標題和日期選擇器 */}
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
-          <h1 className="text-lg md:text-2xl font-bold text-gray-800">全部排休</h1>
+          <h1 className="text-lg md:text-2xl font-bold text-gray-800">{pageTitle}</h1>
           <div className="md:hidden">
             <CalendarHeader
               currentDate={currentDate}
@@ -551,9 +560,12 @@ export default function AllLeaveCalendar() {
         <div className="mb-2 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 space-y-2">
           {/* 部門選擇 */}
           <div className="flex items-center gap-2 flex-wrap">
+            {!hideDepartmentSelector && (
             <span className="text-sm font-semibold text-gray-700 flex-shrink-0">部門：</span>
+            )}
+            {!hideDepartmentSelector && (
             <div className="hidden sm:flex items-center gap-2 flex-wrap">
-              {departments.map((dept) => (
+              {scopedDepartments.map((dept) => (
                 <label key={dept.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded border border-gray-200 whitespace-nowrap">
                   <input
                     type="checkbox"
@@ -571,8 +583,10 @@ export default function AllLeaveCalendar() {
                 </label>
               ))}
             </div>
+            )}
+            {!hideDepartmentSelector && (
             <div className="flex sm:hidden gap-2 flex-wrap">
-              {departments.map((dept) => (
+              {scopedDepartments.map((dept) => (
                 <button
                   key={dept.id}
                   onClick={() => {
@@ -592,6 +606,7 @@ export default function AllLeaveCalendar() {
                 </button>
               ))}
             </div>
+            )}
 
             {/* 日期選擇器 - 桌面版右對齊 */}
             <div className="hidden md:flex flex-shrink-0 ml-auto">
