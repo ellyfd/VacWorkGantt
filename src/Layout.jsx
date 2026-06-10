@@ -349,7 +349,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Mobile Bottom Tab Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] z-50 safe-area-bottom">
-        <nav className="flex items-stretch h-16">
+        <nav className="flex items-stretch h-[68px]">
           {mobileTabItems.map((item) => {
             const isActive = currentPageName === item.name;
             const Icon = item.icon;
@@ -363,7 +363,7 @@ export default function Layout({ children, currentPageName }) {
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-6 h-6" />
                 <span className="text-xs font-medium">{item.label}</span>
               </Link>
             );
@@ -377,7 +377,7 @@ export default function Layout({ children, currentPageName }) {
                 }`}
                 aria-label="更多選項"
               >
-                <MoreHorizontal className="w-5 h-5" />
+                <MoreHorizontal className="w-6 h-6" />
                 <span className="text-xs font-medium">更多</span>
                 {unreadCount > 0 && (
                   <span className="absolute top-1.5 left-1/2 ml-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center px-0.5">
@@ -475,7 +475,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 pb-20 md:pb-0 overflow-x-hidden min-w-0 w-full">
+      <main className="flex-1 md:ml-64 pb-24 md:pb-0 overflow-x-hidden min-w-0 w-full">
         {children}
       </main>
 

@@ -200,7 +200,7 @@ export default function WeekCalendarTable({
                       {dateRange.from && dateRange.to ? '✓' : '✕'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-72">
+                  <PopoverContent className="w-72 md:hidden">
                     <div className="space-y-3">
                       <div>
                         <h3 className="font-semibold text-sm">確認區間請假</h3>
@@ -294,7 +294,7 @@ export default function WeekCalendarTable({
                       {dateRange.from && dateRange.to ? '✓' : '✕'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-72">
+                  <PopoverContent className="w-72 hidden md:block">
                     <div className="space-y-3">
                       <div>
                         <h3 className="font-semibold text-sm">確認區間請假</h3>
