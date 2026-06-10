@@ -23,20 +23,20 @@ npx wrangler d1 execute dev_division --remote --file=schema.sql
 # 4)（選用）灌入範例資料，方便先看到畫面
 npx wrangler d1 execute dev_division --remote --file=seed.sql
 
-# 5) 部署 Worker（會得到一個 https://dev-division-api.<你的子網域>.workers.dev 網址）
+# 5) 部署 Worker（會得到一個 https://workforcemanagement.<你的子網域>.workers.dev 網址）
 npx wrangler deploy
 ```
 
-部署成功後，測試一下：
-- `https://dev-division-api.<你的子網域>.workers.dev/api/health` → 應回 `{"ok":true}`
-- `https://dev-division-api.<你的子網域>.workers.dev/api/calendar` → 回月曆 JSON
+部署成功後，測試一下（目前實際網址為 `https://workforcemanagement.ellyfd.workers.dev`）：
+- `https://workforcemanagement.ellyfd.workers.dev/api/health` → 應回 `{"ok":true}`
+- `https://workforcemanagement.ellyfd.workers.dev/api/calendar` → 回月曆 JSON
 
 ## 把網頁接上這支 API
 
 現成的檢視頁支援用網址參數指定資料來源，所以**不用改程式**，直接這樣開：
 
 ```
-.../index.html?data=https://dev-division-api.<你的子網域>.workers.dev/api/calendar
+.../index.html?data=https://workforcemanagement.ellyfd.workers.dev/api/calendar
 ```
 
 （之後階段會把網頁正式改成預設讀 API、加上管理介面，就不必帶參數。）
@@ -48,7 +48,7 @@ npx wrangler deploy
 
 開啟方式（把 `me.html` 也放到 Pages，並指定 Worker 網址）：
 ```
-.../me.html?api=https://dev-division-api.<你的子網域>.workers.dev
+.../me.html?api=https://workforcemanagement.ellyfd.workers.dev
 ```
 或直接編輯 `me.html` 最上面的 `API_BASE` 常數，填入你的 Worker 網址。
 
