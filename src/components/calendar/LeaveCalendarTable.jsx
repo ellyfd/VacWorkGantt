@@ -274,7 +274,7 @@ export default function LeaveCalendarTable({
       <div
         ref={bodyScrollRef}
         className="overflow-auto"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
         onScroll={syncFromBody}
       >
         <div style={{ width: dataWidth }}>
