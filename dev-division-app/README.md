@@ -55,16 +55,41 @@ npx wrangler deploy
 > ⚠️ 無密碼：任何拿到連結的人都能選任一名字綁成該員工。屬內部低風險用途；
 > 若日後要更嚴，可在 Cloudflare 端加 Access（門口一次性 PIN）。
 
+## 與 Base44 同步（DPC → D1）
+
+單向同步：**Base44 為 DPC 的真相來源**，把 DPC 部門的人員/休假/假別/國定假日灌進 D1。
+只動 DPC 部門，其它部門不碰；員工的 `device_token`（裝置綁定）會保留不被覆蓋。
+⚠️ DPC 同仁在 `me.html` 上的編輯，會在下次同步時被 Base44 蓋掉。
+
+兩種觸發：
+- **定時**：Cloudflare Cron Trigger（`wrangler.toml` 的 `[triggers]`，預設每 30 分鐘）自動執行。
+- **手動**：`sync.html`（輸入通關密語按一下），或直接 `POST /api/sync`（帶 `X-Sync-Secret`）。
+
+一次性設定兩個機密（不要寫進程式或 `wrangler.toml`）：
+```bash
+# Base44 的 API key（Worker 讀取 DPC 資料用）
+npx wrangler secret put BASE44_API_KEY
+# 手動同步 /api/sync 與 sync.html 的通關密語（自己取一組難猜的字串）
+npx wrangler secret put SYNC_SECRET
+npx wrangler deploy
+```
+驗證：
+```
+.../sync.html               # 開頁、輸入 SYNC_SECRET、按「立即同步」
+curl -X POST https://workforcemanagement.ellyfd.workers.dev/api/sync \
+  -H "X-Sync-Secret: <你的 SYNC_SECRET>"
+```
+
 ## 結構說明
 
 - `schema.sql`：資料表（部門/人員/假別/休假/國定假日），欄位對齊 Base44。
 - `seed.sql`：範例資料（正式上線可清掉自行新增）。
-- `worker/index.js`：API；目前提供 `/api/calendar`、`/api/health`。
-- `wrangler.toml`：Cloudflare 設定（記得填 `database_id`）。
+- `worker/index.js`：API；提供 `/api/calendar`、`/api/health`、`/api/sync`（+ Cron 定時同步）等。
+- `wrangler.toml`：Cloudflare 設定（記得填 `database_id`、`[triggers]` cron、`[vars]`）。
+- `sync.html`：手動「Sync with dev」管理頁。
 
 ## 下一階段預告
 
 2. 裝置（cookie）綁定 +（選用）門口共用密碼 → **我的排休**（各人請假/改假）。
 3. **全部排休 + 儀表板**。
 4. **人員管理（含部門）+ 休假設定**（新增/修改/刪除）。
-5. DPC 從 Base44 自動同步進這個 D1。
