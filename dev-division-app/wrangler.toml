@@ -7,3 +7,15 @@ compatibility_date = "2024-09-01"
 binding = "DB"
 database_name = "dpc-hub"
 database_id = "33f69061-a17d-431d-8105-343cadd695dc"
+
+# 定時把 Base44 的 DPC 資料同步進 D1（UTC；每 30 分鐘一次，可自行調整）。
+[triggers]
+crontab = ["*/30 * * * *"]
+
+# 非機密設定（機密請用 `wrangler secret put` 設定，勿寫在這裡）：
+#   BASE44_API_KEY  ← 必填，Base44 的 API key（讀取 DPC 資料用）
+#   SYNC_SECRET     ← 必填，手動 /api/sync 與管理頁的通關密語
+[vars]
+BASE44_API_URL = "https://app-67c8f9d9.base44.app/api"
+BASE44_APP_ID = "693bb4665c3a400767c8f9d9"
+DPC_DEPT_NAME = "DPC"
