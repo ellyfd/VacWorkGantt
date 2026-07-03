@@ -367,9 +367,9 @@ export default function Layout({ children, currentPageName }) {
         </nav>
       </aside>
 
-      {/* Mobile Bottom Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] z-50 safe-area-bottom">
-        <nav className="flex items-stretch h-[68px]">
+      {/* Mobile Bottom Tab Bar - 浮空橢圓外框，離底部遠一點 (iOS 風格) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom,0px)+16px)] pointer-events-none">
+        <nav className="pointer-events-auto flex items-stretch h-16 w-full max-w-md px-2 bg-white/85 backdrop-blur-xl border border-gray-200/70 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.16)]">
           {visibleMobileTabItems.map((item) => {
             const isActive = currentPageName === item.name;
             const Icon = item.icon;
@@ -495,7 +495,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 pb-24 md:pb-0 overflow-x-hidden min-w-0 w-full">
+      <main className="flex-1 md:ml-64 pb-28 md:pb-0 overflow-x-hidden min-w-0 w-full">
         {children}
       </main>
 
