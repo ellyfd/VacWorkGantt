@@ -1,7 +1,8 @@
 import React, { useRef, useCallback, useMemo, useEffect, useState } from 'react';
 import { format, getDaysInMonth, getDay } from "date-fns";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, ArrowUpDown } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { buildHolidaySet, buildLeaveRecordMap } from '@/lib/leaveUtils';
 import { useCellClickHandler } from '@/components/hooks/useCellClickHandler';
 import LeaveCell from "./LeaveCell";
@@ -37,6 +38,7 @@ export default function LeaveCalendarTable({
 }) {
   const [highlightedEmployeeId, setHighlightedEmployeeId] = useState(null);
   const [highlightedDate, setHighlightedDate] = useState(null);
+  const [reorderOpen, setReorderOpen] = useState(false);
 
   const selectedLeaveTypeIdRef = useRef(selectedLeaveTypeId);
   useEffect(() => {
@@ -121,6 +123,8 @@ export default function LeaveCalendarTable({
     if (!rangeMode) onDeleteLeave(recordId);
   }, [rangeMode, onDeleteLeave]);
 
+  // 排序改由獨立底部面板處理（純垂直清單，無 sticky／無橫向捲動），
+  // 徹底避免「拖曳 + sticky + 捲動」三者在觸控下互相干擾造成的撕裂。
   const handleDragEnd = useCallback((result) => {
     if (!result.destination || result.source.index === result.destination.index) return;
     if (onReorderEmployees) {
@@ -128,7 +132,7 @@ export default function LeaveCalendarTable({
     }
   }, [onReorderEmployees, employeesToShow]);
 
-  /* ── Single scroll container (name + data 同一列，捲動時姓名格 sticky 固定) ── */
+  /* ── 單一捲動容器（姓名格 sticky 固定於左，資料橫向捲動；表格本身不含任何 dnd）── */
   const scrollRef = useRef(null);
 
   // Auto-scroll to today（水平置中）
@@ -175,128 +179,163 @@ export default function LeaveCalendarTable({
   });
 
   return (
-    <div
-      ref={scrollRef}
-      className="absolute inset-0 overflow-auto bg-white"
-      style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
-    >
-      <div style={{ width: totalWidth, position: 'relative' }}>
-        {/* ═══ Header row (sticky top) ═══ */}
-        <div className="flex sticky top-0" style={{ height: HEADER_H, zIndex: 20 }}>
-          {/* corner: 姓名 (sticky left) */}
-          <div
-            className="sticky left-0 bg-gray-50 border-r border-b border-gray-200 flex items-center px-2"
-            style={{
-              width: NAME_COL_W,
-              minWidth: NAME_COL_W,
-              height: HEADER_H,
-              zIndex: 30,
-              boxShadow: '2px 1px 3px rgba(0,0,0,0.08)',
-            }}
-          >
-            <span className="text-xs font-semibold text-gray-600">姓名</span>
+    <>
+      <div
+        ref={scrollRef}
+        className="absolute inset-0 overflow-auto bg-white"
+        style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+      >
+        <div style={{ width: totalWidth, position: 'relative' }}>
+          {/* ═══ Header row (sticky top) ═══ */}
+          <div className="flex sticky top-0" style={{ height: HEADER_H, zIndex: 20 }}>
+            {/* corner: 姓名 + 排序按鈕 (sticky left) */}
+            <div
+              className="sticky left-0 bg-gray-50 border-r border-b border-gray-200 flex items-center gap-1 px-2"
+              style={{
+                width: NAME_COL_W,
+                minWidth: NAME_COL_W,
+                height: HEADER_H,
+                zIndex: 30,
+                boxShadow: '2px 1px 3px rgba(0,0,0,0.08)',
+              }}
+            >
+              <span className="text-xs font-semibold text-gray-600">姓名</span>
+              <button
+                type="button"
+                onClick={() => setReorderOpen(true)}
+                className="ml-auto text-gray-400 hover:text-blue-600 active:text-blue-700 flex-shrink-0"
+                aria-label="調整姓名順序"
+                title="調整姓名順序"
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="flex border-b border-gray-200">
+              {renderDateHeaders()}
+            </div>
           </div>
-          <div className="flex border-b border-gray-200">
-            {renderDateHeaders()}
+
+          {/* ═══ Employee rows（純資料列，無 dnd） ═══ */}
+          <div>
+            {employeesToShow.map((emp) => {
+              const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
+              const rowHighlighted = highlightedEmployeeId === emp.id;
+              const nameBg = rowHighlighted ? '#fef3c7' : isCurrentUser ? '#fffbeb' : '#ffffff';
+
+              return (
+                <div key={emp.id} className="flex" style={{ height: ROW_H }}>
+                  {/* 姓名格 (sticky left) */}
+                  <div
+                    className="sticky left-0 flex items-center px-2 border-r border-b border-gray-200"
+                    style={{
+                      width: NAME_COL_W,
+                      minWidth: NAME_COL_W,
+                      height: ROW_H,
+                      zIndex: 10,
+                      background: nameBg,
+                      boxShadow: '2px 0 3px rgba(0,0,0,0.06)',
+                    }}
+                    onDoubleClick={() => {
+                      setHighlightedEmployeeId(rowHighlighted ? null : emp.id);
+                      setHighlightedDate(null);
+                    }}
+                  >
+                    <div className="leading-[1.1] min-w-0">
+                      <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">
+                        {emp.name}
+                      </div>
+                      {emp.english_name && (
+                        <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">
+                          {emp.english_name.split(' ')[0]}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 資料格 */}
+                  {days.map((d, idx) => {
+                    const records = getLeaveRecords(emp.id, d.date);
+                    const isToday = d.date === today;
+                    return (
+                      <div
+                        key={idx}
+                        className={`border-r border-b border-gray-200 ${isToday ? 'bg-amber-50' : ''}`}
+                        style={{ width: DAY_COL_W, minWidth: DAY_COL_W, height: ROW_H }}
+                      >
+                        <LeaveCell
+                          fullRecord={records.full}
+                          amRecord={records.AM}
+                          pmRecord={records.PM}
+                          leaveTypes={leaveTypes}
+                          isWeekend={d.isWeekend}
+                          isHoliday={d.isHoliday}
+                          isCurrentUser={isCurrentUser}
+                          isToday={isToday}
+                          compact={isYear}
+                          rangeMode={rangeMode && selectedEmployeeId === emp.id}
+                          dateRange={dateRange}
+                          currentDate={d.date}
+                          isHighlighted={rowHighlighted || highlightedDate === d.date}
+                          onSelectLeave={() => handleCellClick(records, emp.id, d.date)}
+                          onClearLeave={handleClearLeave}
+                          onDoubleClickLeave={(record) => !rangeMode && onDeleteRangeLeave(record)}
+                          onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        {/* ═══ Employee rows (name + data 同一列，整列可拖曳排序) ═══ */}
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="employee-rows" type="EMPLOYEE">
-            {(droppableProvided) => (
-              <div ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
-                {employeesToShow.map((emp, index) => {
-                  const isCurrentUser = currentEmployeeId && emp.id === currentEmployeeId;
-                  const rowHighlighted = highlightedEmployeeId === emp.id;
-                  const nameBg = rowHighlighted ? '#fef3c7' : isCurrentUser ? '#fffbeb' : '#ffffff';
-
-                  return (
-                    <Draggable key={emp.id} draggableId={emp.id} index={index}>
-                      {(draggableProvided, snapshot) => (
-                        <div
-                          ref={draggableProvided.innerRef}
-                          {...draggableProvided.draggableProps}
-                          className={`flex leave-emp-row ${snapshot.isDragging ? 'dragging shadow-lg' : ''}`}
-                          style={{ height: ROW_H, ...draggableProvided.draggableProps.style }}
-                        >
-                          {/* 姓名格 (sticky left) */}
+      {/* ═══ 排序面板：純垂直拖曳清單，不會撕裂 ═══ */}
+      <Sheet open={reorderOpen} onOpenChange={setReorderOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh]">
+          <SheetHeader className="pb-2">
+            <SheetTitle className="text-left">調整姓名順序</SheetTitle>
+          </SheetHeader>
+          <p className="text-xs text-gray-500 mb-3">長按並拖曳左側握把即可調整順序，變更會立即套用。</p>
+          <div className="overflow-y-auto pb-6" style={{ maxHeight: '60vh' }}>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="reorder-list" type="EMPLOYEE">
+                {(droppableProvided) => (
+                  <div ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
+                    {employeesToShow.map((emp, index) => (
+                      <Draggable key={emp.id} draggableId={emp.id} index={index}>
+                        {(draggableProvided, snapshot) => (
                           <div
-                            className="sticky left-0 flex items-center gap-0.5 px-1 border-r border-b border-gray-200"
-                            style={{
-                              width: NAME_COL_W,
-                              minWidth: NAME_COL_W,
-                              height: ROW_H,
-                              zIndex: 10,
-                              background: snapshot.isDragging ? '#eff6ff' : nameBg,
-                              boxShadow: '2px 0 3px rgba(0,0,0,0.06)',
-                            }}
-                            onDoubleClick={() => {
-                              setHighlightedEmployeeId(rowHighlighted ? null : emp.id);
-                              setHighlightedDate(null);
-                            }}
+                            ref={draggableProvided.innerRef}
+                            {...draggableProvided.draggableProps}
+                            className={`flex items-center gap-2 px-3 py-2.5 mb-1.5 rounded-lg border ${
+                              snapshot.isDragging ? 'bg-blue-50 border-blue-300 shadow-lg' : 'bg-white border-gray-200'
+                            }`}
+                            style={{ ...draggableProvided.draggableProps.style }}
                           >
                             <span
                               {...draggableProvided.dragHandleProps}
-                              className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
+                              className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 flex-shrink-0 touch-none"
                             >
-                              <GripVertical className="w-3.5 h-3.5" />
+                              <GripVertical className="w-5 h-5" />
                             </span>
-                            <div className="leading-[1.1] min-w-0">
-                              <div className="text-[12px] sm:text-[13px] font-semibold text-gray-800 truncate">
-                                {emp.name}
-                              </div>
-                              {emp.english_name && (
-                                <div className="text-[10px] sm:text-[11px] text-gray-500 truncate">
-                                  {emp.english_name.split(' ')[0]}
-                                </div>
-                              )}
-                            </div>
+                            <span className="text-sm font-semibold text-gray-800">{emp.name}</span>
+                            {emp.english_name && (
+                              <span className="text-xs text-gray-400">{emp.english_name.split(' ')[0]}</span>
+                            )}
                           </div>
-
-                          {/* 資料格 */}
-                          {days.map((d, idx) => {
-                            const records = getLeaveRecords(emp.id, d.date);
-                            const isToday = d.date === today;
-                            return (
-                              <div
-                                key={idx}
-                                className={`border-r border-b border-gray-200 ${isToday ? 'bg-amber-50' : ''}`}
-                                style={{ width: DAY_COL_W, minWidth: DAY_COL_W, height: ROW_H }}
-                              >
-                                <LeaveCell
-                                  fullRecord={records.full}
-                                  amRecord={records.AM}
-                                  pmRecord={records.PM}
-                                  leaveTypes={leaveTypes}
-                                  isWeekend={d.isWeekend}
-                                  isHoliday={d.isHoliday}
-                                  isCurrentUser={isCurrentUser}
-                                  isToday={isToday}
-                                  compact={isYear}
-                                  rangeMode={rangeMode && selectedEmployeeId === emp.id}
-                                  dateRange={dateRange}
-                                  currentDate={d.date}
-                                  isHighlighted={rowHighlighted || highlightedDate === d.date}
-                                  onSelectLeave={() => handleCellClick(records, emp.id, d.date)}
-                                  onClearLeave={handleClearLeave}
-                                  onDoubleClickLeave={(record) => !rangeMode && onDeleteRangeLeave(record)}
-                                  onRangeCellClick={() => rangeMode && onCellClickInRangeMode && onCellClickInRangeMode(emp.id, d.date)}
-                                />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </Draggable>
-                  );
-                })}
-                {droppableProvided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
-    </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {droppableProvided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
