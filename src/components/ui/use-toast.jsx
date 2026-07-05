@@ -2,7 +2,10 @@
 import { useState, useEffect } from "react";
 
 const TOAST_LIMIT = 20;
-const TOAST_REMOVE_DELAY = 5000;
+// 自動關閉前的顯示時間（2 秒內消失）
+const TOAST_DURATION = 2000;
+// 觸發關閉後保留在 DOM 的時間，讓退場動畫播完再移除
+const TOAST_REMOVE_DELAY = 300;
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -135,7 +138,7 @@ function toast({ ...props }) {
   });
 
   // Auto-dismiss after delay
-  setTimeout(dismiss, TOAST_REMOVE_DELAY);
+  setTimeout(dismiss, TOAST_DURATION);
 
   return {
     id,
