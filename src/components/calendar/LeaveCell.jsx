@@ -17,7 +17,8 @@ function LeaveCell({
   dateRange = { from: undefined, to: undefined },
   currentDate,
   onRangeCellClick,
-  isHighlighted = false
+  isHighlighted = false,
+  compact = false
 }) {
   const findLeaveType = (record) =>
     record ? leaveTypes.find(lt => lt.id === record.leave_type_id) : null;
@@ -25,6 +26,12 @@ function LeaveCell({
   const fullLeaveType = findLeaveType(fullRecord);
   const amLeaveType   = findLeaveType(amRecord);
   const pmLeaveType   = findLeaveType(pmRecord);
+
+  // 年檢視（compact）為求資訊密度僅顯示單一字，月檢視顯示完整簡稱
+  const label = (leaveType) => {
+    const short = leaveType?.short_name || '';
+    return compact ? short.slice(0, 1) : short;
+  };
 
   const cellBgClass = (isHoliday || isWeekend)
     ? 'bg-gray-50'
@@ -74,7 +81,7 @@ function LeaveCell({
           onDoubleClick={handleDoubleClick}
           title="雙擊取消請假"
         >
-          <span>{fullLeaveType.short_name}</span>
+          <span>{label(fullLeaveType)}</span>
           {!rangeMode && (
             <span className="hidden group-hover:flex absolute inset-0 items-center justify-center bg-black/40 text-white text-[10px] rounded-[2px] sm:rounded-sm pointer-events-none">
               雙擊取消
@@ -105,14 +112,14 @@ function LeaveCell({
             className="flex-1 flex items-center justify-center text-[10px] sm:text-[11px] font-semibold hover:opacity-90 transition-all"
             style={amLeaveType ? { backgroundColor: amLeaveType.color, color: '#fff' } : {}}
           >
-            {amLeaveType?.short_name || ''}
+            {label(amLeaveType)}
           </div>
           {/* 下半：PM */}
           <div
             className="flex-1 flex items-center justify-center text-[10px] sm:text-[11px] font-semibold hover:opacity-90 transition-all"
             style={pmLeaveType ? { backgroundColor: pmLeaveType.color, color: '#fff' } : {}}
           >
-            {pmLeaveType?.short_name || ''}
+            {label(pmLeaveType)}
           </div>
         </div>
       </div>

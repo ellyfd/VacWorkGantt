@@ -27,6 +27,10 @@ export default function AllLeaveCalendar({
   pageTitle = '全部排休',
 } = {}) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  // 檢視模式：桌機預設「全年」較好綜覽，手機預設「當月」較好操作
+  const [viewMode, setViewMode] = useState(() =>
+    (typeof window !== 'undefined' && window.innerWidth < 768) ? 'month' : 'year'
+  );
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
@@ -68,11 +72,11 @@ export default function AllLeaveCalendar({
   });
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
-    queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth()],
+    queryKey: ['leaveRecords', currentDate.getFullYear(), viewMode === 'year' ? 'year' : currentDate.getMonth()],
     queryFn: async () => {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
-      if (month === -1) {
+      if (viewMode === 'year') {
         const startDate = `${year}-01-01`;
         const endDate = `${year}-12-31`;
         return base44.entities.LeaveRecord.filter({
@@ -105,7 +109,7 @@ export default function AllLeaveCalendar({
     [leaveTypes]
   );
 
-  const queryKey = [currentDate.getFullYear(), currentDate.getMonth()];
+  const queryKey = [currentDate.getFullYear(), viewMode === 'year' ? 'year' : currentDate.getMonth()];
 
   const updateLeaveMutation = useMutation({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
@@ -552,7 +556,9 @@ export default function AllLeaveCalendar({
           <div className="md:hidden">
             <CalendarHeader
               currentDate={currentDate}
+              viewMode={viewMode}
               onDateChange={setCurrentDate}
+              onViewModeChange={setViewMode}
             />
           </div>
         </div>
@@ -612,7 +618,9 @@ export default function AllLeaveCalendar({
             <div className="hidden md:flex flex-shrink-0 ml-auto">
               <CalendarHeader
                 currentDate={currentDate}
+                viewMode={viewMode}
                 onDateChange={setCurrentDate}
+                onViewModeChange={setViewMode}
               />
             </div>
           </div>
@@ -714,6 +722,7 @@ export default function AllLeaveCalendar({
         <div className="flex-1 min-h-0 relative rounded-lg border border-gray-200">
             <LeaveCalendarTable
             currentDate={currentDate}
+            viewMode={viewMode}
             departments={filteredDepartments}
             employees={visibleEmployees}
             leaveRecords={leaveRecords}
