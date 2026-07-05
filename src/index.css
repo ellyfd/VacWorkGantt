@@ -136,11 +136,3 @@
 tr[data-rfd-draggable-id]:not(.dragging) {
   transform: none !important;
 }
-
-/* 全部排休表格：每位員工為單一列（姓名格 sticky 固定於左）。
-   拖曳排序時 dnd 會對「非拖曳中」的相鄰列打上 transform 做位移動畫，
-   而祖先的 transform 會讓子層 position:sticky 失效、造成姓名格與資料錯位。
-   因此僅保留「拖曳中」那一列的 transform，其餘一律清除以維持對齊。 */
-.leave-emp-row:not(.dragging) {
-  transform: none !important;
-}
