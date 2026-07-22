@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const FilterBar = React.memo(function FilterBar({
   departments,
@@ -20,6 +21,13 @@ const FilterBar = React.memo(function FilterBar({
 }) {
   const filteredDepts = departments.filter(d => d.status !== 'hidden');
   const activeGroups = (groups || []).filter(g => g.status !== 'inactive');
+  const [showAllBrands, setShowAllBrands] = useState(false);
+  const brandDisplayLimit = 12;
+  const selectedBrands = projects.filter(project => selectedBrandIds.includes(project.id));
+  const remainingBrands = projects.filter(project => !selectedBrandIds.includes(project.id));
+  const collapsedBrands = [...selectedBrands, ...remainingBrands].slice(0, brandDisplayLimit);
+  const visibleBrands = showAllBrands ? projects : collapsedBrands;
+  const hasHiddenBrands = projects.length > brandDisplayLimit;
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-sm flex flex-col gap-2.5">
@@ -162,7 +170,7 @@ const FilterBar = React.memo(function FilterBar({
         >
           全部
         </button>
-        {projects.map(project => (
+        {visibleBrands.map(project => (
           <button
             key={project.id}
             onClick={() => {
@@ -182,6 +190,17 @@ const FilterBar = React.memo(function FilterBar({
             {project.short_name || project.name}
           </button>
         ))}
+        {hasHiddenBrands && (
+          <button
+            type="button"
+            onClick={() => setShowAllBrands(value => !value)}
+            className="px-2 py-1 inline-flex items-center gap-1 rounded-full text-xs font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            aria-expanded={showAllBrands}
+          >
+            {showAllBrands ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            {showAllBrands ? '收合品牌' : `顯示其餘 ${projects.length - collapsedBrands.length} 個`}
+          </button>
+        )}
       </div>
 
     </div>

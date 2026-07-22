@@ -2,6 +2,8 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -58,6 +60,7 @@ import { useProjectCreation } from '@/components/hooks/useProjectCreation';
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const CELL_WIDTH = 40; // Fixed cell width for month view
   const ROW_HEIGHT = 40;
   const MONTH_HEADER_HEIGHT = 26;
@@ -96,12 +99,12 @@ export default function GanttChart() {
   const [pendingScrollToDate, setPendingScrollToDate] = useState(null);
 
   // Fetch data
-  const { data: ganttProjects = [] } = useQuery({
+  const { data: ganttProjects = [], isLoading: isLoadingGanttProjects } = useQuery({
     queryKey: ['ganttProjects'],
     queryFn: () => base44.entities.GanttProject.list('sort_order'),
   });
 
-  const { data: ganttTasks = [] } = useQuery({
+  const { data: ganttTasks = [], isLoading: isLoadingGanttTasks } = useQuery({
     queryKey: ['ganttTasks'],
     queryFn: () => base44.entities.GanttTask.list('sort_order'),
   });
@@ -161,8 +164,10 @@ export default function GanttChart() {
     onSuccess: (newProject) => {
       queryClient.invalidateQueries(['ganttProjects']);
       setCreatingProjectIdSync(newProject.id);
+      toast({ title: '已建立開發季', description: newProject.name || '新的開發季已加入甘特圖。' });
       return newProject;
     },
+    onError: () => toast({ variant: 'destructive', title: '建立失敗', description: '無法建立開發季，請稍後再試。' }),
   });
 
   const updateGanttProject = useMutation({
@@ -186,7 +191,11 @@ export default function GanttChart() {
 
   const deleteGanttProject = useMutation({
     mutationFn: (id) => base44.entities.GanttProject.delete(id),
-    onSuccess: () => queryClient.invalidateQueries(['ganttProjects']),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ganttProjects']);
+      toast({ title: '已刪除開發季' });
+    },
+    onError: () => toast({ variant: 'destructive', title: '刪除失敗', description: '開發季未刪除，請稍後再試。' }),
   });
 
 
@@ -242,12 +251,14 @@ export default function GanttChart() {
     },
     onError: (err, _, context) => {
       queryClient.setQueryData(['ganttTasks'], context.previous);
+      toast({ variant: 'destructive', title: '新增失敗', description: '任務未建立，請稍後再試。' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['ganttTasks']);
       setShowAddTaskDialog(false);
       setTaskFormData({ name: '', sample_id: '', category: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
       setCreatingProjectIdSync(null);
+      toast({ title: '已新增任務' });
     },
   });
 
@@ -276,9 +287,13 @@ export default function GanttChart() {
     queryClient.setQueryData(['ganttTasks'], newTasks);
     
     updateGanttTask.mutate({ id, data }, {
+      onSuccess: () => {
+        toast({ title: '已更新任務時間', description: '可使用 Ctrl/Cmd+Z 復原。' });
+      },
       onError: () => {
         queryClient.setQueryData(['ganttTasks'], previousTasks);
         undoStackRef.current.pop(); // 失敗時移除
+        toast({ variant: 'destructive', title: '更新失敗', description: '已恢復原本的任務時間。' });
       }
     });
   };
@@ -297,7 +312,9 @@ export default function GanttChart() {
     mutationFn: (id) => base44.entities.GanttTask.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['ganttTasks']);
+      toast({ title: '已刪除任務' });
     },
+    onError: () => toast({ variant: 'destructive', title: '刪除失敗', description: '任務未刪除，請稍後再試。' }),
   });
 
 
@@ -1322,7 +1339,23 @@ export default function GanttChart() {
 
 
       {/* Gantt Chart */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden relative min-h-[320px]">
+          {(isLoadingGanttProjects || isLoadingGanttTasks) && (
+            <div className="absolute inset-0 z-50 bg-white p-4" aria-label="正在載入甘特圖" aria-busy="true">
+              <div className="flex gap-3 mb-4">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-8 flex-1" />
+              </div>
+              <div className="space-y-2">
+                {[0, 1, 2, 3, 4, 5].map(index => (
+                  <div key={index} className="flex gap-3">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-10 flex-1" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex">
             {/* Left Panel */}
             <div
