@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { format, endOfMonth } from 'date-fns';
-import { Calendar, Users, Building2, Tag, Menu, X, CalendarClock, Home, LogOut, Settings, ChevronDown, ChevronRight, Bell, BarChart3, Upload, MoreHorizontal, UserCircle } from 'lucide-react';
+import { Calendar, Users, CalendarClock, CalendarRange, Home, LogOut, ChevronDown, ChevronRight, Bell, BarChart3, MoreHorizontal, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +17,7 @@ const navItems = [
   { name: 'AllLeaveCalendar', label: '全部排休', icon: Calendar },
   { name: 'DevDivisionLeave', label: '開發處排休', icon: Calendar, devOnly: true },
   { name: 'GanttManagement', label: '專案甘特圖', icon: BarChart3, hideForDev: true },
+  { name: 'DevelopmentSchedule', label: '開發時間表', icon: CalendarRange, hideForDev: true },
   { name: 'Notifications', label: '通知', icon: Bell },
 ];
 
@@ -429,6 +429,19 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 </button>
+
+                <Link
+                  to={createPageUrl('DevelopmentSchedule')}
+                  onClick={() => setMobileSheetOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${
+                    currentPageName === 'DevelopmentSchedule'
+                      ? 'bg-blue-50 text-blue-600 font-medium'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <CalendarRange className="w-5 h-5" />
+                  <span className="text-sm">開發時間表</span>
+                </Link>
 
                 {/* Notifications link */}
                 <Link
