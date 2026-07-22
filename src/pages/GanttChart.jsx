@@ -51,6 +51,7 @@ import { MilestoneDialog, DurationDialog, RollingDialog } from '@/components/gan
 import ImportScheduleDialog from '@/components/gantt/ImportScheduleDialog';
 import TimeNavigation from '@/components/gantt/TimeNavigation';
 import FilterBar from '@/components/gantt/FilterBar';
+import SeasonScheduleTable from '@/components/gantt/SeasonScheduleTable';
 import { useDragState } from '@/components/hooks/useDragState';
 import { useDialogState } from '@/components/hooks/useDialogState';
 import { useFormData } from '@/components/hooks/useFormData';
@@ -1607,6 +1608,12 @@ export default function GanttChart() {
             </div>
             </div>
             </Card>
+
+      <SeasonScheduleTable
+        ganttProjects={ganttProjects}
+        ganttTasks={ganttTasks}
+        brands={projects}
+      />
 
       {/* ===== Dialogs ===== */}
 
