@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown, CalendarRange, RotateCcw } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { eachDayOfInterval, format, isWeekend, parseISO } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -41,14 +41,21 @@ function getTaskTimestamp(task) {
   return task?.start_date ? parseISO(task.start_date).getTime() : Number.MAX_SAFE_INTEGER;
 }
 
+function countWorkingDays(startDate, endDate) {
+  const start = parseISO(startDate);
+  const end = parseISO(endDate || startDate);
+  const interval = start <= end ? { start, end } : { start: end, end: start };
+  return eachDayOfInterval(interval).filter((day) => !isWeekend(day)).length;
+}
+
 function formatTaskDate(task) {
-  if (!task.start_date) return '—';
+  if (!task.start_date) return '';
   const start = format(parseISO(task.start_date), 'M/d');
   if (task.time_type === 'rolling') return `${start} 起`;
-  if (task.end_date && task.end_date !== task.start_date) {
-    return `${start}–${format(parseISO(task.end_date), 'M/d')}`;
-  }
-  return start;
+  const dateText = task.end_date && task.end_date !== task.start_date
+    ? `${start}–${format(parseISO(task.end_date), 'M/d')}`
+    : start;
+  return `${dateText}（${countWorkingDays(task.start_date, task.end_date)} 個工作天）`;
 }
 
 function FilterSelect({ label, value, onValueChange, options, placeholder }) {
@@ -70,7 +77,7 @@ function FilterSelect({ label, value, onValueChange, options, placeholder }) {
   );
 }
 
-export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProjects, ganttTasks, brands, archivedMap = {} }) {
+export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProjects, ganttTasks, brands }) {
   const [brandId, setBrandId] = useState(ALL);
   const [season, setSeason] = useState(ALL);
   const [year, setYear] = useState(ALL);
@@ -80,40 +87,44 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
     () => Object.fromEntries(brands.map((brand) => [brand.id, brand])),
     [brands],
   );
-  const activeProjects = useMemo(
+  const scheduledProjectIds = useMemo(
+    () => new Set(ganttTasks.filter((task) => task.start_date).map((task) => task.gantt_project_id)),
+    [ganttTasks],
+  );
+  const scheduleProjects = useMemo(
     () => ganttProjects
-      .filter((project) => !(archivedMap[project.id] || project.archived_at))
+      .filter((project) => scheduledProjectIds.has(project.id))
       .map((project) => ({ ...project, ...getSeasonMeta(project) })),
-    [archivedMap, ganttProjects],
+    [ganttProjects, scheduledProjectIds],
   );
 
   const brandOptions = useMemo(() => {
-    const ids = [...new Set(activeProjects.map((project) => project.brand_id).filter(Boolean))];
+    const ids = [...new Set(scheduleProjects.map((project) => project.brand_id).filter(Boolean))];
     return ids.map((id) => ({
       value: id,
       label: brandMap[id]?.short_name || brandMap[id]?.name || brandMap[id]?.full_name || '未命名客人',
     })).sort((a, b) => a.label.localeCompare(b.label));
-  }, [activeProjects, brandMap]);
+  }, [brandMap, scheduleProjects]);
 
-  const seasonOptions = useMemo(() => [...new Set(activeProjects.map((project) => project.season).filter(Boolean))]
+  const seasonOptions = useMemo(() => [...new Set(scheduleProjects.map((project) => project.season).filter(Boolean))]
     .sort((a, b) => SEASON_ORDER.indexOf(a) - SEASON_ORDER.indexOf(b))
-    .map((value) => ({ value, label: value })), [activeProjects]);
+    .map((value) => ({ value, label: value })), [scheduleProjects]);
 
-  const yearOptions = useMemo(() => [...new Set(activeProjects.map((project) => project.year).filter(Boolean))]
+  const yearOptions = useMemo(() => [...new Set(scheduleProjects.map((project) => project.year).filter(Boolean))]
     .sort((a, b) => Number(b) - Number(a))
-    .map((value) => ({ value, label: `${value} 年` })), [activeProjects]);
+    .map((value) => ({ value, label: `${value} 年` })), [scheduleProjects]);
 
-  const filteredProjects = useMemo(() => activeProjects.filter((project) => (
+  const filteredProjects = useMemo(() => scheduleProjects.filter((project) => (
     (brandId === ALL || project.brand_id === brandId)
     && (season === ALL || project.season === season)
     && (year === ALL || project.year === year)
-  )), [activeProjects, brandId, season, year]);
+  )), [brandId, scheduleProjects, season, year]);
 
   const filteredProjectIds = useMemo(() => new Set(filteredProjects.map((project) => project.id)), [filteredProjects]);
   const tasksByProjectAndName = useMemo(() => {
     const result = new Map();
     ganttTasks.forEach((task) => {
-      if (!filteredProjectIds.has(task.gantt_project_id) || !task.name) return;
+      if (!filteredProjectIds.has(task.gantt_project_id) || !task.name || !task.start_date) return;
       const taskName = getCanonicalTaskName(task.name);
       const key = `${task.gantt_project_id}::${taskName}`;
       result.set(key, [...(result.get(key) || []), task].sort((a, b) => getTaskTimestamp(a) - getTaskTimestamp(b)));
@@ -124,7 +135,7 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
   const taskColumns = useMemo(() => {
     const columns = new Map();
     ganttTasks.forEach((task) => {
-      if (!filteredProjectIds.has(task.gantt_project_id) || !task.name) return;
+      if (!filteredProjectIds.has(task.gantt_project_id) || !task.name || !task.start_date) return;
       const taskName = getCanonicalTaskName(task.name);
       const entry = columns.get(taskName) || { name: taskName, projectIds: new Set() };
       entry.projectIds.add(task.gantt_project_id);
@@ -178,15 +189,13 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
   return (
     <Card className="overflow-hidden border-slate-200 shadow-sm">
       <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <CalendarRange className="h-5 w-5 text-blue-600" aria-hidden="true" />
-              <h2 className="text-base font-semibold text-slate-900">開發季時間表</h2>
-            </div>
-            <p className="mt-1 text-sm text-slate-500">自動彙整未歸檔的甘特資料；相同項目越常出現，欄位越靠左。</p>
+        <div>
+          <div className="flex items-center gap-2">
+            <CalendarRange className="h-5 w-5 text-blue-600" aria-hidden="true" />
+            <h2 className="text-lg font-semibold text-slate-900">開發季時間表</h2>
           </div>
-          <div className="flex flex-wrap items-end gap-2">
+          <p className="mt-1 text-sm text-slate-500">彙整所有甘特資料；相同項目越常出現，欄位越靠左。</p>
+          <div className="mt-4 flex flex-wrap items-end gap-2">
             <FilterSelect label="客人" value={brandId} onValueChange={setBrandId} options={brandOptions} placeholder="全部客人" />
             <FilterSelect label="季節" value={season} onValueChange={setSeason} options={seasonOptions} placeholder="全部季節" />
             <FilterSelect label="年份" value={year} onValueChange={setYear} options={yearOptions} placeholder="全部年份" />
@@ -218,25 +227,25 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
         <div className="flex min-h-40 flex-col items-center justify-center px-6 py-10 text-center">
           <CalendarRange className="mb-3 h-8 w-8 text-slate-300" aria-hidden="true" />
           <p className="font-medium text-slate-700">找不到符合條件的開發季</p>
-          <p className="mt-1 text-sm text-slate-500">請調整篩選條件，或先在甘特圖建立未歸檔的開發季。</p>
+          <p className="mt-1 text-sm text-slate-500">請調整篩選條件，或先在甘特圖設定工作日期。</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-max border-collapse text-sm">
+          <table className="w-full min-w-max border-collapse text-[15px]">
             <caption className="sr-only">依客人、開發季與工作項目整理的時間表</caption>
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium text-slate-500">
-                <th scope="col" className="sticky left-0 z-20 min-w-28 bg-slate-50 px-4 py-3">
-                  <button type="button" className="flex items-center gap-1 hover:text-slate-900" onClick={() => updateSort('customer')}>客人<ArrowUpDown className="h-3.5 w-3.5" /></button>
+              <tr className="border-b border-slate-200 bg-slate-50 text-left text-sm font-semibold text-slate-600">
+                <th scope="col" className="sticky left-0 z-20 min-w-28 whitespace-nowrap bg-slate-50 px-5 py-3.5">
+                  <button type="button" className="flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('customer')}>客人<ArrowUpDown className="h-3.5 w-3.5" /></button>
                 </th>
-                <th scope="col" className="sticky left-28 z-20 min-w-28 border-r border-slate-200 bg-slate-50 px-4 py-3">
-                  <button type="button" className="flex items-center gap-1 hover:text-slate-900" onClick={() => updateSort('season')}>開發季<ArrowUpDown className="h-3.5 w-3.5" /></button>
+                <th scope="col" className="sticky left-28 z-20 min-w-28 whitespace-nowrap border-r border-slate-200 bg-slate-50 px-5 py-3.5">
+                  <button type="button" className="flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('season')}>開發季<ArrowUpDown className="h-3.5 w-3.5" /></button>
                 </th>
                 {taskColumns.map(({ name, count }) => {
                   const isSorted = sortState.key === `task:${name}`;
                   return (
-                    <th key={name} scope="col" aria-sort={isSorted ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="min-w-32 px-4 py-3">
-                      <button type="button" className="flex items-center gap-1 hover:text-slate-900" onClick={() => updateSort(`task:${name}`)} title={`出現 ${count} 次；點擊依日期排序`}>
+                    <th key={name} scope="col" aria-sort={isSorted ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="min-w-48 whitespace-nowrap px-5 py-3.5">
+                      <button type="button" className="flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort(`task:${name}`)} title={`出現 ${count} 次；點擊依日期排序`}>
                         {name}<span className="font-normal text-slate-400">{count}</span>{isSorted ? <SortIcon className="h-3.5 w-3.5" /> : <ArrowUpDown className="h-3.5 w-3.5" />}
                       </button>
                     </th>
@@ -250,13 +259,13 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
                 const brand = brandMap[project.brand_id];
                 return (
                   <tr key={project.id} className="group border-b border-slate-100 last:border-b-0 hover:bg-blue-50/40">
-                    <th scope="row" className="sticky left-0 z-10 bg-white px-4 py-3 text-left font-medium text-slate-700 group-hover:bg-blue-50/40">{brand?.short_name || brand?.name || brand?.full_name || '—'}</th>
-                    <td className="sticky left-28 z-10 border-r border-slate-200 bg-white px-4 py-3 font-semibold text-slate-900 group-hover:bg-blue-50/40">{project.seasonLabel}</td>
+                    <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-white px-5 py-3.5 text-left font-medium text-slate-700 group-hover:bg-blue-50/40">{brand?.short_name || brand?.name || brand?.full_name || '未設定客人'}</th>
+                    <td className="sticky left-28 z-10 whitespace-nowrap border-r border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-900 group-hover:bg-blue-50/40">{project.seasonLabel}</td>
                     {taskColumns.map(({ name }) => {
                       const tasks = tasksByProjectAndName.get(`${project.id}::${name}`) || [];
                       return (
-                        <td key={name} className="px-4 py-3 tabular-nums text-slate-700">
-                          {tasks.length ? tasks.map((task) => <div key={task.id} className="whitespace-nowrap">{formatTaskDate(task)}</div>) : <span className="text-slate-300">—</span>}
+                        <td key={name} className="whitespace-nowrap px-5 py-3.5 tabular-nums text-slate-700">
+                          {tasks.map((task) => <div key={task.id} className="whitespace-nowrap">{formatTaskDate(task)}</div>)}
                         </td>
                       );
                     })}
@@ -268,7 +277,7 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
           </table>
         </div>
       )}
-      <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 text-xs text-slate-500 sm:px-5">顯示 {sortedProjects.length} 個開發季 · 日期格式為月／日</div>
+      <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 text-sm text-slate-500 sm:px-5">顯示 {sortedProjects.length} 個開發季 · 日期格式為月／日，工作天不含週六、週日</div>
     </Card>
   );
 });
