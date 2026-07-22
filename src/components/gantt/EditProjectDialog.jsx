@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Trash2, Plus } from 'lucide-react';
@@ -17,18 +17,20 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
   const navigate = useNavigate();
   const [newTaskName, setNewTaskName] = React.useState('');
   const projectColor = project?.color || '#3b82f6';
+  const NO_TIME_TYPE = '__none__';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>編輯開發季</DialogTitle>
+          <DialogDescription>修改名稱，或整理這個開發季內既有任務的時間設定。</DialogDescription>
         </DialogHeader>
         {project && (
-          <div className="space-y-3 py-1">
+          <div className="space-y-4 py-1 min-h-0 overflow-hidden flex flex-col">
             {/* 名稱 + 顏色 */}
             <div>
-              <Label className="text-xs text-gray-600">開發季名稱</Label>
+              <Label className="text-sm text-gray-700">開發季名稱</Label>
               <div className="mt-1 flex items-center gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -55,14 +57,14 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
 
             {/* 任務列表 */}
             <div>
-              <div className="flex items-baseline justify-between mb-1.5">
-                <Label className="text-xs text-gray-600">任務列表</Label>
+              <div className="flex items-baseline justify-between mb-2">
+                <Label className="text-sm text-gray-700">任務列表</Label>
                 {projectTasks.length > 0 && (
-                  <span className="text-[10px] text-gray-400">{projectTasks.length} 項</span>
+                  <span className="text-xs text-gray-500 tabular-nums">共 {projectTasks.length} 項</span>
                 )}
               </div>
 
-              <div className="space-y-1.5 max-h-[340px] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
                 {projectTasks.length === 0 && (
                   <p className="text-xs text-gray-400 py-4 text-center">尚無任務</p>
                 )}
@@ -80,7 +82,7 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                     : null;
 
                   return (
-                    <div key={task.id} className="flex flex-col gap-1.5 px-2.5 py-2 border rounded-md bg-gray-50/60">
+                    <div key={task.id} className="flex flex-col gap-2 px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50/60 hover:border-gray-300 transition-colors">
                       {/* 第一行：點 + 名稱 + 日期標籤 + 工作天 + 刪除 */}
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: projectColor }} />
@@ -94,9 +96,11 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                           </span>
                         )}
                         <button
+                          type="button"
                           onClick={() => onDeleteTask(task.id)}
-                          className="p-0.5 hover:bg-red-100 rounded text-red-500 flex-shrink-0"
-                          aria-label="刪除任務"
+                          className="h-7 w-7 inline-flex items-center justify-center hover:bg-red-50 rounded-md text-gray-400 hover:text-red-600 flex-shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                          aria-label={`刪除任務 ${task.name}`}
+                          title="刪除任務"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -105,11 +109,11 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                       {/* 第二行：時間類型 + 日期 */}
                       <div className="flex items-center gap-1.5">
                         <Select
-                          value={task.time_type || ''}
+                          value={task.time_type || NO_TIME_TYPE}
                           onValueChange={(val) =>
                             onUpdateTask(task.id, {
                               ...task,
-                              time_type: val,
+                              time_type: val === NO_TIME_TYPE ? null : val,
                               start_date: '',
                               end_date: '',
                             })
@@ -119,7 +123,7 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                             <SelectValue placeholder="不設定" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={null}>不設定</SelectItem>
+                            <SelectItem value={NO_TIME_TYPE}>不設定</SelectItem>
                             <SelectItem value="milestone">◆ 里程碑</SelectItem>
                             <SelectItem value="duration">▬ 區間</SelectItem>
                             <SelectItem value="rolling">▶ Rolling</SelectItem>
@@ -169,12 +173,12 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
               </div>
 
               {/* 新增任務 */}
-              <div className="flex gap-1.5 mt-2">
+              <div className="flex gap-2 mt-3 rounded-lg border border-dashed border-gray-300 bg-white p-2">
                 <Input
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
-                  placeholder="新增任務名稱..."
-                  className="h-8 text-sm"
+                  placeholder="輸入任務名稱…"
+                  className="h-9 text-sm border-0 shadow-none focus-visible:ring-0"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newTaskName.trim()) {
                       onCreateTask(newTaskName.trim());
@@ -184,17 +188,16 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                 />
                 <Button
                   size="sm"
-                  variant="outline"
                   disabled={!newTaskName.trim()}
                   onClick={() => { onCreateTask(newTaskName.trim()); setNewTaskName(''); }}
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 mr-1" />新增
                 </Button>
               </div>
             </div>
           </div>
         )}
-        <DialogFooter>
+        <DialogFooter className="border-t pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
           <Button onClick={onSave} className="bg-blue-600 hover:bg-blue-700">儲存</Button>
         </DialogFooter>

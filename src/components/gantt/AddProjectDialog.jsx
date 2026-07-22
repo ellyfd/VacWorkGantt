@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
 
 const currentYear = new Date().getFullYear();
 const COLOR_OPTIONS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#ef4444','#ec4899','#64748b'];
@@ -47,13 +48,16 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader><DialogTitle>新增開發季</DialogTitle></DialogHeader>
-        <div className="space-y-4 py-4">
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>新增開發季</DialogTitle>
+          <DialogDescription>選擇品牌與季別，系統會依既有規則產生開發季名稱。</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-5 py-2">
 
           {/* 品牌 */}
           <div>
-            <Label>品牌 *</Label>
+            <Label>品牌 <span className="text-red-500" aria-hidden="true">*</span></Label>
             <Select value={projectFormData.brand_id} onValueChange={(val) => {
               const brand = projects.find(p => p.id === val);
               setProjectFormData({
@@ -64,7 +68,7 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
                 color: brand?.default_color || '#3b82f6',
               });
             }}>
-              <SelectTrigger className="mt-1"><SelectValue placeholder="選擇品牌..." /></SelectTrigger>
+              <SelectTrigger className="mt-1.5"><SelectValue placeholder="選擇品牌..." /></SelectTrigger>
               <SelectContent>
                 {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.short_name || p.name}</SelectItem>)}
               </SelectContent>
@@ -74,9 +78,9 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
           {/* 季節/年份 or 自填內容 */}
           {isMakalot ? (
             <div>
-              <Label>內容 *</Label>
+              <Label>內容 <span className="text-red-500" aria-hidden="true">*</span></Label>
               <Input
-                className="mt-1"
+                className="mt-1.5"
                 placeholder="例如：2026春夏企劃"
                 value={projectFormData.customName || ''}
                 onChange={(e) => setProjectFormData({ ...projectFormData, customName: e.target.value })}
@@ -85,13 +89,13 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
           ) : (
             <div className="flex gap-3">
               <div className="flex-1">
-                <Label>季節 *</Label>
+                <Label>季節 <span className="text-red-500" aria-hidden="true">*</span></Label>
                 {isTGT ? (
                   <Select
                     value={projectFormData.season}
                     onValueChange={(val) => setProjectFormData({ ...projectFormData, season: val })}
                   >
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="選擇季節..." /></SelectTrigger>
+                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="選擇季節..." /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="C1">C1</SelectItem>
                       <SelectItem value="C2">C2</SelectItem>
@@ -104,7 +108,7 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
                     value={projectFormData.season}
                     onValueChange={(val) => setProjectFormData({ ...projectFormData, season: val })}
                   >
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="選擇季節..." /></SelectTrigger>
+                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="選擇季節..." /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="FW">FW</SelectItem>
                       <SelectItem value="HO">HO</SelectItem>
@@ -115,12 +119,12 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
                 )}
               </div>
               <div className="w-28">
-                <Label>年份 *</Label>
+                <Label>年份 <span className="text-red-500" aria-hidden="true">*</span></Label>
                 <Select
                   value={String(projectFormData.year)}
                   onValueChange={(val) => setProjectFormData({ ...projectFormData, year: Number(val) })}
                 >
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {[currentYear - 1, currentYear, currentYear + 1].map(y => (
                       <SelectItem key={y} value={String(y)}>{y}</SelectItem>
@@ -133,14 +137,14 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
 
           {/* 預覽名稱 */}
           {previewName && (
-            <div className="bg-gray-50 rounded-md px-3 py-2 text-sm text-gray-600">
-              開發季名稱：<span className="font-semibold text-gray-900">{previewName}</span>
+            <div className="border border-blue-100 bg-blue-50/60 rounded-md px-3 py-2.5 text-sm text-gray-600">
+              建立後名稱：<span className="font-semibold text-gray-900">{previewName}</span>
             </div>
           )}
 
           {/* 顏色 */}
           <div>
-            <Label>顏色</Label>
+            <Label className="text-gray-700">識別顏色</Label>
             <div className="mt-2 flex items-center gap-3">
               <div
                 className="w-7 h-7 rounded-full border border-gray-200 flex-shrink-0"
@@ -150,7 +154,7 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
               <button
                 type="button"
                 onClick={() => { onOpenChange(false); navigate('/ProjectSettings?tab=projects'); }}
-                className="text-xs text-blue-600 hover:underline"
+                className="text-xs text-blue-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
               >
                 前往品牌設定修改 →
               </button>
@@ -158,10 +162,11 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
           <Button onClick={onConfirm} disabled={!canConfirm || isLoading} className="bg-blue-600 hover:bg-blue-700">
-            {isLoading ? '建立中...' : '建立'}
+            {isLoading && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
+            {isLoading ? '建立中…' : '建立開發季'}
           </Button>
         </DialogFooter>
       </DialogContent>
