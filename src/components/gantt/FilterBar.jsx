@@ -22,17 +22,17 @@ const FilterBar = React.memo(function FilterBar({
   const activeGroups = (groups || []).filter(g => g.status !== 'inactive');
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-sm flex flex-col gap-2.5">
 
       {/* 第零行：集團 */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs text-gray-500 whitespace-nowrap font-medium">集團</span>
-        <div className="flex gap-1">
+      <div className="flex items-start gap-2">
+        <span className="w-10 pt-1.5 text-xs text-gray-500 whitespace-nowrap font-medium">集團</span>
+        <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => onGroupChange(null)}
-            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
               !selectedGroupSlug
-                ? 'bg-gray-800 text-white border-gray-800'
+                ? 'bg-blue-600 text-white border-blue-600'
                 : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -42,9 +42,9 @@ const FilterBar = React.memo(function FilterBar({
             <button
               key={group.id}
               onClick={() => onGroupChange(selectedGroupSlug === group.id ? null : group.id)}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 selectedGroupSlug === group.id
-                  ? 'bg-gray-800 text-white border-gray-800'
+                  ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
               }`}
             >
@@ -55,17 +55,17 @@ const FilterBar = React.memo(function FilterBar({
       </div>
 
       {/* 第一行：部門 + 工作日 + 統計 + 清除篩選 */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-start gap-x-4 gap-y-2 flex-wrap">
         
         {/* 部門篩選 - Pill 風格 */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 whitespace-nowrap font-medium">部門</span>
-          <div className="flex gap-1">
+        <div className="flex items-start gap-2">
+          <span className="w-10 pt-1.5 text-xs text-gray-500 whitespace-nowrap font-medium">部門</span>
+          <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => onDeptChange(null)}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 !selectedDeptId
-                  ? 'bg-gray-800 text-white border-gray-800'
+                  ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
               }`}
             >
@@ -75,9 +75,9 @@ const FilterBar = React.memo(function FilterBar({
               <button
                 key={dept.id}
                 onClick={() => onDeptChange(dept.id)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                   selectedDeptId === dept.id
-                    ? 'bg-gray-800 text-white border-gray-800'
+                    ? 'bg-blue-600 text-white border-blue-600'
                     : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                 }`}
               >
@@ -88,14 +88,14 @@ const FilterBar = React.memo(function FilterBar({
         </div>
 
         {/* 分隔線 */}
-        <div className="w-px h-4 bg-gray-300" />
+        <div className="hidden md:block w-px h-7 bg-gray-200" />
 
         {/* 僅工作日 - Pill 風格 */}
         <button
           onClick={() => onHideHolidaysChange(!hideHolidays)}
-          className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+          className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             hideHolidays
-              ? 'bg-orange-500 text-white border-orange-500'
+              ? 'bg-blue-600 text-white border-blue-600'
               : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
           }`}
         >
@@ -103,7 +103,7 @@ const FilterBar = React.memo(function FilterBar({
         </button>
 
         {/* 分隔線 */}
-        <div className="w-px h-4 bg-gray-300" />
+        <div className="hidden md:block w-px h-7 bg-gray-200" />
 
         {/* 歸檔狀態 - 三段式 Pill */}
         <div className="flex items-center gap-1.5">
@@ -117,9 +117,9 @@ const FilterBar = React.memo(function FilterBar({
               <button
                 key={opt.value}
                 onClick={() => onArchivedFilterChange(opt.value)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                   archivedFilter === opt.value
-                    ? 'bg-gray-800 text-white border-gray-800'
+                    ? 'bg-blue-600 text-white border-blue-600'
                     : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                 }`}
               >
@@ -130,7 +130,7 @@ const FilterBar = React.memo(function FilterBar({
         </div>
 
         {/* 篩選提示 */}
-        <span className="text-xs text-gray-400 ml-1">
+        <span className="text-xs text-gray-500 ml-auto pt-1.5 tabular-nums">
           顯示 {visibleRowCount} / {totalRowCount} 個專案
         </span>
 
@@ -142,7 +142,7 @@ const FilterBar = React.memo(function FilterBar({
               onGroupChange(null);
               onBrandChange([]); 
             }}
-            className="text-xs text-red-400 hover:text-red-600 underline ml-auto"
+            className="text-xs text-gray-500 hover:text-gray-900 underline underline-offset-2 pt-1.5"
           >
             清除篩選
           </button>
@@ -150,13 +150,13 @@ const FilterBar = React.memo(function FilterBar({
       </div>
 
       {/* 第二行：品牌 */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-xs text-gray-500 whitespace-nowrap font-medium">品牌</span>
+      <div className="flex items-start gap-2 flex-wrap border-t border-gray-100 pt-2.5">
+        <span className="w-10 pt-1.5 text-xs text-gray-500 whitespace-nowrap font-medium">品牌</span>
         <button
           onClick={() => onBrandChange([])}
-          className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+          className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
             selectedBrandIds.length === 0
-              ? 'bg-gray-800 text-white border-gray-800'
+              ? 'bg-blue-600 text-white border-blue-600'
               : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
           }`}
         >
@@ -173,7 +173,7 @@ const FilterBar = React.memo(function FilterBar({
                   : [...selectedBrandIds, id]
               );
             }}
-            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
               selectedBrandIds.includes(project.id)
                 ? 'bg-blue-600 text-white border-blue-600'
                 : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
