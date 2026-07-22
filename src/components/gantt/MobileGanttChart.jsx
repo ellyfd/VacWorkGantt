@@ -2,17 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, BarChart3, List } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, BarChart3, List, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { format, addDays, subDays, eachDayOfInterval, getDay, isToday } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import { getContrastColor, normalizeDate, calculateWorkingDays } from '@/lib/ganttUtils';
+import { getContrastColor, normalizeDate } from '@/lib/ganttUtils';
 import { useArchivedProjects } from '@/components/hooks/useArchivedProjects';
 
 const ROW_HEIGHT = 28;
@@ -265,12 +264,15 @@ export default function MobileGanttChart() {
   };
 
   return (
-    <div className="md:hidden p-3 space-y-3 pb-20">
+    <div className="md:hidden p-3 space-y-3 pb-20 bg-gray-50/60 min-h-full">
       {/* Header */}
-      <h1 className="text-xl font-bold text-gray-900">專案甘特圖</h1>
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight text-gray-900">專案甘特圖</h1>
+        <p className="mt-0.5 text-xs text-gray-500">查看開發季時程與每日請假狀況</p>
+      </div>
 
       {/* 篩選 */}
-      <div className="bg-gray-50 rounded p-2 space-y-1">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-3 space-y-2.5">
         {/* 集團篩選 */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="text-xs text-gray-600 font-medium whitespace-nowrap">集團</div>
@@ -282,7 +284,7 @@ export default function MobileGanttChart() {
                 setSelectedGroupSlug('');
                 setSelectedBrandIds([]);
               }}
-              className="text-xs h-6 px-2"
+              className="text-xs h-8 px-3 rounded-full"
             >
               全部
             </Button>
@@ -295,7 +297,7 @@ export default function MobileGanttChart() {
                   setSelectedGroupSlug(g.id);
                   setSelectedBrandIds([]);
                 }}
-                className="text-xs h-6 px-2"
+                className="text-xs h-8 px-3 rounded-full"
               >
                 {g.name}
               </Button>
@@ -320,7 +322,7 @@ export default function MobileGanttChart() {
                       onClick={() => setSelectedBrandIds(prev =>
                         prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
                       )}
-                      className="text-xs h-6 px-2"
+                      className="text-xs h-8 px-3 rounded-full"
                     >
                       {p.short_name}
                     </Button>
@@ -332,7 +334,7 @@ export default function MobileGanttChart() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedBrandIds([])}
-                  className="text-xs h-6 px-2 ml-12"
+                  className="text-xs h-8 px-2 ml-12 text-gray-500"
                 >
                   <X className="w-3 h-3 mr-1" />
                   清除
@@ -344,27 +346,33 @@ export default function MobileGanttChart() {
       </div>
 
       {/* 時間導航 + 視圖切換 */}
-      <div className="flex items-center justify-between text-sm bg-white border border-gray-200 rounded px-3 py-2">
-        <button onClick={() => setCurrentDate(new Date())} className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded">
+      <div className="flex items-center justify-between gap-1 text-sm bg-white border border-gray-200 shadow-sm rounded-lg px-2 py-2">
+        <button type="button" onClick={() => setCurrentDate(new Date())} className="h-9 px-2 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
           今天
         </button>
-        <button onClick={() => setCurrentDate(d => subDays(d, 14))} className="p-1 hover:bg-gray-100 rounded">
+        <button type="button" onClick={() => setCurrentDate(d => subDays(d, 14))} className="h-9 w-9 inline-flex items-center justify-center hover:bg-gray-100 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="往前兩週" title="往前兩週">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="font-medium">{format(weekDays[0], 'M月d日')} - {format(weekDays[weekDays.length - 1], 'M月d日')}</span>
-        <button onClick={() => setCurrentDate(d => addDays(d, 14))} className="p-1 hover:bg-gray-100 rounded">
+        <span className="font-medium text-xs tabular-nums whitespace-nowrap">{format(weekDays[0], 'M月d日')}–{format(weekDays[weekDays.length - 1], 'M月d日')}</span>
+        <button type="button" onClick={() => setCurrentDate(d => addDays(d, 14))} className="h-9 w-9 inline-flex items-center justify-center hover:bg-gray-100 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="往後兩週" title="往後兩週">
           <ChevronRight className="w-5 h-5" />
         </button>
-        <div className="flex border border-gray-200 rounded overflow-hidden ml-1">
+        <div className="flex border border-gray-200 rounded-md overflow-hidden ml-1" role="group" aria-label="檢視方式">
           <button
+            type="button"
             onClick={() => setViewMode('chart')}
-            className={`p-1.5 ${viewMode === 'chart' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:bg-gray-50'}`}
+            className={`h-9 w-9 inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${viewMode === 'chart' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:bg-gray-50'}`}
+            aria-label="甘特圖檢視"
+            aria-pressed={viewMode === 'chart'}
           >
             <BarChart3 className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => setViewMode('list')}
-            className={`p-1.5 ${viewMode === 'list' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:bg-gray-50'}`}
+            className={`h-9 w-9 inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${viewMode === 'list' ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:bg-gray-50'}`}
+            aria-label="列表檢視"
+            aria-pressed={viewMode === 'list'}
           >
             <List className="w-4 h-4" />
           </button>
@@ -391,11 +399,11 @@ export default function MobileGanttChart() {
                   <div
                     key={dateStr}
                     className={`flex flex-col items-center justify-center py-1 border-r border-gray-200 text-xs ${
-                      isToday(day) ? 'bg-red-100' : isDim ? 'bg-gray-200' : ''
+                      isToday(day) ? 'bg-blue-50 border-t-2 border-blue-500' : isDim ? 'bg-gray-200' : ''
                     }`}
                     style={{ width: CELL_WIDTH, flexShrink: 0 }}
                   >
-                    <span className={`font-bold text-xs ${isToday(day) ? 'text-red-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <span className={`font-bold text-xs ${isToday(day) ? 'text-blue-700' : isDim ? 'text-gray-400' : 'text-gray-700'}`}>
                       {format(day, 'd')}
                     </span>
                     <span className={`text-[11px] ${isDim ? 'text-gray-300' : 'text-gray-500'}`}>
@@ -420,13 +428,15 @@ export default function MobileGanttChart() {
                 const cellContent = (
                   <div
                     key={dateStr}
-                    className="flex-shrink-0 border-r border-gray-200 flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+                    className="flex-shrink-0 border-r border-gray-200 flex items-center justify-center text-xs font-semibold transition-opacity hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
                     style={{
                       backgroundColor: leaveStyle?.bg || 'transparent',
                       color: leaveStyle?.text || '#d1d5db',
                       fontWeight: leaveStyle?.bold ? 700 : 600,
                       width: CELL_WIDTH,
+                      cursor: count ? 'pointer' : 'default',
                     }}
+                    title={count ? `${format(day, 'M月d日')}｜${count} 人請假｜點擊查看名單` : undefined}
                   >
                     {leaveStyle?.label || ''}
                   </div>
@@ -500,7 +510,10 @@ export default function MobileGanttChart() {
                       return (
                         <div
                           key={task.id}
-                          className="absolute rounded cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center overflow-hidden"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`編輯任務 ${task.name}`}
+                          className="absolute rounded cursor-pointer hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-opacity flex items-center justify-center overflow-hidden"
                           style={{
                             backgroundColor: color,
                             left: pos.left + 1,
@@ -510,6 +523,12 @@ export default function MobileGanttChart() {
                           }}
                           title={`${proj?.name} - ${task.name}`}
                           onClick={() => handleOpenEditDialog(task)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleOpenEditDialog(task);
+                            }
+                          }}
                         >
                           <span className="font-medium text-xs px-1 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: getContrastColor(color), maxWidth: '100%' }}>
                             {barText}
@@ -561,8 +580,16 @@ export default function MobileGanttChart() {
                     return (
                       <Card
                         key={task.id}
-                        className="p-2.5 cursor-pointer active:scale-[0.98] transition-transform"
+                        role="button"
+                        tabIndex={0}
+                        className="p-3 cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-transform"
                         onClick={() => handleOpenEditDialog(task)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleOpenEditDialog(task);
+                          }
+                        }}
                       >
                         <div className="flex items-start gap-2">
                           <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
@@ -594,8 +621,14 @@ export default function MobileGanttChart() {
         </div>
         )
       ) : (
-        <div className="p-8 text-center text-gray-400 text-sm">
-          篩選結果無任務
+        <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-sm">
+          <p className="font-medium text-gray-700">目前條件沒有符合的任務</p>
+          <p className="mt-1 text-xs text-gray-500">可調整上方集團或品牌篩選。</p>
+          {(selectedGroupSlug || selectedBrandIds.length > 0) && (
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => { setSelectedGroupSlug(''); setSelectedBrandIds([]); }}>
+              清除篩選
+            </Button>
+          )}
         </div>
       )}
 
@@ -604,6 +637,7 @@ export default function MobileGanttChart() {
         <DialogContent className="w-[95vw] max-w-sm sm:max-w-md p-4 sm:p-5 gap-3 sm:gap-4 top-[30%] sm:top-auto">
           <DialogHeader className="space-y-0">
             <DialogTitle className="text-base">編輯任務</DialogTitle>
+            <DialogDescription className="text-xs">修改既有任務名稱與日期。</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
@@ -662,7 +696,8 @@ export default function MobileGanttChart() {
               取消
             </Button>
             <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending} className="h-8 text-sm flex-1">
-              {updateTaskMutation.isPending ? '保存中' : '保存'}
+              {updateTaskMutation.isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
+              {updateTaskMutation.isPending ? '儲存中…' : '儲存'}
             </Button>
           </div>
         </DialogContent>
