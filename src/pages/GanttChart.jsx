@@ -1836,9 +1836,13 @@ export default function GanttChart() {
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
-          <AlertDialogTitle>確定要刪除？</AlertDialogTitle>
+          <AlertDialogTitle>
+            刪除{deleteConfirm?.type === 'project' ? '開發季' : '任務'}「{deleteConfirm?.name}」？
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            「{deleteConfirm?.name}」刪除後無法復原。
+            {deleteConfirm?.type === 'project'
+              ? '此開發季將被刪除，完成後無法復原；請先確認相關任務資料。'
+              : '此任務將被刪除，完成後無法復原。'}
           </AlertDialogDescription>
           <div className="flex justify-end gap-3">
             <AlertDialogCancel>取消</AlertDialogCancel>
@@ -1855,7 +1859,7 @@ export default function GanttChart() {
                 setDeleteConfirm(null);
               }}
             >
-              確定刪除
+              刪除{deleteConfirm?.type === 'project' ? '開發季' : '任務'}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
@@ -1865,12 +1869,14 @@ export default function GanttChart() {
       <AlertDialog open={!!archiveConfirm} onOpenChange={(open) => !open && setArchiveConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogTitle>
-            {archiveConfirm?.action === 'restore' ? '還原此 season？' : '歸檔此 season？'}
+            {archiveConfirm?.action === 'restore'
+              ? `還原開發季「${archiveConfirm?.name}」？`
+              : `封存開發季「${archiveConfirm?.name}」？`}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {archiveConfirm?.action === 'restore'
-              ? `「${archiveConfirm?.name}」將還原為進行中,並重新顯示在預設列表。`
-              : `「${archiveConfirm?.name}」將從預設列表隱藏,可在「已歸檔」分頁還原。任務資料不會被刪除。`}
+              ? '開發季將恢復為進行中，並重新顯示在預設列表。'
+              : '開發季將從預設列表隱藏，可在「已歸檔」狀態中還原；任務資料不會被刪除。'}
           </AlertDialogDescription>
           <div className="flex justify-end gap-3">
             <AlertDialogCancel>取消</AlertDialogCancel>
@@ -1885,7 +1891,7 @@ export default function GanttChart() {
                 setArchiveConfirm(null);
               }}
             >
-              {archiveConfirm?.action === 'restore' ? '確定還原' : '確定歸檔'}
+              {archiveConfirm?.action === 'restore' ? '還原開發季' : '封存開發季'}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
