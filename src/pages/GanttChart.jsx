@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -29,11 +28,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Plus, Edit2, Trash2, GripVertical, HelpCircle, Archive, ArchiveRestore } from 'lucide-react';
+import { Plus, Trash2, GripVertical, HelpCircle, Archive, ArchiveRestore, MoreHorizontal } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { addDays, subDays, format, eachDayOfInterval, isToday, getDay } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 import GanttRow from '@/components/gantt/GanttRow';
 import AddProjectDialog from '@/components/gantt/AddProjectDialog';
@@ -49,7 +55,6 @@ import { useFormData } from '@/components/hooks/useFormData';
 import { useFilterState } from '@/components/hooks/useFilterState';
 import { useArchivedProjects } from '@/components/hooks/useArchivedProjects';
 import { useProjectCreation } from '@/components/hooks/useProjectCreation';
-import { getContrastColor, getLightColor } from '@/lib/ganttUtils';
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
@@ -1060,7 +1065,16 @@ export default function GanttChart() {
               <div className="h-full transition-all" style={{ width: `${progressPct}%`, backgroundColor: getProjectColor(row.data), opacity: 0.5 }} />
             </div>
           )}
-          <GripVertical className="w-3.5 h-3.5 flex-shrink-0 opacity-30 text-gray-400" />
+          <span
+            draggable={!isArchived}
+            onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
+            onDragEnd={handleProjectDragEnd}
+            className={`h-8 w-6 -ml-1 inline-flex items-center justify-center rounded-md text-gray-400 ${isArchived ? 'cursor-default opacity-30' : 'cursor-grab hover:bg-gray-100 hover:text-gray-700 active:cursor-grabbing'}`}
+            title={isArchived ? undefined : '拖曳調整開發季順序'}
+            aria-label={isArchived ? undefined : `拖曳調整 ${row.data.name} 順序`}
+          >
+            <GripVertical className="w-4 h-4" />
+          </span>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -1107,8 +1121,9 @@ export default function GanttChart() {
               )}
             </TooltipContent>
           </Tooltip>
-          <div className="flex gap-1 flex-shrink-0 text-gray-400">
+          <div className="flex items-center gap-1 flex-shrink-0 text-gray-400">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 if (isArchived) return;
@@ -1117,48 +1132,57 @@ export default function GanttChart() {
                 setShowAddTaskDialog(true);
               }}
               disabled={isArchived}
-              className={`p-1 rounded ${isArchived ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+              className={`h-8 w-8 inline-flex items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${isArchived ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-50 hover:text-blue-700'}`}
               title={isArchived ? '已歸檔，無法新增任務' : '新增任務'}
+              aria-label={isArchived ? `${row.data.name} 已歸檔，無法新增任務` : `在 ${row.data.name} 新增任務`}
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-4 h-4" />
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (isArchived) return;
-                setEditingProject(row.data);
-                setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === row.data.id));
-                setShowEditProjectDialog(true);
-              }}
-              disabled={isArchived}
-              className={`p-1 rounded ${isArchived ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100'}`}
-              title={isArchived ? '已歸檔，無法編輯' : '編輯'}
-            >
-              <Edit2 className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setArchiveConfirm({
-                  id: row.data.id,
-                  name: row.data.name,
-                  action: isArchived ? 'restore' : 'archive',
-                });
-              }}
-              className="p-1 hover:bg-gray-100 rounded"
-              title={isArchived ? '還原此 season' : '歸檔此 season'}
-            >
-              {isArchived
-                ? <ArchiveRestore className="w-3 h-3" />
-                : <Archive className="w-3 h-3" />}
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: 'project', id: row.data.id, name: row.data.name }); }}
-              className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-500"
-              title="刪除"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-gray-100 hover:text-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  aria-label={`${row.data.name} 更多操作`}
+                  title="更多操作"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem
+                  disabled={isArchived}
+                  onSelect={() => {
+                    setEditingProject(row.data);
+                    setEditingProjectTasks(ganttTasks.filter(t => t.gantt_project_id === row.data.id));
+                    setShowEditProjectDialog(true);
+                  }}
+                >
+                  編輯開發季
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setArchiveConfirm({
+                    id: row.data.id,
+                    name: row.data.name,
+                    action: isArchived ? 'restore' : 'archive',
+                  })}
+                >
+                  {isArchived
+                    ? <ArchiveRestore className="w-4 h-4 mr-2" />
+                    : <Archive className="w-4 h-4 mr-2" />}
+                  {isArchived ? '還原開發季' : '封存開發季'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                  onSelect={() => setDeleteConfirm({ type: 'project', id: row.data.id, name: row.data.name })}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  刪除開發季
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       );
@@ -1213,26 +1237,56 @@ export default function GanttChart() {
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-4 md:p-6 space-y-3 bg-gray-50/60 min-h-full">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-gray-900">專案甘特圖</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">專案甘特圖</h1>
+          <p className="mt-0.5 text-sm text-gray-500">集中查看開發季時程與每日請假狀況</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <HelpCircle className="w-4 h-4" />
+                操作說明
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-4">
+              <div className="font-semibold text-gray-900 mb-2">快速操作</div>
+              <ul className="text-xs text-gray-600 space-y-2">
+                <li><span className="font-medium text-gray-800">新增：</span>使用「新增開發季」或開發季列的 ＋。</li>
+                <li><span className="font-medium text-gray-800">編輯：</span>點擊任務色條；其他開發季操作在 ⋯ 選單。</li>
+                <li><span className="font-medium text-gray-800">定位：</span>點擊開發季名稱跳至該季最新項目。</li>
+                <li><span className="font-medium text-gray-800">請假：</span>點擊非零人數查看當日名單。</li>
+                <li><span className="font-medium text-gray-800">復原：</span>Ctrl+Z（Mac：⌘Z）復原時間變更。</li>
+                <li><span className="font-medium text-gray-800">排序：</span>拖曳開發季名稱左側把手。</li>
+              </ul>
+            </PopoverContent>
+          </Popover>
+          <Button onClick={() => setShowAddProjectDialog(true)} size="sm" className="gap-1.5 bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4" />
+            新增開發季
+          </Button>
+        </div>
       </div>
 
       {/* Time Navigation - Layer 1 */}
-      <TimeNavigation
-        centerDate={visibleMonth}
-        onCenterDateChange={(date) => {
-          const d = new Date(date);
-          setVisibleMonth(d);
-          const needLeft = d < addDays(startDate, 30);
-          const needRight = d > subDays(endDate, 30);
-          if (needLeft) setStartDate(subDays(d, 180));
-          if (needRight) setEndDate(addDays(d, 180));
-          setPendingScrollToDate(format(d, 'yyyy-MM-01'));
-        }}
-        onScrollToToday={scrollToToday}
-      />
+      <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-2 py-1.5 shadow-sm">
+        <TimeNavigation
+          centerDate={visibleMonth}
+          onCenterDateChange={(date) => {
+            const d = new Date(date);
+            setVisibleMonth(d);
+            const needLeft = d < addDays(startDate, 30);
+            const needRight = d > subDays(endDate, 30);
+            if (needLeft) setStartDate(subDays(d, 180));
+            if (needRight) setEndDate(addDays(d, 180));
+            setPendingScrollToDate(format(d, 'yyyy-MM-01'));
+          }}
+          onScrollToToday={scrollToToday}
+        />
+      </div>
 
       {/* Filter Bar - Layer 2 */}
       <FilterBar
@@ -1280,17 +1334,10 @@ export default function GanttChart() {
                 style={{ height: MONTH_HEADER_HEIGHT }}
               />
               <div
-                className="bg-gray-100 border-b border-gray-300 px-3 font-semibold text-xl flex items-center gap-2"
+                className="bg-gray-50 border-b border-gray-300 px-3 font-semibold text-base flex items-center"
                 style={{ height: DATE_HEADER_HEIGHT }}
               >
                 開發季
-                <button
-                  onClick={() => setShowAddProjectDialog(true)}
-                  className="flex items-center gap-0.5 px-1.5 py-0.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded font-medium"
-                >
-                  <Plus className="w-3 h-3" />
-                  新增
-                </button>
               </div>
               <div
                 className="bg-slate-50 border-y-2 border-slate-200 px-3 text-xs text-slate-500 flex items-center font-medium tracking-wide"
@@ -1309,13 +1356,11 @@ export default function GanttChart() {
                   <div
                     key={row.id}
                     className="border-b border-gray-200 relative"
-                    draggable={true}
-                    onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
+                    draggable={false}
                     onDragOver={(e) => handleProjectDragOver(e, row.data.id)}
                     onDrop={(e) => handleProjectDrop(e, row.data.id)}
-                    onDragEnd={() => handleProjectDragEnd()}
                     onDragLeave={() => setDropTargetId(null)}
-                    style={{ cursor: 'move', opacity: draggedProjectIdRef.current === row.data.id ? 0.5 : 1, userSelect: 'none' }}
+                    style={{ opacity: draggedProjectIdRef.current === row.data.id ? 0.6 : 1, userSelect: 'none' }}
                   >
                     {dropTargetId === row.data.id && (
                       <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500 z-50" />
@@ -1325,14 +1370,15 @@ export default function GanttChart() {
                 ))}
                 {visibleRows.length === 0 && (
                   <div className="p-8 text-center text-gray-400">
-                    點擊「新增開發季」開始
+                    <p className="font-medium text-gray-600">目前沒有符合條件的開發季</p>
+                    <button type="button" onClick={() => { setSelectedDeptId(null); setSelectedGroupSlug(null); setSelectedBrandIds([]); }} className="mt-2 text-sm text-blue-600 hover:text-blue-700 hover:underline">清除篩選</button>
                   </div>
                 )}
               </div>
 
               {/* 拖曳 handle */}
               <div
-                className="absolute top-0 right-0 w-1 h-full cursor-col-resize z-20"
+                className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize z-20 hover:bg-blue-400/50 transition-colors"
                 style={{ touchAction: 'none' }}
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -1345,7 +1391,7 @@ export default function GanttChart() {
                   const onMouseMove = (e) => {
                     if (!isResizingRef.current) return;
                     const delta = e.clientX - resizeStartXRef.current;
-                    const newWidth = Math.max(160, Math.min(480, resizeStartWidthRef.current + delta));
+                    const newWidth = Math.max(220, Math.min(420, resizeStartWidthRef.current + delta));
                     setLeftPanelWidth(newWidth);
                   };
 
@@ -1382,13 +1428,12 @@ export default function GanttChart() {
                         top: 0,
                         bottom: 0,
                         left: todayLeft,
-                        width: 3,
+                        width: 2,
                         backgroundColor: '#2563eb',
                         zIndex: 25,
                         pointerEvents: 'none',
-                        opacity: 0.85,
+                        opacity: 0.65,
                         borderRadius: 1,
-                        boxShadow: '0 0 6px rgba(37,99,235,0.4)',
                       }} />
                     );
                   })()}
@@ -1430,7 +1475,7 @@ export default function GanttChart() {
                         <div
                           key={day.toISOString()}
                           className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                            isToday(day) ? 'bg-blue-200 text-blue-900 font-bold border-t-[3px] border-blue-600 ring-1 ring-inset ring-blue-300' :
+                            isToday(day) ? 'bg-blue-50 text-blue-800 font-bold border-t-2 border-blue-500' :
                             (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
                             'bg-gray-100 text-gray-700'
                           }`}
@@ -1457,7 +1502,7 @@ export default function GanttChart() {
                       const cellContent = (
                         <div
                           key={day.toISOString()}
-                          className="border-r border-gray-200 flex items-center justify-center"
+                          className="border-r border-gray-200 flex items-center justify-center transition-colors hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
                           style={{
                             backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#e5e7eb' : '#f9fafb'),
                             fontSize: 11,
@@ -1465,6 +1510,8 @@ export default function GanttChart() {
                             color: leaveStyle?.text || '#d1d5db',
                             cursor: count ? 'pointer' : 'default',
                           }}
+                          title={count ? `${format(day, 'M月d日')}｜${count} 人請假｜點擊查看名單` : undefined}
+                          aria-label={count ? `${format(day, 'M月d日')}，${count} 人請假，點擊查看名單` : undefined}
                         >
                           {leaveStyle?.label || ''}
                         </div>
@@ -1515,10 +1562,8 @@ export default function GanttChart() {
                           setEditingTask({ ...task });
                           setShowEditTaskDialog(true);
                         }}
-                        onDragStart={(e) => handleProjectDragStart(e, row.data.id)}
                         onDragOver={(e) => handleProjectDragOver(e, row.data.id)}
                         onDrop={(e) => handleProjectDrop(e, row.data.id)}
-                        onDragEnd={handleProjectDragEnd}
                         onDragLeave={() => setDropTargetId(null)}
                       />
                     ))}
@@ -1846,26 +1891,6 @@ export default function GanttChart() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 操作說明 */}
-      <div className="mt-4 text-sm text-gray-600">
-        <div className="font-medium flex items-center gap-1.5 text-gray-500 mb-2">
-          <HelpCircle className="w-4 h-4" /> 操作說明
-        </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <ul className="text-xs text-gray-600 space-y-1.5">
-            <li>• <span className="font-medium">新增開發季</span>：點擊右上角「＋ 新增」，選擇品牌與季節</li>
-            <li>• <span className="font-medium">新增任務</span>：點擊開發季列最左側的 ＋ 按鈕，選擇樣品與時間類型</li>
-            <li>• <span className="font-medium">編輯任務</span>：點擊甘特圖上的色條（bar）開啟編輯對話框，或點開發季的 ✎ 編輯整季任務</li>
-            <li>• <span className="font-medium">時間類型</span>：◆ 里程碑（單日標記）、▬ 區間（起訖日）、▶ Rolling（持續延伸至今）</li>
-            <li>• <span className="font-medium">跳至最新項目</span>：點擊開發季名稱，時間軸自動捲動到該季最晚任務的中點</li>
-            <li>• <span className="font-medium">歸檔／還原</span>：點擊開發季的 🗄 圖示可歸檔；上方狀態列切換「進行中／已歸檔／全部」</li>
-            <li>• <span className="font-medium">篩選</span>：點擊上方集團／品牌／部門標籤進行過濾；勾選「僅工作日」可隱藏週末與假日</li>
-            <li>• <span className="font-medium">請假人數</span>：下方數字列可點擊查看當日請假名單</li>
-            <li>• <span className="font-medium">撤銷操作</span>：Ctrl+Z（Mac: ⌘Z）可撤銷上一次時間變更</li>
-            <li>• <span className="font-medium">拖曳排序</span>：拖曳開發季列可調整顯示順序</li>
-          </ul>
-        </div>
-      </div>
       </div>
     </TooltipProvider>
       );

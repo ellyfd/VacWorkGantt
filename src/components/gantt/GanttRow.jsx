@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { format, addDays, subDays } from 'date-fns';
-import { getContrastColor, getLightColor, getSoftBarColor, getDarkTextColor, normalizeDate } from '@/lib/ganttUtils';
+import { getLightColor, getSoftBarColor, getDarkTextColor, normalizeDate } from '@/lib/ganttUtils';
 
 const dropIndicatorStyle = { position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#3b82f6', zIndex: 50 };
 const taskOverlayStyle = { position: 'absolute', inset: 0, pointerEvents: 'none' };
@@ -27,10 +27,8 @@ const GanttRow = React.memo(function GanttRow({
   ROW_HEIGHT,
   isArchived,
   onEditTask,
-  onDragStart,
   onDragOver,
   onDrop,
-  onDragEnd,
   onDragLeave,
 }) {
   const textColor = getDarkTextColor(projectColor);
@@ -86,6 +84,10 @@ const GanttRow = React.memo(function GanttRow({
       return (
         <div
           key={task.id}
+          role="button"
+          tabIndex={isArchived ? -1 : 0}
+          aria-label={`編輯任務 ${task.name}`}
+          title={`${task.name}｜點擊編輯`}
           style={{
             position: 'absolute',
             top: '50%',
@@ -110,6 +112,13 @@ const GanttRow = React.memo(function GanttRow({
           onClick={(e) => {
             e.stopPropagation();
             onEditTask(task);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              onEditTask(task);
+            }
           }}
         >
           {task.time_type === 'milestone' && (
@@ -174,17 +183,14 @@ const GanttRow = React.memo(function GanttRow({
 
   return (
     <div
-      draggable
-      onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      onDragEnd={onDragEnd}
       onDragLeave={onDragLeave}
       style={{
         position: 'relative',
         borderBottom: '1px solid #e5e7eb',
         height: ROW_HEIGHT,
-        cursor: 'move',
+        cursor: 'default',
         userSelect: 'none',
         opacity: isArchived ? 0.5 : 1,
         filter: isArchived ? 'grayscale(0.4)' : undefined,
