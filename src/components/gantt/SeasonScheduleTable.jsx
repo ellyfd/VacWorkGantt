@@ -1,16 +1,19 @@
 import React, { memo, useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown, CalendarRange, ListFilter, RotateCcw } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, CalendarRange, ListFilter, RotateCcw, X } from 'lucide-react';
 import { eachDayOfInterval, format, isWeekend, parseISO } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const ALL = '__all__';
 const SEASON_ORDER = ['SP', 'SU', 'HO', 'FW', 'C1', 'C2', 'C3', 'C4'];
@@ -58,19 +61,22 @@ function formatTaskDate(task) {
   return `${dateText}（${countWorkingDays(task.start_date, task.end_date)}天）`;
 }
 
-function HeaderFilterSelect({ label, value, onValueChange, options, placeholder, className = 'w-36' }) {
+function ColumnFilterMenu({ label, active, children }) {
   return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger aria-label={label} className={`h-8 bg-white px-2 text-xs font-normal ${className}`}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value={ALL}>{placeholder}</SelectItem>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={label}
+          className={`rounded p-1 transition-colors ${active ? 'bg-blue-100 text-blue-700' : 'text-slate-400 opacity-60 hover:bg-slate-200 hover:text-slate-700 group-hover/header:opacity-100'}`}
+        >
+          <ListFilter className="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="max-h-80 min-w-48 overflow-y-auto">
+        {children}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -188,6 +194,7 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
     direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc',
   }));
   const hasActiveFilters = brandId !== ALL || season !== ALL || year !== ALL || effectiveRequiredTask !== ALL;
+  const selectedBrandLabel = brandOptions.find((option) => option.value === brandId)?.label;
   const resetFilters = () => {
     setBrandId(ALL);
     setSeason(ALL);
@@ -213,6 +220,32 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
         </div>
       </div>
 
+      {hasActiveFilters && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-blue-50/50 px-4 py-2.5 sm:px-5" aria-label="已套用的篩選條件">
+          <span className="text-xs font-medium text-slate-500">篩選條件</span>
+          {brandId !== ALL && (
+            <button type="button" className="flex items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-xs text-blue-700" onClick={() => setBrandId(ALL)}>
+              客人：{selectedBrandLabel}<X className="h-3 w-3" />
+            </button>
+          )}
+          {season !== ALL && (
+            <button type="button" className="flex items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-xs text-blue-700" onClick={() => setSeason(ALL)}>
+              季節：{season}<X className="h-3 w-3" />
+            </button>
+          )}
+          {year !== ALL && (
+            <button type="button" className="flex items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-xs text-blue-700" onClick={() => setYear(ALL)}>
+              年份：{year}<X className="h-3 w-3" />
+            </button>
+          )}
+          {effectiveRequiredTask !== ALL && (
+            <button type="button" className="flex items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-xs text-blue-700" onClick={() => setRequiredTask(ALL)}>
+              有 {effectiveRequiredTask}<X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      )}
+
       {sortedProjects.length === 0 ? (
         <div className="flex min-h-40 flex-col items-center justify-center px-6 py-10 text-center">
           <CalendarRange className="mb-3 h-8 w-8 text-slate-300" aria-hidden="true" />
@@ -225,32 +258,53 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
             <caption className="sr-only">依客人、開發季與工作項目整理的時間表</caption>
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left text-sm font-semibold text-slate-600">
-                <th scope="col" aria-sort={sortState.key === 'customer' ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="sticky left-0 z-20 min-w-44 whitespace-nowrap bg-slate-50 px-4 py-3">
-                  <button type="button" className="mb-2 flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('customer')}>客人{sortState.key === 'customer' ? <SortIcon className="h-3.5 w-3.5" /> : <ArrowUpDown className="h-3.5 w-3.5" />}</button>
-                  <HeaderFilterSelect label="篩選客人" value={brandId} onValueChange={setBrandId} options={brandOptions} placeholder="全部客人" className="w-36" />
-                </th>
-                <th scope="col" className="sticky left-44 z-20 min-w-64 whitespace-nowrap border-r border-slate-200 bg-slate-50 px-4 py-3">
-                  <button type="button" className="mb-2 flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('season')}>開發季<ArrowUpDown className="h-3.5 w-3.5" /></button>
-                  <div className="flex gap-1.5">
-                    <HeaderFilterSelect label="篩選季節" value={season} onValueChange={setSeason} options={seasonOptions} placeholder="全部季節" className="w-28" />
-                    <HeaderFilterSelect label="篩選年份" value={year} onValueChange={setYear} options={yearOptions} placeholder="全部年份" className="w-28" />
+                <th scope="col" aria-sort={sortState.key === 'customer' ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="group/header sticky left-0 z-20 min-w-40 whitespace-nowrap bg-slate-50 px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <button type="button" className="flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('customer')}>客人{sortState.key === 'customer' ? <SortIcon className="h-3.5 w-3.5 text-blue-600" /> : <ArrowUpDown className="h-3.5 w-3.5 opacity-0 group-hover/header:opacity-60" />}</button>
+                    <ColumnFilterMenu label="篩選客人" active={brandId !== ALL}>
+                      <DropdownMenuLabel>客人</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup value={brandId} onValueChange={setBrandId}>
+                        <DropdownMenuRadioItem value={ALL}>全部客人</DropdownMenuRadioItem>
+                        {brandOptions.map((option) => <DropdownMenuRadioItem key={option.value} value={option.value}>{option.label}</DropdownMenuRadioItem>)}
+                      </DropdownMenuRadioGroup>
+                    </ColumnFilterMenu>
                   </div>
                 </th>
-                {taskColumns.map(({ name, count }) => {
+                <th scope="col" aria-sort={sortState.key === 'season' ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="group/header sticky left-40 z-20 min-w-40 whitespace-nowrap border-r border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <button type="button" className="flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('season')}>開發季{sortState.key === 'season' ? <SortIcon className="h-3.5 w-3.5 text-blue-600" /> : <ArrowUpDown className="h-3.5 w-3.5 opacity-0 group-hover/header:opacity-60" />}</button>
+                    <ColumnFilterMenu label="篩選開發季" active={season !== ALL || year !== ALL}>
+                      <DropdownMenuLabel>季節</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup value={season} onValueChange={setSeason}>
+                        <DropdownMenuRadioItem value={ALL}>全部季節</DropdownMenuRadioItem>
+                        {seasonOptions.map((option) => <DropdownMenuRadioItem key={option.value} value={option.value}>{option.label}</DropdownMenuRadioItem>)}
+                      </DropdownMenuRadioGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>年份</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup value={year} onValueChange={setYear}>
+                        <DropdownMenuRadioItem value={ALL}>全部年份</DropdownMenuRadioItem>
+                        {yearOptions.map((option) => <DropdownMenuRadioItem key={option.value} value={option.value}>{option.label}</DropdownMenuRadioItem>)}
+                      </DropdownMenuRadioGroup>
+                    </ColumnFilterMenu>
+                  </div>
+                </th>
+                {taskColumns.map(({ name, count }, columnIndex) => {
                   const isSorted = sortState.key === `task:${name}`;
+                  const isFiltered = effectiveRequiredTask === name;
+                  const isFirstPinnedRight = /專案|數位|digital/i.test(name)
+                    && !taskColumns.slice(0, columnIndex).some((column) => /專案|數位|digital/i.test(column.name));
                   return (
-                    <th key={name} scope="col" aria-sort={isSorted ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="min-w-48 whitespace-nowrap px-4 py-3 align-top">
-                      <button type="button" className="mb-2 flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort(`task:${name}`)} title={`出現 ${count} 次；點擊依日期排序`}>
-                        {name}<span className="font-normal text-slate-400">{count}</span>{isSorted ? <SortIcon className="h-3.5 w-3.5" /> : <ArrowUpDown className="h-3.5 w-3.5" />}
-                      </button>
-                      <button
-                        type="button"
-                        className={`flex h-8 items-center gap-1 rounded-md border px-2 text-xs font-normal ${effectiveRequiredTask === name ? 'border-blue-300 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-500 hover:text-slate-800'}`}
-                        onClick={() => setRequiredTask((current) => current === name ? ALL : name)}
-                        aria-pressed={effectiveRequiredTask === name}
-                      >
-                        <ListFilter className="h-3.5 w-3.5" aria-hidden="true" />{effectiveRequiredTask === name ? '已篩選' : '只看此項'}
-                      </button>
+                    <th key={name} scope="col" aria-sort={isSorted ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className={`group/header min-w-48 whitespace-nowrap px-4 py-3 ${isFirstPinnedRight ? 'border-l-2 border-l-slate-300' : ''}`}>
+                      <div className="flex items-center justify-between gap-3">
+                        <button type="button" className="flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort(`task:${name}`)} title={`出現 ${count} 次；點擊依日期排序`}>
+                          {name}<span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">{count}</span>{isSorted ? <SortIcon className="h-3.5 w-3.5 text-blue-600" /> : <ArrowUpDown className="h-3.5 w-3.5 opacity-0 group-hover/header:opacity-60" />}
+                        </button>
+                        <ColumnFilterMenu label={`篩選 ${name}`} active={isFiltered}>
+                          <DropdownMenuLabel>{name}</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => setRequiredTask(name)}>只顯示有日期</DropdownMenuItem>
+                          <DropdownMenuItem disabled={!isFiltered} onSelect={() => setRequiredTask(ALL)}>取消此項篩選</DropdownMenuItem>
+                        </ColumnFilterMenu>
+                      </div>
                     </th>
                   );
                 })}
@@ -263,11 +317,13 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
                 return (
                   <tr key={project.id} className="group border-b border-slate-100 last:border-b-0 hover:bg-blue-50/40">
                     <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-white px-5 py-3.5 text-left font-medium text-slate-700 group-hover:bg-blue-50/40">{brand?.short_name || brand?.name || brand?.full_name || '未設定客人'}</th>
-                    <td className="sticky left-44 z-10 whitespace-nowrap border-r border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-900 group-hover:bg-blue-50/40">{project.seasonLabel}</td>
-                    {taskColumns.map(({ name }) => {
+                    <td className="sticky left-40 z-10 whitespace-nowrap border-r border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-900 group-hover:bg-blue-50/40">{project.seasonLabel}</td>
+                    {taskColumns.map(({ name }, columnIndex) => {
                       const tasks = tasksByProjectAndName.get(`${project.id}::${name}`) || [];
+                      const isFirstPinnedRight = /專案|數位|digital/i.test(name)
+                        && !taskColumns.slice(0, columnIndex).some((column) => /專案|數位|digital/i.test(column.name));
                       return (
-                        <td key={name} className="whitespace-nowrap px-5 py-3.5 tabular-nums text-slate-700">
+                        <td key={name} className={`whitespace-nowrap px-5 py-3.5 tabular-nums text-slate-700 ${isFirstPinnedRight ? 'border-l-2 border-l-slate-200' : ''}`}>
                           {tasks.map((task) => <div key={task.id} className="whitespace-nowrap">{formatTaskDate(task)}</div>)}
                         </td>
                       );
