@@ -79,7 +79,7 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
   const [season, setSeason] = useState(ALL);
   const [year, setYear] = useState(ALL);
   const [requiredTask, setRequiredTask] = useState(ALL);
-  const [sortState, setSortState] = useState({ key: 'frequency', direction: 'desc' });
+  const [sortState, setSortState] = useState({ key: 'customer', direction: 'asc' });
 
   const brandMap = useMemo(
     () => Object.fromEntries(brands.map((brand) => [brand.id, brand])),
@@ -225,8 +225,8 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
             <caption className="sr-only">依客人、開發季與工作項目整理的時間表</caption>
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left text-sm font-semibold text-slate-600">
-                <th scope="col" className="sticky left-0 z-20 min-w-44 whitespace-nowrap bg-slate-50 px-4 py-3">
-                  <button type="button" className="mb-2 flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('customer')}>客人<ArrowUpDown className="h-3.5 w-3.5" /></button>
+                <th scope="col" aria-sort={sortState.key === 'customer' ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'} className="sticky left-0 z-20 min-w-44 whitespace-nowrap bg-slate-50 px-4 py-3">
+                  <button type="button" className="mb-2 flex items-center gap-1 whitespace-nowrap hover:text-slate-900" onClick={() => updateSort('customer')}>客人{sortState.key === 'customer' ? <SortIcon className="h-3.5 w-3.5" /> : <ArrowUpDown className="h-3.5 w-3.5" />}</button>
                   <HeaderFilterSelect label="篩選客人" value={brandId} onValueChange={setBrandId} options={brandOptions} placeholder="全部客人" className="w-36" />
                 </th>
                 <th scope="col" className="sticky left-44 z-20 min-w-64 whitespace-nowrap border-r border-slate-200 bg-slate-50 px-4 py-3">
