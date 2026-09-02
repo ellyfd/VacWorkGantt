@@ -15,36 +15,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
+
+
+
+
+
 import { Card } from '@/components/ui/card';
 import { Plus, Trash2, GripVertical, HelpCircle, Archive, ArchiveRestore, MoreHorizontal } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { addDays, subDays, format, eachDayOfInterval, isToday, getDay } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   DropdownMenu,
@@ -55,6 +36,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import GanttRow from '@/components/gantt/GanttRow';
+import GanttMonthHeaderRow from '@/components/gantt/GanttMonthHeaderRow';
+import GanttDateHeaderRow from '@/components/gantt/GanttDateHeaderRow';
+import GanttLeaveCountRow from '@/components/gantt/GanttLeaveCountRow';
+import EditTaskDialog from '@/components/gantt/EditTaskDialog';
+import GanttConfirmDialogs from '@/components/gantt/GanttConfirmDialogs';
 import AddProjectDialog from '@/components/gantt/AddProjectDialog';
 import EditProjectDialog from '@/components/gantt/EditProjectDialog';
 import AddTaskDialog from '@/components/gantt/AddTaskDialog';
@@ -443,13 +429,6 @@ export default function GanttChart() {
     });
   }, [rows, selectedGroupSlug, selectedBrandIds, projectMap, archivedFilter]);
 
-  const getLeaveCountStyle = (count) => {
-    if (!count) return null;
-    if (count <= 2) return { bg: '#fef3c7', text: '#92400e', label: `${count}人` };
-    if (count <= 4) return { bg: '#fed7aa', text: '#9a3412', label: `${count}人` };
-    return { bg: '#fecaca', text: '#991b1b', label: `${count}人`, bold: true };
-  };
-
   // 工作天數預先計算（移出 render，避免每次重新 loop）
   const workingDaysMap = useMemo(() => {
     const map = {};
@@ -549,7 +528,7 @@ export default function GanttChart() {
     const map = {};
     ganttProjects.forEach((gp) => { map[gp.id] = getProjectColor(gp); });
     return map;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [ganttProjects, projectMap, projects, groups]);
 
   const getSamplesByBrand = (brandId) => {
@@ -1048,7 +1027,7 @@ export default function GanttChart() {
         updateSortOrder.mutate({ id: item.id, entityType: 'project', sortOrder: idx });
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [ganttProjects, queryClient, updateSortOrder.mutate]);
 
   const handleRowDragLeave = useCallback(() => setDropTargetId(null), []);
@@ -1056,7 +1035,7 @@ export default function GanttChart() {
   const handleEditTaskBar = useCallback((task) => {
     setEditingTask({ ...task });
     setShowEditTaskDialog(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const handleProjectDragEnd = () => {
@@ -1477,101 +1456,26 @@ export default function GanttChart() {
                     );
                   })()}
                   {/* 月份 header */}
-                          {(() => {
-                            const monthGroups = [];
-                            let current = null;
-                            days.forEach((day) => {
-                              const monthKey = format(day, 'yyyy-MM');
-                              if (current?.key !== monthKey) {
-                                current = { key: monthKey, label: format(day, 'yyyy年M月'), count: 1 };
-                                monthGroups.push(current);
-                              } else {
-                                current.count++;
-                              }
-                            });
-                            return (
-                              <div className="flex border-b border-gray-200" style={{ height: MONTH_HEADER_HEIGHT }}>
-                                 {monthGroups.map(g => (
-                                   <div
-                                     key={g.key}
-                                     className="border-r border-gray-300 text-sm font-bold text-gray-700 flex items-center justify-center bg-gray-100 flex-shrink-0"
-                                     style={{ width: g.count * CELL_WIDTH, height: MONTH_HEADER_HEIGHT }}
-                                  >
-                            {g.label}
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
+                  <GanttMonthHeaderRow days={days} cellWidth={CELL_WIDTH} height={MONTH_HEADER_HEIGHT} />
 
                   {/* 日期 header */}
-                  <div style={{ ...gridStyle, height: DATE_HEADER_HEIGHT, borderBottom: '1px solid #d1d5db' }}>
-                    {days.map((day) => {
-                       const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-                       const isHolidayHeader = !hideHolidays && holidaySet.has(format(day, 'yyyy-MM-dd'));
-                       const isFirstDay = format(day, 'd') === '1';
-                       return (
-                        <div
-                          key={day.toISOString()}
-                          className={`border-r border-gray-200 flex flex-col items-center justify-center gap-0.5 ${
-                            isToday(day) ? 'bg-blue-50 text-blue-800 font-bold border-t-2 border-blue-500' :
-                            (isWeekend || isHolidayHeader) ? 'bg-gray-200 text-gray-500' :
-                            'bg-gray-100 text-gray-700'
-                          }`}
-                          style={{ borderLeft: isFirstDay ? '2px solid #6b7280' : undefined }}
-                         >
-                           <span className="text-sm font-bold leading-none">{format(day, 'd')}</span>
-                           <span className={`text-[11px] leading-none ${isWeekend ? 'text-red-400' : 'text-gray-400'}`}>
-                             {format(day, 'EEE', { locale: zhTW })}
-                           </span>
-                         </div>
-                       );
-                     })}
-                  </div>
+                  <GanttDateHeaderRow
+                    days={days}
+                    gridStyle={gridStyle}
+                    height={DATE_HEADER_HEIGHT}
+                    hideHolidays={hideHolidays}
+                    holidaySet={holidaySet}
+                  />
 
                   {/* 請假人數列 */}
-                  <div style={{ ...gridStyle, height: LEAVE_HEADER_HEIGHT, borderBottom: '2px solid #cbd5e1', borderTop: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
-                    {days.map((day) => {
-                      const dateStr = format(day, 'yyyy-MM-dd');
-                      const isWeekendLeave = getDay(day) === 0 || getDay(day) === 6;
-                      const isHolidayLeave = holidays?.some(h => h.date === dateStr);
-                      const isDimmedLeave = isWeekendLeave || isHolidayLeave;
-                      const count = leaveCountByDate[dateStr] || 0;
-                      const leaveStyle = getLeaveCountStyle(count);
-                      const cellContent = (
-                        <div
-                          key={day.toISOString()}
-                          className="border-r border-gray-200 flex items-center justify-center transition-colors hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
-                          style={{
-                            backgroundColor: leaveStyle?.bg || (isDimmedLeave ? '#e5e7eb' : '#f9fafb'),
-                            fontSize: 11,
-                            fontWeight: leaveStyle?.bold ? 700 : 600,
-                            color: leaveStyle?.text || '#d1d5db',
-                            cursor: count ? 'pointer' : 'default',
-                          }}
-                          title={count ? `${format(day, 'M月d日')}｜${count} 人請假｜點擊查看名單` : undefined}
-                          aria-label={count ? `${format(day, 'M月d日')}，${count} 人請假，點擊查看名單` : undefined}
-                        >
-                          {leaveStyle?.label || ''}
-                        </div>
-                      );
-                      if (!count) return cellContent;
-                      const names = leaveNamesByDate[dateStr] || [];
-                      return (
-                        <Popover key={day.toISOString()}>
-                          <PopoverTrigger asChild>{cellContent}</PopoverTrigger>
-                          <PopoverContent className="w-max p-2 text-xs" side="bottom" align="center">
-                            {names.map((item, idx) => (
-                              <p key={idx} className="text-gray-800 py-0.5 whitespace-nowrap">
-                                {item.name}
-                                {item.range && <span className="text-gray-400 ml-1">({item.range})</span>}
-                              </p>
-                            ))}
-                          </PopoverContent>
-                        </Popover>
-                      );
-                    })}
-                  </div>
+                  <GanttLeaveCountRow
+                    days={days}
+                    gridStyle={gridStyle}
+                    height={LEAVE_HEADER_HEIGHT}
+                    holidaySet={holidaySet}
+                    leaveCountByDate={leaveCountByDate}
+                    leaveNamesByDate={leaveNamesByDate}
+                  />
 
                   {/* rows */}
                   <div
@@ -1752,185 +1656,41 @@ export default function GanttChart() {
       />
 
       {/* Edit Task Dialog */}
-      <Dialog open={showEditTaskDialog} onOpenChange={setShowEditTaskDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>編輯任務</DialogTitle>
-          </DialogHeader>
-          {editingTask && (
-            <div className="space-y-4 py-2">
-              <div>
-                <Label>樣品</Label>
-                <div className="mt-1 flex items-center h-10 px-3 border border-gray-300 rounded-md text-sm bg-gray-50">
-                  {editingTask.name || '未設定'}
-                </div>
-              </div>
-              {categoriesForEditTask.length > 0 ? (
-                <div>
-                  <Label className="text-xs">Category</Label>
-                  <Select
-                    value={editingTask.category || ''}
-                    onValueChange={(val) => setEditingTask({ ...editingTask, category: val })}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="選擇 category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categoriesForEditTask.map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <p className="text-xs text-gray-400">
-                  如需設定 category，請至「專案設定 &gt; 品牌管理」新增。
-                </p>
-              )}
-              <div className="border-t pt-4">
-                <Label className="mb-2 block text-gray-600">時間類型</Label>
-                <div className="flex gap-1.5">
-                  {[
-                    { value: 'milestone', label: '◆ 里程碑' },
-                    { value: 'duration', label: '▬ 區間' },
-                    { value: 'rolling', label: '▶ Rolling' },
-                  ].map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setEditingTask({ 
-                        ...editingTask, 
-                        time_type: editingTask.time_type === opt.value ? '' : opt.value,
-                        start_date: '', 
-                        end_date: '' 
-                      })}
-                      className={`flex-1 text-xs px-1.5 py-1.5 rounded border transition-colors ${
-                        editingTask.time_type === opt.value
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {editingTask.time_type === 'milestone' && (
-                  <div className="mt-3">
-                    <Label className="text-xs">日期</Label>
-                    <Input type="date" value={editingTask.start_date || ''} className="mt-1"
-                      onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
-                  </div>
-                )}
-                {editingTask.time_type === 'duration' && (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-xs">開始</Label>
-                      <Input type="date" value={editingTask.start_date || ''} className="mt-1"
-                        onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
-                    </div>
-                    <div>
-                      <Label className="text-xs">結束</Label>
-                      <Input type="date" value={editingTask.end_date || ''} className="mt-1"
-                        min={editingTask.start_date}
-                        onChange={(e) => setEditingTask({ ...editingTask, end_date: e.target.value })} />
-                    </div>
-                  </div>
-                )}
-                {editingTask.time_type === 'rolling' && (
-                  <div className="mt-3">
-                    <Label className="text-xs">開始日期</Label>
-                    <Input type="date" value={editingTask.start_date || ''} className="mt-1"
-                      onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          <DialogFooter className="flex justify-between">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => {
-                setDeleteConfirm({ type: 'task', id: editingTask?.id, name: editingTask?.name });
-              }}
-            >
-              刪除
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setShowEditTaskDialog(false)}>取消</Button>
-              <Button size="sm" onClick={handleEditTask} disabled={!editingTask?.name} className="bg-blue-600 hover:bg-blue-700">
-                儲存
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditTaskDialog
+        open={showEditTaskDialog}
+        onOpenChange={setShowEditTaskDialog}
+        editingTask={editingTask}
+        setEditingTask={setEditingTask}
+        categories={categoriesForEditTask}
+        onSave={handleEditTask}
+        onDelete={() => setDeleteConfirm({ type: 'task', id: editingTask?.id, name: editingTask?.name })}
+      />
 
-
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogTitle>
-            刪除{deleteConfirm?.type === 'project' ? '開發季' : '任務'}「{deleteConfirm?.name}」？
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {deleteConfirm?.type === 'project'
-              ? '此開發季將被刪除，完成後無法復原；請先確認相關任務資料。'
-              : '此任務將被刪除，完成後無法復原。'}
-          </AlertDialogDescription>
-          <div className="flex justify-end gap-3">
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => {
-                if (deleteConfirm?.type === 'project') {
-                  deleteGanttProject.mutate(deleteConfirm.id);
-                } else if (deleteConfirm?.type === 'task') {
-                  deleteGanttTask.mutate(deleteConfirm.id);
-                  setShowEditTaskDialog(false);
-                  setEditingTask(null);
-                }
-                setDeleteConfirm(null);
-              }}
-            >
-              刪除{deleteConfirm?.type === 'project' ? '開發季' : '任務'}
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Archive Confirmation Dialog */}
-      <AlertDialog open={!!archiveConfirm} onOpenChange={(open) => !open && setArchiveConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogTitle>
-            {archiveConfirm?.action === 'restore'
-              ? `還原開發季「${archiveConfirm?.name}」？`
-              : `封存開發季「${archiveConfirm?.name}」？`}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {archiveConfirm?.action === 'restore'
-              ? '開發季將恢復為進行中，並重新顯示在預設列表。'
-              : '開發季將從預設列表隱藏，可在「已歸檔」狀態中還原；任務資料不會被刪除。'}
-          </AlertDialogDescription>
-          <div className="flex justify-end gap-3">
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (!archiveConfirm) return;
-                if (archiveConfirm.action === 'restore') {
-                  restoreProject(archiveConfirm.id);
-                } else {
-                  archiveProject(archiveConfirm.id);
-                }
-                setArchiveConfirm(null);
-              }}
-            >
-              {archiveConfirm?.action === 'restore' ? '還原開發季' : '封存開發季'}
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+      <GanttConfirmDialogs
+        deleteConfirm={deleteConfirm}
+        onDeleteOpenChange={(open) => !open && setDeleteConfirm(null)}
+        onDeleteConfirm={() => {
+          if (deleteConfirm?.type === 'project') {
+            deleteGanttProject.mutate(deleteConfirm.id);
+          } else if (deleteConfirm?.type === 'task') {
+            deleteGanttTask.mutate(deleteConfirm.id);
+            setShowEditTaskDialog(false);
+            setEditingTask(null);
+          }
+          setDeleteConfirm(null);
+        }}
+        archiveConfirm={archiveConfirm}
+        onArchiveOpenChange={(open) => !open && setArchiveConfirm(null)}
+        onArchiveConfirm={() => {
+          if (!archiveConfirm) return;
+          if (archiveConfirm.action === 'restore') {
+            restoreProject(archiveConfirm.id);
+          } else {
+            archiveProject(archiveConfirm.id);
+          }
+          setArchiveConfirm(null);
+        }}
+      />
 
       </div>
     </TooltipProvider>
