@@ -185,7 +185,7 @@ export default function AllLeaveCalendar({
       return newRecord;
     },
     onMutate: async ({ employeeId, date, leaveTypeId }) => {
-      await queryClient.cancelQueries(['leaveRecords']);
+      await queryClient.cancelQueries({ queryKey: ['leaveRecords'] });
       const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
 
       queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
@@ -214,7 +214,8 @@ export default function AllLeaveCalendar({
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -236,7 +237,8 @@ export default function AllLeaveCalendar({
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -257,7 +259,8 @@ export default function AllLeaveCalendar({
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -337,7 +340,7 @@ export default function AllLeaveCalendar({
       return base44.entities.LeaveRecord.bulkCreate(recordsToCreate);
       },
       onMutate: async () => {
-      await queryClient.cancelQueries(['leaveRecords']);
+      await queryClient.cancelQueries({ queryKey: ['leaveRecords'] });
       const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
       return { previousRecords };
       },
@@ -347,7 +350,8 @@ export default function AllLeaveCalendar({
       }
       },
       onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
       },
       });
 
@@ -367,7 +371,8 @@ export default function AllLeaveCalendar({
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -514,7 +519,7 @@ export default function AllLeaveCalendar({
         updates.map(u => base44.entities.Employee.update(u.id, { sort_order_by_dept: u.sort_order_by_dept }))
       );
     } catch {
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast({ title: '排序更新失敗', variant: 'destructive' });
     }
   }, [departments, filteredDepartments, queryClient, toast]);

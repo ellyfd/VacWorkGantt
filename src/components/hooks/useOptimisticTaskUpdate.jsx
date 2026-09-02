@@ -7,7 +7,7 @@ export function useOptimisticTaskUpdate() {
   
   const updateGanttTask = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GanttTask.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries(['ganttTasks']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ganttTasks'] }),
   });
 
   const update = useCallback((id, data) => {

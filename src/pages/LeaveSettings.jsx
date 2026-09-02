@@ -72,7 +72,7 @@ export default function LeaveSettings() {
   const createType = useMutation({
     mutationFn: (data) => base44.entities.LeaveType.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveTypes']);
+      queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
       handleCloseTypeDialog();
     },
   });
@@ -80,21 +80,21 @@ export default function LeaveSettings() {
   const updateType = useMutation({
     mutationFn: ({ id, data }) => base44.entities.LeaveType.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveTypes']);
+      queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
       handleCloseTypeDialog();
     },
   });
 
   const deleteType = useMutation({
     mutationFn: (id) => base44.entities.LeaveType.delete(id),
-    onSuccess: () => queryClient.invalidateQueries(['leaveTypes']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leaveTypes'] }),
   });
 
   // ============ HOLIDAY MUTATIONS ============
   const createHoliday = useMutation({
     mutationFn: (data) => base44.entities.Holiday.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['holidays']);
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
       setIsHolidayOpen(false);
       setHolidayFormData({ date: '', name: '', type: 'company' });
     },
@@ -103,7 +103,7 @@ export default function LeaveSettings() {
   const updateHoliday = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Holiday.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['holidays']);
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
       setIsHolidayOpen(false);
       setEditingHoliday(null);
       setHolidayFormData({ date: '', name: '', type: 'company' });
@@ -113,7 +113,7 @@ export default function LeaveSettings() {
   const deleteHoliday = useMutation({
     mutationFn: (id) => base44.entities.Holiday.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['holidays']);
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
     },
   });
 
@@ -149,7 +149,7 @@ export default function LeaveSettings() {
     const order = parseInt(newOrder);
     if (isNaN(order)) return;
     await base44.entities.LeaveType.update(typeId, { sort_order: order });
-    queryClient.invalidateQueries(['leaveTypes']);
+    queryClient.invalidateQueries({ queryKey: ['leaveTypes'] });
   };
 
   // ============ HOLIDAY HANDLERS ============

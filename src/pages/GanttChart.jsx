@@ -162,7 +162,7 @@ export default function GanttChart() {
   const createGanttProject = useMutation({
     mutationFn: (data) => base44.entities.GanttProject.create(data),
     onSuccess: (newProject) => {
-      queryClient.invalidateQueries(['ganttProjects']);
+      queryClient.invalidateQueries({ queryKey: ['ganttProjects'] });
       setCreatingProjectIdSync(newProject.id);
       toast({ title: '已建立開發季', description: newProject.name || '新的開發季已加入甘特圖。' });
       return newProject;
@@ -173,7 +173,7 @@ export default function GanttChart() {
   const updateGanttProject = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GanttProject.update(id, data),
     onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries(['ganttProjects']);
+      await queryClient.cancelQueries({ queryKey: ['ganttProjects'] });
       const previous = queryClient.getQueryData(['ganttProjects']);
       queryClient.setQueryData(['ganttProjects'], old =>
         (old || []).map(p => (p.id === id ? { ...p, ...data } : p))
@@ -185,14 +185,14 @@ export default function GanttChart() {
       console.error('[GanttProject.update] failed:', err);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['ganttProjects']);
+      queryClient.invalidateQueries({ queryKey: ['ganttProjects'] });
     },
   });
 
   const deleteGanttProject = useMutation({
     mutationFn: (id) => base44.entities.GanttProject.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['ganttProjects']);
+      queryClient.invalidateQueries({ queryKey: ['ganttProjects'] });
       toast({ title: '已刪除開發季' });
     },
     onError: () => toast({ variant: 'destructive', title: '刪除失敗', description: '開發季未刪除，請稍後再試。' }),
@@ -241,7 +241,7 @@ export default function GanttChart() {
   const createGanttTask = useMutation({
     mutationFn: (data) => base44.entities.GanttTask.create(data),
     onMutate: async (newTaskData) => {
-      await queryClient.cancelQueries(['ganttTasks']);
+      await queryClient.cancelQueries({ queryKey: ['ganttTasks'] });
       const previous = queryClient.getQueryData(['ganttTasks']);
       queryClient.setQueryData(['ganttTasks'], old => [
         ...(old || []),
@@ -254,7 +254,7 @@ export default function GanttChart() {
       toast({ variant: 'destructive', title: '新增失敗', description: '任務未建立，請稍後再試。' });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['ganttTasks']);
+      queryClient.invalidateQueries({ queryKey: ['ganttTasks'] });
       setShowAddTaskDialog(false);
       setTaskFormData({ name: '', sample_id: '', category: '', is_important: false, note: '', time_type: '', start_date: '', end_date: '' });
       setCreatingProjectIdSync(null);
@@ -301,7 +301,7 @@ export default function GanttChart() {
   const updateGanttTask = useMutation({
     mutationFn: ({ id, data }) => base44.entities.GanttTask.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['ganttTasks']);
+      queryClient.invalidateQueries({ queryKey: ['ganttTasks'] });
       setSelectedTaskId(null);
       setFirstDate(null);
       setSecondDate(null);
@@ -311,7 +311,7 @@ export default function GanttChart() {
   const deleteGanttTask = useMutation({
     mutationFn: (id) => base44.entities.GanttTask.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['ganttTasks']);
+      queryClient.invalidateQueries({ queryKey: ['ganttTasks'] });
       toast({ title: '已刪除任務' });
     },
     onError: () => toast({ variant: 'destructive', title: '刪除失敗', description: '任務未刪除，請稍後再試。' }),
@@ -1682,7 +1682,7 @@ export default function GanttChart() {
                    }
                 }
               }
-              queryClient.invalidateQueries(['ganttTasks']);
+              queryClient.invalidateQueries({ queryKey: ['ganttTasks'] });
               setShowImportScheduleDialog(false);
               setScheduleFile(null);
               setCreatingProjectId(null);

@@ -158,8 +158,8 @@ export default function Layout({ children, currentPageName }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['boundEmployee']);
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['boundEmployee'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setEditingDeputy(false);
     },
   });
@@ -213,8 +213,8 @@ export default function Layout({ children, currentPageName }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['boundEmployee']);
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['boundEmployee'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setShowBindDialog(false);
       setSelectedEmployeeId('');
       setSelectedDepartmentId('');
@@ -229,8 +229,8 @@ export default function Layout({ children, currentPageName }) {
         user_emails: [...confirmData.existingEmails, currentUser.email]
       });
       confirmData.resolve();
-      queryClient.invalidateQueries(['boundEmployee']);
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['boundEmployee'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setShowBindDialog(false);
       setSelectedEmployeeId('');
       setSelectedDepartmentId('');

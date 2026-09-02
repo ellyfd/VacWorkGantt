@@ -213,9 +213,9 @@ export default function Dashboard() {
         );
 
         // 重新載入資料
-        queryClient.invalidateQueries(['todayLeaves']);
-        queryClient.invalidateQueries(['leaveRecords']);
-        queryClient.invalidateQueries(['allLeaveRecords']);
+        queryClient.invalidateQueries({ queryKey: ['todayLeaves'] });
+        queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+        queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
 
         toast({ title: `成功清理 ${duplicatesToDelete.length} 筆重複記錄` });
       }
@@ -306,10 +306,10 @@ export default function Dashboard() {
       );
 
       // 重新載入資料
-      queryClient.invalidateQueries(['todayLeaves']);
-      queryClient.invalidateQueries(['warningLeaves']);
-      queryClient.invalidateQueries(['leaveRecords']);
-      queryClient.invalidateQueries(['allLeaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['todayLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['warningLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
 
       toast({ title: '掃描完成', description: `共更新 ${updatedCount} 筆記錄的警示資訊` });
     } catch (error) {

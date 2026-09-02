@@ -65,7 +65,7 @@ export default function DataImport() {
       }));
 
       await base44.entities.Group.bulkCreate(toCreate);
-      queryClient.invalidateQueries(['groups']);
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
       setUploadStatus({ type: 'group', status: 'success', count: toCreate.length });
     } catch (error) {
       setUploadStatus({ type: 'group', status: 'error', message: error.message });
@@ -107,7 +107,7 @@ export default function DataImport() {
       });
 
       await base44.entities.Project.bulkCreate(toCreate);
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       setUploadStatus({ type: 'project', status: 'success', count: toCreate.length });
     } catch (error) {
       setUploadStatus({ type: 'project', status: 'error', message: error.message });
@@ -153,7 +153,7 @@ export default function DataImport() {
       });
 
       await base44.entities.Sample.bulkCreate(toCreate);
-      queryClient.invalidateQueries(['samples']);
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
       setUploadStatus({ type: 'sample', status: 'success', count: toCreate.length });
     } catch (error) {
       setUploadStatus({ type: 'sample', status: 'error', message: error.message });

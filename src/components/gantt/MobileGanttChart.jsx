@@ -241,7 +241,7 @@ export default function MobileGanttChart() {
       await base44.entities.GanttTask.update(editingTask.id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['ganttTasks']);
+      queryClient.invalidateQueries({ queryKey: ['ganttTasks'] });
       setEditingTask(null);
     },
   });

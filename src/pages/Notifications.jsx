@@ -29,7 +29,7 @@ export default function Notifications() {
   const markAsReadMutation = useMutation({
     mutationFn: (notificationId) => base44.entities.Notification.update(notificationId, { is_read: true }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
@@ -39,7 +39,7 @@ export default function Notifications() {
       await Promise.all(unreadNotifications.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
@@ -48,14 +48,14 @@ export default function Notifications() {
       await Promise.all(notifications.map(n => base44.entities.Notification.delete(n.id)));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
   const deleteNotificationMutation = useMutation({
     mutationFn: (notificationId) => base44.entities.Notification.delete(notificationId),
     onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
