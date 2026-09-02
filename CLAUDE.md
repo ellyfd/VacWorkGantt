@@ -89,7 +89,6 @@ that climb out of `src/`.
 - `useDragState` — `isDragging / dragTaskId / dragStart / dragEnd`.
 - `useFilterState` — Gantt filter state, persisted in `localStorage` (`gantt-filters`).
 - `useFormData` — Gantt project / task form state.
-- `useOptimisticTaskUpdate` — wraps `GanttTask.update` with optimistic cache write + rollback on error.
 - `useProjectCreation` — temp state for the "new season" flow (creating project id, schedule file, etc.).
 
 ### Shared business helpers under `src/components/utils/`
@@ -190,10 +189,8 @@ callers go through `base44.integrations.Core.X` directly.
 - Notifications poll via `refetchInterval: 60000` + `staleTime: 30000` in
   `Layout.jsx`. If you change either, factor in the per-tab × per-user
   request cost.
-- For optimistic updates on Gantt mutations, see
-  `src/components/hooks/useOptimisticTaskUpdate.jsx`. For optimistic temp
-  rows, use `crypto.randomUUID()` (Date.now()-based ids collide on rapid
-  clicks).
+- For optimistic temp rows, use `crypto.randomUUID()` (Date.now()-based ids
+  collide on rapid clicks).
 
 ## UI conventions
 

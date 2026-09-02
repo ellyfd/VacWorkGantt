@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
@@ -68,6 +68,9 @@ import { useFormData } from '@/components/hooks/useFormData';
 import { useFilterState } from '@/components/hooks/useFilterState';
 import { useArchivedProjects } from '@/components/hooks/useArchivedProjects';
 import { useProjectCreation } from '@/components/hooks/useProjectCreation';
+
+// 零任務專案共用同一個空陣列，避免每次 render 產生新 reference 打穿 GanttRow 的 memo
+const EMPTY_ARRAY = [];
 
 export default function GanttChart() {
   const queryClient = useQueryClient();
@@ -541,6 +544,14 @@ export default function GanttChart() {
     return ganttProject.color || '#6b7280';
   };
 
+  // 每個開發季的顏色算一次就好（getProjectColor 內含 find/filter/sort）
+  const projectColorMap = useMemo(() => {
+    const map = {};
+    ganttProjects.forEach((gp) => { map[gp.id] = getProjectColor(gp); });
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ganttProjects, projectMap, projects, groups]);
+
   const getSamplesByBrand = (brandId) => {
     return samples.filter((s) => s.project_id === brandId);
   };
@@ -734,6 +745,8 @@ export default function GanttChart() {
   const pendingScrollCompensation = useRef(0);
 
   // useLayoutEffect：在瀏覽器 paint 前修正滾動位置（防止跳躍）
+  // 刻意不給依賴陣列：與下方設定 pendingScrollCompensation 的 effect 成對，
+  // 必須每次 render 後檢查一次待補償量，加了 deps 會漏掉補償時機
   React.useLayoutEffect(() => {
     if (pendingScrollCompensation.current !== 0 && rightPanelRef.current) {
       rightPanelRef.current.scrollLeft += pendingScrollCompensation.current;
@@ -999,15 +1012,17 @@ export default function GanttChart() {
     }
   };
 
-  const handleProjectDragOver = (e, projectId) => {
+  // 以下 handler 以 useCallback 固定 reference，直接傳給 React.memo 的
+  // GanttRow（由 GanttRow 帶 projectId 回呼），拖曳時才不會整表重畫
+  const handleProjectDragOver = useCallback((e, projectId) => {
     e.preventDefault();
     if (e.dataTransfer) {
       e.dataTransfer.dropEffect = 'move';
     }
     setDropTargetId(projectId);
-  };
+  }, []);
 
-  const handleProjectDrop = (e, targetProjectId) => {
+  const handleProjectDrop = useCallback((e, targetProjectId) => {
     e.preventDefault();
     setDropTargetId(null);
     const draggedId = draggedProjectIdRef.current;
@@ -1033,7 +1048,16 @@ export default function GanttChart() {
         updateSortOrder.mutate({ id: item.id, entityType: 'project', sortOrder: idx });
       }
     });
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ganttProjects, queryClient, updateSortOrder.mutate]);
+
+  const handleRowDragLeave = useCallback(() => setDropTargetId(null), []);
+
+  const handleEditTaskBar = useCallback((task) => {
+    setEditingTask({ ...task });
+    setShowEditTaskDialog(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleProjectDragEnd = () => {
     draggedProjectIdRef.current = null;
@@ -1054,14 +1078,14 @@ export default function GanttChart() {
             height: ROW_HEIGHT,
             backgroundColor: isArchived ? '#f3f4f6' : '#ffffff',
             color: isArchived ? '#6b7280' : '#1f2937',
-            borderLeft: `4px solid ${getProjectColor(row.data)}`,
+            borderLeft: `4px solid ${projectColorMap[row.data.id]}`,
             opacity: isArchived ? 0.7 : 1,
           }}
         >
           {/* 進度條底層 */}
           {totalTasks > 0 && (
             <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gray-200">
-              <div className="h-full transition-all" style={{ width: `${progressPct}%`, backgroundColor: getProjectColor(row.data), opacity: 0.5 }} />
+              <div className="h-full transition-all" style={{ width: `${progressPct}%`, backgroundColor: projectColorMap[row.data.id], opacity: 0.5 }} />
             </div>
           )}
           <span
@@ -1556,12 +1580,12 @@ export default function GanttChart() {
                     {visibleRows.map((row) => (
                       <GanttRow
                         key={row.id}
-                        row={row}
+                        projectId={row.data.id}
                         days={days}
                         dayCellPropsMap={dayCellPropsMap}
                         dayIndexMap={dayIndexMap}
-                        tasks={tasksByProjectId[row.data.id] ?? []}
-                        projectColor={getProjectColor(row.data)}
+                        tasks={tasksByProjectId[row.data.id] ?? EMPTY_ARRAY}
+                        projectColor={projectColorMap[row.data.id]}
                         workingDaysMap={workingDaysMap}
                         isDragging={isDragging}
                         dragTaskId={dragTaskId}
@@ -1572,14 +1596,10 @@ export default function GanttChart() {
                         CELL_WIDTH={CELL_WIDTH}
                         ROW_HEIGHT={ROW_HEIGHT}
                         isArchived={!!row.data.archived_at}
-                        onEditTask={(task) => {
-                          if (row.data.archived_at) return;
-                          setEditingTask({ ...task });
-                          setShowEditTaskDialog(true);
-                        }}
-                        onDragOver={(e) => handleProjectDragOver(e, row.data.id)}
-                        onDrop={(e) => handleProjectDrop(e, row.data.id)}
-                        onDragLeave={() => setDropTargetId(null)}
+                        onEditTask={handleEditTaskBar}
+                        onDragOver={handleProjectDragOver}
+                        onDrop={handleProjectDrop}
+                        onDragLeave={handleRowDragLeave}
                       />
                     ))}
                   </div>
