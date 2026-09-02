@@ -1,6 +1,13 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+  leaveTypesQuery,
+  holidaysQuery,
+} from '@/lib/queries';
 import { Loader2, BarChart3, TrendingUp, Users, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from 'recharts';
@@ -12,28 +19,17 @@ export default function ReportManagement() {
   const selectedYear = currentDate.getFullYear().toString();
   const selectedMonth = (currentDate.getMonth() + 1).toString();
 
-  const { data: employees = [], isLoading: loadingEmps } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list(),
-  });
+  const { data: employees = [], isLoading: loadingEmps } = useQuery(employeesQuery);
 
-  const { data: departments = [], isLoading: loadingDepts } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [], isLoading: loadingDepts } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list(),
-  });
+  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery(leaveTypesQuery);
 
-  const { data: holidays = [], isLoading: loadingHolidays } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
-  });
+  const { data: holidays = [], isLoading: loadingHolidays } = useQuery(holidaysQuery);
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
     queryKey: ['leaveRecords', selectedYear, selectedMonth],

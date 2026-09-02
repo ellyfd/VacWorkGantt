@@ -1,23 +1,14 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { base44 } from '@/api/base44Client';
+import { ganttProjectsQuery, ganttTasksQuery, projectsQuery } from '@/lib/queries';
 import { SeasonScheduleTable } from '@/components/gantt/SeasonScheduleTable';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DevelopmentSchedule() {
-  const { data: ganttProjects = [], isLoading: projectsLoading } = useQuery({
-    queryKey: ['ganttProjects'],
-    queryFn: () => base44.entities.GanttProject.list('sort_order'),
-  });
-  const { data: ganttTasks = [], isLoading: tasksLoading } = useQuery({
-    queryKey: ['ganttTasks'],
-    queryFn: () => base44.entities.GanttTask.list('sort_order'),
-  });
-  const { data: brands = [], isLoading: brandsLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('sort_order'),
-  });
+  const { data: ganttProjects = [], isLoading: projectsLoading } = useQuery(ganttProjectsQuery);
+  const { data: ganttTasks = [], isLoading: tasksLoading } = useQuery(ganttTasksQuery);
+  const { data: brands = [], isLoading: brandsLoading } = useQuery(projectsQuery);
   const isLoading = projectsLoading || tasksLoading || brandsLoading;
   const scheduledCount = useMemo(
     () => new Set(ganttTasks.filter((task) => task.start_date).map((task) => task.gantt_project_id)).size,

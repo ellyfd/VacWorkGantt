@@ -1,6 +1,11 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+} from '@/lib/queries';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,21 +59,13 @@ export default function PeopleManagement() {
   const [deptFormData, setDeptFormData] = useState({ name: '', sort_order: 0 });
 
   // ============ QUERIES ============
-  const { data: departments = [], isLoading: loadingDepts } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [], isLoading: loadingDepts } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: employees = [], isLoading: loadingEmps } = useQuery({
-    queryKey: ['employees'],
-    queryFn: async () => {
-      const emps = await base44.entities.Employee.list('name');
-      return emps;
-    },
-  });
+  const { data: employees = [], isLoading: loadingEmps } = useQuery(employeesQuery);
 
   // ============ EMPLOYEE MUTATIONS ============
   const createEmployee = useMutation({

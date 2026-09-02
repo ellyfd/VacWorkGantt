@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  currentUserQuery,
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+  leaveTypesQuery,
+  holidaysQuery,
+} from '@/lib/queries';
 import { format, endOfMonth } from 'date-fns';
 import { Loader2, CalendarRange } from 'lucide-react';
 import {
@@ -45,39 +53,22 @@ export default function LeaveCalendar() {
   const { toast } = useToast();
   const [confirmProps, confirm] = useConfirmDialog();
 
-  const { data: currentUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { data: currentUser, isLoading: loadingUser } = useQuery(currentUserQuery);
 
-  const { data: departments = [], isLoading: loadingDepts } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [], isLoading: loadingDepts } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: employees = [], isLoading: loadingEmps } = useQuery({
-    queryKey: ['employees'],
-    queryFn: async () => {
-      const emps = await base44.entities.Employee.list('name');
-      return emps;
-    },
-  });
+  const { data: employees = [], isLoading: loadingEmps } = useQuery(employeesQuery);
 
   // 根據登入帳號自動找到對應的員工
   const currentEmployee = employees.find(emp => emp.user_emails?.includes(currentUser?.email));
 
-  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list(),
-  });
+  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery(leaveTypesQuery);
 
-  const { data: holidays = [], isLoading: loadingHolidays } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
-  });
+  const { data: holidays = [], isLoading: loadingHolidays } = useQuery(holidaysQuery);
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
     queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth(), currentEmployee?.id],

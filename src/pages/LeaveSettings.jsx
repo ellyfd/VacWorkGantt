@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { leaveTypesQuery, holidaysQuery } from '@/lib/queries';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,18 +56,9 @@ export default function LeaveSettings() {
   const [holidayToDelete, setHolidayToDelete] = useState(null);
 
   // ============ QUERIES ============
-  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: async () => {
-      const types = await base44.entities.LeaveType.list('sort_order');
-      return types.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999));
-    },
-  });
+  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery(leaveTypesQuery);
 
-  const { data: holidays = [], isLoading: loadingHolidays } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list('date'),
-  });
+  const { data: holidays = [], isLoading: loadingHolidays } = useQuery(holidaysQuery);
 
   // ============ LEAVE TYPE MUTATIONS ============
   const createType = useMutation({

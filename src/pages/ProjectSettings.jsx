@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { samplesQuery, projectsQuery, groupsQuery } from '@/lib/queries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,20 +44,11 @@ export default function ProjectSettings() {
   const [sampleSort, setSampleSort] = useState({ key: 'project', dir: 'asc' });
 
   // Queries
-  const { data: samples = [], isLoading: loadingSamples } = useQuery({
-    queryKey: ['samples'],
-    queryFn: () => base44.entities.Sample.list('sort_order'),
-  });
+  const { data: samples = [], isLoading: loadingSamples } = useQuery(samplesQuery);
 
-  const { data: projects = [], isLoading: loadingProjects } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('sort_order'),
-  });
+  const { data: projects = [], isLoading: loadingProjects } = useQuery(projectsQuery);
 
-  const { data: groups = [], isLoading: loadingGroups } = useQuery({
-    queryKey: ['groups'],
-    queryFn: () => base44.entities.Group.list('sort_order'),
-  });
+  const { data: groups = [], isLoading: loadingGroups } = useQuery(groupsQuery);
 
   // Mutations
   // Sample Mutations

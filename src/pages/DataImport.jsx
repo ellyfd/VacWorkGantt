@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { groupsQuery, projectsQuery } from '@/lib/queries';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,15 +13,9 @@ export default function DataImport() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Queries
-  const { data: groups = [] } = useQuery({
-    queryKey: ['groups'],
-    queryFn: () => base44.entities.Group.list(),
-  });
+  const { data: groups = [] } = useQuery(groupsQuery);
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
-  });
+  const { data: projects = [] } = useQuery(projectsQuery);
 
   // Parse CSV
   const parseCSV = (text) => {

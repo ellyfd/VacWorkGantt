@@ -1,6 +1,17 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  currentUserQuery,
+  employeesQuery,
+  departmentsQuery,
+  groupsQuery,
+  projectsQuery,
+  samplesQuery,
+  holidaysQuery,
+  ganttProjectsQuery,
+  ganttTasksQuery,
+} from '@/lib/queries';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
@@ -99,15 +110,9 @@ export default function GanttChart() {
   const [pendingScrollToDate, setPendingScrollToDate] = useState(null);
 
   // Fetch data
-  const { data: ganttProjects = [], isLoading: isLoadingGanttProjects } = useQuery({
-    queryKey: ['ganttProjects'],
-    queryFn: () => base44.entities.GanttProject.list('sort_order'),
-  });
+  const { data: ganttProjects = [], isLoading: isLoadingGanttProjects } = useQuery(ganttProjectsQuery);
 
-  const { data: ganttTasks = [], isLoading: isLoadingGanttTasks } = useQuery({
-    queryKey: ['ganttTasks'],
-    queryFn: () => base44.entities.GanttTask.list('sort_order'),
-  });
+  const { data: ganttTasks = [], isLoading: isLoadingGanttTasks } = useQuery(ganttTasksQuery);
 
   const leaveQueryStart = format(startDate, 'yyyy-MM-dd');
   const leaveQueryEnd = format(endDate, 'yyyy-MM-dd');
@@ -121,42 +126,19 @@ export default function GanttChart() {
     },
   });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('sort_order'),
-  });
+  const { data: projects = [] } = useQuery(projectsQuery);
 
-  const { data: samples = [] } = useQuery({
-    queryKey: ['samples'],
-    queryFn: () => base44.entities.Sample.list('sort_order'),
-  });
+  const { data: samples = [] } = useQuery(samplesQuery);
 
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
-  });
+  const { data: employees = [] } = useQuery(employeesQuery);
 
-  const { data: departments = [] } = useQuery({
-    queryKey: ['departments'],
-    queryFn: () => base44.entities.Department.list('sort_order'),
-  });
+  const { data: departments = [] } = useQuery(departmentsQuery);
 
-  const { data: groups = [] } = useQuery({
-    queryKey: ['groups'],
-    queryFn: () => base44.entities.Group.list(),
-  });
+  const { data: groups = [] } = useQuery(groupsQuery);
 
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
-  });
+  const { data: holidays = [] } = useQuery(holidaysQuery);
 
-
-
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { data: currentUser } = useQuery(currentUserQuery);
 
   // Mutations
   const createGanttProject = useMutation({

@@ -11,6 +11,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import {
+  currentUserQuery,
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+  leaveTypesQuery,
+  holidaysQuery,
+  boundEmployeeQuery,
+} from "@/lib/queries";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
@@ -39,38 +48,21 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: currentUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { data: currentUser, isLoading: loadingUser } = useQuery(currentUserQuery);
 
-  const { data: boundEmployee } = useQuery({
-    queryKey: ['boundEmployee', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return null;
-      const allEmps = await base44.entities.Employee.list();
-      return allEmps.find(e => e.user_emails?.includes(currentUser.email)) || null;
-    },
-    enabled: !!currentUser?.email,
-  });
+  const { data: boundEmployee } = useQuery(
+    boundEmployeeQuery(queryClient, currentUser?.email)
+  );
 
-  const { data: departments = [] } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [] } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
-  });
+  const { data: employees = [] } = useQuery(employeesQuery);
 
-  const { data: leaveTypes = [] } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list(),
-  });
+  const { data: leaveTypes = [] } = useQuery(leaveTypesQuery);
 
   const { data: todayLeaves = [], isLoading: loadingLeaves } = useQuery({
     queryKey: ['todayLeaves', selectedDate],
@@ -90,10 +82,7 @@ export default function Dashboard() {
     }),
   });
 
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
-  });
+  const { data: holidays = [] } = useQuery(holidaysQuery);
 
   const { data: allLeaveRecords = [] } = useQuery({
     queryKey: ['allLeaveRecords'],
