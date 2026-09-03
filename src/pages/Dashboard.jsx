@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import LeaveStatistics from "@/components/dashboard/LeaveStatistics";
 import {
   currentUserQuery,
   employeesQuery,
@@ -959,6 +960,17 @@ export default function Dashboard() {
               <p className="text-gray-400 text-[11px]">※ 出差不列入警示計算</p>
             </div>
             </div>
+            )}
+
+            {/* 休假統計（僅管理員） */}
+            {currentUser?.role === 'admin' && (
+              <div className="mt-8">
+                <LeaveStatistics
+                  departments={allDepartments}
+                  employees={employees}
+                  leaveTypes={leaveTypes}
+                />
+              </div>
             )}
 
             {/* Clean Duplicates Dialog */}

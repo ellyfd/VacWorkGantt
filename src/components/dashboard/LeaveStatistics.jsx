@@ -9,9 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Loader2, BarChart3 } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
@@ -58,20 +57,25 @@ export default function LeaveStatistics({ departments: allDepartments, employees
 
   const employeeMap = useMemo(() => new Map(employees.map(e => [e.id, e])), [employees]);
 
+  // 半天假（AM/PM）計 0.5 天，與個人統計（Layout.myLeaveSummary）一致
+  const recordDays = (record) =>
+    record.period === 'AM' || record.period === 'PM' ? 0.5 : 1;
+
   const departmentStats = useMemo(() => {
     const stats = {};
     departments.forEach(dept => {
       stats[dept.id] = { name: dept.name, count: 0 };
     });
-    
+
     filteredRecords.forEach(record => {
       const emp = employeeMap.get(record.employee_id);
       emp?.department_ids?.forEach(deptId => {
-        if (stats[deptId]) stats[deptId].count++;
+        if (stats[deptId]) stats[deptId].count += recordDays(record);
       });
     });
-    
+
     return Object.values(stats).filter(s => s.count > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredRecords, departments, employeeMap]);
 
   const leaveTypeStats = useMemo(() => {
@@ -82,11 +86,12 @@ export default function LeaveStatistics({ departments: allDepartments, employees
     
     filteredRecords.forEach(record => {
       if (stats[record.leave_type_id]) {
-        stats[record.leave_type_id].count++;
+        stats[record.leave_type_id].count += recordDays(record);
       }
     });
-    
+
     return Object.values(stats).filter(s => s.count > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredRecords, leaveTypes]);
 
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
@@ -173,7 +178,8 @@ export default function LeaveStatistics({ departments: allDepartments, employees
         <div className="mb-4">
           <p className="text-sm text-gray-600">
             統計期間：<span className="font-semibold text-gray-800">{getPeriodLabel()}</span>
-            <span className="ml-4">總請假人次：<span className="font-semibold text-blue-600">{filteredRecords.length}</span></span>
+            <span className="ml-4">總請假天數：<span className="font-semibold text-blue-600">{filteredRecords.reduce((sum, r) => sum + recordDays(r), 0)}</span></span>
+            <span className="ml-2 text-xs text-gray-400">（半天假計 0.5 天）</span>
           </p>
         </div>
 
@@ -191,19 +197,19 @@ export default function LeaveStatistics({ departments: allDepartments, employees
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-4">部門請假人次 - 長條圖</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">部門請假天數 - 長條圖</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={departmentStats}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Bar dataKey="count" fill="#3b82f6" name="請假人次" />
+                      <Bar dataKey="count" fill="#3b82f6" name="請假天數" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-4">部門請假人次 - 圓餅圖</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">部門請假天數 - 圓餅圖</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -235,19 +241,19 @@ export default function LeaveStatistics({ departments: allDepartments, employees
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-4">假別使用次數 - 長條圖</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">假別使用天數 - 長條圖</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={leaveTypeStats}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Bar dataKey="count" fill="#10b981" name="使用次數" />
+                      <Bar dataKey="count" fill="#10b981" name="使用天數" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-4">假別使用次數 - 圓餅圖</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">假別使用天數 - 圓餅圖</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
