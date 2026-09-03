@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { leaveTypesQuery, holidaysQuery } from '@/lib/queries';
+import { getLeavePeriod } from '@/lib/leaveUtils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,7 +45,7 @@ export default function LeaveSettings() {
   // ============ LEAVE TYPE STATE ============
   const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [editingType, setEditingType] = useState(null);
-  const [typeFormData, setTypeFormData] = useState({ name: '', short_name: '', color: PRESET_COLORS[0] });
+  const [typeFormData, setTypeFormData] = useState({ name: '', short_name: '', color: PRESET_COLORS[0], period: 'full' });
 
   // ============ HOLIDAY STATE ============
   const [isHolidayOpen, setIsHolidayOpen] = useState(false);
@@ -113,10 +114,15 @@ export default function LeaveSettings() {
   const handleOpenTypeDialog = (type = null) => {
     if (type) {
       setEditingType(type);
-      setTypeFormData({ name: type.name, short_name: type.short_name, color: type.color });
+      setTypeFormData({
+        name: type.name,
+        short_name: type.short_name,
+        color: type.color,
+        period: type.period || getLeavePeriod(type),
+      });
     } else {
       setEditingType(null);
-      setTypeFormData({ name: '', short_name: '', color: PRESET_COLORS[0] });
+      setTypeFormData({ name: '', short_name: '', color: PRESET_COLORS[0], period: 'full' });
     }
     setIsTypeOpen(true);
   };
@@ -124,7 +130,7 @@ export default function LeaveSettings() {
   const handleCloseTypeDialog = () => {
     setIsTypeOpen(false);
     setEditingType(null);
-    setTypeFormData({ name: '', short_name: '', color: PRESET_COLORS[0] });
+    setTypeFormData({ name: '', short_name: '', color: PRESET_COLORS[0], period: 'full' });
   };
 
   const handleSubmitType = (e) => {
@@ -244,6 +250,25 @@ export default function LeaveSettings() {
                       />
                     </div>
                     <div>
+                      <Label>時段</Label>
+                      <Select
+                        value={typeFormData.period}
+                        onValueChange={(val) => setTypeFormData({ ...typeFormData, period: val })}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="選擇時段" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="full">全天</SelectItem>
+                          <SelectItem value="AM">上午</SelectItem>
+                          <SelectItem value="PM">下午</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-400 mt-1">
+                        影響半天假的顯示與統計（半天計 0.5 天）
+                      </p>
+                    </div>
+                    <div>
                       <Label>顏色</Label>
                       <div className="flex gap-2 mt-2 flex-wrap">
                         {PRESET_COLORS.map((color) => (
@@ -287,8 +312,9 @@ export default function LeaveSettings() {
                   <TableRow className="bg-gray-50">
                     <TableHead className="w-14 md:w-[8%]">排序</TableHead>
                     <TableHead className="w-12 md:w-[8%]">顏色</TableHead>
-                    <TableHead className="md:w-[45%]">假別名稱</TableHead>
-                    <TableHead className="w-20 md:w-[19%]">簡稱</TableHead>
+                    <TableHead className="md:w-[35%]">假別名稱</TableHead>
+                    <TableHead className="w-20 md:w-[15%]">簡稱</TableHead>
+                    <TableHead className="w-14 md:w-[14%]">時段</TableHead>
                     <TableHead className="w-16 md:w-[20%]">編輯</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -318,6 +344,17 @@ export default function LeaveSettings() {
                         >
                           {lt.short_name}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        {lt.period ? (
+                          <span className="text-xs text-gray-700">
+                            {lt.period === 'AM' ? '上午' : lt.period === 'PM' ? '下午' : '全天'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400" title="尚未設定時段，目前依假別名稱判斷">
+                            {getLeavePeriod(lt) === 'AM' ? '上午*' : getLeavePeriod(lt) === 'PM' ? '下午*' : '全天*'}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">

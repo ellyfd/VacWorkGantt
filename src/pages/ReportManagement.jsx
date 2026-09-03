@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { getLeavePeriod } from '@/lib/leaveUtils';
 import {
   employeesQuery,
   departmentsQuery,
@@ -51,9 +52,11 @@ export default function ReportManagement() {
   const employeeMap = useMemo(() => new Map(employees.map(e => [e.id, e])), [employees]);
 
   // 計算請假扣除時數
-  const calculateLeaveHours = useCallback((leaveTypeName) => {
-    if (leaveTypeName.includes('上午')) return 3;
-    if (leaveTypeName.includes('下午')) return 4.5;
+  // 依假別的 period 欄位計算時數（未設定時 getLeavePeriod 會退回名稱判斷）
+  const calculateLeaveHours = useCallback((leaveType) => {
+    const period = getLeavePeriod(leaveType);
+    if (period === 'AM') return 3;
+    if (period === 'PM') return 4.5;
     return 7.5;
   }, []);
 
@@ -93,7 +96,7 @@ export default function ReportManagement() {
     let totalLeaveHours = 0;
     filteredLeaveRecords.forEach(record => {
       const leaveType = leaveTypeMap.get(record.leave_type_id);
-      if (leaveType) totalLeaveHours += calculateLeaveHours(leaveType.name);
+      if (leaveType) totalLeaveHours += calculateLeaveHours(leaveType);
     });
 
     const actualWorkHours = totalStandardHours - totalLeaveHours;
@@ -115,7 +118,7 @@ export default function ReportManagement() {
       if (leaveType) {
         if (!stats[leaveType.name]) stats[leaveType.name] = { count: 0, hours: 0, color: leaveType.color };
         stats[leaveType.name].count++;
-        stats[leaveType.name].hours += calculateLeaveHours(leaveType.name);
+        stats[leaveType.name].hours += calculateLeaveHours(leaveType);
       }
     });
     return Object.entries(stats).map(([name, data]) => ({ name, ...data })).sort((a, b) => b.count - a.count);
@@ -135,7 +138,7 @@ export default function ReportManagement() {
       const emp = employeeMap.get(record.employee_id);
       const leaveType = leaveTypeMap.get(record.leave_type_id);
       if (emp?.department_ids && leaveType) {
-        const hours = calculateLeaveHours(leaveType.name);
+        const hours = calculateLeaveHours(leaveType);
         emp.department_ids.forEach(deptId => {
           if (stats[deptId]) { stats[deptId].leaveCount++; stats[deptId].leaveHours += hours; }
         });
@@ -156,7 +159,7 @@ export default function ReportManagement() {
     filteredLeaveRecords.forEach(record => {
       const leaveType = leaveTypeMap.get(record.leave_type_id);
       if (stats[record.employee_id] && leaveType) {
-        const hours = calculateLeaveHours(leaveType.name);
+        const hours = calculateLeaveHours(leaveType);
         if (leaveType.name === '出差') stats[record.employee_id].tripHours += hours;
         else stats[record.employee_id].leaveHours += hours;
       }
@@ -218,7 +221,7 @@ export default function ReportManagement() {
         filteredLeaveRecords.forEach(record => {
           if (weekDays.has(record.date) && deptEmpIds.has(record.employee_id)) {
             const lt = leaveTypeMap.get(record.leave_type_id);
-            if (lt) leaveHours += calculateLeaveHours(lt.name);
+            if (lt) leaveHours += calculateLeaveHours(lt);
           }
         });
 
@@ -387,8 +390,8 @@ export default function ReportManagement() {
           <h3 className="text-sm font-semibold text-gray-700 mb-2">計算說明</h3>
           <div className="text-xs text-gray-600 space-y-1">
             <p>• 標準工作時間：每日 7.5 小時（9:00-18:00，扣除 1.5 小時午休）</p>
-            <p>• 上午休：扣除 3 小時</p>
-            <p>• 下午休：扣除 4.5 小時</p>
+            <p>• 上午時段假別（如上午休、健檢）：扣除 3 小時</p>
+            <p>• 下午時段假別（如下午休）：扣除 4.5 小時</p>
             <p>• 全天休/病休/出差：扣除 7.5 小時</p>
             <p>• 出席率 = 實際工作時數 ÷ 應工作時數 × 100%</p>
             <p>• 工作日計算已排除週末和假日</p>

@@ -106,7 +106,7 @@ export default function AllLeaveCalendar({
     mutationFn: async ({ employeeId, date, leaveTypeId }) => {
       const currentEmployee = employeeMap[employeeId];
       const currentLeaveType = leaveTypeMap[leaveTypeId];
-      const period = getLeavePeriod(currentLeaveType?.name);
+      const period = getLeavePeriod(currentLeaveType);
 
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period
@@ -181,7 +181,7 @@ export default function AllLeaveCalendar({
 
       queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
         const leaveType = leaveTypeMap[leaveTypeId];
-        const period = getLeavePeriod(leaveType?.name);
+        const period = getLeavePeriod(leaveType);
         const existing = old?.find(r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period);
         if (existing) {
           return old.map(r =>

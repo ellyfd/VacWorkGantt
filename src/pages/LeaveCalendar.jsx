@@ -134,7 +134,7 @@ export default function LeaveCalendar() {
       const currentEmployee = employeeMap[employeeId];
       
       const leaveType = leaveTypeMap[leaveTypeId];
-      const period = getLeavePeriod(leaveType?.name);
+      const period = getLeavePeriod(leaveType);
       const isBusinessTrip = leaveType?.name === '出差';
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period
@@ -235,7 +235,7 @@ export default function LeaveCalendar() {
 
       queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
         const leaveType = leaveTypeMap[leaveTypeId];
-        const period = getLeavePeriod(leaveType?.name);
+        const period = getLeavePeriod(leaveType);
         const existing = old?.find(r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period);
         if (existing) {
           return old.map(r =>
@@ -373,6 +373,7 @@ export default function LeaveCalendar() {
             employee_id: employeeId,
             date: dateStr,
             leave_type_id: leaveTypeId,
+            period: getLeavePeriod(leaveTypeMap[leaveTypeId]),
             warning_type: warningTypes.length > 0 ? warningTypes : undefined,
             warning_details: warningTypes.length > 0 ? warningDetails : undefined
           });

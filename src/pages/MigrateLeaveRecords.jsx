@@ -46,7 +46,7 @@ export default function MigrateLeaveRecords() {
         const batch = needUpdate.slice(i, i + batchSize);
         await Promise.all(batch.map(async (record) => {
           const leaveType = leaveTypeMap[record.leave_type_id];
-          const period = getLeavePeriod(leaveType?.name);
+          const period = getLeavePeriod(leaveType);
           stats[period]++;
           await base44.entities.LeaveRecord.update(record.id, { period });
         }));
