@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
+import { formatDateShort } from '@/lib/dateFormat';
 import { format, getDay } from "date-fns";
-import { zhTW } from "date-fns/locale";
 import { Loader2, CalendarRange } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
@@ -209,7 +209,7 @@ export default function WeekCalendarTable({
                     <div className="space-y-3">
                       <div>
                         <h3 className="font-semibold text-sm">確認區間請假</h3>
-                        <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
+                        <p className="text-sm text-gray-600 mt-1">{formatDateShort(dateRange.from)} 至 {formatDateShort(dateRange.to)}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={onRangeModeCancel} variant="outline" size="sm" className="flex-1">取消</Button>

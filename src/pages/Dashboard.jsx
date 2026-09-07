@@ -1,16 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { Loader2, Calendar as CalendarIcon, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { formatDateFull } from "@/lib/dateFormat";
 import LeaveStatistics from "@/components/dashboard/LeaveStatistics";
 import {
   currentUserQuery,
@@ -379,7 +378,7 @@ export default function Dashboard() {
             })()}
           </h1>
           <p className="text-sm text-gray-500 mt-1 mb-4 md:mb-0">
-            {format(new Date(selectedDate), 'yyyy年MM月dd日 (EEEE)', { locale: zhTW })}
+            {formatDateFull(selectedDate)}
             {isNonWorkingDay && (
               <span className="ml-2 text-xs px-2 py-0.5 bg-red-50 text-red-600 rounded-full">
                 {isHoliday ? (holidayInfo?.name || '假日') : '週末'}
@@ -410,7 +409,7 @@ export default function Dashboard() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(new Date(selectedDate), 'yyyy年MM月dd日 (E)', { locale: zhTW }) : "選擇日期"}
+                {selectedDate ? formatDateFull(selectedDate) : "選擇日期"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">

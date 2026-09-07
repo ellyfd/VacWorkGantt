@@ -172,7 +172,7 @@ const GanttRow = React.memo(function GanttRow({
         </div>
       );
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [tasks, dayIndexMap, days.length, CELL_WIDTH, projectColor, workingDaysMap, onEditTask, isArchived]);
 
   // 計算 drag 高亮

@@ -14,7 +14,6 @@ import {
 import { format, endOfMonth } from 'date-fns';
 import { Loader2, CalendarRange } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -25,6 +24,7 @@ import {
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import { formatDateFull, formatDateShort } from '@/lib/dateFormat';
 import { checkDeputyConflict, checkDeptLimit, checkDevSeasonConflict, buildWarningInfo } from '@/components/utils/leaveWarnings';
 import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { useToast } from '@/components/ui/use-toast';
@@ -156,7 +156,7 @@ export default function AllLeaveCalendar({
 
       if (warnings.length > 0) {
         const confirmed = await confirm(
-          `${date}\n${warnings.map(w => `• ${w}`).join('\n')}`,
+          `${formatDateFull(date)}\n${warnings.map(w => `• ${w}`).join('\n')}`,
           { title: '請假警告', confirmText: '繼續請假', variant: 'destructive' }
         );
         if (!confirmed) throw new Error('取消請假');
@@ -303,7 +303,7 @@ export default function AllLeaveCalendar({
         if (deputyConflicts.length > 0) {
           const conflictNames = deputyConflicts
             .map(c => employeeMap[c.employee_id]?.name || '未知').join('、');
-          warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
+          warnings.push(`${formatDateShort(dateStr)}: 職代 ${conflictNames} 已請假`);
         }
 
         const deptLimitInfo = checkDeptLimit({
@@ -311,7 +311,7 @@ export default function AllLeaveCalendar({
           allLeaveRecords: leaveRecords, employees,
         });
         if (deptLimitInfo) {
-          warnings.push(`${dateStr}: 部門已有 ${deptLimitInfo.deptLeaves} 人請假（達到1/3人數 ${deptLimitInfo.deptLimit}）`);
+          warnings.push(`${formatDateShort(dateStr)}: 部門已有 ${deptLimitInfo.deptLeaves} 人請假（達到1/3人數 ${deptLimitInfo.deptLimit}）`);
         }
 
         const devSeasonConflicts = checkDevSeasonConflict({
@@ -320,7 +320,7 @@ export default function AllLeaveCalendar({
         });
         if (devSeasonConflicts.length > 0) {
           const seasonNames = [...new Set(devSeasonConflicts.map(c => c.season_name))].join('、');
-          warnings.push(`${dateStr}: 開發季期間（${seasonNames}）`);
+          warnings.push(`${formatDateShort(dateStr)}: 開發季期間（${seasonNames}）`);
         }
       }
 
@@ -452,7 +452,7 @@ export default function AllLeaveCalendar({
       const startDate = rangeRecords[0].date;
       const endDate = rangeRecords[rangeRecords.length - 1].date;
       const confirmed = await confirm(
-        `確定要取消 ${startDate} 至 ${endDate} 共 ${rangeRecords.length} 天的請假嗎？`,
+        `確定要取消 ${formatDateFull(startDate)} 至 ${formatDateFull(endDate)} 共 ${rangeRecords.length} 天的請假嗎？`,
         { title: '取消連續請假', confirmText: '全部取消', variant: 'destructive' }
       );
       if (confirmed) {
@@ -737,7 +737,7 @@ export default function AllLeaveCalendar({
                 const emp = employees.find(e => e.id === dateRange.employeeId);
                 return (
                   <p className="text-gray-500 pl-1">
-                    {emp?.name}：{dateRange.from}{dateRange.to ? ` → ${dateRange.to}` : ' → ...'}
+                    {emp?.name}：{formatDateShort(dateRange.from)}{dateRange.to ? ` → ${formatDateShort(dateRange.to)}` : ' → ...'}
                   </p>
                 );
               })()}

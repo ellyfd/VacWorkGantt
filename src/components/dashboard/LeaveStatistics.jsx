@@ -75,7 +75,7 @@ export default function LeaveStatistics({ departments: allDepartments, employees
     });
 
     return Object.values(stats).filter(s => s.count > 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [filteredRecords, departments, employeeMap]);
 
   const leaveTypeStats = useMemo(() => {
@@ -91,7 +91,7 @@ export default function LeaveStatistics({ departments: allDepartments, employees
     });
 
     return Object.values(stats).filter(s => s.count > 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [filteredRecords, leaveTypes]);
 
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
