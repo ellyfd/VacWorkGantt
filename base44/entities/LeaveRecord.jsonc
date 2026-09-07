@@ -15,8 +15,19 @@
       "type": "string"
     },
     "note": {
-      "description": "\u5099\u8a3b",
-      "type": "string"
+      "type": "string",
+      "description": "\u5099\u8a3b"
+    },
+    "warning_type": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u8b66\u793a\u985e\u578b\uff1adeputy_conflict=\u8077\u4ee3\u885d\u7a81, department_over_limit=\u90e8\u9580\u8acb\u5047\u8d85\u6a19, dev_season=\u958b\u767c\u5b63\u671f\u9593\u8acb\u5047"
+    },
+    "warning_details": {
+      "type": "object",
+      "description": "\u8b66\u793a\u8a73\u7d30\u8cc7\u8a0a"
     },
     "period": {
       "default": "full",

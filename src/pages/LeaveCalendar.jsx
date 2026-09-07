@@ -8,6 +8,8 @@ import {
   filterVisibleDepartments,
   leaveTypesQuery,
   holidaysQuery,
+  ganttProjectsQuery,
+  ganttTasksQuery,
 } from '@/lib/queries';
 import { format, endOfMonth } from 'date-fns';
 import { Loader2, CalendarRange } from 'lucide-react';
@@ -34,7 +36,7 @@ import {
 import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
-import { checkDeputyConflict, checkDeptLimit, buildWarningInfo } from '@/components/utils/leaveWarnings';
+import { checkDeputyConflict, checkDeptLimit, checkDevSeasonConflict, buildWarningInfo } from '@/components/utils/leaveWarnings';
 import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
 import { getLeavePeriod } from '@/lib/leaveUtils';
@@ -69,6 +71,10 @@ export default function LeaveCalendar() {
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery(leaveTypesQuery);
 
   const { data: holidays = [], isLoading: loadingHolidays } = useQuery(holidaysQuery);
+
+  // 開發季期間警示用
+  const { data: ganttProjects = [] } = useQuery(ganttProjectsQuery);
+  const { data: ganttTasks = [] } = useQuery(ganttTasksQuery);
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
     queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth(), currentEmployee?.id],
@@ -188,6 +194,23 @@ export default function LeaveCalendar() {
         }
       }
 
+      // 檢查開發季期間
+      if (!isBusinessTrip) {
+        const devSeasonConflicts = checkDevSeasonConflict({
+          date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
+        });
+        if (devSeasonConflicts.length > 0) {
+          const seasonDesc = devSeasonConflicts
+            .map(c => `${c.season_name}（${c.task_name} ${c.start_date}～${c.end_date}）`)
+            .join('、');
+          const confirmed = await confirm(
+            `${date} 為開發季期間：${seasonDesc}，確定要請假嗎？`,
+            { title: '開發季期間警告', confirmText: '繼續請假', variant: 'destructive' }
+          );
+          if (!confirmed) throw new Error('取消請假');
+        }
+      }
+
       // 建立警示資訊
       const { warningTypes, warningDetails } = buildWarningInfo({
         employee: currentEmployee,
@@ -195,7 +218,9 @@ export default function LeaveCalendar() {
         leaveTypeId,
         leaveTypes,
         allLeaveRecords,
-        employees
+        employees,
+        ganttTasks,
+        ganttProjects
       });
 
       if (existing) {
@@ -342,6 +367,14 @@ export default function LeaveCalendar() {
           if (deptLeaves.length >= deptLimit) {
             warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（超過1/3人數 ${deptLimit}）`);
           }
+
+          const devSeasonConflicts = checkDevSeasonConflict({
+            date: dateStr, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
+          });
+          if (devSeasonConflicts.length > 0) {
+            const seasonNames = [...new Set(devSeasonConflicts.map(c => c.season_name))].join('、');
+            warnings.push(`${dateStr}: 開發季期間（${seasonNames}）`);
+          }
         }
       }
       
@@ -366,7 +399,9 @@ export default function LeaveCalendar() {
             leaveTypeId,
             leaveTypes,
             allLeaveRecords,
-            employees
+            employees,
+            ganttTasks,
+            ganttProjects
           });
           
           recordsToCreate.push({
