@@ -9,7 +9,8 @@ import { addMonths, subMonths } from "date-fns";
 //    「全部排休」使用此模式，年檢視才能正確運作。
 // 2. 傳統模式（未傳 onViewModeChange）：沿用舊行為，以 currentDate.getMonth() === -1 代表全年，
 //    維持其他頁面（我的排休、報表）既有行為不變。
-export default function CalendarHeader({ currentDate, viewMode, onDateChange, onViewModeChange }) {
+// allowYearView=false 時隱藏「全年」選項（手機上年檢視格子過小）
+export default function CalendarHeader({ currentDate, viewMode, onDateChange, onViewModeChange, allowYearView = true }) {
   const controlled = typeof onViewModeChange === 'function';
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
@@ -90,7 +91,7 @@ export default function CalendarHeader({ currentDate, viewMode, onDateChange, on
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={yearOptionValue}>全年</SelectItem>
+          {allowYearView && <SelectItem value={yearOptionValue}>全年</SelectItem>}
           {months.map((month) => (
             <SelectItem key={month} value={month.toString()}>
               <span className="md:hidden">{month + 1}</span>

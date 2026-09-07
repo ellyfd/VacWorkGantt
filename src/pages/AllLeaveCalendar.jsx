@@ -75,6 +75,14 @@ export default function AllLeaveCalendar({
     syncUrl(currentDate, view);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syncUrl, currentDate]);
+
+  // 手機上不提供年檢視：URL 帶 view=year 進手機時自動落回當月
+  React.useEffect(() => {
+    if (viewMode === 'year' && typeof window !== 'undefined' && window.innerWidth < 768) {
+      handleViewModeChange('month');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
@@ -615,6 +623,7 @@ export default function AllLeaveCalendar({
           <h1 className="text-lg md:text-2xl font-bold text-gray-800">{pageTitle}</h1>
           <div className="md:hidden">
             <CalendarHeader
+              allowYearView={false}
               currentDate={currentDate}
               viewMode={viewMode}
               onDateChange={handleDateChange}
