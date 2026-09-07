@@ -288,6 +288,7 @@ export default function Dashboard() {
 
         // 開發季期間（出差在 helper 內部排除）
         const devSeasonConflicts = checkDevSeasonConflict({
+          employee: currentEmployee, departments: allDepartments,
           date: record.date, leaveTypeId: record.leave_type_id,
           leaveTypes, ganttTasks, ganttProjects,
         });
@@ -671,7 +672,8 @@ export default function Dashboard() {
             hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
             const hasDevSeason = checkDevSeasonConflict({
-              date: r.date, leaveTypeId: r.leave_type_id,
+              employee: emp, departments: allDepartments,
+                      date: r.date, leaveTypeId: r.leave_type_id,
               leaveTypes, ganttTasks, ganttProjects,
             }).length > 0;
 
@@ -757,6 +759,7 @@ export default function Dashboard() {
                     hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
                     const hasDevSeason = checkDevSeasonConflict({
+                      employee: emp, departments: allDepartments,
                       date: r.date, leaveTypeId: r.leave_type_id,
                       leaveTypes, ganttTasks, ganttProjects,
                     }).length > 0;
@@ -897,7 +900,8 @@ export default function Dashboard() {
                 hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
                 const hasDevSeason = checkDevSeasonConflict({
-                  date: r.date, leaveTypeId: r.leave_type_id,
+                  employee: emp, departments: allDepartments,
+                      date: r.date, leaveTypeId: r.leave_type_id,
                   leaveTypes, ganttTasks, ganttProjects,
                 }).length > 0;
 
@@ -988,7 +992,8 @@ export default function Dashboard() {
             hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
             const hasDevSeason = checkDevSeasonConflict({
-              date: r.date, leaveTypeId: r.leave_type_id,
+              employee: emp, departments: allDepartments,
+                      date: r.date, leaveTypeId: r.leave_type_id,
               leaveTypes, ganttTasks, ganttProjects,
             }).length > 0;
 
@@ -1010,7 +1015,7 @@ export default function Dashboard() {
               </div>
               <div className="flex items-start gap-2">
                 <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-medium bg-blue-100 text-blue-700 flex-shrink-0">開發季</span>
-                <span>請假日期落在開發季任務期間（PROTO、3D LA 等）</span>
+                <span>開發處（DPC）人員的請假日期落在開發季任務期間（PROTO、3D LA 等）</span>
               </div>
               <p className="text-gray-400 text-[11px]">※ 出差不列入警示計算</p>
             </div>

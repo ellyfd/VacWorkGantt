@@ -1,3 +1,5 @@
+import { isDpcEmployee } from '@/lib/access';
+
 /**
  * 共同建立 leaveType / employee 的 Map，避免在迴圈內 array.find。
  * 內部函式，不對外 export。
@@ -64,11 +66,13 @@ export function checkDeptLimit({ employee, date, leaveTypeId, leaveTypes, allLea
 
 /**
  * 檢查請假日期是否落在開發季任務期間。
+ * 只針對開發處（DPC）人員；其他部門不觸發此警示。
  * 只看未封存開發季的任務：duration 看起訖區間、milestone 看當天；
  * rolling 為開放式區間不計（會把開始日之後全部標警示，過度警示）。
  * @returns {Array} [{ season_name, task_name, start_date, end_date }]
  */
-export function checkDevSeasonConflict({ date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects }) {
+export function checkDevSeasonConflict({ employee, departments, date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects }) {
+  if (!isDpcEmployee(employee, departments)) return [];
   if (!ganttTasks?.length || !ganttProjects?.length) return [];
   const leaveTypeMap = new Map(leaveTypes.map(lt => [lt.id, lt]));
   if (leaveTypeMap.get(leaveTypeId)?.name === '出差') return [];
@@ -105,7 +109,7 @@ export function checkDevSeasonConflict({ date, leaveTypeId, leaveTypes, ganttTas
  * ganttTasks / ganttProjects 為選填：有傳才檢查開發季期間警示。
  * @returns {Object} { warningTypes: [], warningDetails: {} }
  */
-export function buildWarningInfo({ employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees, ganttTasks, ganttProjects }) {
+export function buildWarningInfo({ employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees, ganttTasks, ganttProjects, departments }) {
   const { leaveTypeMap, employeeMap } = buildMaps(leaveTypes, employees);
   const warningTypes = [];
   const warningDetails = {};
@@ -138,7 +142,7 @@ export function buildWarningInfo({ employee, date, leaveTypeId, leaveTypes, allL
   }
 
   const devSeasonConflicts = checkDevSeasonConflict({
-    date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
+    employee, departments, date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
   });
   if (devSeasonConflicts.length > 0) {
     warningTypes.push('dev_season');

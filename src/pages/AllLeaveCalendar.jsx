@@ -152,6 +152,7 @@ export default function AllLeaveCalendar({
 
       // 開發季期間確認
       const devSeasonConflicts = checkDevSeasonConflict({
+        employee: currentEmployee, departments: allDepartments,
         date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
       });
       if (devSeasonConflicts.length > 0) {
@@ -168,6 +169,7 @@ export default function AllLeaveCalendar({
       const { warningTypes, warningDetails } = buildWarningInfo({
         employee: currentEmployee, date, leaveTypeId, leaveTypes,
         allLeaveRecords: leaveRecords, employees, ganttTasks, ganttProjects,
+        departments: allDepartments,
       });
       const warningPayload = warningTypes.length > 0
         ? { warning_type: warningTypes, warning_details: warningDetails }
@@ -317,6 +319,7 @@ export default function AllLeaveCalendar({
         }
 
         const devSeasonConflicts = checkDevSeasonConflict({
+          employee: currentEmployee, departments: allDepartments,
           date: dateStr, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
         });
         if (devSeasonConflicts.length > 0) {
@@ -344,6 +347,7 @@ export default function AllLeaveCalendar({
         const { warningTypes, warningDetails } = buildWarningInfo({
           employee: currentEmployee, date: dateStr, leaveTypeId, leaveTypes,
           allLeaveRecords: leaveRecords, employees, ganttTasks, ganttProjects,
+        departments: allDepartments,
         });
 
         recordsToCreate.push({

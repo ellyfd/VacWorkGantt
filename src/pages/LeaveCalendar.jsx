@@ -197,6 +197,7 @@ export default function LeaveCalendar() {
       // 檢查開發季期間
       if (!isBusinessTrip) {
         const devSeasonConflicts = checkDevSeasonConflict({
+          employee: currentEmployee, departments: allDepartments,
           date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
         });
         if (devSeasonConflicts.length > 0) {
@@ -220,7 +221,8 @@ export default function LeaveCalendar() {
         allLeaveRecords,
         employees,
         ganttTasks,
-        ganttProjects
+        ganttProjects,
+        departments: allDepartments
       });
 
       if (existing) {
@@ -369,6 +371,7 @@ export default function LeaveCalendar() {
           }
 
           const devSeasonConflicts = checkDevSeasonConflict({
+            employee: currentEmployee, departments: allDepartments,
             date: dateStr, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
           });
           if (devSeasonConflicts.length > 0) {
@@ -401,7 +404,8 @@ export default function LeaveCalendar() {
             allLeaveRecords,
             employees,
             ganttTasks,
-            ganttProjects
+            ganttProjects,
+            departments: allDepartments
           });
           
           recordsToCreate.push({
