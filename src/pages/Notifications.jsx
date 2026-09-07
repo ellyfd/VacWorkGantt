@@ -2,7 +2,8 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { currentUserQuery } from '@/lib/queries';
-import { Bell, Loader2, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
+import PageSkeleton from '@/components/PageSkeleton';
 import { Button } from "@/components/ui/button";
 import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -60,11 +61,7 @@ export default function Notifications() {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (

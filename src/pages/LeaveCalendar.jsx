@@ -149,8 +149,10 @@ export default function LeaveCalendar() {
         return existing;
       }
 
-      // 檢查職代衝突
+      // 檢查警示（職代/部門/開發季），彙整成單一確認框，避免連跳多次
       if (!isBusinessTrip) {
+        const warnings = [];
+
         const deputyConflicts = checkDeputyConflict({
           employee: currentEmployee,
           date,
@@ -159,23 +161,14 @@ export default function LeaveCalendar() {
           allLeaveRecords,
           employees
         });
-        
         if (deputyConflicts.length > 0) {
           const conflictNames = deputyConflicts.map(c => {
             const emp = employees.find(e => e.id === c.employee_id);
             return emp?.name || '未知';
           }).join('、');
-          
-          const confirmed = await confirm(
-            `職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`,
-            { title: '職代衝突警告', confirmText: '繼續請假', variant: 'destructive' }
-          );
-          if (!confirmed) throw new Error('取消請假');
+          warnings.push(`職代 ${conflictNames} 已請假`);
         }
-      }
-      
-      // 檢查部門人數限制
-      if (!isBusinessTrip) {
+
         const deptLimitInfo = checkDeptLimit({
           employee: currentEmployee,
           date,
@@ -184,18 +177,10 @@ export default function LeaveCalendar() {
           allLeaveRecords,
           employees
         });
-        
         if (deptLimitInfo) {
-          const confirmed = await confirm(
-            `${date} 該部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門 1/3 人數上限 ${deptLimitInfo.deptLimit}），確定要繼續？`,
-            { title: '部門請假超標警告', confirmText: '繼續請假', variant: 'destructive' }
-          );
-          if (!confirmed) throw new Error('取消請假');
+          warnings.push(`部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門 1/3 人數上限 ${deptLimitInfo.deptLimit}）`);
         }
-      }
 
-      // 檢查開發季期間
-      if (!isBusinessTrip) {
         const devSeasonConflicts = checkDevSeasonConflict({
           employee: currentEmployee, departments: allDepartments,
           date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
@@ -204,9 +189,13 @@ export default function LeaveCalendar() {
           const seasonDesc = devSeasonConflicts
             .map(c => `${c.season_name}（${c.task_name} ${c.start_date}～${c.end_date}）`)
             .join('、');
+          warnings.push(`開發季期間：${seasonDesc}`);
+        }
+
+        if (warnings.length > 0) {
           const confirmed = await confirm(
-            `${date} 為開發季期間：${seasonDesc}，確定要請假嗎？`,
-            { title: '開發季期間警告', confirmText: '繼續請假', variant: 'destructive' }
+            `${date}\n${warnings.map(w => `• ${w}`).join('\n')}`,
+            { title: '請假警告', confirmText: '繼續請假', variant: 'destructive' }
           );
           if (!confirmed) throw new Error('取消請假');
         }

@@ -122,7 +122,9 @@ export default function AllLeaveCalendar({
         return existing;
       }
 
-      // 職代衝突確認
+      // 檢查警示（職代/部門/開發季），彙整成單一確認框，避免連跳多次
+      const warnings = [];
+
       const deputyConflicts = checkDeputyConflict({
         employee: currentEmployee, date, leaveTypes, leaveTypeId,
         allLeaveRecords: leaveRecords, employees,
@@ -130,27 +132,17 @@ export default function AllLeaveCalendar({
       if (deputyConflicts.length > 0) {
         const conflictNames = deputyConflicts
           .map(c => employeeMap[c.employee_id]?.name || '未知').join('、');
-        const confirmed = await confirm(
-          `職代 ${conflictNames} 在 ${date} 已請假，確定要繼續請假嗎？`,
-          { title: '職代衝突警告', confirmText: '繼續請假', variant: 'destructive' }
-        );
-        if (!confirmed) throw new Error('取消請假');
+        warnings.push(`職代 ${conflictNames} 已請假`);
       }
 
-      // 部門人數上限確認
       const deptLimitInfo = checkDeptLimit({
         employee: currentEmployee, date, leaveTypeId, leaveTypes,
         allLeaveRecords: leaveRecords, employees,
       });
       if (deptLimitInfo) {
-        const confirmed = await confirm(
-          `${date} 該部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門 1/3 人數上限 ${deptLimitInfo.deptLimit}），確定要繼續？`,
-          { title: '部門請假超標警告', confirmText: '繼續請假', variant: 'destructive' }
-        );
-        if (!confirmed) throw new Error('取消請假');
+        warnings.push(`部門已有 ${deptLimitInfo.deptLeaves} 人請假（超過部門 1/3 人數上限 ${deptLimitInfo.deptLimit}）`);
       }
 
-      // 開發季期間確認
       const devSeasonConflicts = checkDevSeasonConflict({
         employee: currentEmployee, departments: allDepartments,
         date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
@@ -159,9 +151,13 @@ export default function AllLeaveCalendar({
         const seasonDesc = devSeasonConflicts
           .map(c => `${c.season_name}（${c.task_name} ${c.start_date}～${c.end_date}）`)
           .join('、');
+        warnings.push(`開發季期間：${seasonDesc}`);
+      }
+
+      if (warnings.length > 0) {
         const confirmed = await confirm(
-          `${date} 為開發季期間：${seasonDesc}，確定要請假嗎？`,
-          { title: '開發季期間警告', confirmText: '繼續請假', variant: 'destructive' }
+          `${date}\n${warnings.map(w => `• ${w}`).join('\n')}`,
+          { title: '請假警告', confirmText: '繼續請假', variant: 'destructive' }
         );
         if (!confirmed) throw new Error('取消請假');
       }
