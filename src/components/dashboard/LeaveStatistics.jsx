@@ -193,6 +193,7 @@ export default function LeaveStatistics({ departments: allDepartments, employees
             {departmentStats.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <p>本期間無請假記錄</p>
+                <p className="text-xs text-gray-400 mt-1">可切換上方「按月／按季／按年」或選擇其他期間查看</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -237,6 +238,7 @@ export default function LeaveStatistics({ departments: allDepartments, employees
             {leaveTypeStats.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <p>本期間無請假記錄</p>
+                <p className="text-xs text-gray-400 mt-1">可切換上方「按月／按季／按年」或選擇其他期間查看</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

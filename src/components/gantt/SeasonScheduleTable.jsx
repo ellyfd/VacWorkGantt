@@ -317,7 +317,18 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
                 return (
                   <tr key={project.id} className="group border-b border-slate-100 last:border-b-0 hover:bg-blue-50/40">
                     <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-white px-5 py-3.5 text-left font-medium text-slate-700 group-hover:bg-blue-50/40">{brand?.short_name || brand?.name || brand?.full_name || '未設定客人'}</th>
-                    <td className="sticky left-40 z-10 whitespace-nowrap border-r border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-900 group-hover:bg-blue-50/40">{project.seasonLabel}</td>
+                    <td className="sticky left-40 z-10 whitespace-nowrap border-r border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-900 group-hover:bg-blue-50/40">
+                      {project.season || project.seasonLabel !== '未設定季別' ? (
+                        project.seasonLabel
+                      ) : (
+                        <span
+                          className="text-slate-400 font-normal cursor-help"
+                          title="此開發季尚未設定季節，請至「專案甘特圖」編輯該開發季補上季節（SS/FW/HO…）"
+                        >
+                          未設定季別
+                        </span>
+                      )}
+                    </td>
                     {taskColumns.map(({ name }, columnIndex) => {
                       const tasks = tasksByProjectAndName.get(`${project.id}::${name}`) || [];
                       const isFirstPinnedRight = /專案|數位|digital/i.test(name)

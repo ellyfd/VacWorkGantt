@@ -342,7 +342,7 @@ export default function ReportManagement() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-center text-gray-500 py-8">無數據</p>
+              <p className="text-center text-gray-500 py-8">本月無資料，可用上方月份切換查看其他月份</p>
             )}
           </CardContent>
         </Card>
@@ -380,7 +380,7 @@ export default function ReportManagement() {
                 </table>
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-8">本月無請假記錄</p>
+              <p className="text-center text-gray-500 py-8">本月無請假記錄，可用上方月份切換查看其他月份</p>
             )}
           </CardContent>
         </Card>
