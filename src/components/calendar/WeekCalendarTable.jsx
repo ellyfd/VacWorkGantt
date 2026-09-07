@@ -175,7 +175,7 @@ export default function WeekCalendarTable({
                 onValueChange={(value) => onLeaveTypeChange(value === '__none__' ? null : value || null)}
                 disabled={rangeMode}
               >
-                <SelectTrigger className="h-7 text-xs w-[100px]">
+                <SelectTrigger className="h-9 md:h-7 text-xs w-[100px]">
                   <SelectValue placeholder="選擇假別" />
                 </SelectTrigger>
                 <SelectContent>
@@ -188,7 +188,7 @@ export default function WeekCalendarTable({
               {!rangeMode ? (
                 <Button
                   onClick={onRangeModeToggle}
-                  className="bg-blue-600 hover:bg-blue-700 h-7 w-7"
+                  className="bg-blue-600 hover:bg-blue-700 h-9 w-9 md:h-7 md:w-7"
                   size="icon"
                 >
                   <CalendarRange className="h-4 w-4" />
@@ -200,7 +200,7 @@ export default function WeekCalendarTable({
                       onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
                       variant="outline"
                       size="icon"
-                      className={`h-7 w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                      className={`h-9 w-9 md:h-7 md:w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
                     >
                       {dateRange.from && dateRange.to ? '✓' : '✕'}
                     </Button>

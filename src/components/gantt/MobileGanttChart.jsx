@@ -272,7 +272,7 @@ export default function MobileGanttChart() {
                 setSelectedGroupSlug('');
                 setSelectedBrandIds([]);
               }}
-              className="text-xs h-8 px-3 rounded-full"
+              className="text-xs h-9 px-3 rounded-full"
             >
               全部
             </Button>
@@ -285,7 +285,7 @@ export default function MobileGanttChart() {
                   setSelectedGroupSlug(g.id);
                   setSelectedBrandIds([]);
                 }}
-                className="text-xs h-8 px-3 rounded-full"
+                className="text-xs h-9 px-3 rounded-full"
               >
                 {g.name}
               </Button>
@@ -310,7 +310,7 @@ export default function MobileGanttChart() {
                       onClick={() => setSelectedBrandIds(prev =>
                         prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id]
                       )}
-                      className="text-xs h-8 px-3 rounded-full"
+                      className="text-xs h-9 px-3 rounded-full"
                     >
                       {p.short_name}
                     </Button>
@@ -322,7 +322,7 @@ export default function MobileGanttChart() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedBrandIds([])}
-                  className="text-xs h-8 px-2 ml-12 text-gray-500"
+                  className="text-xs h-9 px-2 ml-12 text-gray-500"
                 >
                   <X className="w-3 h-3 mr-1" />
                   清除
@@ -633,7 +633,7 @@ export default function MobileGanttChart() {
               <Input
                 value={editTaskName}
                 onChange={(e) => setEditTaskName(e.target.value)}
-                className="h-8 text-sm"
+                className="h-9 text-sm"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -641,7 +641,7 @@ export default function MobileGanttChart() {
                 <div>
                   <Label className="text-xs font-medium block mb-1">開始日期</Label>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="h-8 w-full text-xs px-2 justify-start font-normal">
+                    <Button variant="outline" className="h-9 w-full text-xs px-2 justify-start font-normal">
                       <CalendarIcon className="w-3 h-3 mr-1 flex-shrink-0" />
                       <span className="truncate">{editTaskStartDate ? format(new Date(editTaskStartDate), 'M/d') : '選擇日期'}</span>
                     </Button>
@@ -661,7 +661,7 @@ export default function MobileGanttChart() {
                 <div>
                   <Label className="text-xs font-medium block mb-1">結束日期</Label>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="h-8 w-full text-xs px-2 justify-start font-normal">
+                    <Button variant="outline" className="h-9 w-full text-xs px-2 justify-start font-normal">
                       <CalendarIcon className="w-3 h-3 mr-1 flex-shrink-0" />
                       <span className="truncate">{editTaskEndDate ? format(new Date(editTaskEndDate), 'M/d') : '選擇日期'}</span>
                     </Button>
@@ -680,10 +680,10 @@ export default function MobileGanttChart() {
             </div>
           </div>
           <div className="flex gap-2 pt-1 sm:pt-2">
-            <Button variant="outline" onClick={() => setEditingTask(null)} className="h-8 text-sm flex-1">
+            <Button variant="outline" onClick={() => setEditingTask(null)} className="h-9 text-sm flex-1">
               取消
             </Button>
-            <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending} className="h-8 text-sm flex-1">
+            <Button onClick={handleEditTask} disabled={updateTaskMutation.isPending} className="h-9 text-sm flex-1">
               {updateTaskMutation.isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
               {updateTaskMutation.isPending ? '儲存中…' : '儲存'}
             </Button>

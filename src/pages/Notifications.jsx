@@ -129,7 +129,7 @@ export default function Notifications() {
                 >
                   <button
                     onClick={() => deleteNotificationMutation.mutate(notif.id)}
-                    className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute top-2 right-2 p-2.5 md:p-1 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
                     disabled={deleteNotificationMutation.isPending}
                   >
                     <X className="w-4 h-4" />

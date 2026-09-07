@@ -147,7 +147,7 @@ const AddProjectDialog = React.memo(function AddProjectDialog({ open, onOpenChan
             <Label className="text-gray-700">識別顏色</Label>
             <div className="mt-2 flex items-center gap-3">
               <div
-                className="w-7 h-7 rounded-full border border-gray-200 flex-shrink-0"
+                className="w-9 h-9 md:w-7 md:h-7 rounded-full border border-gray-200 flex-shrink-0"
                 style={{ backgroundColor: projectFormData.color || '#3b82f6' }}
               />
               <span className="text-sm text-gray-500">由品牌設定帶入</span>
