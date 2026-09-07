@@ -20,7 +20,10 @@ import {
   leaveTypesQuery,
   holidaysQuery,
   boundEmployeeQuery,
+  ganttProjectsQuery,
+  ganttTasksQuery,
 } from "@/lib/queries";
+import { checkDevSeasonConflict } from "@/components/utils/leaveWarnings";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
@@ -30,6 +33,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+// 警示類型 → 標籤與樣式
+const WARNING_BADGES = {
+  deputy_conflict: { label: '職代', className: 'bg-orange-100 text-orange-700' },
+  department_over_limit: { label: '超標', className: 'bg-red-100 text-red-700' },
+  dev_season: { label: '開發季', className: 'bg-blue-100 text-blue-700' },
+};
 
 // 分批執行 async 操作，避免一次塞數百個請求給後端。
 async function runInBatches(items, fn, batchSize = 10) {
@@ -84,6 +94,10 @@ export default function Dashboard() {
   });
 
   const { data: holidays = [] } = useQuery(holidaysQuery);
+
+  // 開發季期間警示用
+  const { data: ganttProjects = [] } = useQuery(ganttProjectsQuery);
+  const { data: ganttTasks = [] } = useQuery(ganttTasksQuery);
 
   // O(1) 查詢 maps，取代 render 路徑上的 array.find
   const employeeMap = useMemo(
@@ -270,6 +284,16 @@ export default function Dashboard() {
             warningTypes.push('department_over_limit');
             warningDetails.department_info = { total_members: deptTotalMembers, leave_count: deptLeaves.length + 1, limit: deptLimit, percentage: Math.round((deptLeaves.length + 1) / deptTotalMembers * 100) };
           }
+        }
+
+        // 開發季期間（出差在 helper 內部排除）
+        const devSeasonConflicts = checkDevSeasonConflict({
+          date: record.date, leaveTypeId: record.leave_type_id,
+          leaveTypes, ganttTasks, ganttProjects,
+        });
+        if (devSeasonConflicts.length > 0) {
+          warningTypes.push('dev_season');
+          warningDetails.dev_seasons = devSeasonConflicts;
         }
 
         // 結果與目前 DB 狀態不同就同步（包含警示消失需要清空的情況）
@@ -646,7 +670,12 @@ export default function Dashboard() {
             const deptLimit = Math.floor(deptTotalMembers / 3);
             hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
-            return hasDeputyConflict || hasDeptOverLimit;
+            const hasDevSeason = checkDevSeasonConflict({
+              date: r.date, leaveTypeId: r.leave_type_id,
+              leaveTypes, ganttTasks, ganttProjects,
+            }).length > 0;
+
+            return hasDeputyConflict || hasDeptOverLimit || hasDevSeason;
           });
 
           return actualWarnings.length > 0;
@@ -727,7 +756,12 @@ export default function Dashboard() {
                     const deptLimit = Math.floor(deptTotalMembers / 3);
                     hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
-                    return hasDeputyConflict || hasDeptOverLimit;
+                    const hasDevSeason = checkDevSeasonConflict({
+                      date: r.date, leaveTypeId: r.leave_type_id,
+                      leaveTypes, ganttTasks, ganttProjects,
+                    }).length > 0;
+
+                    return hasDeputyConflict || hasDeptOverLimit || hasDevSeason;
                   }).map((record) => {
                     const employee = employeeMap[record.employee_id];
                     const leaveType = getLeaveType(record.leave_type_id);
@@ -767,15 +801,13 @@ export default function Dashboard() {
                         <TableCell className="py-2">
                           <div className="flex gap-1 flex-wrap">
                             {warningTypes.map((type, idx) => (
-                              <span 
+                              <span
                                 key={idx}
                                 className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                                  type === 'deputy_conflict' 
-                                    ? 'bg-orange-100 text-orange-700' 
-                                    : 'bg-red-100 text-red-700'
+                                  WARNING_BADGES[type]?.className || 'bg-red-100 text-red-700'
                                 }`}
                               >
-                                {type === 'deputy_conflict' ? '職代' : '超標'}
+                                {WARNING_BADGES[type]?.label || type}
                               </span>
                             ))}
                           </div>
@@ -801,6 +833,17 @@ export default function Dashboard() {
                                 <span className="font-medium">部門請假比例：</span>
                                 {warningDetails.department_info.percentage}% 
                                 ({warningDetails.department_info.leave_count}/{warningDetails.department_info.total_members}人)
+                              </div>
+                            )}
+                            {warningTypes.includes('dev_season') && warningDetails.dev_seasons?.length > 0 && (
+                              <div>
+                                <span className="font-medium">開發季：</span>
+                                {warningDetails.dev_seasons.map((ds, idx) => (
+                                  <span key={idx}>
+                                    {ds.season_name}（{ds.task_name}）
+                                    {idx < warningDetails.dev_seasons.length - 1 && '、'}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </div>
@@ -853,7 +896,12 @@ export default function Dashboard() {
                 const deptLimit = Math.floor(deptTotalMembers / 3);
                 hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
-                return hasDeputyConflict || hasDeptOverLimit;
+                const hasDevSeason = checkDevSeasonConflict({
+                  date: r.date, leaveTypeId: r.leave_type_id,
+                  leaveTypes, ganttTasks, ganttProjects,
+                }).length > 0;
+
+                return hasDeputyConflict || hasDeptOverLimit || hasDevSeason;
               }).map((record) => {
                 const employee = employeeMap[record.employee_id];
                 const leaveType = getLeaveType(record.leave_type_id);
@@ -890,15 +938,13 @@ export default function Dashboard() {
                         <span className="text-sm text-gray-600">{leaveType?.name || '-'}</span>
                       </div>
                       {warningTypes.map((type, idx) => (
-                        <span 
+                        <span
                           key={idx}
                           className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                            type === 'deputy_conflict' 
-                              ? 'bg-orange-100 text-orange-700' 
-                              : 'bg-red-100 text-red-700'
+                            WARNING_BADGES[type]?.className || 'bg-red-100 text-red-700'
                           }`}
                         >
-                          {type === 'deputy_conflict' ? '職代' : '超標'}
+                          {WARNING_BADGES[type]?.label || type}
                         </span>
                       ))}
                     </div>
@@ -941,7 +987,12 @@ export default function Dashboard() {
             const deptLimit = Math.floor(deptTotalMembers / 3);
             hasDeptOverLimit = deptLeaves.length >= deptLimit;
 
-            return hasDeputyConflict || hasDeptOverLimit;
+            const hasDevSeason = checkDevSeasonConflict({
+              date: r.date, leaveTypeId: r.leave_type_id,
+              leaveTypes, ganttTasks, ganttProjects,
+            }).length > 0;
+
+            return hasDeputyConflict || hasDeptOverLimit || hasDevSeason;
           });
 
           return actualWarnings.length > 0;
@@ -956,6 +1007,10 @@ export default function Dashboard() {
               <div className="flex items-start gap-2">
                 <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700 flex-shrink-0">超標</span>
                 <span>部門當天請假人數達到或超過總人數 1/3</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-medium bg-blue-100 text-blue-700 flex-shrink-0">開發季</span>
+                <span>請假日期落在開發季任務期間（PROTO、3D LA 等）</span>
               </div>
               <p className="text-gray-400 text-[11px]">※ 出差不列入警示計算</p>
             </div>

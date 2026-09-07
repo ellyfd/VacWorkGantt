@@ -63,10 +63,49 @@ export function checkDeptLimit({ employee, date, leaveTypeId, leaveTypes, allLea
 }
 
 /**
- * 建立警示資訊
+ * 檢查請假日期是否落在開發季任務期間。
+ * 只看未封存開發季的任務：duration 看起訖區間、milestone 看當天；
+ * rolling 為開放式區間不計（會把開始日之後全部標警示，過度警示）。
+ * @returns {Array} [{ season_name, task_name, start_date, end_date }]
+ */
+export function checkDevSeasonConflict({ date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects }) {
+  if (!ganttTasks?.length || !ganttProjects?.length) return [];
+  const leaveTypeMap = new Map(leaveTypes.map(lt => [lt.id, lt]));
+  if (leaveTypeMap.get(leaveTypeId)?.name === '出差') return [];
+
+  const projectMap = new Map(
+    ganttProjects
+      .filter(gp => gp.status !== 'archived' && !gp.archived_at)
+      .map(gp => [gp.id, gp])
+  );
+
+  return ganttTasks
+    .filter(t => {
+      if (!t.start_date) return false;
+      const gp = projectMap.get(t.gantt_project_id);
+      if (!gp) return false;
+      const start = t.start_date.split('T')[0];
+      if (t.time_type === 'duration') {
+        if (!t.end_date) return false;
+        return date >= start && date <= t.end_date.split('T')[0];
+      }
+      if (t.time_type === 'milestone') return date === start;
+      return false;
+    })
+    .map(t => ({
+      season_name: projectMap.get(t.gantt_project_id)?.name || '未知開發季',
+      task_name: t.name,
+      start_date: t.start_date.split('T')[0],
+      end_date: t.end_date ? t.end_date.split('T')[0] : t.start_date.split('T')[0],
+    }));
+}
+
+/**
+ * 建立警示資訊。
+ * ganttTasks / ganttProjects 為選填：有傳才檢查開發季期間警示。
  * @returns {Object} { warningTypes: [], warningDetails: {} }
  */
-export function buildWarningInfo({ employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees }) {
+export function buildWarningInfo({ employee, date, leaveTypeId, leaveTypes, allLeaveRecords, employees, ganttTasks, ganttProjects }) {
   const { leaveTypeMap, employeeMap } = buildMaps(leaveTypes, employees);
   const warningTypes = [];
   const warningDetails = {};
@@ -96,6 +135,14 @@ export function buildWarningInfo({ employee, date, leaveTypeId, leaveTypes, allL
         (deptLimitInfo.deptLeaves + 1) / deptLimitInfo.deptTotalMembers * 100
       ),
     };
+  }
+
+  const devSeasonConflicts = checkDevSeasonConflict({
+    date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
+  });
+  if (devSeasonConflicts.length > 0) {
+    warningTypes.push('dev_season');
+    warningDetails.dev_seasons = devSeasonConflicts;
   }
 
   return { warningTypes, warningDetails };

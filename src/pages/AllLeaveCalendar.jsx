@@ -8,6 +8,8 @@ import {
   filterVisibleDepartments,
   leaveTypesQuery,
   holidaysQuery,
+  ganttProjectsQuery,
+  ganttTasksQuery,
 } from '@/lib/queries';
 import { format, endOfMonth } from 'date-fns';
 import { Loader2, CalendarRange } from 'lucide-react';
@@ -23,7 +25,7 @@ import {
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
-import { checkDeputyConflict, checkDeptLimit, buildWarningInfo } from '@/components/utils/leaveWarnings';
+import { checkDeputyConflict, checkDeptLimit, checkDevSeasonConflict, buildWarningInfo } from '@/components/utils/leaveWarnings';
 import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
@@ -61,6 +63,10 @@ export default function AllLeaveCalendar({
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery(leaveTypesQuery);
 
   const { data: holidays = [], isLoading: loadingHolidays } = useQuery(holidaysQuery);
+
+  // 開發季期間警示用
+  const { data: ganttProjects = [] } = useQuery(ganttProjectsQuery);
+  const { data: ganttTasks = [] } = useQuery(ganttTasksQuery);
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
     queryKey: ['leaveRecords', currentDate.getFullYear(), viewMode === 'year' ? 'year' : currentDate.getMonth()],
@@ -144,9 +150,24 @@ export default function AllLeaveCalendar({
         if (!confirmed) throw new Error('取消請假');
       }
 
+      // 開發季期間確認
+      const devSeasonConflicts = checkDevSeasonConflict({
+        date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
+      });
+      if (devSeasonConflicts.length > 0) {
+        const seasonDesc = devSeasonConflicts
+          .map(c => `${c.season_name}（${c.task_name} ${c.start_date}～${c.end_date}）`)
+          .join('、');
+        const confirmed = await confirm(
+          `${date} 為開發季期間：${seasonDesc}，確定要請假嗎？`,
+          { title: '開發季期間警告', confirmText: '繼續請假', variant: 'destructive' }
+        );
+        if (!confirmed) throw new Error('取消請假');
+      }
+
       const { warningTypes, warningDetails } = buildWarningInfo({
         employee: currentEmployee, date, leaveTypeId, leaveTypes,
-        allLeaveRecords: leaveRecords, employees,
+        allLeaveRecords: leaveRecords, employees, ganttTasks, ganttProjects,
       });
       const warningPayload = warningTypes.length > 0
         ? { warning_type: warningTypes, warning_details: warningDetails }
@@ -294,6 +315,14 @@ export default function AllLeaveCalendar({
         if (deptLimitInfo) {
           warnings.push(`${dateStr}: 部門已有 ${deptLimitInfo.deptLeaves} 人請假（達到1/3人數 ${deptLimitInfo.deptLimit}）`);
         }
+
+        const devSeasonConflicts = checkDevSeasonConflict({
+          date: dateStr, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
+        });
+        if (devSeasonConflicts.length > 0) {
+          const seasonNames = [...new Set(devSeasonConflicts.map(c => c.season_name))].join('、');
+          warnings.push(`${dateStr}: 開發季期間（${seasonNames}）`);
+        }
       }
 
       if (warnings.length > 0) {
@@ -314,13 +343,14 @@ export default function AllLeaveCalendar({
 
         const { warningTypes, warningDetails } = buildWarningInfo({
           employee: currentEmployee, date: dateStr, leaveTypeId, leaveTypes,
-          allLeaveRecords: leaveRecords, employees,
+          allLeaveRecords: leaveRecords, employees, ganttTasks, ganttProjects,
         });
 
         recordsToCreate.push({
           employee_id: employeeId,
           date: dateStr,
           leave_type_id: leaveTypeId,
+          period: getLeavePeriod(leaveTypeMap[leaveTypeId]),
           warning_type: warningTypes.length > 0 ? warningTypes : undefined,
           warning_details: warningTypes.length > 0 ? warningDetails : undefined,
         });
