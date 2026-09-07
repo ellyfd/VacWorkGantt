@@ -307,6 +307,61 @@ export default function LeaveSettings() {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              {/* 手機版 - 卡片式 */}
+              <div className="md:hidden divide-y divide-gray-200">
+                {leaveTypes.map((lt) => (
+                  <div key={lt.id} className="p-3 flex items-center gap-3">
+                    <div className="w-5 h-5 rounded flex-shrink-0" style={{ backgroundColor: lt.color }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm">{lt.name}</span>
+                        <span
+                          className="px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap"
+                          style={{ color: lt.color, backgroundColor: `${lt.color}15` }}
+                        >
+                          {lt.short_name}
+                        </span>
+                        {lt.period ? (
+                          <span className="text-xs text-gray-500">
+                            {lt.period === 'AM' ? '上午' : lt.period === 'PM' ? '下午' : '全天'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400" title="尚未設定時段，目前依假別名稱判斷">
+                            {getLeavePeriod(lt) === 'AM' ? '上午*' : getLeavePeriod(lt) === 'PM' ? '下午*' : '全天*'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Input
+                      type="number"
+                      value={lt.sort_order ?? ''}
+                      onChange={(e) => handleSortOrderChange(lt.id, e.target.value)}
+                      className="w-12 h-7 text-center text-xs flex-shrink-0"
+                      min="1"
+                    />
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenTypeDialog(lt)}
+                        className="h-7 w-7"
+                      >
+                        <Pencil className="w-4 h-4 text-gray-500" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteType.mutate(lt.id)}
+                        className="h-7 w-7"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* 桌機版 - 表格 */}
+              <div className="hidden md:block">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
@@ -380,6 +435,7 @@ export default function LeaveSettings() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </div>
           </TabsContent>
 

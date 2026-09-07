@@ -700,6 +700,67 @@ export default function PeopleManagement() {
                   總計：{filteredEmployees.length} 位員工
                 </span>
               </div>
+              {/* 手機版 - 卡片式 */}
+              <div className="md:hidden divide-y divide-gray-200">
+                {filteredEmployees.map((emp) => {
+                  const displayDepts = selectedDepartments.length > 0
+                    ? departments.filter(d => emp.department_ids?.includes(d.id) && selectedDepartments.includes(d.id))
+                    : departments.filter(d => emp.department_ids?.includes(d.id));
+                  return (
+                    <div key={emp.id} className="p-3 flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedEmployees.includes(emp.id)}
+                        onChange={() => handleEmployeeToggle(emp.id)}
+                        className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">{emp.name}</span>
+                          <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap ${
+                            emp.status === 'active'
+                              ? 'bg-green-100 text-green-800'
+                              : emp.status === 'parental_leave'
+                              ? 'bg-blue-100 text-blue-800'
+                              : emp.status === 'hidden'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {emp.status === 'active' ? '在職' : emp.status === 'parental_leave' ? '育嬰假' : emp.status === 'hidden' ? '隱藏' : '離職'}
+                          </span>
+                        </div>
+                        {displayDepts.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {displayDepts.map((dept) => (
+                              <span key={dept.id} className="inline-flex px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded-full">{dept.name}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenEmployeeDialog(emp)}
+                          className="h-8 w-8"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteEmployee.mutate(emp.id)}
+                          className="h-8 w-8"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* 桌機版 - 表格 */}
+              <div className="hidden md:block">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
@@ -779,6 +840,7 @@ export default function PeopleManagement() {
                   })}
                 </TableBody>
               </Table>
+              </div>
             </div>
 
             <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
