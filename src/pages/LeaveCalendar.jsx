@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { mergeSearchParams } from '@/lib/urlState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
@@ -37,7 +39,23 @@ import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function LeaveCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // 年/月同步到 URL（可分享、可重新整理）；URL 有值時優先
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentDate, setCurrentDate] = useState(() => {
+    const y = parseInt(searchParams.get('year'), 10);
+    const m = parseInt(searchParams.get('month'), 10);
+    if (y >= 2000 && y <= 2100 && m >= 1 && m <= 12) return new Date(y, m - 1, 1);
+    return new Date();
+  });
+
+  const handleDateChange = useCallback((date) => {
+    setCurrentDate(date);
+    // replace 避免堆瀏覽歷史；merge 保留 Base44 的 app_id 等參數
+    setSearchParams(prev => mergeSearchParams(prev, {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+    }), { replace: true });
+  }, [setSearchParams]);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
@@ -582,14 +600,14 @@ export default function LeaveCalendar() {
           <div className="md:hidden">
             <CalendarHeader 
               currentDate={currentDate} 
-              onDateChange={setCurrentDate}
+              onDateChange={handleDateChange}
             />
           </div>
         </div>
 
           <WeekCalendarTable
             currentDate={currentDate}
-            onDateChange={setCurrentDate}
+            onDateChange={handleDateChange}
             currentEmployee={currentEmployee}
             currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
             leaveRecords={leaveRecords}

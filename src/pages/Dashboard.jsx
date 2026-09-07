@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { mergeSearchParams } from "@/lib/urlState";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
@@ -48,7 +50,13 @@ async function runInBatches(items, fn, batchSize = 10) {
 }
 
 export default function Dashboard() {
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [searchParams, setSearchParams] = useSearchParams();
+  // ?date= 同步（可分享、可從異常請假等處深連結）
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = searchParams.get('date');
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d).getTime())) return d;
+    return format(new Date(), 'yyyy-MM-dd');
+  });
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
@@ -56,6 +64,12 @@ export default function Dashboard() {
   const [cleanDialogOpen, setCleanDialogOpen] = useState(false);
   const [scanDialogOpen, setScanDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  // replace 避免堆瀏覽歷史；merge 保留 Base44 的 app_id 等參數
+  const changeSelectedDate = useCallback((dateStr) => {
+    setSelectedDate(dateStr);
+    setSearchParams(prev => mergeSearchParams(prev, { date: dateStr }), { replace: true });
+  }, [setSearchParams]);
   const { toast } = useToast();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery(currentUserQuery);
@@ -392,7 +406,7 @@ export default function Dashboard() {
               onClick={() => {
                 const currentDate = new Date(selectedDate + 'T00:00:00');
                 currentDate.setDate(currentDate.getDate() - 1);
-                setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+                changeSelectedDate(format(currentDate, 'yyyy-MM-dd'));
                 setCalendarMonth(currentDate);
               }}
               className="h-10 w-10"
@@ -418,7 +432,7 @@ export default function Dashboard() {
                 selected={selectedDate ? new Date(selectedDate + 'T00:00:00') : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    setSelectedDate(format(date, 'yyyy-MM-dd'));
+                    changeSelectedDate(format(date, 'yyyy-MM-dd'));
                     setCalendarMonth(date);
                   }
                 }}
@@ -435,7 +449,7 @@ export default function Dashboard() {
             onClick={() => {
               const currentDate = new Date(selectedDate + 'T00:00:00');
               currentDate.setDate(currentDate.getDate() + 1);
-              setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+              changeSelectedDate(format(currentDate, 'yyyy-MM-dd'));
               setCalendarMonth(currentDate);
             }}
             className="h-10 w-10"

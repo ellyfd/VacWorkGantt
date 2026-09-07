@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { mergeSearchParams } from '@/lib/urlState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
@@ -36,11 +38,43 @@ export default function AllLeaveCalendar({
   hideDepartmentSelector = false,
   pageTitle = '全部排休',
 } = {}) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // 年/月/檢視模式同步到 URL（可分享、可重新整理）；URL 有值時優先
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentDate, setCurrentDate] = useState(() => {
+    const y = parseInt(searchParams.get('year'), 10);
+    const m = parseInt(searchParams.get('month'), 10);
+    if (y >= 2000 && y <= 2100) {
+      return new Date(y, (m >= 1 && m <= 12 ? m : 1) - 1, 1);
+    }
+    return new Date();
+  });
   // 檢視模式：桌機預設「全年」較好綜覽，手機預設「當月」較好操作
-  const [viewMode, setViewMode] = useState(() =>
-    (typeof window !== 'undefined' && window.innerWidth < 768) ? 'month' : 'year'
-  );
+  const [viewMode, setViewMode] = useState(() => {
+    const v = searchParams.get('view');
+    if (v === 'month' || v === 'year') return v;
+    return (typeof window !== 'undefined' && window.innerWidth < 768) ? 'month' : 'year';
+  });
+
+  // replace 避免每次切月都堆瀏覽歷史；merge 保留 Base44 的 app_id 等參數
+  const syncUrl = useCallback((date, view) => {
+    setSearchParams(prev => mergeSearchParams(prev, {
+      year: date.getFullYear(),
+      month: view === 'year' ? null : date.getMonth() + 1,
+      view,
+    }), { replace: true });
+  }, [setSearchParams]);
+
+  const handleDateChange = useCallback((date) => {
+    setCurrentDate(date);
+    syncUrl(date, viewMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncUrl, viewMode]);
+
+  const handleViewModeChange = useCallback((view) => {
+    setViewMode(view);
+    syncUrl(currentDate, view);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncUrl, currentDate]);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
@@ -583,8 +617,8 @@ export default function AllLeaveCalendar({
             <CalendarHeader
               currentDate={currentDate}
               viewMode={viewMode}
-              onDateChange={setCurrentDate}
-              onViewModeChange={setViewMode}
+              onDateChange={handleDateChange}
+              onViewModeChange={handleViewModeChange}
             />
           </div>
         </div>
@@ -645,8 +679,8 @@ export default function AllLeaveCalendar({
               <CalendarHeader
                 currentDate={currentDate}
                 viewMode={viewMode}
-                onDateChange={setCurrentDate}
-                onViewModeChange={setViewMode}
+                onDateChange={handleDateChange}
+                onViewModeChange={handleViewModeChange}
               />
             </div>
           </div>
