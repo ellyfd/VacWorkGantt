@@ -1,4 +1,6 @@
 import React, { memo, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { ArrowDown, ArrowUp, ArrowUpDown, CalendarRange, ListFilter, RotateCcw, X } from 'lucide-react';
 import { eachDayOfInterval, format, isWeekend, parseISO } from 'date-fns';
 
@@ -321,12 +323,13 @@ export const SeasonScheduleTable = memo(function SeasonScheduleTable({ ganttProj
                       {project.season || project.seasonLabel !== '未設定季別' ? (
                         project.seasonLabel
                       ) : (
-                        <span
-                          className="text-slate-400 font-normal cursor-help"
-                          title="此開發季尚未設定季節，請至「專案甘特圖」編輯該開發季補上季節（SS/FW/HO…）"
+                        <Link
+                          to={createPageUrl('GanttManagement')}
+                          className="text-slate-400 font-normal underline decoration-dotted underline-offset-2 hover:text-blue-600"
+                          title="此開發季尚未設定季節，點擊前往「專案甘特圖」編輯該開發季補上季節（SS/FW/HO…）"
                         >
                           未設定季別
-                        </span>
+                        </Link>
                       )}
                     </td>
                     {taskColumns.map(({ name }, columnIndex) => {

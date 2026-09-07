@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { mergeSearchParams } from "@/lib/urlState";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -862,6 +863,12 @@ export default function Dashboard() {
                                 ))}
                               </div>
                             )}
+                            <Link
+                              to={`${createPageUrl('AllLeaveCalendar')}?year=${record.date.slice(0, 4)}&month=${parseInt(record.date.slice(5, 7), 10)}&view=month`}
+                              className="text-blue-600 hover:underline whitespace-nowrap"
+                            >
+                              查看排休
+                            </Link>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -964,6 +971,12 @@ export default function Dashboard() {
                           {WARNING_BADGES[type]?.label || type}
                         </span>
                       ))}
+                      <Link
+                        to={`${createPageUrl('AllLeaveCalendar')}?year=${record.date.slice(0, 4)}&month=${parseInt(record.date.slice(5, 7), 10)}&view=month`}
+                        className="text-blue-600 text-xs hover:underline ml-auto"
+                      >
+                        查看排休
+                      </Link>
                     </div>
                   </div>
                 );
