@@ -9,9 +9,10 @@ import {
   leaveTypesQuery,
   holidaysQuery,
 } from '@/lib/queries';
-import { Loader2, BarChart3, TrendingUp, Users, Calendar } from 'lucide-react';
+import { BarChart3, TrendingUp, Users } from 'lucide-react';
+import PageSkeleton from '@/components/PageSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 
 export default function ReportManagement() {
@@ -235,11 +236,7 @@ export default function ReportManagement() {
   const isLoading = loadingEmps || loadingDepts || loadingTypes || loadingRecords || loadingHolidays;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];

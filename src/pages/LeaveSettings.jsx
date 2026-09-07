@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { leaveTypesQuery, holidaysQuery } from '@/lib/queries';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import PageSkeleton from '@/components/PageSkeleton';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Loader2, Calendar, Tag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 
 const PRESET_COLORS = [
@@ -181,11 +182,7 @@ export default function LeaveSettings() {
   const isLoading = loadingTypes || loadingHolidays;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (

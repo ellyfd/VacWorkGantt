@@ -6,6 +6,7 @@ import {
   departmentsQuery,
   filterVisibleDepartments,
 } from '@/lib/queries';
+import PageSkeleton from '@/components/PageSkeleton';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -389,11 +390,7 @@ export default function PeopleManagement() {
   const isLoading = loadingDepts || loadingEmps;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
