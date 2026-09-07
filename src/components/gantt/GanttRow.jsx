@@ -10,7 +10,7 @@ const workingDaysStyle = { fontSize: 11, opacity: 0.8, marginLeft: 4 };
 const rollingContainerStyle = { position: 'relative', width: '100%', height: '100%', overflow: 'hidden' };
 
 const GanttRow = React.memo(function GanttRow({
-  row,
+  projectId,
   days,
   dayCellPropsMap,
   dayIndexMap,
@@ -111,12 +111,14 @@ const GanttRow = React.memo(function GanttRow({
           }}
           onClick={(e) => {
             e.stopPropagation();
+            if (isArchived) return;
             onEditTask(task);
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               e.stopPropagation();
+              if (isArchived) return;
               onEditTask(task);
             }
           }}
@@ -170,7 +172,8 @@ const GanttRow = React.memo(function GanttRow({
         </div>
       );
     });
-  }, [tasks, dayIndexMap, days.length, CELL_WIDTH, projectColor, workingDaysMap, onEditTask]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, dayIndexMap, days.length, CELL_WIDTH, projectColor, workingDaysMap, onEditTask, isArchived]);
 
   // 計算 drag 高亮
   const dragHighlightDates = useMemo(() => {
@@ -183,8 +186,8 @@ const GanttRow = React.memo(function GanttRow({
 
   return (
     <div
-      onDragOver={onDragOver}
-      onDrop={onDrop}
+      onDragOver={(e) => onDragOver(e, projectId)}
+      onDrop={(e) => onDrop(e, projectId)}
       onDragLeave={onDragLeave}
       style={{
         position: 'relative',

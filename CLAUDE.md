@@ -18,8 +18,8 @@ copy in 繁體中文 unless told otherwise.
 - **Backend SDK**: `@base44/sdk` via `src/api/base44Client.js`. App ID, server URL, and access token come from URL params or `VITE_BASE44_*` env vars (see `src/lib/app-params.js`).
 - **UI**: Tailwind CSS + shadcn/ui (style "new-york", base color "neutral") + Radix UI primitives. Components live in `src/components/ui/` — do **not** edit those manually unless updating shadcn output.
 - **Forms**: `react-hook-form` + `zod`.
-- **Dates**: `date-fns` (preferred) and `moment` (legacy). New code should use `date-fns` with `zhTW` locale.
-- **Other**: `framer-motion`, `recharts`, `three`, `@hello-pangea/dnd`, `jspdf`, `html2canvas`, `react-leaflet`, `lodash`.
+- **Dates**: `date-fns` with `zhTW` locale (`moment` has been removed).
+- **Other**: `recharts` (reports/statistics), `@hello-pangea/dnd` (calendar drag), `react-day-picker`.
 
 ## Common commands
 
@@ -89,7 +89,6 @@ that climb out of `src/`.
 - `useDragState` — `isDragging / dragTaskId / dragStart / dragEnd`.
 - `useFilterState` — Gantt filter state, persisted in `localStorage` (`gantt-filters`).
 - `useFormData` — Gantt project / task form state.
-- `useOptimisticTaskUpdate` — wraps `GanttTask.update` with optimistic cache write + rollback on error.
 - `useProjectCreation` — temp state for the "new season" flow (creating project id, schedule file, etc.).
 
 ### Shared business helpers under `src/components/utils/`
@@ -190,10 +189,8 @@ callers go through `base44.integrations.Core.X` directly.
 - Notifications poll via `refetchInterval: 60000` + `staleTime: 30000` in
   `Layout.jsx`. If you change either, factor in the per-tab × per-user
   request cost.
-- For optimistic updates on Gantt mutations, see
-  `src/components/hooks/useOptimisticTaskUpdate.jsx`. For optimistic temp
-  rows, use `crypto.randomUUID()` (Date.now()-based ids collide on rapid
-  clicks).
+- For optimistic temp rows, use `crypto.randomUUID()` (Date.now()-based ids
+  collide on rapid clicks).
 
 ## UI conventions
 
@@ -220,8 +217,8 @@ callers go through `base44.integrations.Core.X` directly.
   `useConfirmDialog()` (`src/components/hooks/useConfirmDialog.jsx`) with the
   reusable `ConfirmDialog` component — it returns a Promise<boolean>.
 - **Toasts**: `useToast()` from `@/components/ui/use-toast` and the `<Toaster />`
-  already mounted in `App.jsx`. `sonner` and `react-hot-toast` are installed
-  but the canonical toaster is shadcn's `useToast`.
+  already mounted in `App.jsx`. The canonical toaster is shadcn's `useToast`
+  (`sonner` / `react-hot-toast` have been removed).
 - **Iframe context**: the app may run inside the Base44 editor iframe. `isIframe`
   in `lib/utils.js` and `VisualEditAgent` handle this; the app posts navigation
   events to `window.parent` via `NavigationTracker`. Avoid breaking these

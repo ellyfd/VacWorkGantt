@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { leaveTypesQuery } from '@/lib/queries';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { getLeavePeriod } from '@/lib/leaveUtils';
@@ -12,10 +13,7 @@ export default function MigrateLeaveRecords() {
   const [log, setLog] = useState([]);
   const [done, setDone] = useState(false);
 
-  const { data: leaveTypes = [] } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list(),
-  });
+  const { data: leaveTypes = [] } = useQuery(leaveTypesQuery);
 
   const addLog = (msg) => setLog(prev => [...prev, msg]);
 
@@ -48,7 +46,7 @@ export default function MigrateLeaveRecords() {
         const batch = needUpdate.slice(i, i + batchSize);
         await Promise.all(batch.map(async (record) => {
           const leaveType = leaveTypeMap[record.leave_type_id];
-          const period = getLeavePeriod(leaveType?.name);
+          const period = getLeavePeriod(leaveType);
           stats[period]++;
           await base44.entities.LeaveRecord.update(record.id, { period });
         }));

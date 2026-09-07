@@ -1,6 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  employeesQuery,
+  departmentsQuery,
+  groupsQuery,
+  projectsQuery,
+  holidaysQuery,
+  ganttProjectsQuery,
+  ganttTasksQuery,
+} from '@/lib/queries';
 import { Card } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, BarChart3, List, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -34,30 +43,15 @@ export default function MobileGanttChart() {
   const { archivedMap } = useArchivedProjects();
 
   // Fetch data
-  const { data: ganttProjects = [] } = useQuery({
-    queryKey: ['ganttProjects'],
-    queryFn: () => base44.entities.GanttProject.list('sort_order'),
-  });
+  const { data: ganttProjects = [] } = useQuery(ganttProjectsQuery);
 
-  const { data: ganttTasks = [] } = useQuery({
-    queryKey: ['ganttTasks'],
-    queryFn: () => base44.entities.GanttTask.list('sort_order'),
-  });
+  const { data: ganttTasks = [] } = useQuery(ganttTasksQuery);
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('sort_order'),
-  });
+  const { data: projects = [] } = useQuery(projectsQuery);
 
-  const { data: departments = [] } = useQuery({
-    queryKey: ['departments'],
-    queryFn: () => base44.entities.Department.list('sort_order'),
-  });
+  const { data: departments = [] } = useQuery(departmentsQuery);
 
-  const { data: groups = [] } = useQuery({
-    queryKey: ['groups'],
-    queryFn: () => base44.entities.Group.list(),
-  });
+  const { data: groups = [] } = useQuery(groupsQuery);
 
   const queryStart = format(subDays(currentDate, 7), 'yyyy-MM-dd');
   const queryEnd = format(addDays(currentDate, 7), 'yyyy-MM-dd');
@@ -71,15 +65,9 @@ export default function MobileGanttChart() {
     },
   });
 
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
-  });
+  const { data: holidays = [] } = useQuery(holidaysQuery);
 
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
-  });
+  const { data: employees = [] } = useQuery(employeesQuery);
 
   // 雙週區間（只顯示週一~週五，共 10 天）
   const weekDays = useMemo(() => {
@@ -241,7 +229,7 @@ export default function MobileGanttChart() {
       await base44.entities.GanttTask.update(editingTask.id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['ganttTasks']);
+      queryClient.invalidateQueries({ queryKey: ['ganttTasks'] });
       setEditingTask(null);
     },
   });

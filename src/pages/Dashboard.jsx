@@ -11,6 +11,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import LeaveStatistics from "@/components/dashboard/LeaveStatistics";
+import {
+  currentUserQuery,
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+  leaveTypesQuery,
+  holidaysQuery,
+  boundEmployeeQuery,
+} from "@/lib/queries";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
@@ -39,38 +49,21 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: currentUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { data: currentUser, isLoading: loadingUser } = useQuery(currentUserQuery);
 
-  const { data: boundEmployee } = useQuery({
-    queryKey: ['boundEmployee', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return null;
-      const allEmps = await base44.entities.Employee.list();
-      return allEmps.find(e => e.user_emails?.includes(currentUser.email)) || null;
-    },
-    enabled: !!currentUser?.email,
-  });
+  const { data: boundEmployee } = useQuery(
+    boundEmployeeQuery(queryClient, currentUser?.email)
+  );
 
-  const { data: departments = [] } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [] } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
-  });
+  const { data: employees = [] } = useQuery(employeesQuery);
 
-  const { data: leaveTypes = [] } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list(),
-  });
+  const { data: leaveTypes = [] } = useQuery(leaveTypesQuery);
 
   const { data: todayLeaves = [], isLoading: loadingLeaves } = useQuery({
     queryKey: ['todayLeaves', selectedDate],
@@ -90,16 +83,7 @@ export default function Dashboard() {
     }),
   });
 
-  const { data: holidays = [] } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
-  });
-
-  const { data: allLeaveRecords = [] } = useQuery({
-    queryKey: ['allLeaveRecords'],
-    queryFn: () => base44.entities.LeaveRecord.list(),
-    enabled: false, // 只在需要時手動觸發
-  });
+  const { data: holidays = [] } = useQuery(holidaysQuery);
 
   // O(1) 查詢 maps，取代 render 路徑上的 array.find
   const employeeMap = useMemo(
@@ -185,8 +169,11 @@ export default function Dashboard() {
   const handleCleanDuplicates = async () => {
     setIsCleaningDuplicates(true);
     try {
-      // 先獲取所有請假記錄
-      const records = await base44.entities.LeaveRecord.list();
+      // 限定今年起的記錄：重複只會由近期寫入產生，避免全表掃描
+      const currentYear = new Date().getFullYear();
+      const records = await base44.entities.LeaveRecord.filter({
+        date: { $gte: `${currentYear}-01-01` },
+      });
 
       // 找出重複的記錄
       const recordMap = new Map();
@@ -213,9 +200,9 @@ export default function Dashboard() {
         );
 
         // 重新載入資料
-        queryClient.invalidateQueries(['todayLeaves']);
-        queryClient.invalidateQueries(['leaveRecords']);
-        queryClient.invalidateQueries(['allLeaveRecords']);
+        queryClient.invalidateQueries({ queryKey: ['todayLeaves'] });
+        queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+        queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
 
         toast({ title: `成功清理 ${duplicatesToDelete.length} 筆重複記錄` });
       }
@@ -229,47 +216,55 @@ export default function Dashboard() {
   const handleScanWarnings = async () => {
     setIsScanningWarnings(true);
     try {
-      // 獲取所有資料
-      const allRecords = await base44.entities.LeaveRecord.list();
-      const allEmployees = await base44.entities.Employee.list();
-      const allLeaveTypes = await base44.entities.LeaveType.list();
-
+      // 警示是按日期計算的，重掃過去的請假沒有意義：限定今年起
+      const currentYear = new Date().getFullYear();
+      const allRecords = await base44.entities.LeaveRecord.filter({
+        date: { $gte: `${currentYear}-01-01` },
+      });
       let updatedCount = 0;
+
+      // 同日期的記錄先分組，衝突檢查不用每筆都掃全部記錄
+      const recordsByDate = new Map();
+      allRecords.forEach(r => {
+        if (!recordsByDate.has(r.date)) recordsByDate.set(r.date, []);
+        recordsByDate.get(r.date).push(r);
+      });
 
       // 計算所有記錄的警示，批次更新
       const updates = allRecords.map(record => {
-        const currentEmployee = allEmployees.find(e => e.id === record.employee_id);
+        const currentEmployee = employeeMap[record.employee_id];
         if (!currentEmployee) return null;
 
-        const currentLeaveType = allLeaveTypes.find(lt => lt.id === record.leave_type_id);
+        const sameDateRecords = recordsByDate.get(record.date) || [];
+        const currentLeaveType = leaveTypeMap[record.leave_type_id];
         const isBusinessTrip = currentLeaveType?.name === '出差';
         const warningTypes = [];
         const warningDetails = {};
 
         if (!isBusinessTrip && (currentEmployee.deputy_1 || currentEmployee.deputy_2)) {
           const deputies = [currentEmployee.deputy_1, currentEmployee.deputy_2].filter(Boolean);
-          const deputyConflicts = allRecords.filter(r => {
-            const rLeaveType = allLeaveTypes.find(lt => lt.id === r.leave_type_id);
-            return deputies.includes(r.employee_id) && r.date === record.date && r.id !== record.id && rLeaveType?.name !== '出差';
+          const deputyConflicts = sameDateRecords.filter(r => {
+            const rLeaveType = leaveTypeMap[r.leave_type_id];
+            return deputies.includes(r.employee_id) && r.id !== record.id && rLeaveType?.name !== '出差';
           });
           if (deputyConflicts.length > 0) {
             warningTypes.push('deputy_conflict');
             warningDetails.deputy_conflicts = deputyConflicts.map(c => {
-              const emp = allEmployees.find(e => e.id === c.employee_id);
-              const lt = allLeaveTypes.find(l => l.id === c.leave_type_id);
+              const emp = employeeMap[c.employee_id];
+              const lt = leaveTypeMap[c.leave_type_id];
               return { employee_id: c.employee_id, employee_name: emp?.name || '未知', leave_type: lt?.name || '未知' };
             });
           }
         }
 
         if (!isBusinessTrip) {
-          const deptLeaves = allRecords.filter(r => {
+          const deptLeaves = sameDateRecords.filter(r => {
             if (r.employee_id === record.employee_id || r.id === record.id) return false;
-            const emp = allEmployees.find(e => e.id === r.employee_id);
-            const rLeaveType = allLeaveTypes.find(lt => lt.id === r.leave_type_id);
-            return emp?.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId)) && r.date === record.date && rLeaveType?.name !== '出差';
+            const emp = employeeMap[r.employee_id];
+            const rLeaveType = leaveTypeMap[r.leave_type_id];
+            return emp?.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId)) && rLeaveType?.name !== '出差';
           });
-          const deptTotalMembers = allEmployees.filter(e => e.status === 'active' && e.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId))).length;
+          const deptTotalMembers = employees.filter(e => e.status === 'active' && e.department_ids?.some(deptId => currentEmployee.department_ids?.includes(deptId))).length;
           const deptLimit = Math.floor(deptTotalMembers / 3);
           if (deptLeaves.length >= deptLimit && deptTotalMembers > 0) {
             warningTypes.push('department_over_limit');
@@ -306,10 +301,10 @@ export default function Dashboard() {
       );
 
       // 重新載入資料
-      queryClient.invalidateQueries(['todayLeaves']);
-      queryClient.invalidateQueries(['warningLeaves']);
-      queryClient.invalidateQueries(['leaveRecords']);
-      queryClient.invalidateQueries(['allLeaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['todayLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['warningLeaves'] });
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
 
       toast({ title: '掃描完成', description: `共更新 ${updatedCount} 筆記錄的警示資訊` });
     } catch (error) {
@@ -967,13 +962,24 @@ export default function Dashboard() {
             </div>
             )}
 
+            {/* 休假統計（僅管理員） */}
+            {currentUser?.role === 'admin' && (
+              <div className="mt-8">
+                <LeaveStatistics
+                  departments={allDepartments}
+                  employees={employees}
+                  leaveTypes={leaveTypes}
+                />
+              </div>
+            )}
+
             {/* Clean Duplicates Dialog */}
             <Dialog open={cleanDialogOpen} onOpenChange={setCleanDialogOpen}>
             <DialogContent>
             <DialogHeader>
               <DialogTitle>清理重複記錄</DialogTitle>
               <DialogDescription>
-                系統會檢查資料庫中同一人、同一天、同一假別的重複記錄，只保留最早的一筆。
+                系統會檢查今年起同一人、同一天、同一假別的重複記錄，只保留最早的一筆。
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex flex-col sm:flex-row gap-2">
@@ -1002,7 +1008,7 @@ export default function Dashboard() {
             <DialogHeader>
               <DialogTitle>掃描警示資訊</DialogTitle>
               <DialogDescription>
-                系統會檢查所有現有的請假記錄，為符合條件的記錄補上警示資訊（職代衝突、部門超標）。這可能需要一些時間。
+                系統會檢查今年起的請假記錄，為符合條件的記錄補上警示資訊（職代衝突、部門超標）。這可能需要一些時間。
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex flex-col sm:flex-row gap-2">

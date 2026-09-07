@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { samplesQuery, projectsQuery, groupsQuery } from '@/lib/queries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,27 +44,18 @@ export default function ProjectSettings() {
   const [sampleSort, setSampleSort] = useState({ key: 'project', dir: 'asc' });
 
   // Queries
-  const { data: samples = [], isLoading: loadingSamples } = useQuery({
-    queryKey: ['samples'],
-    queryFn: () => base44.entities.Sample.list('sort_order'),
-  });
+  const { data: samples = [], isLoading: loadingSamples } = useQuery(samplesQuery);
 
-  const { data: projects = [], isLoading: loadingProjects } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list('sort_order'),
-  });
+  const { data: projects = [], isLoading: loadingProjects } = useQuery(projectsQuery);
 
-  const { data: groups = [], isLoading: loadingGroups } = useQuery({
-    queryKey: ['groups'],
-    queryFn: () => base44.entities.Group.list('sort_order'),
-  });
+  const { data: groups = [], isLoading: loadingGroups } = useQuery(groupsQuery);
 
   // Mutations
   // Sample Mutations
   const createSample = useMutation({
     mutationFn: (data) => base44.entities.Sample.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['samples']);
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
       setShowSampleDialog(false);
       setSampleFormData({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
     },
@@ -72,7 +64,7 @@ export default function ProjectSettings() {
   const updateSample = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Sample.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['samples']);
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
       setShowSampleDialog(false);
       setSampleFormData({ full_name: '', short_name: '', name: '', project_id: '', status: 'active' });
       setEditingId(null);
@@ -82,7 +74,7 @@ export default function ProjectSettings() {
   const deleteSample = useMutation({
     mutationFn: (id) => base44.entities.Sample.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['samples']);
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
     },
   });
 
@@ -93,7 +85,7 @@ export default function ProjectSettings() {
       return base44.entities.Project.create({ ...data, name });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowProjectDialog(false);
       setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
     },
@@ -105,7 +97,7 @@ export default function ProjectSettings() {
       return base44.entities.Project.update(id, { ...data, name });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       setShowProjectDialog(false);
       setProjectFormData({ full_name: '', short_name: '', group_id: '', status: 'active', default_color: '#3b82f6' });
       setEditingId(null);
@@ -115,7 +107,7 @@ export default function ProjectSettings() {
   const deleteProject = useMutation({
     mutationFn: (id) => base44.entities.Project.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
   });
 
@@ -123,7 +115,7 @@ export default function ProjectSettings() {
   const createGroup = useMutation({
     mutationFn: (data) => base44.entities.Group.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['groups']);
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
       setShowGroupDialog(false);
       setGroupFormData({ name: '', status: 'active' });
     },
@@ -132,7 +124,7 @@ export default function ProjectSettings() {
   const updateGroup = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Group.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['groups']);
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
       setShowGroupDialog(false);
       setGroupFormData({ name: '', status: 'active' });
       setEditingId(null);
@@ -142,7 +134,7 @@ export default function ProjectSettings() {
   const deleteGroup = useMutation({
     mutationFn: (id) => base44.entities.Group.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['groups']);
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
   });
 

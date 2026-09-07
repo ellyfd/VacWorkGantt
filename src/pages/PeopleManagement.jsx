@@ -1,6 +1,11 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+} from '@/lib/queries';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,27 +59,19 @@ export default function PeopleManagement() {
   const [deptFormData, setDeptFormData] = useState({ name: '', sort_order: 0 });
 
   // ============ QUERIES ============
-  const { data: departments = [], isLoading: loadingDepts } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [], isLoading: loadingDepts } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: employees = [], isLoading: loadingEmps } = useQuery({
-    queryKey: ['employees'],
-    queryFn: async () => {
-      const emps = await base44.entities.Employee.list('name');
-      return emps;
-    },
-  });
+  const { data: employees = [], isLoading: loadingEmps } = useQuery(employeesQuery);
 
   // ============ EMPLOYEE MUTATIONS ============
   const createEmployee = useMutation({
     mutationFn: (data) => base44.entities.Employee.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       handleCloseEmployeeDialog();
     },
   });
@@ -87,7 +84,7 @@ export default function PeopleManagement() {
       return base44.entities.Employee.update(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       handleCloseEmployeeDialog();
     },
   });
@@ -109,7 +106,7 @@ export default function PeopleManagement() {
       await clearDeputyReferences(id);
       return base44.entities.Employee.delete(id);
     },
-    onSuccess: () => queryClient.invalidateQueries(['employees']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees'] }),
   });
 
   const bulkUpdateEmployee = useMutation({
@@ -127,7 +124,7 @@ export default function PeopleManagement() {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setIsBulkEditOpen(false);
       setSelectedEmployees([]);
       setBulkEditData({ department_ids: [], status: '' });
@@ -140,7 +137,7 @@ export default function PeopleManagement() {
       await Promise.all(selectedEmployees.map(empId => base44.entities.Employee.delete(empId)));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setSelectedEmployees([]);
     },
   });
@@ -149,7 +146,7 @@ export default function PeopleManagement() {
   const createDept = useMutation({
     mutationFn: (data) => base44.entities.Department.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['departments']);
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
       handleCloseDeptDialog();
     },
   });
@@ -157,14 +154,14 @@ export default function PeopleManagement() {
   const updateDept = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Department.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['departments']);
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
       handleCloseDeptDialog();
     },
   });
 
   const deleteDept = useMutation({
     mutationFn: (id) => base44.entities.Department.delete(id),
-    onSuccess: () => queryClient.invalidateQueries(['departments']),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['departments'] }),
   });
 
   // ============ EMPLOYEE HANDLERS ============
@@ -271,7 +268,7 @@ export default function PeopleManagement() {
 
       if (employeesToCreate.length > 0) {
         await base44.entities.Employee.bulkCreate(employeesToCreate);
-        queryClient.invalidateQueries(['employees']);
+        queryClient.invalidateQueries({ queryKey: ['employees'] });
         toast({ title: `成功匯入 ${employeesToCreate.length} 位員工` });
       } else {
         toast({ title: '匯入失敗', description: '找不到符合的部門，請確認 CSV 中的部門名稱', variant: 'destructive' });
@@ -385,7 +382,7 @@ export default function PeopleManagement() {
     clearTimeout(deptSortDebounceRef.current[deptId]);
     deptSortDebounceRef.current[deptId] = setTimeout(async () => {
       await base44.entities.Department.update(deptId, { sort_order: order });
-      queryClient.invalidateQueries(['departments']);
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
     }, 500);
   }, [queryClient]);
 

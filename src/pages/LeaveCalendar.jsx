@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import {
+  currentUserQuery,
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+  leaveTypesQuery,
+  holidaysQuery,
+} from '@/lib/queries';
 import { format, endOfMonth } from 'date-fns';
 import { Loader2, CalendarRange } from 'lucide-react';
 import {
@@ -45,39 +53,22 @@ export default function LeaveCalendar() {
   const { toast } = useToast();
   const [confirmProps, confirm] = useConfirmDialog();
 
-  const { data: currentUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { data: currentUser, isLoading: loadingUser } = useQuery(currentUserQuery);
 
-  const { data: departments = [], isLoading: loadingDepts } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [], isLoading: loadingDepts } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: employees = [], isLoading: loadingEmps } = useQuery({
-    queryKey: ['employees'],
-    queryFn: async () => {
-      const emps = await base44.entities.Employee.list('name');
-      return emps;
-    },
-  });
+  const { data: employees = [], isLoading: loadingEmps } = useQuery(employeesQuery);
 
   // 根據登入帳號自動找到對應的員工
   const currentEmployee = employees.find(emp => emp.user_emails?.includes(currentUser?.email));
 
-  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list(),
-  });
+  const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery(leaveTypesQuery);
 
-  const { data: holidays = [], isLoading: loadingHolidays } = useQuery({
-    queryKey: ['holidays'],
-    queryFn: () => base44.entities.Holiday.list(),
-  });
+  const { data: holidays = [], isLoading: loadingHolidays } = useQuery(holidaysQuery);
 
   const { data: leaveRecords = [], isLoading: loadingRecords } = useQuery({
     queryKey: ['leaveRecords', currentDate.getFullYear(), currentDate.getMonth(), currentEmployee?.id],
@@ -143,7 +134,7 @@ export default function LeaveCalendar() {
       const currentEmployee = employeeMap[employeeId];
       
       const leaveType = leaveTypeMap[leaveTypeId];
-      const period = getLeavePeriod(leaveType?.name);
+      const period = getLeavePeriod(leaveType);
       const isBusinessTrip = leaveType?.name === '出差';
       const existing = leaveRecords.find(
         r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period
@@ -239,12 +230,12 @@ export default function LeaveCalendar() {
       }
     },
     onMutate: async ({ employeeId, date, leaveTypeId }) => {
-      await queryClient.cancelQueries(['leaveRecords']);
+      await queryClient.cancelQueries({ queryKey: ['leaveRecords'] });
       const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
 
       queryClient.setQueryData(['leaveRecords', ...queryKey], old => {
         const leaveType = leaveTypeMap[leaveTypeId];
-        const period = getLeavePeriod(leaveType?.name);
+        const period = getLeavePeriod(leaveType);
         const existing = old?.find(r => r.employee_id === employeeId && r.date === date && (r.period || 'full') === period);
         if (existing) {
           return old.map(r =>
@@ -268,16 +259,16 @@ export default function LeaveCalendar() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
-      queryClient.invalidateQueries(['allLeaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
   const deleteLeaveMutation = useMutation({
     mutationFn: (recordId) => base44.entities.LeaveRecord.delete(recordId),
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
-      queryClient.invalidateQueries(['allLeaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -286,8 +277,8 @@ export default function LeaveCalendar() {
       await Promise.all(recordIds.map(id => base44.entities.LeaveRecord.delete(id)));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
-      queryClient.invalidateQueries(['allLeaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -382,6 +373,7 @@ export default function LeaveCalendar() {
             employee_id: employeeId,
             date: dateStr,
             leave_type_id: leaveTypeId,
+            period: getLeavePeriod(leaveTypeMap[leaveTypeId]),
             warning_type: warningTypes.length > 0 ? warningTypes : undefined,
             warning_details: warningTypes.length > 0 ? warningDetails : undefined
           });
@@ -391,7 +383,7 @@ export default function LeaveCalendar() {
       return recordsToCreate.length > 0 ? base44.entities.LeaveRecord.bulkCreate(recordsToCreate) : [];
     },
     onMutate: async () => {
-      await queryClient.cancelQueries(['leaveRecords']);
+      await queryClient.cancelQueries({ queryKey: ['leaveRecords'] });
       const previousRecords = queryClient.getQueryData(['leaveRecords', ...queryKey]);
       return { previousRecords };
     },
@@ -401,8 +393,8 @@ export default function LeaveCalendar() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
-      queryClient.invalidateQueries(['allLeaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -422,8 +414,8 @@ export default function LeaveCalendar() {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['leaveRecords']);
-      queryClient.invalidateQueries(['allLeaveRecords']);
+      queryClient.invalidateQueries({ queryKey: ['leaveRecords'] });
+      queryClient.invalidateQueries({ queryKey: ['allLeaveRecords'] });
     },
   });
 
@@ -516,7 +508,7 @@ export default function LeaveCalendar() {
     await base44.entities.Employee.update(sourceEmp.id, { sort_order: destSortOrder });
     await base44.entities.Employee.update(destEmp.id, { sort_order: sourceSortOrder });
     
-    queryClient.invalidateQueries(['employees']);
+    queryClient.invalidateQueries({ queryKey: ['employees'] });
   };
 
   const isLoading = loadingUser || loadingDepts || loadingEmps || loadingTypes || loadingRecords || loadingHolidays;

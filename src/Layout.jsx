@@ -10,6 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { isDevDivisionUser } from '@/lib/access';
+import {
+  currentUserQuery,
+  employeesQuery,
+  departmentsQuery,
+  filterVisibleDepartments,
+  leaveTypesQuery,
+  boundEmployeeQuery,
+} from '@/lib/queries';
 
 const navItems = [
   { name: 'Dashboard', label: '儀表板', icon: Home },
@@ -58,34 +66,19 @@ export default function Layout({ children, currentPageName }) {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { data: currentUser } = useQuery(currentUserQuery);
 
-  const { data: departments = [] } = useQuery({
-    queryKey: ['departments'],
-    queryFn: async () => {
-      const depts = await base44.entities.Department.list('sort_order');
-      return depts.filter(d => d.status !== 'hidden');
-    },
-  });
+  const { data: allDepartments = [] } = useQuery(departmentsQuery);
+  const departments = useMemo(
+    () => filterVisibleDepartments(allDepartments),
+    [allDepartments]
+  );
 
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-    queryFn: () => base44.entities.Employee.list('name'),
-  });
+  const { data: employees = [] } = useQuery(employeesQuery);
 
-  const { data: boundEmployee, isLoading: loadingBoundEmployee } = useQuery({
-    queryKey: ['boundEmployee', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return null;
-      const allEmps = await base44.entities.Employee.list();
-      const emp = allEmps.find(e => e.user_emails?.includes(currentUser.email));
-      return emp || null;
-    },
-    enabled: !!currentUser?.email,
-  });
+  const { data: boundEmployee, isLoading: loadingBoundEmployee } = useQuery(
+    boundEmployeeQuery(queryClient, currentUser?.email)
+  );
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', currentUser?.email],
@@ -107,10 +100,7 @@ export default function Layout({ children, currentPageName }) {
   const [deputy1Id, setDeputy1Id] = useState('');
   const [deputy2Id, setDeputy2Id] = useState('');
 
-  const { data: leaveTypes = [] } = useQuery({
-    queryKey: ['leaveTypes'],
-    queryFn: () => base44.entities.LeaveType.list('sort_order'),
-  });
+  const { data: leaveTypes = [] } = useQuery(leaveTypesQuery);
 
   // 個人請假紀錄：當月 + 當年
   const now = new Date();
@@ -158,8 +148,8 @@ export default function Layout({ children, currentPageName }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['boundEmployee']);
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['boundEmployee'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setEditingDeputy(false);
     },
   });
@@ -213,8 +203,8 @@ export default function Layout({ children, currentPageName }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['boundEmployee']);
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['boundEmployee'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setShowBindDialog(false);
       setSelectedEmployeeId('');
       setSelectedDepartmentId('');
@@ -229,8 +219,8 @@ export default function Layout({ children, currentPageName }) {
         user_emails: [...confirmData.existingEmails, currentUser.email]
       });
       confirmData.resolve();
-      queryClient.invalidateQueries(['boundEmployee']);
-      queryClient.invalidateQueries(['employees']);
+      queryClient.invalidateQueries({ queryKey: ['boundEmployee'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       setShowBindDialog(false);
       setSelectedEmployeeId('');
       setSelectedDepartmentId('');

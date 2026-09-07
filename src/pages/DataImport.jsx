@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { groupsQuery, projectsQuery } from '@/lib/queries';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,15 +13,9 @@ export default function DataImport() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Queries
-  const { data: groups = [] } = useQuery({
-    queryKey: ['groups'],
-    queryFn: () => base44.entities.Group.list(),
-  });
+  const { data: groups = [] } = useQuery(groupsQuery);
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => base44.entities.Project.list(),
-  });
+  const { data: projects = [] } = useQuery(projectsQuery);
 
   // Parse CSV
   const parseCSV = (text) => {
@@ -65,7 +60,7 @@ export default function DataImport() {
       }));
 
       await base44.entities.Group.bulkCreate(toCreate);
-      queryClient.invalidateQueries(['groups']);
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
       setUploadStatus({ type: 'group', status: 'success', count: toCreate.length });
     } catch (error) {
       setUploadStatus({ type: 'group', status: 'error', message: error.message });
@@ -107,7 +102,7 @@ export default function DataImport() {
       });
 
       await base44.entities.Project.bulkCreate(toCreate);
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       setUploadStatus({ type: 'project', status: 'success', count: toCreate.length });
     } catch (error) {
       setUploadStatus({ type: 'project', status: 'error', message: error.message });
@@ -153,7 +148,7 @@ export default function DataImport() {
       });
 
       await base44.entities.Sample.bulkCreate(toCreate);
-      queryClient.invalidateQueries(['samples']);
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
       setUploadStatus({ type: 'sample', status: 'success', count: toCreate.length });
     } catch (error) {
       setUploadStatus({ type: 'sample', status: 'error', message: error.message });
