@@ -529,14 +529,14 @@ export default function PeopleManagement() {
                       <div>
                         <Label htmlFor="deputy_1">第一順位職代</Label>
                         <Select
-                          value={employeeFormData.deputy_1}
-                          onValueChange={(value) => setEmployeeFormData({ ...employeeFormData, deputy_1: value })}
+                          value={employeeFormData.deputy_1 || '__none__'}
+                          onValueChange={(value) => setEmployeeFormData({ ...employeeFormData, deputy_1: value === '__none__' ? '' : value })}
                         >
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="選擇職代" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={null}>無</SelectItem>
+                            <SelectItem value="__none__">無</SelectItem>
                             {employeeFormData.department_ids.length > 0 && employees
                               .filter(e => e.status === 'active' && e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id)
                               .map((emp) => (
@@ -550,14 +550,14 @@ export default function PeopleManagement() {
                       <div>
                         <Label htmlFor="deputy_2">第二順位職代</Label>
                         <Select
-                          value={employeeFormData.deputy_2}
-                          onValueChange={(value) => setEmployeeFormData({ ...employeeFormData, deputy_2: value })}
+                          value={employeeFormData.deputy_2 || '__none__'}
+                          onValueChange={(value) => setEmployeeFormData({ ...employeeFormData, deputy_2: value === '__none__' ? '' : value })}
                         >
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="選擇職代" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={null}>無</SelectItem>
+                            <SelectItem value="__none__">無</SelectItem>
                             {employeeFormData.department_ids.length > 0 && employees
                               .filter(e => e.status === 'active' && e.department_ids?.some(deptId => employeeFormData.department_ids.includes(deptId)) && e.id !== editingEmployee?.id && e.id !== employeeFormData.deputy_1)
                               .map((emp) => (
@@ -812,14 +812,14 @@ export default function PeopleManagement() {
                   <div>
                     <Label htmlFor="bulk-status">狀態 (留空表示不修改)</Label>
                     <Select
-                      value={bulkEditData.status}
-                      onValueChange={(value) => setBulkEditData({ ...bulkEditData, status: value })}
+                      value={bulkEditData.status || '__none__'}
+                      onValueChange={(value) => setBulkEditData({ ...bulkEditData, status: value === '__none__' ? '' : value })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="選擇狀態" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>不修改</SelectItem>
+                        <SelectItem value="__none__">不修改</SelectItem>
                         <SelectItem value="active">在職</SelectItem>
                         <SelectItem value="inactive">離職</SelectItem>
                         <SelectItem value="parental_leave">育嬰假</SelectItem>

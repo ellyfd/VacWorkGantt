@@ -687,14 +687,14 @@ export default function ProjectSettings() {
             <div>
               <Label>集團</Label>
               <Select
-                value={projectFormData.group_id}
-                onValueChange={(v) => setProjectFormData({ ...projectFormData, group_id: v })}
+                value={projectFormData.group_id || '__none__'}
+                onValueChange={(v) => setProjectFormData({ ...projectFormData, group_id: v === '__none__' ? '' : v })}
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="選擇集團（非必填）..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>未指定</SelectItem>
+                  <SelectItem value="__none__">未指定</SelectItem>
                   {groups.map((g) => (
                     <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                   ))}

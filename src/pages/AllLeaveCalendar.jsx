@@ -152,6 +152,7 @@ export default function AllLeaveCalendar({
 
       // 開發季期間確認
       const devSeasonConflicts = checkDevSeasonConflict({
+        employee: currentEmployee, departments: allDepartments,
         date, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
       });
       if (devSeasonConflicts.length > 0) {
@@ -168,6 +169,7 @@ export default function AllLeaveCalendar({
       const { warningTypes, warningDetails } = buildWarningInfo({
         employee: currentEmployee, date, leaveTypeId, leaveTypes,
         allLeaveRecords: leaveRecords, employees, ganttTasks, ganttProjects,
+        departments: allDepartments,
       });
       const warningPayload = warningTypes.length > 0
         ? { warning_type: warningTypes, warning_details: warningDetails }
@@ -317,6 +319,7 @@ export default function AllLeaveCalendar({
         }
 
         const devSeasonConflicts = checkDevSeasonConflict({
+          employee: currentEmployee, departments: allDepartments,
           date: dateStr, leaveTypeId, leaveTypes, ganttTasks, ganttProjects,
         });
         if (devSeasonConflicts.length > 0) {
@@ -344,6 +347,7 @@ export default function AllLeaveCalendar({
         const { warningTypes, warningDetails } = buildWarningInfo({
           employee: currentEmployee, date: dateStr, leaveTypeId, leaveTypes,
           allLeaveRecords: leaveRecords, employees, ganttTasks, ganttProjects,
+        departments: allDepartments,
         });
 
         recordsToCreate.push({
@@ -654,15 +658,15 @@ export default function AllLeaveCalendar({
           {/* 假別選擇和區間按鈕 */}
           <div className="flex items-center gap-2">
             <Select
-              value={selectedLeaveTypeId || ''}
-              onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+              value={selectedLeaveTypeId || '__none__'}
+              onValueChange={(value) => setSelectedLeaveTypeId(value === '__none__' ? null : value)}
               disabled={rangeMode}
             >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="選擇假別" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>不選擇</SelectItem>
+                <SelectItem value="__none__">不選擇</SelectItem>
                 {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
                   <SelectItem key={lt.id} value={lt.id}>
                     {lt.name}

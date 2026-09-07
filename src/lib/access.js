@@ -27,3 +27,22 @@ export function isDevDivisionUser(boundEmployee, departments) {
   if (devDeptIds.size === 0) return false;
   return boundEmployee.department_ids.some(id => devDeptIds.has(id));
 }
+
+/**
+ * 員工是否屬於開發處（DPC）——部門名稱完全等於 DPC_DEPARTMENT_NAMES
+ * 之一，或含 DEV_DIVISION_DEPT_KEYWORD 關鍵字。開發季期間請假警示
+ * 只針對這些人員。
+ * @param {{ department_ids?: string[] }|null|undefined} employee
+ * @param {Array<{ id: string, name: string }>} departments
+ */
+export function isDpcEmployee(employee, departments) {
+  if (!employee?.department_ids?.length || !departments?.length) return false;
+  const dpcDeptIds = new Set(
+    departments
+      .filter(d => typeof d.name === 'string' &&
+        (DPC_DEPARTMENT_NAMES.includes(d.name) || d.name.includes(DEV_DIVISION_DEPT_KEYWORD)))
+      .map(d => d.id)
+  );
+  if (dpcDeptIds.size === 0) return false;
+  return employee.department_ids.some(id => dpcDeptIds.has(id));
+}
