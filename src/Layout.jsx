@@ -254,7 +254,7 @@ export default function Layout({ children, currentPageName }) {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col fixed h-full">
+      <aside className="hidden md:flex w-64 bg-card border-r border-border flex-col fixed h-full">
         {/* User section - clickable to open profile */}
         <button
           onClick={() => setProfileOpen(true)}
@@ -265,10 +265,10 @@ export default function Layout({ children, currentPageName }) {
               <UserCircle className="w-5 h-5 text-blue-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-gray-800 truncate">
+              <div className="text-sm font-semibold text-foreground truncate">
                 {boundEmployee?.name || currentUser?.email?.split('@')[0] || '使用者'}
               </div>
-              <div className="text-xs text-gray-500 truncate">
+              <div className="text-xs text-muted-foreground truncate">
                 {currentUser?.email || ''}
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function Layout({ children, currentPageName }) {
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all relative text-sm ${
                         isActive
                           ? 'bg-blue-50 text-blue-600 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          : 'text-muted-foreground hover:bg-gray-50 hover:text-foreground'
                       }`}
                     >
                       <Icon className="w-5 h-5 flex-shrink-0" />
@@ -314,7 +314,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="mt-1">
             <button
               onClick={() => setSettingsExpanded(!settingsExpanded)}
-              className="w-full flex items-center gap-3 px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider hover:text-muted-foreground transition-colors"
             >
               <span className="flex-1 text-left">設定管理</span>
               {settingsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
@@ -331,7 +331,7 @@ export default function Layout({ children, currentPageName }) {
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${
                           isActive
                             ? 'bg-blue-50 text-blue-600 font-medium'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            : 'text-muted-foreground hover:bg-gray-50 hover:text-foreground'
                         }`}
                       >
                         <Icon className="w-4 h-4 flex-shrink-0" />
@@ -348,7 +348,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="mt-auto pt-3 border-t border-gray-100">
             <button
               onClick={() => base44.auth.logout()}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm text-gray-500 hover:bg-red-50 hover:text-red-600"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm text-muted-foreground hover:bg-red-50 hover:text-red-600"
             >
               <LogOut className="w-5 h-5" />
               登出
@@ -359,7 +359,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Mobile Bottom Tab Bar - 浮空橢圓外框，離底部遠一點 (iOS 風格) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom,0px)+16px)] pointer-events-none">
-        <nav className="pointer-events-auto flex items-stretch h-16 w-full max-w-md px-2 bg-white/85 backdrop-blur-xl border border-gray-200/70 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.16)]">
+        <nav className="pointer-events-auto flex items-stretch h-16 w-full max-w-md px-2 bg-card/85 backdrop-blur-xl border border-border/70 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.16)]">
           {visibleMobileTabItems.map((item) => {
             const isActive = currentPageName === item.name;
             const Icon = item.icon;
@@ -368,7 +368,7 @@ export default function Layout({ children, currentPageName }) {
                 key={item.name}
                 to={createPageUrl(item.name)}
                 className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors relative ${
-                  isActive ? 'text-blue-600' : 'text-gray-500'
+                  isActive ? 'text-blue-600' : 'text-muted-foreground'
                 }`}
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
@@ -383,7 +383,7 @@ export default function Layout({ children, currentPageName }) {
             <SheetTrigger asChild>
               <button
                 className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors relative ${
-                  isSettingsPage || currentPageName === 'Notifications' ? 'text-blue-600' : 'text-gray-500'
+                  isSettingsPage || currentPageName === 'Notifications' ? 'text-blue-600' : 'text-muted-foreground'
                 }`}
                 aria-label="更多選項"
               >
@@ -404,16 +404,16 @@ export default function Layout({ children, currentPageName }) {
                 {/* User info - clickable to open profile */}
                 <button
                   onClick={() => { setMobileSheetOpen(false); setProfileOpen(true); }}
-                  className="w-full flex items-center gap-3 px-2 py-3 mb-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-2 py-3 mb-2 bg-gray-50 rounded-lg hover:bg-muted transition-colors text-left"
                 >
                   <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <UserCircle className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-gray-800 truncate">
+                    <div className="text-sm font-semibold text-foreground truncate">
                       {boundEmployee?.name || currentUser?.email?.split('@')[0] || '使用者'}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {currentUser?.email || ''}
                     </div>
                   </div>
@@ -426,7 +426,7 @@ export default function Layout({ children, currentPageName }) {
                   className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${
                     currentPageName === 'DevelopmentSchedule'
                       ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-foreground hover:bg-gray-50'
                   }`}
                 >
                   <CalendarRange className="w-5 h-5" />
@@ -440,7 +440,7 @@ export default function Layout({ children, currentPageName }) {
                   className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${
                     currentPageName === 'Notifications'
                       ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-foreground hover:bg-gray-50'
                   }`}
                 >
                   <Bell className="w-5 h-5" />
@@ -469,7 +469,7 @@ export default function Layout({ children, currentPageName }) {
                             className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${
                               isActive
                                 ? 'bg-blue-50 text-blue-600 font-medium'
-                                : 'text-gray-700 hover:bg-gray-50'
+                                : 'text-foreground hover:bg-gray-50'
                             }`}
                           >
                             <Icon className="w-5 h-5" />
@@ -485,7 +485,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <button
                     onClick={() => { setMobileSheetOpen(false); base44.auth.logout(); }}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all text-gray-500 hover:bg-red-50 hover:text-red-600"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all text-muted-foreground hover:bg-red-50 hover:text-red-600"
                   >
                     <LogOut className="w-5 h-5" />
                     <span className="text-sm">登出</span>
@@ -509,7 +509,7 @@ export default function Layout({ children, currentPageName }) {
             <DialogTitle>綁定員工資料</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p className="text-sm text-gray-600">請選擇您的員工身份以繼續使用系統</p>
+            <p className="text-sm text-muted-foreground">請選擇您的員工身份以繼續使用系統</p>
             <div>
               <Label htmlFor="department">選擇部門</Label>
               <Select value={selectedDepartmentId} onValueChange={(value) => {
@@ -565,7 +565,7 @@ export default function Layout({ children, currentPageName }) {
               此員工 {confirmData?.emp?.name} 已綁定以下帳號：
               <div className="mt-2 space-y-1">
                 {confirmData?.existingEmails?.map((email, idx) => (
-                  <div key={idx} className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                  <div key={idx} className="text-sm font-mono bg-muted px-2 py-1 rounded">
                     {email}
                   </div>
                 ))}
@@ -610,11 +610,11 @@ export default function Layout({ children, currentPageName }) {
                 <UserCircle className="w-8 h-8 text-blue-600" />
               </div>
               <div className="min-w-0">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-foreground">
                   {boundEmployee?.name || '未綁定'}
                 </div>
                 {boundEmployee?.english_name && (
-                  <div className="text-sm text-gray-500">{boundEmployee.english_name}</div>
+                  <div className="text-sm text-muted-foreground">{boundEmployee.english_name}</div>
                 )}
                 <div className="text-xs text-gray-400 mt-0.5">{currentUser?.email}</div>
               </div>
@@ -624,7 +624,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-[11px] text-gray-400 mb-1">部門</div>
-                <div className="text-sm font-medium text-gray-800">
+                <div className="text-sm font-medium text-foreground">
                   {myDepartments.length > 0 ? myDepartments.map(d => d.name).join('、') : '—'}
                 </div>
               </div>
@@ -691,14 +691,14 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm font-medium text-gray-800">
+                  <div className="text-sm font-medium text-foreground">
                     {deputyNames.length > 0 ? deputyNames.join('、') : '—'}
                   </div>
                 )}
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-[11px] text-gray-400 mb-1">狀態</div>
-                <div className="text-sm font-medium text-gray-800">
+                <div className="text-sm font-medium text-foreground">
                   {boundEmployee?.status === 'active' ? '在職' :
                    boundEmployee?.status === 'parental_leave' ? '育嬰假' :
                    boundEmployee?.status === 'hidden' ? '隱藏' :
@@ -707,7 +707,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-[11px] text-gray-400 mb-1">角色</div>
-                <div className="text-sm font-medium text-gray-800">
+                <div className="text-sm font-medium text-foreground">
                   {currentUser?.role === 'admin' ? '管理員' : '一般使用者'}
                 </div>
               </div>
@@ -715,7 +715,7 @@ export default function Layout({ children, currentPageName }) {
 
             {/* 當月請假小計 */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+              <h3 className="text-sm font-semibold text-foreground mb-2">
                 {currentMonth + 1} 月請假小計
               </h3>
               {myLeaveSummary.monthly.length === 0 ? (
@@ -726,14 +726,14 @@ export default function Layout({ children, currentPageName }) {
                     <div key={item.name} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="text-sm text-gray-700">{item.name}</span>
+                        <span className="text-sm text-foreground">{item.name}</span>
                       </div>
-                      <span className="text-sm font-semibold text-gray-800">{item.count} 天</span>
+                      <span className="text-sm font-semibold text-foreground">{item.count} 天</span>
                     </div>
                   ))}
-                  <div className="flex items-center justify-between pt-1.5 px-3 border-t border-gray-200">
-                    <span className="text-sm font-semibold text-gray-700">小計</span>
-                    <span className="text-sm font-bold text-gray-900">{myLeaveSummary.monthlyTotal} 天</span>
+                  <div className="flex items-center justify-between pt-1.5 px-3 border-t border-border">
+                    <span className="text-sm font-semibold text-foreground">小計</span>
+                    <span className="text-sm font-bold text-foreground">{myLeaveSummary.monthlyTotal} 天</span>
                   </div>
                 </div>
               )}
@@ -741,7 +741,7 @@ export default function Layout({ children, currentPageName }) {
 
             {/* 年度請假小計 */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+              <h3 className="text-sm font-semibold text-foreground mb-2">
                 {currentYear} 年度累計
               </h3>
               {myLeaveSummary.yearly.length === 0 ? (
@@ -752,14 +752,14 @@ export default function Layout({ children, currentPageName }) {
                     <div key={item.name} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-50">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="text-sm text-gray-700">{item.name}</span>
+                        <span className="text-sm text-foreground">{item.name}</span>
                       </div>
-                      <span className="text-sm font-semibold text-gray-800">{item.count} 天</span>
+                      <span className="text-sm font-semibold text-foreground">{item.count} 天</span>
                     </div>
                   ))}
-                  <div className="flex items-center justify-between pt-1.5 px-3 border-t border-gray-200">
-                    <span className="text-sm font-semibold text-gray-700">年度合計</span>
-                    <span className="text-sm font-bold text-gray-900">{myLeaveSummary.yearlyTotal} 天</span>
+                  <div className="flex items-center justify-between pt-1.5 px-3 border-t border-border">
+                    <span className="text-sm font-semibold text-foreground">年度合計</span>
+                    <span className="text-sm font-bold text-foreground">{myLeaveSummary.yearlyTotal} 天</span>
                   </div>
                 </div>
               )}
