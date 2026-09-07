@@ -654,15 +654,15 @@ export default function AllLeaveCalendar({
           {/* 假別選擇和區間按鈕 */}
           <div className="flex items-center gap-2">
             <Select
-              value={selectedLeaveTypeId || ''}
-              onValueChange={(value) => setSelectedLeaveTypeId(value || null)}
+              value={selectedLeaveTypeId || '__none__'}
+              onValueChange={(value) => setSelectedLeaveTypeId(value === '__none__' ? null : value)}
               disabled={rangeMode}
             >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="選擇假別" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>不選擇</SelectItem>
+                <SelectItem value="__none__">不選擇</SelectItem>
                 {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
                   <SelectItem key={lt.id} value={lt.id}>
                     {lt.name}
