@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { currentUserQuery } from '@/lib/queries';
+import { formatRelative, formatDateTimeFull } from '@/lib/dateFormat';
 import { Bell, X } from 'lucide-react';
 import PageSkeleton from '@/components/PageSkeleton';
 import { Button } from "@/components/ui/button";
@@ -128,7 +129,7 @@ export default function Notifications() {
                 >
                   <button
                     onClick={() => deleteNotificationMutation.mutate(notif.id)}
-                    className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute top-2 right-2 p-2.5 md:p-1 rounded-full hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
                     disabled={deleteNotificationMutation.isPending}
                   >
                     <X className="w-4 h-4" />
@@ -137,14 +138,8 @@ export default function Notifications() {
                     <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!notif.is_read ? 'bg-blue-500' : 'bg-gray-300'}`} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-800 break-words">{notif.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(notif.created_date).toLocaleString('zh-TW', { 
-                          year: 'numeric', 
-                          month: '2-digit', 
-                          day: '2-digit', 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
+                      <p className="text-xs text-gray-500 mt-1" title={formatDateTimeFull(notif.created_date)}>
+                        {formatRelative(notif.created_date)}
                       </p>
                     </div>
                     {!notif.is_read && (

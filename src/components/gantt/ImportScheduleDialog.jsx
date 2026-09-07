@@ -38,7 +38,7 @@ const ImportScheduleDialog = React.memo(function ImportScheduleDialog({
               <div className="mt-4 flex items-center gap-2 rounded-md border border-blue-100 bg-white px-3 py-2 text-left">
                 <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
                 <span className="min-w-0 flex-1 truncate text-sm text-gray-700" title={scheduleFile.name}>{scheduleFile.name}</span>
-                <button type="button" onClick={() => setScheduleFile(null)} className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700" aria-label="移除已選檔案" title="移除檔案">
+                <button type="button" onClick={() => setScheduleFile(null)} className="h-9 w-9 md:h-7 md:w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700" aria-label="移除已選檔案" title="移除檔案">
                   <X className="w-4 h-4" />
                 </button>
               </div>

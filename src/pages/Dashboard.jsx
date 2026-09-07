@@ -1,16 +1,18 @@
-import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { mergeSearchParams } from "@/lib/urlState";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
 import { Loader2, Calendar as CalendarIcon, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { formatDateFull } from "@/lib/dateFormat";
 import LeaveStatistics from "@/components/dashboard/LeaveStatistics";
 import {
   currentUserQuery,
@@ -49,7 +51,13 @@ async function runInBatches(items, fn, batchSize = 10) {
 }
 
 export default function Dashboard() {
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [searchParams, setSearchParams] = useSearchParams();
+  // ?date= 同步（可分享、可從異常請假等處深連結）
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = searchParams.get('date');
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d).getTime())) return d;
+    return format(new Date(), 'yyyy-MM-dd');
+  });
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [isCleaningDuplicates, setIsCleaningDuplicates] = useState(false);
@@ -57,6 +65,12 @@ export default function Dashboard() {
   const [cleanDialogOpen, setCleanDialogOpen] = useState(false);
   const [scanDialogOpen, setScanDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  // replace 避免堆瀏覽歷史；merge 保留 Base44 的 app_id 等參數
+  const changeSelectedDate = useCallback((dateStr) => {
+    setSelectedDate(dateStr);
+    setSearchParams(prev => mergeSearchParams(prev, { date: dateStr }), { replace: true });
+  }, [setSearchParams]);
   const { toast } = useToast();
 
   const { data: currentUser, isLoading: loadingUser } = useQuery(currentUserQuery);
@@ -379,7 +393,7 @@ export default function Dashboard() {
             })()}
           </h1>
           <p className="text-sm text-gray-500 mt-1 mb-4 md:mb-0">
-            {format(new Date(selectedDate), 'yyyy年MM月dd日 (EEEE)', { locale: zhTW })}
+            {formatDateFull(selectedDate)}
             {isNonWorkingDay && (
               <span className="ml-2 text-xs px-2 py-0.5 bg-red-50 text-red-600 rounded-full">
                 {isHoliday ? (holidayInfo?.name || '假日') : '週末'}
@@ -393,7 +407,7 @@ export default function Dashboard() {
               onClick={() => {
                 const currentDate = new Date(selectedDate + 'T00:00:00');
                 currentDate.setDate(currentDate.getDate() - 1);
-                setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+                changeSelectedDate(format(currentDate, 'yyyy-MM-dd'));
                 setCalendarMonth(currentDate);
               }}
               className="h-10 w-10"
@@ -410,7 +424,7 @@ export default function Dashboard() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDate ? format(new Date(selectedDate), 'yyyy年MM月dd日 (E)', { locale: zhTW }) : "選擇日期"}
+                {selectedDate ? formatDateFull(selectedDate) : "選擇日期"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -419,7 +433,7 @@ export default function Dashboard() {
                 selected={selectedDate ? new Date(selectedDate + 'T00:00:00') : undefined}
                 onSelect={(date) => {
                   if (date) {
-                    setSelectedDate(format(date, 'yyyy-MM-dd'));
+                    changeSelectedDate(format(date, 'yyyy-MM-dd'));
                     setCalendarMonth(date);
                   }
                 }}
@@ -436,7 +450,7 @@ export default function Dashboard() {
             onClick={() => {
               const currentDate = new Date(selectedDate + 'T00:00:00');
               currentDate.setDate(currentDate.getDate() + 1);
-              setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
+              changeSelectedDate(format(currentDate, 'yyyy-MM-dd'));
               setCalendarMonth(currentDate);
             }}
             className="h-10 w-10"
@@ -849,6 +863,12 @@ export default function Dashboard() {
                                 ))}
                               </div>
                             )}
+                            <Link
+                              to={`${createPageUrl('AllLeaveCalendar')}?year=${record.date.slice(0, 4)}&month=${parseInt(record.date.slice(5, 7), 10)}&view=month`}
+                              className="text-blue-600 hover:underline whitespace-nowrap"
+                            >
+                              查看排休
+                            </Link>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -951,6 +971,12 @@ export default function Dashboard() {
                           {WARNING_BADGES[type]?.label || type}
                         </span>
                       ))}
+                      <Link
+                        to={`${createPageUrl('AllLeaveCalendar')}?year=${record.date.slice(0, 4)}&month=${parseInt(record.date.slice(5, 7), 10)}&view=month`}
+                        className="text-blue-600 text-xs hover:underline ml-auto"
+                      >
+                        查看排休
+                      </Link>
                     </div>
                   </div>
                 );

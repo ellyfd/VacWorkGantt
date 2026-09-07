@@ -739,7 +739,7 @@ export default function PeopleManagement() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleOpenEmployeeDialog(emp)}
-                          className="h-8 w-8"
+                          className="h-9 w-9"
                         >
                           <Pencil className="w-4 h-4 text-gray-500" />
                         </Button>
@@ -747,7 +747,7 @@ export default function PeopleManagement() {
                           variant="ghost"
                           size="icon"
                           onClick={() => deleteEmployee.mutate(emp.id)}
-                          className="h-8 w-8"
+                          className="h-9 w-9"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
@@ -975,7 +975,7 @@ export default function PeopleManagement() {
                           type="number"
                           value={dept.sort_order ?? ''}
                           onChange={(e) => handleDeptSortOrderChange(dept.id, e.target.value)}
-                          className="w-10 h-7 text-center text-xs md:w-14"
+                          className="w-12 h-9 md:w-14 md:h-7 text-center text-xs"
                           min="1"
                         />
                       </TableCell>
@@ -991,7 +991,7 @@ export default function PeopleManagement() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleOpenDeptDialog(dept)}
-                            className="h-7 w-7"
+                            className="h-9 w-9 md:h-7 md:w-7"
                           >
                             <Pencil className="w-4 h-4 text-gray-500" />
                           </Button>
@@ -999,7 +999,7 @@ export default function PeopleManagement() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteDept.mutate(dept.id)}
-                            className="h-7 w-7"
+                            className="h-9 w-9 md:h-7 md:w-7"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </Button>

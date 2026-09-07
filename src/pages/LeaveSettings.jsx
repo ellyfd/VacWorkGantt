@@ -273,7 +273,7 @@ export default function LeaveSettings() {
                             key={color}
                             type="button"
                             onClick={() => setTypeFormData({ ...typeFormData, color })}
-                            className={`w-8 h-8 rounded-full transition-all ${
+                            className={`w-9 h-9 md:w-8 md:h-8 rounded-full transition-all ${
                               typeFormData.color === color ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''
                             }`}
                             style={{ backgroundColor: color }}
@@ -333,7 +333,7 @@ export default function LeaveSettings() {
                       type="number"
                       value={lt.sort_order ?? ''}
                       onChange={(e) => handleSortOrderChange(lt.id, e.target.value)}
-                      className="w-12 h-7 text-center text-xs flex-shrink-0"
+                      className="w-12 h-9 md:h-7 text-center text-xs flex-shrink-0"
                       min="1"
                     />
                     <div className="flex gap-1 flex-shrink-0">
@@ -341,7 +341,7 @@ export default function LeaveSettings() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleOpenTypeDialog(lt)}
-                        className="h-7 w-7"
+                        className="h-9 w-9 md:h-7 md:w-7"
                       >
                         <Pencil className="w-4 h-4 text-gray-500" />
                       </Button>
@@ -349,7 +349,7 @@ export default function LeaveSettings() {
                         variant="ghost"
                         size="icon"
                         onClick={() => deleteType.mutate(lt.id)}
-                        className="h-7 w-7"
+                        className="h-9 w-9 md:h-7 md:w-7"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
@@ -414,7 +414,7 @@ export default function LeaveSettings() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleOpenTypeDialog(lt)}
-                            className="h-7 w-7"
+                            className="h-9 w-9 md:h-7 md:w-7"
                           >
                             <Pencil className="w-4 h-4 text-gray-500" />
                           </Button>
@@ -422,7 +422,7 @@ export default function LeaveSettings() {
                             variant="ghost"
                             size="icon"
                             onClick={() => deleteType.mutate(lt.id)}
-                            className="h-7 w-7"
+                            className="h-9 w-9 md:h-7 md:w-7"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </Button>
@@ -511,7 +511,7 @@ export default function LeaveSettings() {
                             variant="outline"
                             size="icon"
                             onClick={() => handleEditHoliday(holiday)}
-                            className="h-6 w-6"
+                            className="h-9 w-9 md:h-6 md:w-6"
                           >
                             <Pencil className="w-3 h-3" />
                           </Button>

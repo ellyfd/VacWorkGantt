@@ -1,8 +1,8 @@
 import React from 'react';
+import { formatDateFull } from '@/lib/dateFormat';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Diamond, ArrowRight, Repeat, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
 
 const TimeDialogShell = React.memo(function TimeDialogShell({
   open,
@@ -66,7 +66,7 @@ export const MilestoneDialog = React.memo(function MilestoneDialog({
       <div className="flex justify-between items-center gap-4 border-t border-gray-200 pt-3">
         <span className="text-sm text-gray-500">日期</span>
         <span className="font-medium text-blue-600">
-          {firstDate && format(firstDate, 'yyyy/MM/dd')}
+          {firstDate && formatDateFull(firstDate)}
         </span>
       </div>
     </TimeDialogShell>
@@ -90,15 +90,15 @@ export const DurationDialog = React.memo(function DurationDialog({
       <div className="flex justify-between items-center gap-4 border-t border-gray-200 pt-3">
         <span className="text-sm text-gray-500">開始日期</span>
         <span className="font-medium text-blue-600">
-          {firstDate && format(getSortedDates().start, 'yyyy/MM/dd')}
+          {firstDate && formatDateFull(getSortedDates().start)}
         </span>
       </div>
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-500">結束日期</span>
         <span className="font-medium text-green-600">
           {secondDate
-            ? format(getSortedDates().end, 'yyyy/MM/dd')
-            : firstDate && format(firstDate, 'yyyy/MM/dd') + ' (同一天)'
+            ? formatDateFull(getSortedDates().end)
+            : firstDate && formatDateFull(firstDate) + ' (同一天)'
           }
         </span>
       </div>
@@ -129,7 +129,7 @@ export const RollingDialog = React.memo(function RollingDialog({
       <div className="flex justify-between items-center gap-4 border-t border-gray-200 pt-3">
         <span className="text-sm text-gray-500">開始日期</span>
         <span className="font-medium text-purple-600">
-          {firstDate && format(firstDate, 'yyyy/MM/dd')}
+          {firstDate && formatDateFull(firstDate)}
         </span>
       </div>
       <div className="flex justify-between items-center">

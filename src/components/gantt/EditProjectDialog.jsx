@@ -98,7 +98,7 @@ const EditProjectDialog = React.memo(function EditProjectDialog({
                         <button
                           type="button"
                           onClick={() => onDeleteTask(task.id)}
-                          className="h-7 w-7 inline-flex items-center justify-center hover:bg-red-50 rounded-md text-gray-400 hover:text-red-600 flex-shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                          className="h-9 w-9 md:h-7 md:w-7 inline-flex items-center justify-center hover:bg-red-50 rounded-md text-gray-400 hover:text-red-600 flex-shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                           aria-label={`刪除任務 ${task.name}`}
                           title="刪除任務"
                         >

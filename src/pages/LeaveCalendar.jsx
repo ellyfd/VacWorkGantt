@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { mergeSearchParams } from '@/lib/urlState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
@@ -12,19 +14,10 @@ import {
   ganttTasksQuery,
 } from '@/lib/queries';
 import { format, endOfMonth } from 'date-fns';
-import { Loader2, CalendarRange } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
+
+
+
 import {
   Dialog,
   DialogContent,
@@ -37,15 +30,32 @@ import { Button } from '@/components/ui/button';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WeekCalendarTable from '@/components/calendar/WeekCalendarTable';
 import { checkDeputyConflict, checkDeptLimit, checkDevSeasonConflict, buildWarningInfo } from '@/components/utils/leaveWarnings';
-import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
+import { sendLeaveNotification } from '@/components/utils/leaveNotifications';
 import { buildDeleteRange } from '@/components/utils/leaveRangeDelete';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import { formatDateFull, formatDateShort } from '@/lib/dateFormat';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function LeaveCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // 年/月同步到 URL（可分享、可重新整理）；URL 有值時優先
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentDate, setCurrentDate] = useState(() => {
+    const y = parseInt(searchParams.get('year'), 10);
+    const m = parseInt(searchParams.get('month'), 10);
+    if (y >= 2000 && y <= 2100 && m >= 1 && m <= 12) return new Date(y, m - 1, 1);
+    return new Date();
+  });
+
+  const handleDateChange = useCallback((date) => {
+    setCurrentDate(date);
+    // replace 避免堆瀏覽歷史；merge 保留 Base44 的 app_id 等參數
+    setSearchParams(prev => mergeSearchParams(prev, {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+    }), { replace: true });
+  }, [setSearchParams]);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
@@ -194,7 +204,7 @@ export default function LeaveCalendar() {
 
         if (warnings.length > 0) {
           const confirmed = await confirm(
-            `${date}\n${warnings.map(w => `• ${w}`).join('\n')}`,
+            `${formatDateFull(date)}\n${warnings.map(w => `• ${w}`).join('\n')}`,
             { title: '請假警告', confirmText: '繼續請假', variant: 'destructive' }
           );
           if (!confirmed) throw new Error('取消請假');
@@ -343,7 +353,7 @@ export default function LeaveCalendar() {
               const emp = employeeMap[c.employee_id];
               return emp?.name || '未知';
             }).join('、');
-            warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
+            warnings.push(`${formatDateShort(dateStr)}: 職代 ${conflictNames} 已請假`);
           }
 
           const deptLeaves = allLeaveRecords.filter(r => {
@@ -356,7 +366,7 @@ export default function LeaveCalendar() {
           });
 
           if (deptLeaves.length >= deptLimit) {
-            warnings.push(`${dateStr}: 部門已有 ${deptLeaves.length} 人請假（超過1/3人數 ${deptLimit}）`);
+            warnings.push(`${formatDateShort(dateStr)}: 部門已有 ${deptLeaves.length} 人請假（超過1/3人數 ${deptLimit}）`);
           }
 
           const devSeasonConflicts = checkDevSeasonConflict({
@@ -365,7 +375,7 @@ export default function LeaveCalendar() {
           });
           if (devSeasonConflicts.length > 0) {
             const seasonNames = [...new Set(devSeasonConflicts.map(c => c.season_name))].join('、');
-            warnings.push(`${dateStr}: 開發季期間（${seasonNames}）`);
+            warnings.push(`${formatDateShort(dateStr)}: 開發季期間（${seasonNames}）`);
           }
         }
       }
@@ -590,14 +600,14 @@ export default function LeaveCalendar() {
           <div className="md:hidden">
             <CalendarHeader 
               currentDate={currentDate} 
-              onDateChange={setCurrentDate}
+              onDateChange={handleDateChange}
             />
           </div>
         </div>
 
           <WeekCalendarTable
             currentDate={currentDate}
-            onDateChange={setCurrentDate}
+            onDateChange={handleDateChange}
             currentEmployee={currentEmployee}
             currentDepartments={departments.filter(d => currentEmployee?.department_ids?.includes(d.id))}
             leaveRecords={leaveRecords}
@@ -651,7 +661,7 @@ export default function LeaveCalendar() {
               <DialogHeader>
                 <DialogTitle>取消請假</DialogTitle>
                 <DialogDescription>
-                  檢測到連續假期：{deleteDialogData?.startDate} 至 {deleteDialogData?.endDate} 共 {deleteDialogData?.count} 天
+                  檢測到連續假期：{deleteDialogData?.startDate && formatDateFull(deleteDialogData.startDate)} 至 {deleteDialogData?.endDate && formatDateFull(deleteDialogData.endDate)} 共 {deleteDialogData?.count} 天
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="flex flex-col sm:flex-row gap-2">

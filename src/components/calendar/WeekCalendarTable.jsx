@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
+import { formatDateShort } from '@/lib/dateFormat';
 import { format, getDay } from "date-fns";
-import { zhTW } from "date-fns/locale";
 import { Loader2, CalendarRange } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
@@ -175,7 +175,7 @@ export default function WeekCalendarTable({
                 onValueChange={(value) => onLeaveTypeChange(value === '__none__' ? null : value || null)}
                 disabled={rangeMode}
               >
-                <SelectTrigger className="h-7 text-xs w-[100px]">
+                <SelectTrigger className="h-9 md:h-7 text-xs w-[100px]">
                   <SelectValue placeholder="選擇假別" />
                 </SelectTrigger>
                 <SelectContent>
@@ -188,7 +188,7 @@ export default function WeekCalendarTable({
               {!rangeMode ? (
                 <Button
                   onClick={onRangeModeToggle}
-                  className="bg-blue-600 hover:bg-blue-700 h-7 w-7"
+                  className="bg-blue-600 hover:bg-blue-700 h-9 w-9 md:h-7 md:w-7"
                   size="icon"
                 >
                   <CalendarRange className="h-4 w-4" />
@@ -200,7 +200,7 @@ export default function WeekCalendarTable({
                       onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
                       variant="outline"
                       size="icon"
-                      className={`h-7 w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                      className={`h-9 w-9 md:h-7 md:w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
                     >
                       {dateRange.from && dateRange.to ? '✓' : '✕'}
                     </Button>
@@ -209,7 +209,7 @@ export default function WeekCalendarTable({
                     <div className="space-y-3">
                       <div>
                         <h3 className="font-semibold text-sm">確認區間請假</h3>
-                        <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
+                        <p className="text-sm text-gray-600 mt-1">{formatDateShort(dateRange.from)} 至 {formatDateShort(dateRange.to)}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={onRangeModeCancel} variant="outline" size="sm" className="flex-1">取消</Button>

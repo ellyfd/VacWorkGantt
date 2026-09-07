@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { mergeSearchParams } from '@/lib/urlState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
@@ -14,7 +16,6 @@ import {
 import { format, endOfMonth } from 'date-fns';
 import { Loader2, CalendarRange } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -25,6 +26,7 @@ import {
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import LeaveCalendarTable from '@/components/calendar/LeaveCalendarTable';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import { formatDateFull, formatDateShort } from '@/lib/dateFormat';
 import { checkDeputyConflict, checkDeptLimit, checkDevSeasonConflict, buildWarningInfo } from '@/components/utils/leaveWarnings';
 import { sendLeaveNotification, sendRangeDeleteNotification } from '@/components/utils/leaveNotifications';
 import { useToast } from '@/components/ui/use-toast';
@@ -36,11 +38,51 @@ export default function AllLeaveCalendar({
   hideDepartmentSelector = false,
   pageTitle = '全部排休',
 } = {}) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // 年/月/檢視模式同步到 URL（可分享、可重新整理）；URL 有值時優先
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [currentDate, setCurrentDate] = useState(() => {
+    const y = parseInt(searchParams.get('year'), 10);
+    const m = parseInt(searchParams.get('month'), 10);
+    if (y >= 2000 && y <= 2100) {
+      return new Date(y, (m >= 1 && m <= 12 ? m : 1) - 1, 1);
+    }
+    return new Date();
+  });
   // 檢視模式：桌機預設「全年」較好綜覽，手機預設「當月」較好操作
-  const [viewMode, setViewMode] = useState(() =>
-    (typeof window !== 'undefined' && window.innerWidth < 768) ? 'month' : 'year'
-  );
+  const [viewMode, setViewMode] = useState(() => {
+    const v = searchParams.get('view');
+    if (v === 'month' || v === 'year') return v;
+    return (typeof window !== 'undefined' && window.innerWidth < 768) ? 'month' : 'year';
+  });
+
+  // replace 避免每次切月都堆瀏覽歷史；merge 保留 Base44 的 app_id 等參數
+  const syncUrl = useCallback((date, view) => {
+    setSearchParams(prev => mergeSearchParams(prev, {
+      year: date.getFullYear(),
+      month: view === 'year' ? null : date.getMonth() + 1,
+      view,
+    }), { replace: true });
+  }, [setSearchParams]);
+
+  const handleDateChange = useCallback((date) => {
+    setCurrentDate(date);
+    syncUrl(date, viewMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncUrl, viewMode]);
+
+  const handleViewModeChange = useCallback((view) => {
+    setViewMode(view);
+    syncUrl(currentDate, view);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncUrl, currentDate]);
+
+  // 手機上不提供年檢視：URL 帶 view=year 進手機時自動落回當月
+  React.useEffect(() => {
+    if (viewMode === 'year' && typeof window !== 'undefined' && window.innerWidth < 768) {
+      handleViewModeChange('month');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
@@ -156,7 +198,7 @@ export default function AllLeaveCalendar({
 
       if (warnings.length > 0) {
         const confirmed = await confirm(
-          `${date}\n${warnings.map(w => `• ${w}`).join('\n')}`,
+          `${formatDateFull(date)}\n${warnings.map(w => `• ${w}`).join('\n')}`,
           { title: '請假警告', confirmText: '繼續請假', variant: 'destructive' }
         );
         if (!confirmed) throw new Error('取消請假');
@@ -303,7 +345,7 @@ export default function AllLeaveCalendar({
         if (deputyConflicts.length > 0) {
           const conflictNames = deputyConflicts
             .map(c => employeeMap[c.employee_id]?.name || '未知').join('、');
-          warnings.push(`${dateStr}: 職代 ${conflictNames} 已請假`);
+          warnings.push(`${formatDateShort(dateStr)}: 職代 ${conflictNames} 已請假`);
         }
 
         const deptLimitInfo = checkDeptLimit({
@@ -311,7 +353,7 @@ export default function AllLeaveCalendar({
           allLeaveRecords: leaveRecords, employees,
         });
         if (deptLimitInfo) {
-          warnings.push(`${dateStr}: 部門已有 ${deptLimitInfo.deptLeaves} 人請假（達到1/3人數 ${deptLimitInfo.deptLimit}）`);
+          warnings.push(`${formatDateShort(dateStr)}: 部門已有 ${deptLimitInfo.deptLeaves} 人請假（達到1/3人數 ${deptLimitInfo.deptLimit}）`);
         }
 
         const devSeasonConflicts = checkDevSeasonConflict({
@@ -320,7 +362,7 @@ export default function AllLeaveCalendar({
         });
         if (devSeasonConflicts.length > 0) {
           const seasonNames = [...new Set(devSeasonConflicts.map(c => c.season_name))].join('、');
-          warnings.push(`${dateStr}: 開發季期間（${seasonNames}）`);
+          warnings.push(`${formatDateShort(dateStr)}: 開發季期間（${seasonNames}）`);
         }
       }
 
@@ -452,7 +494,7 @@ export default function AllLeaveCalendar({
       const startDate = rangeRecords[0].date;
       const endDate = rangeRecords[rangeRecords.length - 1].date;
       const confirmed = await confirm(
-        `確定要取消 ${startDate} 至 ${endDate} 共 ${rangeRecords.length} 天的請假嗎？`,
+        `確定要取消 ${formatDateFull(startDate)} 至 ${formatDateFull(endDate)} 共 ${rangeRecords.length} 天的請假嗎？`,
         { title: '取消連續請假', confirmText: '全部取消', variant: 'destructive' }
       );
       if (confirmed) {
@@ -581,10 +623,11 @@ export default function AllLeaveCalendar({
           <h1 className="text-lg md:text-2xl font-bold text-gray-800">{pageTitle}</h1>
           <div className="md:hidden">
             <CalendarHeader
+              allowYearView={false}
               currentDate={currentDate}
               viewMode={viewMode}
-              onDateChange={setCurrentDate}
-              onViewModeChange={setViewMode}
+              onDateChange={handleDateChange}
+              onViewModeChange={handleViewModeChange}
             />
           </div>
         </div>
@@ -645,8 +688,8 @@ export default function AllLeaveCalendar({
               <CalendarHeader
                 currentDate={currentDate}
                 viewMode={viewMode}
-                onDateChange={setCurrentDate}
-                onViewModeChange={setViewMode}
+                onDateChange={handleDateChange}
+                onViewModeChange={handleViewModeChange}
               />
             </div>
           </div>
@@ -737,7 +780,7 @@ export default function AllLeaveCalendar({
                 const emp = employees.find(e => e.id === dateRange.employeeId);
                 return (
                   <p className="text-gray-500 pl-1">
-                    {emp?.name}：{dateRange.from}{dateRange.to ? ` → ${dateRange.to}` : ' → ...'}
+                    {emp?.name}：{formatDateShort(dateRange.from)}{dateRange.to ? ` → ${formatDateShort(dateRange.to)}` : ' → ...'}
                   </p>
                 );
               })()}
