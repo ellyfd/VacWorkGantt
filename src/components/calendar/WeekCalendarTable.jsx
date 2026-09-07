@@ -172,14 +172,14 @@ export default function WeekCalendarTable({
             <div className="flex items-center gap-1 flex-shrink-0">
               <Select
                 value={selectedLeaveTypeId || ''}
-                onValueChange={(value) => onLeaveTypeChange(value || null)}
+                onValueChange={(value) => onLeaveTypeChange(value === '__none__' ? null : value || null)}
                 disabled={rangeMode}
               >
                 <SelectTrigger className="h-7 text-xs w-[100px]">
                   <SelectValue placeholder="選擇假別" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>不選擇</SelectItem>
+                  <SelectItem value="__none__">不選擇</SelectItem>
                   {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
                     <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
                   ))}
@@ -265,14 +265,14 @@ export default function WeekCalendarTable({
             <div className="flex items-center gap-2 flex-shrink-0">
               <Select
                 value={selectedLeaveTypeId || ''}
-                onValueChange={(value) => onLeaveTypeChange(value || null)}
+                onValueChange={(value) => onLeaveTypeChange(value === '__none__' ? null : value || null)}
                 disabled={rangeMode}
               >
                 <SelectTrigger className="h-9 text-sm w-[150px]">
                   <SelectValue placeholder="選擇假別" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>不選擇</SelectItem>
+                  <SelectItem value="__none__">不選擇</SelectItem>
                   {leaveTypes?.sort((a, b) => (a.sort_order || 999) - (b.sort_order || 999)).map((lt) => (
                     <SelectItem key={lt.id} value={lt.id}>{lt.name}</SelectItem>
                   ))}
