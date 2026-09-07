@@ -13,20 +13,8 @@ export default defineConfig({
     }),
     react(),
   ],
-  build: {
-    chunkSizeWarningLimit: 1200,
-    rollupOptions: {
-      output: {
-        // 只依 node_modules 路徑分組；base44 plugin 的 virtual module id
-        // 不含 node_modules，會自然落回預設分組
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return;
-          if (/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(id)) return 'vendor-react';
-          if (id.includes('node_modules/@radix-ui/')) return 'vendor-radix';
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-charts';
-          if (id.includes('node_modules/@hello-pangea/dnd') || id.includes('node_modules/date-fns')) return 'vendor-dnd-dates';
-        },
-      },
-    },
-  },
+  // 注意：不要加 rollupOptions.output.manualChunks 做 vendor 切分——
+  // recharts/d3 等套件切開後會產生 chunk 間循環引用，正式建置
+  // 在模組初始化時拋出「Cannot access 'X' before initialization」
+  // 導致整個 app 白屏（dev 模式不走 manualChunks，本機測不出來）。
 });
