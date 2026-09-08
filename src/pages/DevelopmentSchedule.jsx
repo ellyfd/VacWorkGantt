@@ -10,10 +10,19 @@ export default function DevelopmentSchedule() {
   const { data: ganttTasks = [], isLoading: tasksLoading } = useQuery(ganttTasksQuery);
   const { data: brands = [], isLoading: brandsLoading } = useQuery(projectsQuery);
   const isLoading = projectsLoading || tasksLoading || brandsLoading;
-  const scheduledCount = useMemo(
-    () => new Set(ganttTasks.filter((task) => task.start_date).map((task) => task.gantt_project_id)).size,
-    [ganttTasks],
+  // 已封存的開發季不顯示（封存為後端共同狀態，全站一致）
+  const activeGanttProjects = useMemo(
+    () => ganttProjects.filter((p) => !p.archived_at && p.status !== 'archived'),
+    [ganttProjects],
   );
+  const scheduledCount = useMemo(() => {
+    const activeIds = new Set(activeGanttProjects.map((p) => p.id));
+    return new Set(
+      ganttTasks
+        .filter((task) => task.start_date && activeIds.has(task.gantt_project_id))
+        .map((task) => task.gantt_project_id)
+    ).size;
+  }, [ganttTasks, activeGanttProjects]);
 
   return (
     <main className="min-h-screen bg-slate-50 p-4 sm:p-6">
@@ -28,7 +37,7 @@ export default function DevelopmentSchedule() {
             <Skeleton className="h-72 w-full" />
           </div>
         ) : (
-          <SeasonScheduleTable ganttProjects={ganttProjects} ganttTasks={ganttTasks} brands={brands} />
+          <SeasonScheduleTable ganttProjects={activeGanttProjects} ganttTasks={ganttTasks} brands={brands} />
         )}
       </div>
     </main>

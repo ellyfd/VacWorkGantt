@@ -82,7 +82,6 @@ that climb out of `src/`.
 
 ### Hooks under `src/components/hooks/`
 
-- `useArchivedProjects` — Gantt season archive state, persisted in `localStorage` (`gantt-archived-projects`).
 - `useCellClickHandler` — single/double click discrimination on calendar cells.
 - `useConfirmDialog` — `[dialogProps, confirm]` API; `confirm(msg, opts)` returns `Promise<boolean>`.
 - `useDialogState` — central state for the many GanttChart dialogs.
@@ -246,8 +245,9 @@ callers go through `base44.integrations.Core.X` directly.
   `checkDeputyConflict`, `checkDeptLimit`, `buildWarningInfo`
   (`components/utils/leaveWarnings.jsx`). They build maps internally so
   calling them in a 30-day loop stays linear.
-- **Season archive state** is persisted in localStorage (see
-  `useArchivedProjects`) — preserve that behavior when touching Gantt season UI.
+- **Season archive state** is shared backend state on `GanttProject`
+  (`status: 'archived'` + `archived_at`) — one person archiving is visible to
+  everyone. Do not reintroduce per-browser archive state.
 - **Batch writes**: when fanning out N updates / deletes (e.g., admin tools
   in `Dashboard.handleCleanDuplicates / handleScanWarnings`), pipe through
   `runInBatches(items, fn, 10)` instead of `Promise.all(...)`. The backend

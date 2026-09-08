@@ -32,6 +32,11 @@
       "type": "number",
       "default": 0,
       "description": "\u5c08\u6848\u6392\u5e8f"
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u5c01\u5b58\u6642\u9593\uff08\u5171\u540c\u72c0\u614b\uff0c\u7a7a\u503c\u8868\u793a\u672a\u5c01\u5b58\uff09"
     }
   },
   "required": [

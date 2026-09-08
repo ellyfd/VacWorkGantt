@@ -52,7 +52,6 @@ import { useDragState } from '@/components/hooks/useDragState';
 import { useDialogState } from '@/components/hooks/useDialogState';
 import { useFormData } from '@/components/hooks/useFormData';
 import { useFilterState } from '@/components/hooks/useFilterState';
-import { useArchivedProjects } from '@/components/hooks/useArchivedProjects';
 import { useProjectCreation } from '@/components/hooks/useProjectCreation';
 
 // 零任務專案共用同一個空陣列，避免每次 render 產生新 reference 打穿 GanttRow 的 memo
@@ -76,7 +75,6 @@ export default function GanttChart() {
   const { showAddProjectDialog, setShowAddProjectDialog, showEditProjectDialog, setShowEditProjectDialog, editingProject, setEditingProject, showAddTaskDialog, setShowAddTaskDialog, showMilestoneDialog, setShowMilestoneDialog, showDurationDialog, setShowDurationDialog, showRollingDialog, setShowRollingDialog, showImportScheduleDialog, setShowImportScheduleDialog, showEditTaskDialog, setShowEditTaskDialog, editingTask, setEditingTask, editingProjectTasks, setEditingProjectTasks, deleteConfirm, setDeleteConfirm } = useDialogState();
   const { projectFormData, setProjectFormData, taskFormData, setTaskFormData } = useFormData();
   const { selectedDeptId, setSelectedDeptId, selectedGroupSlug, setSelectedGroupSlug, selectedBrandIds, setSelectedBrandIds, hideHolidays, setHideHolidays, archivedFilter, setArchivedFilter } = useFilterState();
-  const { archivedMap, archive: archiveProject, restore: restoreProject } = useArchivedProjects();
   const [archiveConfirm, setArchiveConfirm] = useState(null);
   const { creatingProjectId, setCreatingProjectId, scheduleFile, setScheduleFile, isAnalyzingSchedule, setIsAnalyzingSchedule } = useProjectCreation();
 
@@ -311,10 +309,14 @@ export default function GanttChart() {
   const rows = useMemo(() => {
     return ganttProjects.map(project => ({
       type: 'project',
-      data: { ...project, archived_at: archivedMap[project.id] ?? project.archived_at ?? null },
+      data: {
+        ...project,
+        archived_at: project.archived_at
+          ?? (project.status === 'archived' ? project.updated_date : null),
+      },
       id: `project-${project.id}`,
     }));
-  }, [ganttProjects, archivedMap]);
+  }, [ganttProjects]);
 
   // ── More Lookup Maps（定義早：employeeMap 需要在 filteredLeaveRecords 前面）
   const employeeMap = useMemo(() =>
@@ -1684,9 +1686,15 @@ export default function GanttChart() {
         onArchiveConfirm={() => {
           if (!archiveConfirm) return;
           if (archiveConfirm.action === 'restore') {
-            restoreProject(archiveConfirm.id);
+            updateGanttProject.mutate(
+              { id: archiveConfirm.id, data: { status: 'active', archived_at: null } },
+              { onSuccess: () => toast({ title: `已還原開發季「${archiveConfirm.name}」` }) }
+            );
           } else {
-            archiveProject(archiveConfirm.id);
+            updateGanttProject.mutate(
+              { id: archiveConfirm.id, data: { status: 'archived', archived_at: new Date().toISOString() } },
+              { onSuccess: () => toast({ title: `已封存開發季「${archiveConfirm.name}」` }) }
+            );
           }
           setArchiveConfirm(null);
         }}
