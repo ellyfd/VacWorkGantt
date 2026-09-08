@@ -26,6 +26,21 @@ export function useFilterState() {
     }
   }, []);
 
+  // 篩選變更時寫回 localStorage（原本只有讀取，從沒寫入，持久化其實壞的）
+  useEffect(() => {
+    try {
+      localStorage.setItem('gantt-filters', JSON.stringify({
+        deptId: selectedDeptId,
+        groupSlug: selectedGroupSlug,
+        brandIds: selectedBrandIds,
+        hideHolidays,
+        archivedFilter,
+      }));
+    } catch (e) {
+      // ignore（無痕模式等情境寫入可能失敗）
+    }
+  }, [selectedDeptId, selectedGroupSlug, selectedBrandIds, hideHolidays, archivedFilter]);
+
   const clearFilters = () => {
     setSelectedDeptId(null);
     setSelectedGroupSlug(null);
