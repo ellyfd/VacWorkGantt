@@ -2,7 +2,7 @@ import React, { memo, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowDown, ArrowUp, ArrowUpDown, CalendarRange, ListFilter, RotateCcw, X } from 'lucide-react';
-import { eachDayOfInterval, format, isWeekend, parseISO } from 'date-fns';
+import { eachDayOfInterval, format, isValid, isWeekend, parseISO } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -42,24 +42,33 @@ function getCanonicalTaskName(name) {
   return compactName === 'proto' || compactName === '3dproto' ? 'PROTO' : name.trim();
 }
 
+// 後端資料若含無法解析的日期，parseISO 會回 Invalid Date；
+// 直接丟給 format / eachDayOfInterval 會拋 RangeError 讓整頁白屏，所以先驗證。
+function safeParse(dateStr) {
+  if (!dateStr) return null;
+  const d = parseISO(dateStr);
+  return isValid(d) ? d : null;
+}
+
 function getTaskTimestamp(task) {
-  return task?.start_date ? parseISO(task.start_date).getTime() : Number.MAX_SAFE_INTEGER;
+  return safeParse(task?.start_date)?.getTime() ?? Number.MAX_SAFE_INTEGER;
 }
 
 function countWorkingDays(startDate, endDate) {
-  const start = parseISO(startDate);
-  const end = parseISO(endDate || startDate);
+  const start = safeParse(startDate);
+  const end = safeParse(endDate) || start;
+  if (!start || !end) return 0;
   const interval = start <= end ? { start, end } : { start: end, end: start };
   return eachDayOfInterval(interval).filter((day) => !isWeekend(day)).length;
 }
 
 function formatTaskDate(task) {
-  if (!task.start_date) return '';
-  const start = format(parseISO(task.start_date), 'M/d');
+  const startDate = safeParse(task.start_date);
+  if (!startDate) return '';
+  const start = format(startDate, 'M/d');
   if (task.time_type === 'rolling') return `${start} 起`;
-  const dateText = task.end_date && task.end_date !== task.start_date
-    ? `${start}–${format(parseISO(task.end_date), 'M/d')}`
-    : start;
+  const endDate = task.end_date && task.end_date !== task.start_date ? safeParse(task.end_date) : null;
+  const dateText = endDate ? `${start}–${format(endDate, 'M/d')}` : start;
   return `${dateText}（${countWorkingDays(task.start_date, task.end_date)}天）`;
 }
 

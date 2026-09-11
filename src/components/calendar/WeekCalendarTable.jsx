@@ -133,6 +133,9 @@ export default function WeekCalendarTable({
   }
 
   const today = format(new Date(), 'yyyy-MM-dd');
+  // Popover 的 open 必須是布林，from/to 未選時傳 undefined 會讓 Radix 在非受控/受控間切換
+  const rangeReady = !!(dateRange.from && dateRange.to);
+  const rangeLabel = rangeReady ? `${formatDateShort(dateRange.from)} 至 ${formatDateShort(dateRange.to)}` : '';
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -194,22 +197,22 @@ export default function WeekCalendarTable({
                   <CalendarRange className="h-4 w-4" />
                 </Button>
               ) : (
-                <Popover open={dateRange.from && dateRange.to}>
+                <Popover open={rangeReady}>
                   <PopoverTrigger asChild>
                     <Button
-                      onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
+                      onClick={() => { if (!rangeReady) onRangeModeCancel(); }}
                       variant="outline"
                       size="icon"
-                      className={`h-9 w-9 md:h-7 md:w-7 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                      className={`h-9 w-9 md:h-7 md:w-7 ${rangeReady ? 'bg-green-50 border-green-500' : ''}`}
                     >
-                      {dateRange.from && dateRange.to ? '✓' : '✕'}
+                      {rangeReady ? '✓' : '✕'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-72 md:hidden">
                     <div className="space-y-3">
                       <div>
                         <h3 className="font-semibold text-sm">確認區間請假</h3>
-                        <p className="text-sm text-gray-600 mt-1">{formatDateShort(dateRange.from)} 至 {formatDateShort(dateRange.to)}</p>
+                        <p className="text-sm text-gray-600 mt-1">{rangeLabel}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={onRangeModeCancel} variant="outline" size="sm" className="flex-1">取消</Button>
@@ -288,22 +291,22 @@ export default function WeekCalendarTable({
                   <CalendarRange className="h-4 w-4" />
                 </Button>
               ) : (
-                <Popover open={dateRange.from && dateRange.to}>
+                <Popover open={rangeReady}>
                   <PopoverTrigger asChild>
                     <Button
-                      onClick={() => { if (!dateRange.from || !dateRange.to) onRangeModeCancel(); }}
+                      onClick={() => { if (!rangeReady) onRangeModeCancel(); }}
                       variant="outline"
                       size="icon"
-                      className={`h-9 w-9 ${dateRange.from && dateRange.to ? 'bg-green-50 border-green-500' : ''}`}
+                      className={`h-9 w-9 ${rangeReady ? 'bg-green-50 border-green-500' : ''}`}
                     >
-                      {dateRange.from && dateRange.to ? '✓' : '✕'}
+                      {rangeReady ? '✓' : '✕'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-72 hidden md:block">
                     <div className="space-y-3">
                       <div>
                         <h3 className="font-semibold text-sm">確認區間請假</h3>
-                        <p className="text-sm text-gray-600 mt-1">{dateRange.from} 至 {dateRange.to}</p>
+                        <p className="text-sm text-gray-600 mt-1">{rangeLabel}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button onClick={onRangeModeCancel} variant="outline" size="sm" className="flex-1">取消</Button>
