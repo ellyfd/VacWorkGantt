@@ -8,14 +8,16 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
+// 每頁各自一層錯誤邊界：頁面 render 拋錯時只有內容區顯示錯誤卡片，側欄仍可導覽
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+  <Layout currentPageName={currentPageName}><AppErrorBoundary>{children}</AppErrorBoundary></Layout>
+  : <AppErrorBoundary>{children}</AppErrorBoundary>;
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
@@ -72,7 +74,9 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
-          <AuthenticatedApp />
+          <AppErrorBoundary>
+            <AuthenticatedApp />
+          </AppErrorBoundary>
         </Router>
         <Toaster />
         <VisualEditAgent />

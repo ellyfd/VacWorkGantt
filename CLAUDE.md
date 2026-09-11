@@ -54,6 +54,7 @@ src/
 │   ├── hooks/           # feature-level hooks
 │   ├── ui/              # shadcn/ui primitives (generated; avoid manual edits)
 │   ├── utils/           # shared business helpers
+│   ├── AppErrorBoundary.jsx     # per-route error boundary (App.jsx) — render throws show a card, not a white screen
 │   ├── ConfirmDialog.jsx        # use with useConfirmDialog instead of window.confirm
 │   └── UserNotRegisteredError.jsx  # error screen for authError.type === 'user_not_registered'
 ├── hooks/               # global hooks (useIsMobile)
@@ -297,6 +298,13 @@ callers go through `base44.integrations.Core.X` directly.
 - `@hello-pangea/dnd` sets a `transform` on `<tr>` elements that breaks
   `position: sticky` on child `<td>`. `index.css` includes a `!important`
   override for non-dragging rows; don't remove it.
+- JSX children are evaluated when the element is **created**, not mounted:
+  `<PopoverContent>{formatDateShort(range.from)}</PopoverContent>` runs the
+  helper even while the popover is closed. `src/lib/dateFormat.js` helpers
+  therefore return `''` for null/undefined/invalid input; when calling
+  date-fns `format` / `eachDayOfInterval` directly, guard with `isValid`
+  first — a RangeError in render unmounts the page (now caught by
+  `AppErrorBoundary`, but still a broken page).
 - `crypto.randomUUID()` requires a secure context (HTTPS or localhost).
   Production HTTPS and Vite's `http://localhost` dev server both qualify;
   custom-IP HTTP environments would need a polyfill.

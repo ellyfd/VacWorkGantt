@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, Calendar, Tag } from 'lucide-react';
-import { format } from 'date-fns';
 
 const PRESET_COLORS = [
   '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#EF4444', '#06B6D4', '#84CC16', '#F97316'
@@ -491,8 +490,8 @@ export default function LeaveSettings() {
                     <tr key={holiday.id} className="hover:bg-gray-50">
                       <td className="px-1.5 md:px-3 py-2 text-xs md:text-sm text-gray-800">
                         <div className="md:flex md:items-center md:gap-2">
-                          <span className="font-semibold text-xs block md:inline">{format(new Date(holiday.date), 'yyyy')}</span>
-                          <span className="text-xs block md:inline">{format(new Date(holiday.date), 'MM/dd')}</span>
+                          <span className="font-semibold text-xs block md:inline">{holiday.date?.slice(0, 4) || '—'}</span>
+                          <span className="text-xs block md:inline">{holiday.date?.slice(5, 10).replace('-', '/') || ''}</span>
                         </div>
                       </td>
                       <td className="px-2 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-800">{holiday.name}</td>
