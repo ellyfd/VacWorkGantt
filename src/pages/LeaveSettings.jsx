@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { leaveTypesQuery, holidaysQuery } from '@/lib/queries';
 import { getLeavePeriod } from '@/lib/leaveUtils';
+import { HOLIDAY_PRESETS, PRESET_YEARS } from '@/lib/holidayPresets';
 import PageSkeleton from '@/components/PageSkeleton';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { useConfirmDialog } from '@/components/hooks/useConfirmDialog';
+import { useToast } from '@/components/ui/use-toast';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Calendar, Tag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Tag, Download } from 'lucide-react';
 
 const PRESET_COLORS = [
   '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#EF4444', '#06B6D4', '#84CC16', '#F97316'
@@ -60,6 +64,21 @@ export default function LeaveSettings() {
   const { data: leaveTypes = [], isLoading: loadingTypes } = useQuery(leaveTypesQuery);
 
   const { data: holidays = [], isLoading: loadingHolidays } = useQuery(holidaysQuery);
+
+  const { toast } = useToast();
+  const [confirmProps, confirm] = useConfirmDialog();
+
+  // 年度篩選：2025 ~ 今年+2，再併入資料中出現的年份
+  const yearOptions = useMemo(() => {
+    const years = new Set();
+    for (let y = 2025; y <= new Date().getFullYear() + 2; y++) years.add(y);
+    PRESET_YEARS.forEach((y) => years.add(y));
+    holidays.forEach((h) => {
+      const y = Number(h.date?.slice(0, 4));
+      if (y) years.add(y);
+    });
+    return [...years].sort((a, b) => a - b);
+  }, [holidays]);
 
   // ============ LEAVE TYPE MUTATIONS ============
   const createType = useMutation({
@@ -102,6 +121,33 @@ export default function LeaveSettings() {
       setHolidayFormData({ date: '', name: '', type: 'company' });
     },
   });
+
+  const importPresetHolidays = useMutation({
+    mutationFn: (rows) => base44.entities.Holiday.bulkCreate(rows),
+    onSuccess: (_data, rows) => {
+      queryClient.invalidateQueries({ queryKey: ['holidays'] });
+      toast({ title: `已匯入 ${rows.length} 筆假日` });
+    },
+    onError: (err) => {
+      toast({ title: '匯入失敗', description: err?.message || '請稍後再試', variant: 'destructive' });
+    },
+  });
+
+  const handleImportPreset = async (year) => {
+    const existingDates = new Set(holidays.map((h) => h.date));
+    const rows = HOLIDAY_PRESETS[year]
+      .filter((h) => !existingDates.has(h.date))
+      .map((h) => ({ ...h, type: 'national' }));
+    if (rows.length === 0) {
+      toast({ title: `${year} 年國定假日都已存在，無需匯入` });
+      return;
+    }
+    const ok = await confirm(
+      `將新增 ${rows.length} 筆 ${year} 年國定假日（已存在的日期會略過）。\n此為依法規推算的版本，正式行事曆公布後請再核對調整放假。`,
+      { title: `匯入 ${year} 年國定假日`, confirmText: '匯入' },
+    );
+    if (ok) importPresetHolidays.mutate(rows);
+  };
 
   const deleteHoliday = useMutation({
     mutationFn: (id) => base44.entities.Holiday.delete(id),
@@ -444,10 +490,23 @@ export default function LeaveSettings() {
                 </div>
                 <h2 className="text-lg font-semibold text-gray-800">假日列表</h2>
               </div>
-              <Button onClick={handleAddHoliday} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                新增假日
-              </Button>
+              <div className="flex flex-wrap justify-end gap-2">
+                {PRESET_YEARS.map((year) => (
+                  <Button
+                    key={year}
+                    variant="outline"
+                    onClick={() => handleImportPreset(year)}
+                    disabled={importPresetHolidays.isPending}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    匯入{year}國定假日
+                  </Button>
+                ))}
+                <Button onClick={handleAddHoliday} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  新增假日
+                </Button>
+              </div>
             </div>
 
             <div className="mb-4 flex gap-3">
@@ -457,9 +516,9 @@ export default function LeaveSettings() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">所有年度</SelectItem>
-                  <SelectItem value="2025">2025年</SelectItem>
-                  <SelectItem value="2026">2026年</SelectItem>
-                  <SelectItem value="2027">2027年</SelectItem>
+                  {yearOptions.map((y) => (
+                    <SelectItem key={y} value={String(y)}>{y}年</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -624,6 +683,7 @@ export default function LeaveSettings() {
           </TabsContent>
         </Tabs>
       </div>
+      <ConfirmDialog {...confirmProps} />
     </div>
   );
 }

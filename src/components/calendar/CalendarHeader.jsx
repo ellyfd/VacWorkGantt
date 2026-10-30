@@ -54,7 +54,9 @@ export default function CalendarHeader({ currentDate, viewMode, onDateChange, on
   const yearOptionValue = controlled ? 'year' : '-1';
   const monthSelectValue = isYear ? yearOptionValue : currentMonth.toString();
 
-  const years = [2025, 2026, 2027];
+  // 2025 ~ 今年+2（確保目前顯示的年份也在選單內）
+  const lastYear = Math.max(new Date().getFullYear() + 2, currentYear);
+  const years = Array.from({ length: lastYear - 2024 }, (_, i) => 2025 + i);
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   return (
