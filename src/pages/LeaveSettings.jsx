@@ -460,6 +460,7 @@ export default function LeaveSettings() {
                   <SelectItem value="2025">2025年</SelectItem>
                   <SelectItem value="2026">2026年</SelectItem>
                   <SelectItem value="2027">2027年</SelectItem>
+                  <SelectItem value="2028">2028年</SelectItem>
                 </SelectContent>
               </Select>
 

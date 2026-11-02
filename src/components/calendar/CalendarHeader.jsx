@@ -54,7 +54,7 @@ export default function CalendarHeader({ currentDate, viewMode, onDateChange, on
   const yearOptionValue = controlled ? 'year' : '-1';
   const monthSelectValue = isYear ? yearOptionValue : currentMonth.toString();
 
-  const years = [2025, 2026, 2027];
+  const years = [2025, 2026, 2027, 2028];
   const months = Array.from({ length: 12 }, (_, i) => i);
 
   return (
